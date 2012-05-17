@@ -1,0 +1,25 @@
+Source: livebox-viewer
+Section: libs
+Priority: optional
+Maintainer: Sung-jae Park <nicesj.park@samsung.com>, Young-joo Park <yjoo93.park@samsung.com>
+Build-Depends: debhelper (>= 5), dlog-dev, libaul-1-dev, libglib2.0-dev
+Standards-Version: 0.1.0
+
+Package: liblivebox-viewer
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Livebox supporting library (shared object)
+
+Package: liblivebox-viewer-dev
+Section: libs
+Architecture: any
+Depends: liblivebox-viewer (= ${Source-Version})
+Description: Livebox supporting library (development)
+
+Package: liblivebox-viewer-dbg
+Section: debug
+Architecture: any
+Depends: ${misc:Depends}, liblivebox-viewer (= ${Source-Version})
+Description: Livebox supporting library (unstripped)
+

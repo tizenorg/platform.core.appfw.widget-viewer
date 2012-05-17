@@ -1,0 +1,3 @@
+@PREFIX@/include/@PROJECT_NAME@/livebox.h
+@PREFIX@/share/doc/@PROJECT_NAME@/livebox-viewer_PG.h
+@PREFIX@/lib/pkgconfig/*.pc
