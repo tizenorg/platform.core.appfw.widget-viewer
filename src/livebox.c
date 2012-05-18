@@ -793,7 +793,15 @@ EAPI int livebox_is_exists(const char *pkgname)
 	return (ret == 0) ? 1 : ret;
 }
 
-EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source)
+EAPI const char *livebox_content(struct livebox *handler)
+{
+	if (!handler)
+		return NULL;
+
+	return handler->content;
+}
+
+EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey)
 {
 	GVariant *param;
 	int ret;
@@ -807,7 +815,10 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 	if (!source)
 		source = "";
 
-	param = g_variant_new("(ssss)", handler->pkgname, handler->filename, emission, source);
+	param = g_variant_new("(ssssdddd)", handler->pkgname, handler->filename, emission, source, sx, sy, ex, ey);
+	if (!param)
+		return -EFAULT;
+
 	ret = dbus_push_command(handler, "text_signal", param, event_ret_cb, handler);
 	if (ret < 0) {
 		g_variant_unref(param);

@@ -95,6 +95,7 @@ extern int livebox_is_text(struct livebox *handler);
 extern int livebox_is_file(struct livebox *handler);
 extern int livebox_is_user(struct livebox *handler);
 
+extern const char *livebox_content(struct livebox *handler);
 extern const char *livebox_filename(struct livebox *handler);
 extern void *livebox_fb(struct livebox *handler);
 extern void *livebox_pdfb(struct livebox *handler);
@@ -135,7 +136,7 @@ extern int livebox_is_exists(const char *pkgname);
 extern int livebox_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
 extern int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
 
-extern int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source);
+extern int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey);
 #ifdef __cplusplus
 }
 #endif
