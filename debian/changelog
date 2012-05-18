@@ -1,3 +1,10 @@
+livebox-viewer (0.0.2) unstable; urgency=low
+
+  * Git: slp/pkgs/l/livebox-viewer
+  * Tag: livebox-viewer_0.0.2
+
+ -- Sung-jae Park <nicesj.park@samsung.com>  Fri, 18 May 2012 12:06:12 +0900
+
 livebox-viewer (0.0.1) unstable; urgency=low
 
   * Initial Release.

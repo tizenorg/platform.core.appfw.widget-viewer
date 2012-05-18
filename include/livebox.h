@@ -135,6 +135,7 @@ extern int livebox_is_exists(const char *pkgname);
 extern int livebox_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
 extern int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
 
+extern int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source);
 #ifdef __cplusplus
 }
 #endif
