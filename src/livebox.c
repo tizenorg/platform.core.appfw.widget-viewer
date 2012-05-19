@@ -369,12 +369,16 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 
 static void pd_created_cb(struct livebox *handler, int ret, void *data)
 {
-	if (ret == 0) {
-		fb_create_buffer(data);
-		lb_invoke_event_handler(handler, "pd,created");
-	} else {
+	if (ret != 0) {
 		lb_invoke_event_handler(handler, "pd,create,failed");
+		return;
 	}
+
+	ret = fb_create_buffer(handler->pd_fb);
+	if (ret < 0)
+		ErrPrint("Failed to create a PD buffer\n");
+
+	lb_invoke_event_handler(handler, "pd,created");
 }
 
 static void activated_cb(struct livebox *handler, int ret, void *data)
@@ -406,7 +410,7 @@ EAPI int livebox_create_pd(struct livebox *handler)
 	if (!param)
 		return -EFAULT;
 
-	ret = dbus_push_command(handler, "create_pd", param, pd_created_cb, handler->pd_fb);
+	ret = dbus_push_command(handler, "create_pd", param, pd_created_cb, NULL);
 	if (ret < 0)
 		g_variant_unref(param);
 
@@ -1028,22 +1032,8 @@ void lb_update_lb_fb(struct livebox *handler, int w, int h)
 		return;
 	}
 
-	fb_destroy_buffer(handler->lb_fb);
-	fb_destroy(handler->lb_fb);
-
-	handler->lb_fb = fb_create(filename, w, h);
-	free(filename);
-	if (!handler->lb_fb) {
-		ErrPrint("Faield to create a FB\n");
-		return;
-	}
-
-	if (fb_create_buffer(handler->lb_fb) < 0) {
-		ErrPrint("Failed to create a FB\n");
-		fb_destroy(handler->lb_fb);
-		handler->lb_fb = NULL;
-		return;
-	}
+	lb_set_size(handler, w, h);
+	lb_set_lb_fb(handler, filename);
 }
 
 void lb_update_pd_fb(struct livebox *handler, int w, int h)
@@ -1078,15 +1068,10 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 		return;
 	}
 
-	fb_destroy_buffer(handler->pd_fb);
-	fb_destroy(handler->pd_fb);
-
-	handler->pd_fb = fb_create(filename, w, h);
+	DbgPrint("Create new buffer [%dx%d]\n", w, h);
+	lb_set_pdsize(handler, w, h);
+	lb_set_pd_fb(handler, filename);
 	free(filename);
-	if (!handler->pd_fb) {
-		ErrPrint("Failed to create a FB\n");
-		return;
-	}
 
 	ret = fb_create_buffer(handler->pd_fb);
 	if (ret < 0) {
@@ -1096,7 +1081,7 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 	}
 }
 
-void lb_set_lb_fb(struct livebox *handler, const char *filename, int w, int h)
+void lb_set_lb_fb(struct livebox *handler, const char *filename)
 {
 	if (!handler)
 		return;
@@ -1110,7 +1095,7 @@ void lb_set_lb_fb(struct livebox *handler, const char *filename, int w, int h)
 	if (!filename || filename[0] == '\0')
 		return;
 
-	handler->lb_fb = fb_create(filename, w, h);
+	handler->lb_fb = fb_create(filename, handler->lb_w, handler->lb_h);
 	if (!handler->lb_fb) {
 		ErrPrint("Faield to create a FB\n");
 		return;
@@ -1126,7 +1111,7 @@ void lb_set_lb_fb(struct livebox *handler, const char *filename, int w, int h)
 	handler->data_type = FBDATA;
 }
 
-void lb_set_pd_fb(struct livebox *handler, const char *filename, int w, int h)
+void lb_set_pd_fb(struct livebox *handler, const char *filename)
 {
 	if (!handler)
 		return;
@@ -1140,7 +1125,7 @@ void lb_set_pd_fb(struct livebox *handler, const char *filename, int w, int h)
 	if (!filename || filename[0] == '\0')
 		return;
 
-	handler->pd_fb = fb_create(filename, w, h);
+	handler->pd_fb = fb_create(filename, handler->pd_w, handler->pd_h);
 	if (!handler->pd_fb) {
 		ErrPrint("Failed to create a FB\n");
 		return;

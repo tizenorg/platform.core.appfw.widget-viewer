@@ -262,8 +262,6 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 	struct livebox *handler;
 	int pd_w;
 	int pd_h;
-	int tmp_w;
-	int tmp_h;
 
 	g_variant_get(param, "(&s&s&sii)",
 			&pkgname, &filename, &descfile, &pd_w, &pd_h);
@@ -274,19 +272,15 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 		goto out;
 	}
 
-	livebox_get_pdsize(handler, &tmp_w, &tmp_h);
-	if (tmp_w != pd_w || tmp_h != pd_h) {
-		/* pd buffer size is updated */
-		DbgPrint("PD buffer size is changed\n");
-	}
-
-	lb_set_pdsize(handler, pd_w, pd_h);
+	DbgPrint("PD is updated [%dx%d]\n", pd_w, pd_h);
 
 	if (lb_text_pd(handler)) {
 		ret = parse_desc(handler, filename, 1);
 	} else {
-		if (lb_get_pd_fb(handler))
+		if (lb_get_pd_fb(handler)) {
+			lb_update_pd_fb(handler, pd_w, pd_h);
 			fb_sync(lb_get_pd_fb(handler));
+		}
 
 		lb_invoke_event_handler(handler, "pd,updated");
 		ret = 0;
@@ -303,8 +297,6 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 	struct livebox *handler;
 	int lb_w;
 	int lb_h;
-	int tmp_w;
-	int tmp_h;
 	double priority;
 
 	g_variant_get(param, "(&s&siid)",
@@ -317,20 +309,16 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 		goto out;
 	}
 
-	livebox_get_size(handler, &tmp_w, &tmp_h);
-	if (tmp_w != lb_w || tmp_h != lb_h) {
-		/* livebox buffer is updated */
-	}
-
-	if (lb_get_lb_fb(handler))
-		fb_sync(lb_get_lb_fb(handler));
-
-	lb_set_size(handler, lb_w, lb_h);
 	lb_set_priority(handler, priority);
 
 	if (lb_text_lb(handler)) {
 		ret = parse_desc(handler, filename, 0);
 	} else {
+		if (lb_get_lb_fb(handler)) {
+			lb_update_lb_fb(handler, lb_w, lb_h);
+			fb_sync(lb_get_lb_fb(handler));
+		}
+
 		lb_invoke_event_handler(handler, "lb,updated");
 		ret = 0;
 	}
@@ -395,11 +383,12 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 		lb_set_filename(handler, filename);
 	}
 
-	lb_set_lb_fb(handler, lb_fname, lb_w, lb_h);
-	lb_set_pd_fb(handler, pd_fname, lb_w, lb_h);
-
 	lb_set_size(handler, lb_w, lb_h);
+	lb_set_lb_fb(handler, lb_fname);
+
 	lb_set_pdsize(handler, pd_w, pd_h);
+	lb_set_pd_fb(handler, pd_fname);
+
 	lb_set_priority(handler, priority);
 
 	lb_set_size_list(handler, size_list);

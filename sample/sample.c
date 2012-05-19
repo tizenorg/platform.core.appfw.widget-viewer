@@ -172,12 +172,14 @@ static inline int create_new_pd(struct livebox *handler)
 		Evas_Coord x, y;
 
 		livebox_get_pdsize(handler, &w, &h);
+		fprintf(stderr, "PDSize: %dx%d\n", w, h);
 
 		evas_object_image_size_set(info->pd, w, h); 
 		evas_object_image_colorspace_set(info->pd, EVAS_COLORSPACE_ARGB8888);
 		evas_object_image_alpha_set(info->pd, EINA_TRUE);
 
 		evas_object_image_fill_set(info->pd, 0, 0, w, h);
+		fprintf(stderr, "PD ptr: %p\n", livebox_pdfb(handler));
 		evas_object_image_data_set(info->pd, livebox_pdfb(handler));
 		evas_object_image_data_update_add(info->pd, 0, 0, w, h);
 		evas_object_resize(info->pd, w, h);
@@ -193,6 +195,7 @@ static inline int create_new_pd(struct livebox *handler)
 		evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_DOWN, pd_mouse_down_cb, info);
 		evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_MOVE, pd_mouse_move_cb, info);
 		evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_UP, pd_mouse_up_cb, info);
+		fprintf(stderr, "PD created\n");
 	}
 
 	return 0;
@@ -285,6 +288,7 @@ static inline void reload_buffer(Evas_Object *box, void *buffer, double priority
 
 	evas_object_move(box, x, y);
 	if (ow != w || oh != h) {
+		evas_object_image_size_set(box, w, h);
 		evas_object_image_fill_set(box, 0, 0, w, h);
 		evas_object_image_data_set(box, buffer);
 		evas_object_resize(box, w, h);
@@ -328,7 +332,7 @@ static inline int update_box(struct livebox *handler)
 	Evas_Coord w, h;
 
 	livebox_get_size(handler, &w, &h);
-	fprintf(stderr, "reload size: %dx%d\n", w, h);
+	fprintf(stderr, "lb: reload size: %dx%d\n", w, h);
 
 	EINA_LIST_FOREACH(s_info.boxes, l, info) {
 		if (info->handler == handler) {
@@ -354,7 +358,7 @@ static inline int update_pd(struct livebox *handler)
 	Evas_Coord w, h;
 
 	livebox_get_pdsize(handler, &w, &h);
-	fprintf(stderr, "reload size: %dx%d\n", w, h);
+	fprintf(stderr, "pd: reload size: %dx%d\n", w, h);
 
 	EINA_LIST_FOREACH(s_info.boxes, l, info) {
 		if (info->handler == handler) {

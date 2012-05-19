@@ -35,6 +35,7 @@ int fb_fini(void)
 	return 0;
 }
 
+/*
 static inline struct flock *file_lock(short type, short whence)
 {
 	static struct flock ret;
@@ -46,10 +47,11 @@ static inline struct flock *file_lock(short type, short whence)
 	ret.l_pid = getpid();
 	return &ret;
 }
+*/
 
 int fb_sync(struct fb_info *info)
 {
-	if (info->fd < 0 || !info->buffer)
+	if (info->created != 1)
 		return -EINVAL;
 
 //	fcntl(info->fd, F_SETLKW, file_lock(F_RDLCK, SEEK_SET));
@@ -113,6 +115,8 @@ int fb_create_buffer(struct fb_info *info)
 		return -EIO;
 	}
 
+	info->bufsz = info->w * info->h * sizeof(int);
+	/*
 	info->bufsz = lseek(info->fd, 0l, SEEK_END);
 	if (info->bufsz < 0) {
 		ErrPrint("lseek: %s\n", strerror(errno));
@@ -122,6 +126,9 @@ int fb_create_buffer(struct fb_info *info)
 	}
 
 	lseek(info->fd, 0l, SEEK_SET);
+	*/
+
+	DbgPrint("Buffer size: %ld\n", info->bufsz);
 
 	info->buffer = calloc(1, info->bufsz);
 	if (!info->buffer) {
@@ -199,4 +206,5 @@ int fb_size(struct fb_info *info)
 {
 	return info->bufsz;
 }
+
 /* End of a file */
