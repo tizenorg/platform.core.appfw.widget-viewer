@@ -273,6 +273,7 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 	}
 
 	DbgPrint("PD is updated [%dx%d]\n", pd_w, pd_h);
+	lb_set_pdsize(handler, pd_w, pd_h);
 
 	if (lb_text_pd(handler)) {
 		ret = parse_desc(handler, filename, 1);
@@ -310,6 +311,7 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 	}
 
 	lb_set_priority(handler, priority);
+	lb_set_size(handler, lb_w, lb_h);
 
 	if (lb_text_lb(handler)) {
 		ret = parse_desc(handler, filename, 0);
