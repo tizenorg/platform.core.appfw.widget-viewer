@@ -189,6 +189,8 @@ static inline int create_new_pd(struct livebox *handler)
 			x = 0;
 
 		y = (rand() % ((s_info.h / 2) - h));
+		if (y < 40)
+			y = 40;
 		evas_object_move(info->pd, x, y);
 		evas_object_show(info->pd);
 
@@ -218,12 +220,29 @@ static inline int create_new_box(struct livebox *handler)
 		fprintf(stderr, "Failed to add an image object\n");
 	} else {
 		Evas_Coord w, h;
+		Evas_Coord x, y;
 		livebox_get_size(handler, &w, &h);
 		fprintf(stderr, "created size: %dx%d\n", w, h);
 		evas_object_image_file_set(info->box, livebox_filename(info->handler), NULL);
 		evas_object_image_fill_set(info->box, 0, 0, w, h);
 		evas_object_resize(info->box, w, h);
-		evas_object_move(info->box, (rand() % (s_info.w - w)), (rand() % ((s_info.h / 2) - h)));
+
+		y = (rand() % ((s_info.h / 2) - h));
+		x = (rand() % (s_info.w - w));
+
+		if (y < 40)
+			y = 40;
+
+		if (y + h > s_info.h)
+			y = s_info.h - h;
+
+		if (x < 0)
+			x = 0;
+
+		if (x + w > s_info.w)
+			x = s_info.w - x;
+
+		evas_object_move(info->box, x, y);
 		evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_UP, box_mouse_up_cb, info);
 		evas_object_layer_set(info->box, livebox_priority(info->handler) * 10);
 		evas_object_show(info->box);
@@ -304,15 +323,6 @@ static inline void reload_file(Evas_Object *box, const char *filename, double pr
 	Evas_Coord ow, oh, x, y;
 
 	evas_object_image_file_get(box, &fname, NULL);
-	evas_object_geometry_get(box, &x, &y, &ow, &oh);
-
-	x += ((ow - w) / 2);
-	y += ((oh - h) / 2);
-
-	evas_object_image_fill_set(box, 0, 0, w, h);
-	evas_object_move(box, x, y);
-	evas_object_resize(box, w, h);
-
 	if (!strcmp(fname, filename)) {
 		evas_object_image_reload(box);
 		fprintf(stderr, "Reload file: %s, %s\n", fname, filename);
@@ -320,7 +330,27 @@ static inline void reload_file(Evas_Object *box, const char *filename, double pr
 		evas_object_image_file_set(box, fname, NULL);
 		fprintf(stderr, "First load: %s\n", fname);
 	}
+	evas_object_geometry_get(box, &x, &y, &ow, &oh);
 
+	x += ((ow - w) / 2);
+	y += ((oh - h) / 2);
+
+	evas_object_image_fill_set(box, 0, 0, w, h);
+	evas_object_resize(box, w, h);
+
+	if (y < 40)
+		y = 40;
+
+	if (y + h > s_info.h)
+		y = s_info.h - h;
+
+	if (x < 0)
+		x = 0;
+
+	if (x + w > s_info.w)
+		x = s_info.w - x;
+
+	evas_object_move(box, x, y);
 	evas_object_layer_set(box, priority * 10);
 	evas_object_show(box);
 }
