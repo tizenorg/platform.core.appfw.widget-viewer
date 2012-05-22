@@ -7,7 +7,7 @@
 #include <ail.h>
 
 #include <livebox.h>
-#include <shortcut.h>
+//#include <shortcut.h>
 
 static struct info {
 	Eina_List *boxes;
@@ -663,7 +663,7 @@ static void btn_clicked_cb(void *data, Evas_Object *obj, void *event_info)
 	fprintf(stderr, "content_info: \"default\" [FIXED]]\n");
 
 	struct livebox *handler;
-	handler = livebox_add(pkgname, "default", c_name, s_name);
+	handler = livebox_add(pkgname, "default", c_name, s_name, DEFAULT_PERIOD);
 	if (!handler)
 		fprintf(stderr, "Failed to create a livebox\n");
 	fprintf(stderr, "Handler added: %p\n", handler);
@@ -731,6 +731,7 @@ static inline void package_list(void)
 	btn();
 }
 
+/*
 static int shortcut_request_cb(const char *pkgname,
 					const char *name, int type,
 					const char *content, const char *icon,
@@ -743,7 +744,7 @@ static int shortcut_request_cb(const char *pkgname,
 		return -EINVAL;
 	}
 	
-	handler = livebox_add(pkgname, content, "user,created", "default");
+	handler = livebox_add(pkgname, content, "user,created", "default", DEFAULT_PERIOD);
 	if (!handler) {
 		fprintf(stderr, "Failed to add a new livebox\n");
 		return -EFAULT;
@@ -752,6 +753,7 @@ static int shortcut_request_cb(const char *pkgname,
 	fprintf(stderr, "%s - [%s] is successfully created [%p]\n", pkgname, content, handler);
 	return 0;
 }
+*/
 
 static int app_create(void *data)
 {
@@ -784,7 +786,7 @@ static int app_create(void *data)
 
 	livebox_event_handler_set(event_cb, NULL);
 	livebox_fault_handler_set(fault_cb, NULL);
-	shortcut_set_request_cb(shortcut_request_cb, NULL);
+//	shortcut_set_request_cb(shortcut_request_cb, NULL);
 
 	package_list();
 	return 0;
@@ -851,7 +853,7 @@ static int app_reset(bundle *b,void *data)
 	fprintf(stderr, "cluster: %s\n", cluster);
 	fprintf(stderr, "category: %s\n", category);
 
-	handler = livebox_add(pkgname, content, cluster, category);
+	handler = livebox_add(pkgname, content, cluster, category, DEFAULT_PERIOD);
 	if (!handler)
 		fprintf(stderr, "Failed to create a livebox\n");
 

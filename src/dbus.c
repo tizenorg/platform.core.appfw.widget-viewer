@@ -80,6 +80,7 @@ static struct info {
 	"  <arg type='i' name='pinup_supported' direction='in' />"
 	"  <arg type='i' name='text_lb' direction='in' />"
 	"  <arg type='i' name='text_pd' direction='in' />"
+	"  <arg type='d' name='period' direction='in' />"
 	"  <arg type='i' name='result' direction='out' />"
 	" </method>"
 	"</interface>"
@@ -352,25 +353,26 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 	int pinup_supported;
 	int text_lb;
 	int text_pd;
+	double period;
 
-	g_variant_get(param, "(d&s&s&siiii&s&s&s&sidiiiii)",
+	g_variant_get(param, "(d&s&s&siiii&s&s&s&sidiiiiid)",
 			&timestamp,
 			&pkgname, &filename, &content,
 			&lb_w, &lb_h, &pd_w, &pd_h,
 			&cluster, &category, &lb_fname, &pd_fname,
 			&auto_launch, &priority, &size_list, &user, &pinup_supported,
-			&text_lb, &text_pd);
+			&text_lb, &text_pd, &period);
 
 	DbgPrint("[%lf] pkgname: %s, filename: %s, content: %s, "
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
 		"cluster: %s, category: %s, lb_fname: %s, pd_fname: %s"
 		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d"
-		"text_lb: %d, text_pd: %d\n",
+		"text_lb: %d, text_pd: %d, period: %lf\n",
 		timestamp, pkgname, filename, content,
 		pd_w, pd_h, lb_w, lb_h,
 		cluster, category, lb_fname, pd_fname,
 		auto_launch, priority, size_list, user, pinup_supported,
-		text_lb, text_pd);
+		text_lb, text_pd, period);
 
 	handler = lb_find_livebox_by_timestamp(timestamp);
 	if (!handler) {
@@ -400,6 +402,8 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 
 	lb_set_auto_launch(handler, auto_launch);
 	lb_set_pinup(handler, pinup_supported);
+
+	lb_set_period(handler, period);
 
 	lb_invoke_event_handler(handler, "lb,created");
 

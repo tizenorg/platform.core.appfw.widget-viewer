@@ -15,6 +15,7 @@ struct livebox;
  * 720x372
  */
 #define NR_OF_SIZE_LIST 4
+#define DEFAULT_PERIOD -1.0f
 
 static const struct supported_size_list {
 	int w;
@@ -42,7 +43,7 @@ struct livebox_script_operators {
 extern int livebox_init(void);
 extern int livebox_fini(void);
 
-extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category);
+extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period);
 extern int livebox_del(struct livebox *handler, int server);
 
 /*!
@@ -87,6 +88,9 @@ extern int livebox_click(struct livebox *handler, double x, double y);
 
 extern int livebox_set_group(struct livebox *handler, const char *cluster, const char *category);
 extern int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category);
+
+extern double livebox_period(struct livebox *handler);
+extern int livebox_set_period(struct livebox *handler, double period);
 
 extern int livebox_delete_cluster(const char *cluster);
 extern int livebox_delete_category(const char *cluster, const char *category);

@@ -71,6 +71,23 @@ static void event_ret_cb(struct livebox *handler, int ret, void *data)
 	}
 }
 
+static void period_cb(struct livebox *handler, int ret, void *data)
+{
+	double *period;
+
+	period = (double *)data;
+
+	if (ret < 0) {
+		lb_invoke_event_handler(handler, "event,ignored");
+	} else if (ret == 0) {
+		lb_set_period(handler, *period);
+	} else {
+		DbgPrint("Unknown returns %d\n", ret);
+	}
+
+	free(data);
+}
+
 static void ret_cb(struct livebox *handler, int ret, void *data)
 {
 	if (ret < 0) {
@@ -80,7 +97,7 @@ static void ret_cb(struct livebox *handler, int ret, void *data)
 	}
 }
 
-EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category)
+EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period)
 {
 	struct livebox *handler;
 	GVariant *param;
@@ -138,10 +155,11 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 	handler->nr_of_sizes = 0x01;
 
 	handler->timestamp = util_get_timestamp();
+	handler->period = period;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
-	param = g_variant_new("(dssss)", handler->timestamp, pkgname, content, cluster, category);
+	param = g_variant_new("(dssssd)", handler->timestamp, pkgname, content, cluster, category, period);
 	if (!param) {
 		free(handler->category);
 		free(handler->cluster);
@@ -151,7 +169,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 		return NULL;
 	}
 
-	ret = dbus_push_command(handler, "new", param, ret_cb, handler);
+	ret = dbus_push_command(handler, "new", param, ret_cb, NULL);
 	if (ret < 0) {
 		free(handler->category);
 		free(handler->cluster);
@@ -163,6 +181,41 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 	}
 
 	return handler;
+}
+
+EAPI double livebox_period(struct livebox *handler)
+{
+	return handler->period;
+}
+
+EAPI int livebox_set_period(struct livebox *handler, double period)
+{
+	GVariant *param;
+	int ret;
+	double *period_heap;
+
+	if (handler->period == period)
+		return 0;
+
+	period_heap = malloc(sizeof(*period_heap));
+	if (!period_heap)
+		return -ENOMEM;
+
+	param = g_variant_new("(ssd)", handler->pkgname, handler->filename, period);
+	if (!param) {
+		free(period_heap);
+		return -EFAULT;
+	}
+
+	*period_heap = period;
+	ret = dbus_push_command(handler, "set_period", param, period_cb, (void *)period_heap);
+	if (ret < 0) {
+		g_variant_unref(param);
+		free(period_heap);
+		return ret;
+	}
+
+	return 0;
 }
 
 EAPI int livebox_del(struct livebox *handler, int server)
@@ -178,7 +231,7 @@ EAPI int livebox_del(struct livebox *handler, int server)
 		if (!param)
 			return -EFAULT;
 
-		ret = dbus_push_command(handler, "delete", param, ret_cb, handler);
+		ret = dbus_push_command(handler, "delete", param, ret_cb, NULL);
 		if (ret < 0) {
 			g_variant_unref(param);
 			return ret;
@@ -299,7 +352,7 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h)
 	if (!param)
 		return -EFAULT;
 
-	ret = dbus_push_command(handler, "resize", param, event_ret_cb, handler);
+	ret = dbus_push_command(handler, "resize", param, event_ret_cb, NULL);
 	if (ret < 0)
 		g_variant_unref(param);
 
@@ -324,7 +377,7 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	if (!param)
 		return -EFAULT;
 
-	ret = dbus_push_command(handler, "clicked", param, event_ret_cb, handler);
+	ret = dbus_push_command(handler, "clicked", param, event_ret_cb, NULL);
 	if (ret < 0)
 		g_variant_unref(param);
 
@@ -344,7 +397,7 @@ static inline int send_mouse_event(struct livebox *handler, const char *event, d
 	if (!param)
 		return -EFAULT;
 
-	ret = dbus_push_command(handler, event, param, event_ret_cb, handler);
+	ret = dbus_push_command(handler, event, param, event_ret_cb, NULL);
 	if (ret < 0)
 		g_variant_unref(param);
 
@@ -439,7 +492,7 @@ EAPI int livebox_activate(const char *pkgname)
 static void pd_destroy_cb(struct livebox *handler, int ret, void *data)
 {
 	DbgPrint("destroy_pd returns %d\n", ret);
-	fb_destroy_buffer(data);
+	fb_destroy_buffer(handler->pd_fb);
 	lb_invoke_event_handler(handler, "pd,deleted");
 }
 
@@ -458,7 +511,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler)
 	if (!param)
 		return -EFAULT;
 
-	ret = dbus_push_command(handler, "destroy_pd", param, pd_destroy_cb, handler->pd_fb);
+	ret = dbus_push_command(handler, "destroy_pd", param, pd_destroy_cb, NULL);
 	if (ret < 0)
 		g_variant_unref(param);
 
@@ -569,7 +622,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 	if (!param)
 		return -EFAULT;
 
-	ret = dbus_push_command(handler, "change_group", param, event_ret_cb, handler);
+	ret = dbus_push_command(handler, "change_group", param, event_ret_cb, NULL);
 	if (ret < 0)
 		g_variant_unref(param);
 
@@ -823,7 +876,7 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 	if (!param)
 		return -EFAULT;
 
-	ret = dbus_push_command(handler, "text_signal", param, event_ret_cb, handler);
+	ret = dbus_push_command(handler, "text_signal", param, event_ret_cb, NULL);
 	if (ret < 0) {
 		g_variant_unref(param);
 		return -EIO;
@@ -1170,6 +1223,11 @@ int lb_text_lb(struct livebox *handler)
 int lb_text_pd(struct livebox *handler)
 {
 	return handler->text_pd;
+}
+
+void lb_set_period(struct livebox *handler, double period)
+{
+	handler->period = period;
 }
 
 /* End of a file */

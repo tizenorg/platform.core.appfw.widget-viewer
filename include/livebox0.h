@@ -23,6 +23,7 @@ extern void lb_set_text_lb(struct livebox *handler, int flag);
 extern void lb_set_text_pd(struct livebox *handler, int flag);
 extern int lb_text_lb(struct livebox *handler);
 extern int lb_text_pd(struct livebox *handler);
+extern void lb_set_period(struct livebox *handler, double period);
 
 struct livebox {
 	char *cluster;
@@ -47,6 +48,7 @@ struct livebox {
 	int pd_h;
 	int auto_launch;
 	double priority;
+	double period;
 
 	int nr_of_sizes;
 
