@@ -7,7 +7,7 @@
 #include <ail.h>
 
 #include <livebox.h>
-//#include <shortcut.h>
+#include <shortcut.h>
 
 static struct info {
 	Eina_List *boxes;
@@ -77,6 +77,52 @@ char *util_get_iconfile(const char *pkgname)
 	}
 
 	return ret_iconfile;
+}
+
+static void lb_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Mouse_Down *down = event_info;
+	Evas_Coord x, y, w, h;
+	double rx, ry;
+	struct box_info *info = data;
+
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	rx = (double)(down->canvas.x - x) / (double)w;
+	ry = (double)(down->canvas.y - y) / (double)h;
+
+	livebox_livebox_mouse_down(info->handler, rx, ry);
+}
+
+
+static void lb_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Mouse_Up *up = event_info;
+	Evas_Coord x, y, w, h;
+	double rx, ry;
+	struct box_info *info = data;
+
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	rx = (double)(up->canvas.x - x) / (double)w;
+	ry = (double)(up->canvas.y - y) / (double)h;
+
+	livebox_livebox_mouse_up(info->handler, rx, ry);
+}
+
+static void lb_mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Mouse_Up *up = event_info;
+	Evas_Coord x, y, w, h;
+	double rx, ry;
+	struct box_info *info = data;
+
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	rx = (double)(up->canvas.x - x) / (double)w;
+	ry = (double)(up->canvas.y - y) / (double)h;
+
+	livebox_livebox_mouse_up(info->handler, rx, ry);
 }
 
 static void pd_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -215,16 +261,34 @@ static inline int create_new_box(struct livebox *handler)
 
 	info->handler = handler;
 
-	info->box = evas_object_image_add(evas_object_evas_get(s_info.win));
+	info->box = evas_object_image_filled_add(evas_object_evas_get(s_info.win));
 	if (!info->box) {
 		fprintf(stderr, "Failed to add an image object\n");
 	} else {
 		Evas_Coord w, h;
 		Evas_Coord x, y;
+
 		livebox_get_size(handler, &w, &h);
 		fprintf(stderr, "created size: %dx%d\n", w, h);
-		evas_object_image_file_set(info->box, livebox_filename(info->handler), NULL);
-		evas_object_image_fill_set(info->box, 0, 0, w, h);
+		if (!livebox_is_file(handler)) {
+			void *fb;
+
+			fb = livebox_fb(handler);
+			evas_object_image_size_set(info->box, w, h);
+			evas_object_image_colorspace_set(info->box, EVAS_COLORSPACE_ARGB8888);
+			evas_object_image_alpha_set(info->box, EINA_TRUE);
+			evas_object_image_fill_set(info->box, 0, 0, w, h);
+			evas_object_image_data_set(info->box, fb);
+			evas_object_image_data_update_add(info->box, 0, 0, w, h);
+
+			evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_DOWN, lb_mouse_down_cb, info);
+			evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_MOVE, lb_mouse_move_cb, info);
+			evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_UP, lb_mouse_up_cb, info);
+			fprintf(stderr, "Buffer type livebox is created\n");
+		} else {
+			evas_object_image_file_set(info->box, livebox_filename(info->handler), NULL);
+			evas_object_image_fill_set(info->box, 0, 0, w, h);
+		}
 		evas_object_resize(info->box, w, h);
 
 		y = (rand() % ((s_info.h / 2) - h));
@@ -431,11 +495,6 @@ static int event_cb(struct livebox *handler, const char *event, void *data)
 	fprintf(stderr, "priority: %lf\n", livebox_priority(handler));
 	fprintf(stderr, "created by %s\n", livebox_is_user(handler) ? "user" : "system");
 	fprintf(stderr, "handler: %p\n", handler);
-
-	if (!livebox_is_file(handler)) {
-		fprintf(stderr, "[%s] buffer: %p\n", livebox_pkgname(handler), livebox_fb(handler));
-		return EXIT_SUCCESS;
-	}
 
 	if (!strcmp(event, "lb,created"))
 		create_new_box(handler);
@@ -731,11 +790,11 @@ static inline void package_list(void)
 	btn();
 }
 
-/*
+
 static int shortcut_request_cb(const char *pkgname,
 					const char *name, int type,
 					const char *content, const char *icon,
-					int pid, void *data)
+					int pid, double period, void *data)
 {
 	struct livebox *handler;
 
@@ -744,16 +803,16 @@ static int shortcut_request_cb(const char *pkgname,
 		return -EINVAL;
 	}
 	
-	handler = livebox_add(pkgname, content, "user,created", "default", DEFAULT_PERIOD);
+	handler = livebox_add(pkgname, content, "user,created", "default", period);
 	if (!handler) {
 		fprintf(stderr, "Failed to add a new livebox\n");
 		return -EFAULT;
 	}
 
-	fprintf(stderr, "%s - [%s] is successfully created [%p]\n", pkgname, content, handler);
+	fprintf(stderr, "%s - [%s] is successfully created [%p], period: %lf\n", pkgname, content, handler, period);
 	return 0;
 }
-*/
+
 
 static int app_create(void *data)
 {
@@ -786,7 +845,7 @@ static int app_create(void *data)
 
 	livebox_event_handler_set(event_cb, NULL);
 	livebox_fault_handler_set(fault_cb, NULL);
-//	shortcut_set_request_cb(shortcut_request_cb, NULL);
+	shortcut_set_request_cb(shortcut_request_cb, NULL);
 
 	package_list();
 	return 0;
