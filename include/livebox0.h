@@ -1,10 +1,10 @@
 extern int lb_set_group(struct livebox *handler, const char *cluster, const char *category);
-extern int lb_set_size(struct livebox *handler, int w, int h);
-extern int lb_set_pdsize(struct livebox *handler, int w, int h);
-extern int lb_invoke_event_handler(struct livebox *handler, const char *event);
-extern int lb_invoke_fault_handler(const char *event, const char *pkgname, const char *filename, const char *function);
+extern void lb_set_size(struct livebox *handler, int w, int h);
+extern void lb_set_pdsize(struct livebox *handler, int w, int h);
+extern void lb_invoke_event_handler(struct livebox *handler, const char *event);
+extern void lb_invoke_fault_handler(const char *event, const char *pkgname, const char *filename, const char *function);
 extern int lb_set_content(struct livebox *handler, const char *content);
-extern int lb_set_auto_launch(struct livebox *handler, int auto_launch);
+extern void lb_set_auto_launch(struct livebox *handler, int auto_launch);
 extern struct livebox *lb_find_livebox(const char *pkgname, const char *filename);
 extern struct livebox *lb_new_livebox(const char *pkgname, const char *filename);
 extern struct livebox *lb_find_livebox_by_timestamp(double timestamp);
@@ -24,8 +24,18 @@ extern void lb_set_text_pd(struct livebox *handler, int flag);
 extern int lb_text_lb(struct livebox *handler);
 extern int lb_text_pd(struct livebox *handler);
 extern void lb_set_period(struct livebox *handler, double period);
+extern void lb_ref(struct livebox *handler);
+extern void lb_unref(struct livebox *handler);
+extern int lb_send_delete(struct livebox *handler);
 
 struct livebox {
+	int refcnt;
+	enum {
+		NOT_DELETED = 0x0,
+		DELETE_THIS = 0x01, /* Delete only for this client */
+		DELETE_ALL = 0x02, /* Delete for all clients */
+	} deleted;
+
 	char *cluster;
 	char *category;
 

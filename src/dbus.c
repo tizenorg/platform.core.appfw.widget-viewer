@@ -102,19 +102,13 @@ GDBusProxy *dbus_get_proxy(void)
 
 static inline int send_acquire(void)
 {
-	GVariant *param;
+	GVariant *result;
 	GError *err;
 
-	param = g_variant_new("(i)", getpid());
-	if (!param) {
-		ErrPrint("Failed to create variant\n");
-		return -EFAULT;
-	}
-
 	err = NULL;
-	param = g_dbus_proxy_call_sync(s_info.proxy, "acquire", param,
+	result = g_dbus_proxy_call_sync(s_info.proxy, "acquire", g_variant_new("(i)", getpid()),
 					G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, NULL, &err);
-	if (!param) {
+	if (!result) {
 		if (err) {
 			ErrPrint("Error: %s\n", err->message);
 			g_error_free(err);
@@ -124,25 +118,20 @@ static inline int send_acquire(void)
 		return -EIO;
 	}
 
+	g_variant_unref(result);
 	return 0;
 }
 
 static inline int send_release(void)
 {
-	GVariant *param;
+	GVariant *result;
 	GError *err;
 
-	param = g_variant_new("(i)", getpid());
-	if (!param) {
-		ErrPrint("Failed to create variant\n");
-		return -EFAULT;
-	}
-
 	err = NULL;
-	param = g_dbus_proxy_call_sync(s_info.proxy, "release", param,
+	result = g_dbus_proxy_call_sync(s_info.proxy, "release", g_variant_new("(i)", getpid()),
 					G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, NULL, &err);
 
-	if (!param) {
+	if (!result) {
 		if (err) {
 			ErrPrint("Error: %s\n", err->message);
 			g_error_free(err);
@@ -151,6 +140,7 @@ static inline int send_release(void)
 		return -EIO;
 	}
 
+	g_variant_unref(result);
 	return 0;
 }
 
@@ -192,6 +182,8 @@ static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data)
 		item->ret_cb(item->handler, r, item->data);
 
 out:
+	lb_unref(item->handler);
+	/* Decreate the item->param's refernece counter now. */
 	g_variant_unref(item->param);
 	free(item->funcname);
 	free(item);
@@ -222,6 +214,10 @@ static gboolean cmd_consumer(gpointer user_data)
 		/*!
 		 * \NOTE:
 		 * Item will be deleted in the "done_cb"
+		 *
+		 * item->param be release by the g_dbus_proxy_call
+		 * so to use it again from the done_cb function,
+		 * increate the reference counter of the item->param
 		 */
 		g_dbus_proxy_call(s_info.proxy,
 			item->funcname,
@@ -245,13 +241,12 @@ static void method_fault_package(GDBusMethodInvocation *inv, GVariant *param)
 	const char *pkgname;
 	const char *filename;
 	const char *function;
-	int ret;
 
 	g_variant_get(param, "(&s&s&s)", &pkgname, &filename, &function);
 
-	ret = lb_invoke_fault_handler("deactivated", pkgname, filename, function);
+	lb_invoke_fault_handler("deactivated", pkgname, filename, function);
 
-	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
+	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
 }
 
 static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
@@ -270,6 +265,17 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 	handler = lb_find_livebox(pkgname, filename);
 	if (!handler) {
 		ret = -ENOENT;
+		goto out;
+	}
+
+	if (handler->deleted != NOT_DELETED) {
+		/*!
+		 * \note
+		 * This handler is already deleted by the user.
+		 * So don't try to notice anything about this anymore.
+		 * Just ignore all events.
+		 */
+		ret = 0;
 		goto out;
 	}
 
@@ -308,6 +314,17 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 	handler = lb_find_livebox(pkgname, filename);
 	if (!handler) {
 		ret = -ENOENT;
+		goto out;
+	}
+
+	if (handler->deleted != NOT_DELETED) {
+		/*!
+		 * \note
+		 * Already deleted by the user.
+		 * Don't try to notice anything with this, Just ignore all events
+		 * Beacuse the user doesn't wants know about this anymore
+		 */
+		ret = 0;
 		goto out;
 	}
 
@@ -385,6 +402,29 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 		}
 	} else {
 		lb_set_filename(handler, filename);
+
+		if (handler->deleted != NOT_DELETED) {
+			/*!
+			 * \note
+			 * before get this created event,
+			 * user delete this already.
+			 * So user doesn't wants to know about this anymore
+			 * just ignore created events
+			 */
+
+			if (handler->deleted == DELETE_ALL)
+				lb_send_delete(handler);
+
+			/*!
+			 * \note
+			 * This will make the method_delete function could not 
+			 * find the handler object if the handler->deleted == DELETE_ALL
+			 * So the method_delete function will return -ENOENT
+			 */
+			lb_unref(handler);
+			ret = 0;
+			goto out;
+		}
 	}
 
 	lb_set_size(handler, lb_w, lb_h);
@@ -423,6 +463,11 @@ static void method_deleted(GDBusMethodInvocation *inv, GVariant *param)
 
 	handler = lb_find_livebox(pkgname, filename);
 	if (!handler) {
+		/*!
+		 * \note
+		 * This can be happens only if the user delete a livebox
+		 * right after create it before receive created event.
+		 */
 		ret = -ENOENT;
 		goto out;
 	}
@@ -430,7 +475,7 @@ static void method_deleted(GDBusMethodInvocation *inv, GVariant *param)
 	lb_invoke_event_handler(handler, "lb,deleted");
 
 	/* Just try to delete it, if a user didn't remove it from the live box list */
-	livebox_del(handler, 0);
+	lb_unref(handler);
 
 	ret = 0;
 out:
@@ -504,11 +549,8 @@ static inline void register_dbus_object(void)
 	GDBusConnection *conn;
 
 	conn = g_dbus_proxy_get_connection(s_info.proxy);
-	if (!conn) {
-		g_object_unref(s_info.proxy);
-		s_info.proxy = NULL;
-		return;
-	}
+	if (!conn)
+		goto errout;
 
 	err = NULL;
 	s_info.node_info = g_dbus_node_info_new_for_xml(s_info.xml_data, &err);
@@ -517,7 +559,7 @@ static inline void register_dbus_object(void)
 			ErrPrint("error - %s\n", err->message);
 			g_error_free(err);
 		}
-		return;
+		goto errout;
 	}
 
 	err = NULL;
@@ -533,12 +575,16 @@ static inline void register_dbus_object(void)
 			g_error_free(err);
 		}
 
-		g_object_unref(s_info.proxy);
-		s_info.proxy = NULL;
-		return;
+		goto errout;
 	}
 
 	DbgPrint("Registered: %d\n", s_info.reg_id);
+	return;
+
+errout:
+	g_object_unref(s_info.proxy);
+	s_info.proxy = NULL;
+	return;
 }
 
 static void got_proxy_cb(GObject *obj, GAsyncResult *res, gpointer user_data)
@@ -572,13 +618,14 @@ static void got_proxy_cb(GObject *obj, GAsyncResult *res, gpointer user_data)
 
 int dbus_sync_command(const char *funcname, GVariant *param)
 {
+	GVariant *result;
 	GError *err;
 	int ret;
 
 	err = NULL;
-	param = g_dbus_proxy_call_sync(s_info.proxy, funcname, param,
+	result = g_dbus_proxy_call_sync(s_info.proxy, funcname, param,
 					G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, NULL, &err);
-	if (!param) {
+	if (!result) {
 		if (err) {
 			ErrPrint("funcname: %s, Error: %s\n", funcname, err->message);
 			g_error_free(err);
@@ -587,8 +634,8 @@ int dbus_sync_command(const char *funcname, GVariant *param)
 		return -EIO;
 	}
 
-	g_variant_get(param, "(i)", &ret);
-	g_variant_unref(param);
+	g_variant_get(result, "(i)", &ret);
+	g_variant_unref(result);
 
 	return ret;
 }
@@ -609,6 +656,8 @@ int dbus_push_command(struct livebox *handler, const char *funcname, GVariant *p
 		free(item);
 		return -ENOMEM;
 	}
+
+	lb_ref(handler);
 
 	item->param = param;
 	item->handler = handler;
