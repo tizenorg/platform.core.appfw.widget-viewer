@@ -59,6 +59,7 @@ struct livebox {
 	int auto_launch;
 	double priority;
 	double period;
+	double event_timestamp;
 
 	int nr_of_sizes;
 

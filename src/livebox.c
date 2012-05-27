@@ -19,6 +19,7 @@
 #include "dbus.h"
 
 #define EAPI __attribute__((visibility("default")))
+#define EVENT_INTERVAL	0.05f
 
 #if defined(FLOG)
 FILE *__file_log_fp;
@@ -43,6 +44,26 @@ struct fault_info {
 	int (*handler)(const char *event, const char *pkgname, const char *filename, const char *func, void *data);
 	void *user_data;
 };
+
+/*!
+ * \note
+ * If the event occurs too fast to handle them correctly,
+ * just ignore them.
+ */
+static inline int update_event_timestamp(struct livebox *handler)
+{
+	double now;
+	double interval;
+
+	now = util_get_timestamp();
+	interval = now - handler->event_timestamp;
+
+	if (interval < EVENT_INTERVAL)
+		return -EBUSY;
+
+	handler->event_timestamp = now;
+	return 0;
+}
 
 static void event_ret_cb(struct livebox *handler, int ret, void *data)
 {
@@ -167,7 +188,7 @@ static void pinup_done_cb(struct livebox *handler, int ret, void *data)
 	}
 }
 
-static inline int send_mouse_event(struct livebox *handler, const char *event, double x, double y)
+static int send_mouse_event(struct livebox *handler, const char *event, double x, double y)
 {
 	assert(handler && "handler is NULL");
 
@@ -583,8 +604,14 @@ EAPI int livebox_pd_mouse_up(struct livebox *handler, double x, double y)
 
 EAPI int livebox_pd_mouse_move(struct livebox *handler, double x, double y)
 {
+	int ret;
+
 	if (!handler || !handler->pd_fb || handler->deleted != NOT_DELETED)
 		return -EINVAL;
+
+	ret = update_event_timestamp(handler);
+	if (ret < 0)
+		return ret;
 
 	return send_mouse_event(handler, "pd_mouse_move", x, y);
 }
@@ -607,8 +634,14 @@ EAPI int livebox_livebox_mouse_up(struct livebox *handler, double x, double y)
 
 EAPI int livebox_livebox_mouse_move(struct livebox *handler, double x, double y)
 {
+	int ret;
+
 	if (!handler || !handler->lb_fb || handler->deleted != NOT_DELETED)
 		return -EINVAL;
+
+	ret = update_event_timestamp(handler);
+	if (ret < 0)
+		return ret;
 
 	return send_mouse_event(handler, "lb_mouse_move", x, y);
 }
