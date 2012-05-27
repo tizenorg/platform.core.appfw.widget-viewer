@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h> /* malloc */
 #include <string.h> /* strdup */
@@ -45,6 +46,8 @@ struct fault_info {
 
 static void event_ret_cb(struct livebox *handler, int ret, void *data)
 {
+	assert(handler && "handler is NILL");
+
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -56,6 +59,7 @@ static void event_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void period_ret_cb(struct livebox *handler, int ret, void *data)
 {
+	assert(handler && "handler is NULL");
 	double *period;
 
 	if (handler->deleted != NOT_DELETED) {
@@ -87,6 +91,7 @@ static void del_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void new_ret_cb(struct livebox *handler, int ret, void *data)
 {
+	assert(handler && "handler is NULL");
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -105,6 +110,7 @@ static void new_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void pd_created_cb(struct livebox *handler, int ret, void *data)
 {
+	assert(handler && "handler is NULL");
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -122,6 +128,7 @@ static void pd_created_cb(struct livebox *handler, int ret, void *data)
 
 static void activated_cb(struct livebox *handler, int ret, void *data)
 {
+	assert(!handler && "handler is not NULL");
 	char *pkgname = data;
 
 	if (ret == 0)
@@ -136,6 +143,7 @@ static void activated_cb(struct livebox *handler, int ret, void *data)
 
 static void pd_destroy_cb(struct livebox *handler, int ret, void *data)
 {
+	assert(handler && "handler is NULL");
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -146,6 +154,7 @@ static void pd_destroy_cb(struct livebox *handler, int ret, void *data)
 
 static void pinup_done_cb(struct livebox *handler, int ret, void *data)
 {
+	assert(handler && "handler is NULL");
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -160,6 +169,8 @@ static void pinup_done_cb(struct livebox *handler, int ret, void *data)
 
 static inline int send_mouse_event(struct livebox *handler, const char *event, double x, double y)
 {
+	assert(handler && "handler is NULL");
+
 	GVariant *param;
 	double timestamp;
 	int ret;

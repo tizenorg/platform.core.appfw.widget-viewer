@@ -177,12 +177,14 @@ static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data)
 	g_variant_get(result, "(i)", &r);
 	g_variant_unref(result);
 
-	DbgPrint("%s Returns: %d\n", item->funcname, r);
+	DbgPrint("%s Returns: %d, handler: %p\n", item->funcname, r, item->handler);
 	if (item->ret_cb)
 		item->ret_cb(item->handler, r, item->data);
 
 out:
-	lb_unref(item->handler);
+	DbgPrint("item->handler: %p\n", item->handler);
+	if (item->handler)
+		lb_unref(item->handler);
 	/* Decreate the item->param's refernece counter now. */
 	g_variant_unref(item->param);
 	free(item->funcname);
@@ -640,6 +642,10 @@ int dbus_sync_command(const char *funcname, GVariant *param)
 	return ret;
 }
 
+/*!
+ * \note
+ * "handler" could be NULL
+ */
 int dbus_push_command(struct livebox *handler, const char *funcname, GVariant *param, void (*ret_cb)(struct livebox *handler, int ret, void *data), void *data)
 {
 	struct cmd_item *item;
@@ -657,7 +663,8 @@ int dbus_push_command(struct livebox *handler, const char *funcname, GVariant *p
 		return -ENOMEM;
 	}
 
-	lb_ref(handler);
+	if (handler)
+		lb_ref(handler);
 
 	item->param = param;
 	item->handler = handler;
