@@ -13,7 +13,7 @@
 #include "debug.h"
 #include "fb_file.h"
 #include "livebox.h"
-#include "livebox0.h"
+#include "livebox_internal.h"
 #include "dlist.h"
 #include "util.h"
 #include "dbus.h"

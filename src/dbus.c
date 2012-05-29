@@ -12,7 +12,7 @@
 #include "dlist.h"
 #include "fb_file.h"
 #include "livebox.h"
-#include "livebox0.h"
+#include "livebox_internal.h"
 #include "dbus.h"
 #include "desc_parser.h"
 

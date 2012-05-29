@@ -9,7 +9,7 @@
 
 #include "debug.h"
 #include "livebox.h"
-#include "livebox0.h"
+#include "livebox_internal.h"
 #include "desc_parser.h"
 #include "dlist.h"
 
