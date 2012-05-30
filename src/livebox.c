@@ -49,7 +49,7 @@ struct fault_info {
  * If the event occurs too fast to handle them correctly,
  * just ignore them.
  */
-static inline int update_event_timestamp(struct livebox *handler)
+static int update_event_timestamp(struct livebox *handler)
 {
 	double now;
 	double interval;
@@ -66,6 +66,9 @@ static inline int update_event_timestamp(struct livebox *handler)
 
 static void event_ret_cb(struct livebox *handler, int ret, void *data)
 {
+	if (handler->magic != 0xbeefbeef)
+		return;
+
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -78,6 +81,9 @@ static void event_ret_cb(struct livebox *handler, int ret, void *data)
 static void period_ret_cb(struct livebox *handler, int ret, void *data)
 {
 	double *period;
+
+	if (handler->magic != 0xbeefbeef)
+		return;
 
 	if (handler->deleted != NOT_DELETED) {
 		free(data);
@@ -107,6 +113,9 @@ static void del_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void new_ret_cb(struct livebox *handler, int ret, void *data)
 {
+	if (handler->magic != 0xbeefbeef)
+		return;
+
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -125,6 +134,9 @@ static void new_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void pd_created_cb(struct livebox *handler, int ret, void *data)
 {
+	if (handler->magic != 0xbeefbeef)
+		return;
+
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -156,6 +168,9 @@ static void activated_cb(struct livebox *handler, int ret, void *data)
 
 static void pd_destroy_cb(struct livebox *handler, int ret, void *data)
 {
+	if (handler->magic != 0xbeefbeef)
+		return;
+
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -165,6 +180,9 @@ static void pd_destroy_cb(struct livebox *handler, int ret, void *data)
 
 static void pinup_done_cb(struct livebox *handler, int ret, void *data)
 {
+	if (handler->magic != 0xbeefbeef)
+		return;
+
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -279,6 +297,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 	handler->timestamp = util_get_timestamp();
 	handler->period = period;
 	lb_ref(handler);
+	handler->magic = 0xbeefbeef;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
@@ -313,7 +332,7 @@ EAPI double livebox_period(struct livebox *handler)
 		return 0.0f;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return 0.0f;
 
 	return handler->period;
@@ -330,7 +349,7 @@ EAPI int livebox_set_period(struct livebox *handler, double period)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (handler->period == period)
@@ -364,7 +383,7 @@ EAPI int livebox_del(struct livebox *handler, int server)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED)
 		return -EINVAL;
 
 	handler->deleted = server ? DELETE_ALL : DELETE_THIS;
@@ -476,7 +495,7 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	param = g_variant_new("(ssii)", handler->pkgname, handler->filename, w, h);
@@ -501,7 +520,7 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (handler->auto_launch)
@@ -527,7 +546,7 @@ EAPI int livebox_has_pd(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	DbgPrint("%s(%s) has PD: %d\n", handler->pkgname, handler->filename, !!handler->pd_fb);
@@ -541,7 +560,7 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return fb_is_created(handler->pd_fb);
@@ -557,7 +576,7 @@ EAPI int livebox_create_pd(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (fb_is_created(handler->pd_fb) == 1)
@@ -603,7 +622,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (fb_is_created(handler->pd_fb) != 1)
@@ -627,7 +646,7 @@ EAPI int livebox_pd_mouse_down(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return send_mouse_event(handler, "pd_mouse_down", x, y);
@@ -640,7 +659,7 @@ EAPI int livebox_pd_mouse_up(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return send_mouse_event(handler, "pd_mouse_up", x, y);
@@ -655,7 +674,7 @@ EAPI int livebox_pd_mouse_move(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	ret = update_event_timestamp(handler);
@@ -672,7 +691,7 @@ EAPI int livebox_livebox_mouse_down(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (!handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return send_mouse_event(handler, "lb_mouse_down", x, y);
@@ -685,7 +704,7 @@ EAPI int livebox_livebox_mouse_up(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (!handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return send_mouse_event(handler, "lb_mouse_up", x, y);
@@ -700,7 +719,7 @@ EAPI int livebox_livebox_mouse_move(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (!handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	ret = update_event_timestamp(handler);
@@ -717,7 +736,7 @@ EAPI const char *livebox_filename(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->deleted != NOT_DELETED)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED)
 		return NULL;
 
 	return handler->filename;
@@ -733,7 +752,7 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (!w)
@@ -756,7 +775,7 @@ EAPI int livebox_get_size(struct livebox *handler, int *w, int *h)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (!w)
@@ -779,7 +798,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return -EINVAL;
 	}
 
-	if (!cluster || !category || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !cluster || !category || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	param = g_variant_new("(ssss)", handler->pkgname, handler->filename, cluster, category);
@@ -800,7 +819,7 @@ EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char 
 		return -EINVAL;
 	}
 
-	if (!cluster || !category || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !cluster || !category || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	*cluster = handler->cluster;
@@ -818,7 +837,7 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 		return -EINVAL;
 	}
 
-	if (!cnt || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || !cnt || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	for (j = i = 0; i < NR_OF_SIZE_LIST; i++) {
@@ -845,7 +864,7 @@ EAPI const char *livebox_pkgname(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->deleted != NOT_DELETED)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED)
 		return NULL;
 
 	return handler->pkgname;
@@ -858,7 +877,7 @@ EAPI double livebox_priority(struct livebox *handler)
 		return 0.0f;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return 0.0f;
 
 	return handler->priority;
@@ -883,7 +902,7 @@ EAPI int livebox_is_file(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->data_type == FILEDATA;
@@ -896,7 +915,7 @@ EAPI int livebox_is_text(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->text_lb;
@@ -909,7 +928,7 @@ EAPI int livebox_pd_is_text(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->text_pd;
@@ -922,7 +941,7 @@ EAPI int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_scr
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED)
 		return -EINVAL;
 
 	memcpy(&handler->pd_ops, ops, sizeof(*ops));
@@ -936,7 +955,7 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED)
 		return -EINVAL;
 
 	memcpy(&handler->ops, ops, sizeof(*ops));
@@ -950,7 +969,7 @@ EAPI void *livebox_fb(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return NULL;
 
 	if (handler->data_type == FBDATA)
@@ -966,7 +985,7 @@ EAPI void *livebox_pdfb(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return NULL;
 
 	return fb_buffer(handler->pd_fb);
@@ -979,7 +998,7 @@ EAPI int livebox_pdfb_bufsz(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return fb_size(handler->pd_fb);
@@ -992,7 +1011,7 @@ EAPI int livebox_lbfb_bufsz(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return fb_size(handler->lb_fb);
@@ -1005,7 +1024,7 @@ EAPI int livebox_is_user(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->is_user;
@@ -1021,7 +1040,7 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (handler->is_pinned_up == flag)
@@ -1045,7 +1064,7 @@ EAPI int livebox_pinup(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->is_pinned_up;
@@ -1058,7 +1077,7 @@ EAPI int livebox_has_pinup(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->pinup_supported;
@@ -1071,7 +1090,7 @@ EAPI int livebox_set_data(struct livebox *handler, void *data)
 		return -EINVAL;
 	}
 
-	if (handler->deleted != NOT_DELETED)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED)
 		return -EINVAL;
 
 	handler->data = data;
@@ -1085,7 +1104,7 @@ EAPI void *livebox_get_data(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->deleted != NOT_DELETED)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED)
 		return NULL;
 
 	return handler->data;
@@ -1111,7 +1130,7 @@ EAPI const char *livebox_content(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->deleted != NOT_DELETED)
+	if (handler->magic != 0xbeefbeef || handler->deleted != NOT_DELETED)
 		return NULL;
 
 	return handler->content;
@@ -1127,7 +1146,7 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 		return -EINVAL;
 	}
 
-	if ((!handler->text_lb && !handler->text_pd) || handler->deleted != NOT_DELETED || !handler->filename)
+	if (handler->magic != 0xbeefbeef || (!handler->text_lb && !handler->text_pd) || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (!emission)
@@ -1267,6 +1286,8 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *filename)
 	}
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
+	lb_ref(handler);
+	handler->magic = 0xbeefbeef;
 	return handler;
 }
 
@@ -1316,6 +1337,7 @@ void lb_update_lb_fb(struct livebox *handler, int w, int h)
 	int ow;
 	int oh;
 	const char *tmp;
+	char *filename;
 
 	if (!handler)
 		return;
@@ -1333,8 +1355,24 @@ void lb_update_lb_fb(struct livebox *handler, int w, int h)
 		return;
 	}
 
+	/*!
+	 * \note
+	 * this filename has to be duplicated
+	 * because the lb_set_pd_fb function will destroy this.
+	 * so we should copy it from here
+	 */
+	if (tmp) {
+		filename = strdup(tmp);
+		if (!filename) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return;
+		}
+	} else {
+		filename = NULL;
+	}
+
 	lb_set_size(handler, w, h);
-	lb_set_lb_fb(handler, tmp);
+	lb_set_lb_fb(handler, filename);
 }
 
 void lb_update_pd_fb(struct livebox *handler, int w, int h)
@@ -1342,6 +1380,7 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 	int ow;
 	int oh;
 	const char *tmp;
+	char *filename;
 	int ret;
 
 	if (!handler)
@@ -1351,8 +1390,12 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 		return;
 
 	fb_get_size(handler->pd_fb, &ow, &oh);
-	if (ow == w && oh == h)
-		return;
+	if (ow == w && oh == h) {
+		if (fb_is_created(handler->pd_fb)) {
+			DbgPrint("PD size is not changed\n");
+			return;
+		}
+	}
 
 	tmp = fb_filename(handler->pd_fb);
 	if (!tmp) {
@@ -1360,8 +1403,25 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 		return;
 	}
 
-	lb_set_pd_fb(handler, tmp);
+	/*!
+	 * \note
+	 * this filename has to be duplicated
+	 * because the lb_set_pd_fb function will destroy this.
+	 * so we should copy it from here
+	 */
+	if (tmp) {
+		filename = strdup(tmp);
+		if (!filename) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return;
+		}
+	} else {
+		filename = NULL;
+	}
+
+	/* This function will destroy FB if is exists */
 	lb_set_pdsize(handler, w, h);
+	lb_set_pd_fb(handler, filename);
 
 	ret = fb_create_buffer(handler->pd_fb);
 	if (ret < 0) {
@@ -1496,6 +1556,9 @@ void lb_unref(struct livebox *handler)
 		fb_destroy(handler->pd_fb);
 		handler->pd_fb = NULL;
 	}
+
+	handler->magic = 0xdeaddead;
+	free(handler);
 }
 
 int lb_send_delete(struct livebox *handler)

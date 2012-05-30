@@ -270,6 +270,12 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 		goto out;
 	}
 
+	if (handler->magic != 0xbeefbeef) {
+		ErrPrint("Handler is not valid. magic: %lu\n", handler->magic);
+		ret = 0;
+		goto out;
+	}
+
 	if (handler->deleted != NOT_DELETED) {
 		/*!
 		 * \note
@@ -289,6 +295,12 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 	} else {
 		if (lb_get_pd_fb(handler)) {
 			lb_update_pd_fb(handler, pd_w, pd_h);
+			/*!
+			 * \note
+			 * After lb_update_pd_fb function,
+			 * The return value of lb_get_pd_fb function can be change,
+			 * So call lb_get_pd_fb again to get newly allocated pd buffer
+			 */
 			fb_sync(lb_get_pd_fb(handler));
 		}
 
@@ -316,6 +328,12 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 	handler = lb_find_livebox(pkgname, filename);
 	if (!handler) {
 		ret = -ENOENT;
+		goto out;
+	}
+
+	if (handler->magic != 0xbeefbeef) {
+		ErrPrint("Handler is not valid. magic: %lu\n", handler->magic);
+		ret = 0;
 		goto out;
 	}
 
@@ -403,6 +421,12 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 			goto out;
 		}
 	} else {
+		if (handler->magic != 0xbeefbeef) {
+			ErrPrint("Handler is not valid. magic: %lu\n", handler->magic);
+			ret = -EINVAL;
+			goto out;
+		}
+
 		lb_set_filename(handler, filename);
 
 		if (handler->deleted != NOT_DELETED) {
@@ -474,6 +498,12 @@ static void method_deleted(GDBusMethodInvocation *inv, GVariant *param)
 		goto out;
 	}
 
+	if (handler->magic != 0xbeefbeef) {
+		ErrPrint("Handler is not valid. magic: %lu\n", handler->magic);
+		ret = -EINVAL;
+		goto out;
+	}
+
 	DbgPrint("%s(%s) is deleted\n", pkgname, filename);
 	lb_invoke_event_handler(handler, "lb,deleted");
 
@@ -532,7 +562,9 @@ static void method_handler(GDBusConnection *conn,
 				break;
 			}
 
+			DbgPrint("Call %s [BEGIN]\n", method_table[i].name);
 			method_table[i].method(invocation, param);
+			DbgPrint("Call %s [END]\n", method_table[i].name);
 			break;
 		}
 	}

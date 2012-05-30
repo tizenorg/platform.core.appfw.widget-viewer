@@ -29,6 +29,7 @@ extern void lb_unref(struct livebox *handler);
 extern int lb_send_delete(struct livebox *handler);
 
 struct livebox {
+	unsigned long magic;
 	int refcnt;
 	enum {
 		NOT_DELETED = 0x0,
