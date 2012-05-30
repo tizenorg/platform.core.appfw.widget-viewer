@@ -163,7 +163,7 @@ static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data)
 	result = g_dbus_proxy_call_finish(proxy, res, &err);
 	if (!result) {
 		if (err) {
-			DbgPrint("Error: %s\n", err->message);
+			ErrPrint("Error: %s\n", err->message);
 			g_error_free(err);
 		}
 
@@ -182,7 +182,6 @@ static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data)
 		item->ret_cb(item->handler, r, item->data);
 
 out:
-	DbgPrint("item->handler: %p\n", item->handler);
 	if (item->handler)
 		lb_unref(item->handler);
 	/* Decreate the item->param's refernece counter now. */
@@ -204,7 +203,7 @@ static gboolean cmd_consumer(gpointer user_data)
 	struct cmd_item *item;
 
 	if (!s_info.proxy) {
-		DbgPrint("Proxy is not valid yet\n");
+		ErrPrint("Proxy is not valid yet\n");
 		s_info.cmd_timer = 0;
 		return FALSE;
 	}
@@ -246,6 +245,7 @@ static void method_fault_package(GDBusMethodInvocation *inv, GVariant *param)
 
 	g_variant_get(param, "(&s&s&s)", &pkgname, &filename, &function);
 
+	DbgPrint("%s(%s) is deactivated\n", pkgname, filename);
 	lb_invoke_fault_handler("deactivated", pkgname, filename, function);
 
 	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
@@ -281,7 +281,7 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 		goto out;
 	}
 
-	DbgPrint("PD is updated [%dx%d]\n", pd_w, pd_h);
+	DbgPrint("Size of a PD is updated to [%dx%d]\n", pd_w, pd_h);
 	lb_set_pdsize(handler, pd_w, pd_h);
 
 	if (lb_text_pd(handler)) {
@@ -341,6 +341,7 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 			fb_sync(lb_get_lb_fb(handler));
 		}
 
+		DbgPrint("%s(%s) is updated\n", handler->pkgname, handler->filename);
 		lb_invoke_event_handler(handler, "lb,updated");
 		ret = 0;
 	}
@@ -384,7 +385,7 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 
 	DbgPrint("[%lf] pkgname: %s, filename: %s, content: %s, "
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
-		"cluster: %s, category: %s, lb_fname: %s, pd_fname: %s"
+		"cluster: %s, category: %s, lb_fname: \"%s\", pd_fname: \"%s\""
 		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d"
 		"text_lb: %d, text_pd: %d, period: %lf\n",
 		timestamp, pkgname, filename, content,
@@ -395,7 +396,6 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 
 	handler = lb_find_livebox_by_timestamp(timestamp);
 	if (!handler) {
-		DbgPrint("create a new livebox instance\n");
 		handler = lb_new_livebox(pkgname, filename);
 		if (!handler) {
 			ErrPrint("Failed to create a new livebox\n");
@@ -474,6 +474,7 @@ static void method_deleted(GDBusMethodInvocation *inv, GVariant *param)
 		goto out;
 	}
 
+	DbgPrint("%s(%s) is deleted\n", pkgname, filename);
 	lb_invoke_event_handler(handler, "lb,deleted");
 
 	/* Just try to delete it, if a user didn't remove it from the live box list */
@@ -527,7 +528,7 @@ static void method_handler(GDBusConnection *conn,
 	for (i = 0; method_table[i].name; i++) {
 		if (!g_strcmp0(method, method_table[i].name)) {
 			if (!method_table[i].method) {
-				DbgPrint("Method %s is not available\n", method_table[i].name);
+				ErrPrint("Method %s is not available\n", method_table[i].name);
 				break;
 			}
 
@@ -535,8 +536,6 @@ static void method_handler(GDBusConnection *conn,
 			break;
 		}
 	}
-
-	DbgPrint("Method[%s] is processed\n", method);
 }
 
 static const GDBusInterfaceVTable iface_vtable = {
@@ -573,7 +572,7 @@ static inline void register_dbus_object(void)
 						&err);
 	if (s_info.reg_id <= 0) {
 		if (err) {
-			DbgPrint("Register: %s\n", err->message);
+			ErrPrint("Register failed: %s\n", err->message);
 			g_error_free(err);
 		}
 
@@ -611,7 +610,6 @@ static void got_proxy_cb(GObject *obj, GAsyncResult *res, gpointer user_data)
 	send_acquire();
 
 	if (s_info.cmd_list && !s_info.cmd_timer) {
-		DbgPrint("10ms timer is adding\n");
 		s_info.cmd_timer = g_timeout_add(10, cmd_consumer, NULL);
 		if (!s_info.cmd_timer)
 			ErrPrint("Failed to add timer\n");
@@ -674,7 +672,6 @@ int dbus_push_command(struct livebox *handler, const char *funcname, GVariant *p
 	s_info.cmd_list = dlist_append(s_info.cmd_list, item);
 
 	if (!s_info.cmd_timer && s_info.proxy) {
-		DbgPrint("10ms timer is adding\n");
 		s_info.cmd_timer = g_timeout_add(10, cmd_consumer, NULL);
 		if (!s_info.cmd_timer)
 			ErrPrint("Failed to add timer\n");

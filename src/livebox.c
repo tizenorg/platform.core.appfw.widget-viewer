@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <assert.h>
 #include <errno.h>
 #include <stdlib.h> /* malloc */
 #include <string.h> /* strdup */
@@ -67,8 +66,6 @@ static inline int update_event_timestamp(struct livebox *handler)
 
 static void event_ret_cb(struct livebox *handler, int ret, void *data)
 {
-	assert(handler && "handler is NILL");
-
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -80,7 +77,6 @@ static void event_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void period_ret_cb(struct livebox *handler, int ret, void *data)
 {
-	assert(handler && "handler is NULL");
 	double *period;
 
 	if (handler->deleted != NOT_DELETED) {
@@ -95,7 +91,7 @@ static void period_ret_cb(struct livebox *handler, int ret, void *data)
 	} else if (ret == 0) {
 		lb_set_period(handler, *period);
 	} else {
-		DbgPrint("Unknown returns %d\n", ret);
+		ErrPrint("Unknown returns %d\n", ret);
 	}
 
 	free(data);
@@ -103,7 +99,6 @@ static void period_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void del_ret_cb(struct livebox *handler, int ret, void *data)
 {
-	DbgPrint("Delete request returns %d\n", ret);
 	/*
 	lb_invoke_event_handler(handler, "lb,deleted");
 	livebox_del(handler, 0);
@@ -112,7 +107,6 @@ static void del_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void new_ret_cb(struct livebox *handler, int ret, void *data)
 {
-	assert(handler && "handler is NULL");
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -131,7 +125,6 @@ static void new_ret_cb(struct livebox *handler, int ret, void *data)
 
 static void pd_created_cb(struct livebox *handler, int ret, void *data)
 {
-	assert(handler && "handler is NULL");
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -149,7 +142,6 @@ static void pd_created_cb(struct livebox *handler, int ret, void *data)
 
 static void activated_cb(struct livebox *handler, int ret, void *data)
 {
-	assert(!handler && "handler is not NULL");
 	char *pkgname = data;
 
 	if (ret == 0)
@@ -164,18 +156,15 @@ static void activated_cb(struct livebox *handler, int ret, void *data)
 
 static void pd_destroy_cb(struct livebox *handler, int ret, void *data)
 {
-	assert(handler && "handler is NULL");
 	if (handler->deleted != NOT_DELETED)
 		return;
 
-	DbgPrint("destroy_pd returns %d\n", ret);
 	fb_destroy_buffer(handler->pd_fb);
 	lb_invoke_event_handler(handler, "pd,deleted");
 }
 
 static void pinup_done_cb(struct livebox *handler, int ret, void *data)
 {
-	assert(handler && "handler is NULL");
 	if (handler->deleted != NOT_DELETED)
 		return;
 
@@ -190,8 +179,6 @@ static void pinup_done_cb(struct livebox *handler, int ret, void *data)
 
 static int send_mouse_event(struct livebox *handler, const char *event, double x, double y)
 {
-	assert(handler && "handler is NULL");
-
 	GVariant *param;
 	double timestamp;
 	int ret;
@@ -321,7 +308,12 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 
 EAPI double livebox_period(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return 0.0f;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return 0.0f;
 
 	return handler->period;
@@ -333,7 +325,12 @@ EAPI int livebox_set_period(struct livebox *handler, double period)
 	int ret;
 	double *period_heap;
 
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (handler->period == period)
@@ -362,7 +359,12 @@ EAPI int livebox_set_period(struct livebox *handler, double period)
 
 EAPI int livebox_del(struct livebox *handler, int server)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED)
 		return -EINVAL;
 
 	handler->deleted = server ? DELETE_ALL : DELETE_THIS;
@@ -426,20 +428,21 @@ EAPI int livebox_event_handler_set(int (*cb)(struct livebox *, const char *, voi
 {
 	struct event_info *info;
 
-	DbgPrint("event callback adding\n");
-	if (!cb)
+	if (!cb) {
+		ErrPrint("Invalid argument cb is nil\n");
 		return -EINVAL;
+	}
 
-	DbgPrint("event callback cb found, adding\n");
 	info = malloc(sizeof(*info));
-	if (!info)
+	if (!info) {
+		ErrPrint("Heap: %s\n", strerror(errno));
 		return -ENOMEM;
+	}
 
 	info->handler = cb;
 	info->user_data = data;
 
 	s_info.event_list = dlist_append(s_info.event_list, info);
-	DbgPrint("event callback added\n");
 	return 0;
 }
 
@@ -468,7 +471,12 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h)
 	GVariant *param;
 	int ret;
 
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	param = g_variant_new("(ssii)", handler->pkgname, handler->filename, w, h);
@@ -488,7 +496,12 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	double timestamp;
 	int ret;
 
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (handler->auto_launch)
@@ -509,15 +522,26 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 
 EAPI int livebox_has_pd(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
+	DbgPrint("%s(%s) has PD: %d\n", handler->pkgname, handler->filename, !!handler->pd_fb);
 	return !!handler->pd_fb;
 }
 
 EAPI int livebox_pd_is_created(struct livebox *handler)
 {
-	if (!handler || !handler->pd_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return fb_is_created(handler->pd_fb);
@@ -528,7 +552,12 @@ EAPI int livebox_create_pd(struct livebox *handler)
 	GVariant *param;
 	int ret;
 
-	if (!handler || !handler->pd_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (fb_is_created(handler->pd_fb) == 1)
@@ -569,7 +598,12 @@ EAPI int livebox_destroy_pd(struct livebox *handler)
 	GVariant *param;
 	int ret;
 
-	if (!handler || !handler->pd_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (fb_is_created(handler->pd_fb) != 1)
@@ -588,7 +622,12 @@ EAPI int livebox_destroy_pd(struct livebox *handler)
 
 EAPI int livebox_pd_mouse_down(struct livebox *handler, double x, double y)
 {
-	if (!handler || !handler->pd_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return send_mouse_event(handler, "pd_mouse_down", x, y);
@@ -596,7 +635,12 @@ EAPI int livebox_pd_mouse_down(struct livebox *handler, double x, double y)
 
 EAPI int livebox_pd_mouse_up(struct livebox *handler, double x, double y)
 {
-	if (!handler || !handler->pd_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return send_mouse_event(handler, "pd_mouse_up", x, y);
@@ -606,7 +650,12 @@ EAPI int livebox_pd_mouse_move(struct livebox *handler, double x, double y)
 {
 	int ret;
 
-	if (!handler || !handler->pd_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->pd_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	ret = update_event_timestamp(handler);
@@ -618,7 +667,12 @@ EAPI int livebox_pd_mouse_move(struct livebox *handler, double x, double y)
 
 EAPI int livebox_livebox_mouse_down(struct livebox *handler, double x, double y)
 {
-	if (!handler || !handler->lb_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return send_mouse_event(handler, "lb_mouse_down", x, y);
@@ -626,7 +680,12 @@ EAPI int livebox_livebox_mouse_down(struct livebox *handler, double x, double y)
 
 EAPI int livebox_livebox_mouse_up(struct livebox *handler, double x, double y)
 {
-	if (!handler || !handler->lb_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return send_mouse_event(handler, "lb_mouse_up", x, y);
@@ -636,7 +695,12 @@ EAPI int livebox_livebox_mouse_move(struct livebox *handler, double x, double y)
 {
 	int ret;
 
-	if (!handler || !handler->lb_fb || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->lb_fb || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	ret = update_event_timestamp(handler);
@@ -648,7 +712,12 @@ EAPI int livebox_livebox_mouse_move(struct livebox *handler, double x, double y)
 
 EAPI const char *livebox_filename(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return NULL;
+	}
+
+	if (handler->deleted != NOT_DELETED)
 		return NULL;
 
 	return handler->filename;
@@ -659,7 +728,12 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 	int _w;
 	int _h;
 
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (!w)
@@ -677,7 +751,12 @@ EAPI int livebox_get_size(struct livebox *handler, int *w, int *h)
 	int _w;
 	int _h;
 
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (!w)
@@ -695,7 +774,12 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 	GVariant *param;
 	int ret;
 
-	if (!handler || !cluster || !category || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!cluster || !category || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	param = g_variant_new("(ssss)", handler->pkgname, handler->filename, cluster, category);
@@ -711,7 +795,12 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 
 EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category)
 {
-	if (!handler || !cluster || !category || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!cluster || !category || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	*cluster = handler->cluster;
@@ -724,7 +813,12 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 	register int i;
 	register int j;
 
-	if (!handler || !cnt || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!cnt || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	for (j = i = 0; i < NR_OF_SIZE_LIST; i++) {
@@ -746,7 +840,12 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 
 EAPI const char *livebox_pkgname(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return NULL;
+	}
+
+	if (handler->deleted != NOT_DELETED)
 		return NULL;
 
 	return handler->pkgname;
@@ -754,7 +853,12 @@ EAPI const char *livebox_pkgname(struct livebox *handler)
 
 EAPI double livebox_priority(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return 0.0f;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return 0.0f;
 
 	return handler->priority;
@@ -762,19 +866,24 @@ EAPI double livebox_priority(struct livebox *handler)
 
 EAPI int livebox_delete_cluster(const char *cluster)
 {
-	DbgPrint("Not implemented yet\n");
+	ErrPrint("Not implemented yet\n");
 	return -ENOSYS;
 }
 
 EAPI int livebox_delete_category(const char *cluster, const char *category)
 {
-	DbgPrint("Not implemented yet\n");
+	ErrPrint("Not implemented yet\n");
 	return -ENOSYS;
 }
 
 EAPI int livebox_is_file(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->data_type == FILEDATA;
@@ -782,7 +891,12 @@ EAPI int livebox_is_file(struct livebox *handler)
 
 EAPI int livebox_is_text(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->text_lb;
@@ -790,7 +904,12 @@ EAPI int livebox_is_text(struct livebox *handler)
 
 EAPI int livebox_pd_is_text(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->text_pd;
@@ -798,7 +917,12 @@ EAPI int livebox_pd_is_text(struct livebox *handler)
 
 EAPI int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED)
 		return -EINVAL;
 
 	memcpy(&handler->pd_ops, ops, sizeof(*ops));
@@ -807,7 +931,12 @@ EAPI int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_scr
 
 EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED)
 		return -EINVAL;
 
 	memcpy(&handler->ops, ops, sizeof(*ops));
@@ -816,7 +945,12 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 
 EAPI void *livebox_fb(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return NULL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return NULL;
 
 	if (handler->data_type == FBDATA)
@@ -827,7 +961,12 @@ EAPI void *livebox_fb(struct livebox *handler)
 
 EAPI void *livebox_pdfb(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return NULL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return NULL;
 
 	return fb_buffer(handler->pd_fb);
@@ -835,7 +974,12 @@ EAPI void *livebox_pdfb(struct livebox *handler)
 
 EAPI int livebox_pdfb_bufsz(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return fb_size(handler->pd_fb);
@@ -843,7 +987,12 @@ EAPI int livebox_pdfb_bufsz(struct livebox *handler)
 
 EAPI int livebox_lbfb_bufsz(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return fb_size(handler->lb_fb);
@@ -851,7 +1000,12 @@ EAPI int livebox_lbfb_bufsz(struct livebox *handler)
 
 EAPI int livebox_is_user(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->is_user;
@@ -862,7 +1016,12 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag)
 	GVariant *param;
 	int ret;
 
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (handler->is_pinned_up == flag)
@@ -881,7 +1040,12 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag)
 
 EAPI int livebox_pinup(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->is_pinned_up;
@@ -889,7 +1053,12 @@ EAPI int livebox_pinup(struct livebox *handler)
 
 EAPI int livebox_has_pinup(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	return handler->pinup_supported;
@@ -897,20 +1066,28 @@ EAPI int livebox_has_pinup(struct livebox *handler)
 
 EAPI int livebox_set_data(struct livebox *handler, void *data)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted != NOT_DELETED)
 		return -EINVAL;
 
-	DbgPrint("%p carry data %p\n", handler, data);
 	handler->data = data;
 	return 0;
 }
 
 EAPI void *livebox_get_data(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return NULL;
+	}
+
+	if (handler->deleted != NOT_DELETED)
 		return NULL;
 
-	DbgPrint("Get carried data of %p\n", handler);
 	return handler->data;
 }
 
@@ -929,7 +1106,12 @@ EAPI int livebox_is_exists(const char *pkgname)
 
 EAPI const char *livebox_content(struct livebox *handler)
 {
-	if (!handler || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return NULL;
+	}
+
+	if (handler->deleted != NOT_DELETED)
 		return NULL;
 
 	return handler->content;
@@ -940,7 +1122,12 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 	GVariant *param;
 	int ret;
 
-	if (!handler || (!handler->text_lb && !handler->text_pd) || handler->deleted != NOT_DELETED)
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if ((!handler->text_lb && !handler->text_pd) || handler->deleted != NOT_DELETED || !handler->filename)
 		return -EINVAL;
 
 	if (!emission)
@@ -1137,10 +1324,8 @@ void lb_update_lb_fb(struct livebox *handler, int w, int h)
 		return;
 
 	fb_get_size(handler->lb_fb, &ow, &oh);
-	if (ow == w && oh == h) {
-		DbgPrint("Buffer size is not changed\n");
+	if (ow == w && oh == h)
 		return;
-	}
 
 	tmp = fb_filename(handler->lb_fb);
 	if (!tmp) {
@@ -1166,10 +1351,8 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 		return;
 
 	fb_get_size(handler->pd_fb, &ow, &oh);
-	if (ow == w && oh == h) {
-		DbgPrint("Buffer size is not changed\n");
+	if (ow == w && oh == h)
 		return;
-	}
 
 	tmp = fb_filename(handler->pd_fb);
 	if (!tmp) {
@@ -1178,7 +1361,6 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 	}
 
 	lb_set_pd_fb(handler, tmp);
-	DbgPrint("Create new buffer [%dx%d]\n", w, h);
 	lb_set_pdsize(handler, w, h);
 
 	ret = fb_create_buffer(handler->pd_fb);

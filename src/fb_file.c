@@ -116,6 +116,7 @@ int fb_create_buffer(struct fb_info *info)
 	}
 
 	info->bufsz = info->w * info->h * sizeof(int);
+
 	/*
 	info->bufsz = lseek(info->fd, 0l, SEEK_END);
 	if (info->bufsz < 0) {
@@ -126,9 +127,8 @@ int fb_create_buffer(struct fb_info *info)
 	}
 
 	lseek(info->fd, 0l, SEEK_SET);
-	*/
-
 	DbgPrint("Buffer size: %ld\n", info->bufsz);
+	*/
 
 	info->buffer = calloc(1, info->bufsz);
 	if (!info->buffer) {
