@@ -16,6 +16,8 @@
 #include "dbus.h"
 #include "desc_parser.h"
 
+#define DEFAULT_TTL 5
+
 static struct info {
 	GDBusNodeInfo *node_info;
 	GDBusProxy *proxy;
@@ -88,6 +90,7 @@ static struct info {
 };
 
 struct cmd_item {
+	int ttl;
 	char *funcname;
 	GVariant *param;
 	struct livebox *handler;
@@ -104,13 +107,17 @@ static inline int send_acquire(void)
 {
 	GVariant *result;
 	GError *err;
+	static int sent = 0;
+
+	if (sent == 1)
+		return 0;
 
 	err = NULL;
 	result = g_dbus_proxy_call_sync(s_info.proxy, "acquire", g_variant_new("(i)", getpid()),
 					G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, NULL, &err);
 	if (!result) {
 		if (err) {
-			ErrPrint("Error: %s\n", err->message);
+			ErrPrint("acquire Error: %s\n", err->message);
 			g_error_free(err);
 		}
 
@@ -119,6 +126,7 @@ static inline int send_acquire(void)
 	}
 
 	g_variant_unref(result);
+	sent = 1;
 	return 0;
 }
 
@@ -133,7 +141,7 @@ static inline int send_release(void)
 
 	if (!result) {
 		if (err) {
-			ErrPrint("Error: %s\n", err->message);
+			ErrPrint("release Error: %s\n", err->message);
 			g_error_free(err);
 		}
 
@@ -163,7 +171,7 @@ static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data)
 	result = g_dbus_proxy_call_finish(proxy, res, &err);
 	if (!result) {
 		if (err) {
-			ErrPrint("Error: %s\n", err->message);
+			ErrPrint("%s Error: %s\n", item->funcname, err->message);
 			g_error_free(err);
 		}
 
@@ -171,6 +179,12 @@ static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data)
 		 * Release resource even if
 		 * we failed to finish the method call
 		 */
+		item->ttl--;
+		if (item->ttl > 0) {
+			s_info.cmd_list = dlist_prepend(s_info.cmd_list, item);
+			return;
+		}
+
 		goto out;
 	}
 
@@ -203,9 +217,13 @@ static gboolean cmd_consumer(gpointer user_data)
 	struct cmd_item *item;
 
 	if (!s_info.proxy) {
-		ErrPrint("Proxy is not valid yet\n");
-		s_info.cmd_timer = 0;
-		return FALSE;
+		ErrPrint("Proxy is not valid yet, try again after 10ms\n");
+		return TRUE;
+	}
+
+	if (send_acquire() != 0) {
+		ErrPrint("Server is not ready to make connection, try again after 10ms\n");
+		return TRUE;
 	}
 
 	l = dlist_nth(s_info.cmd_list, 0);
@@ -639,7 +657,6 @@ static void got_proxy_cb(GObject *obj, GAsyncResult *res, gpointer user_data)
 
 	g_signal_connect(s_info.proxy, "g-signal", G_CALLBACK(on_signal), NULL);
 	register_dbus_object();
-	send_acquire();
 
 	if (s_info.cmd_list && !s_info.cmd_timer) {
 		s_info.cmd_timer = g_timeout_add(10, cmd_consumer, NULL);
@@ -700,6 +717,7 @@ int dbus_push_command(struct livebox *handler, const char *funcname, GVariant *p
 	item->handler = handler;
 	item->ret_cb = ret_cb;
 	item->data = data;
+	item->ttl = DEFAULT_TTL;
 
 	s_info.cmd_list = dlist_append(s_info.cmd_list, item);
 

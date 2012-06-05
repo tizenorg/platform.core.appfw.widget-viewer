@@ -58,13 +58,20 @@ struct dlist *dlist_prepend(struct dlist *list, void *data)
 	if (!item)
 		return NULL;
 
+	item->data = data;
+
 	if (!list) {
 		item->prev = item;
 		item->next = NULL;
 	} else {
+		if (list->prev->next)
+			list->prev->next = item;
+
 		item->prev = list->prev;
-		list->prev = item;
 		item->next = list;
+
+		list->prev = item;
+
 	}
 
 	return item;
