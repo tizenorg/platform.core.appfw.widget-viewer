@@ -15,22 +15,19 @@
 #include "livebox_internal.h"
 #include "dbus.h"
 #include "desc_parser.h"
-
-#define DEFAULT_TTL 5
+#include "master_rpc.h"
 
 static struct info {
 	GDBusNodeInfo *node_info;
 	GDBusProxy *proxy;
-	struct dlist *cmd_list;
-	guint cmd_timer;
 	guint recon_timer;
 	guint reg_id;
+	guint reacquire_timer;
 	const gchar *xml_data;
 } s_info = {
 	.proxy = NULL,
-	.cmd_list = NULL,
-	.cmd_timer = 0,
 	.recon_timer = 0,
+	.reacquire_timer = 0,
 	.reg_id = 0,
 	.node_info = NULL,
 	.xml_data = "<node>"
@@ -44,6 +41,7 @@ static struct info {
 	" <method name='deleted'>"
 	"  <arg type='s' name='pkgname' direction='in' />"
 	"  <arg type='s' name='filename' direction='in' />"
+	"  <arg type='d' name='timestamp' direction='in' />"
 	"  <arg type='i' name='result' direction='out' />"
 	" </method>"
 	" <method name='lb_updated'>"
@@ -89,170 +87,9 @@ static struct info {
 	"</node>",
 };
 
-struct cmd_item {
-	int ttl;
-	char *funcname;
-	GVariant *param;
-	struct livebox *handler;
-	void (*ret_cb)(struct livebox *handler, int ret, void *data);
-	void *data;
-};
-
-GDBusProxy *dbus_get_proxy(void)
+GDBusProxy *dbus_proxy(void)
 {
 	return s_info.proxy;
-}
-
-static inline int send_acquire(void)
-{
-	GVariant *result;
-	GError *err;
-	static int sent = 0;
-
-	if (sent == 1)
-		return 0;
-
-	err = NULL;
-	result = g_dbus_proxy_call_sync(s_info.proxy, "acquire", g_variant_new("(i)", getpid()),
-					G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, NULL, &err);
-	if (!result) {
-		if (err) {
-			ErrPrint("acquire Error: %s\n", err->message);
-			g_error_free(err);
-		}
-
-		ErrPrint("Failed to send 'acquire'\n");
-		return -EIO;
-	}
-
-	g_variant_unref(result);
-	sent = 1;
-	return 0;
-}
-
-static inline int send_release(void)
-{
-	GVariant *result;
-	GError *err;
-
-	err = NULL;
-	result = g_dbus_proxy_call_sync(s_info.proxy, "release", g_variant_new("(i)", getpid()),
-					G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, NULL, &err);
-
-	if (!result) {
-		if (err) {
-			ErrPrint("release Error: %s\n", err->message);
-			g_error_free(err);
-		}
-
-		return -EIO;
-	}
-
-	g_variant_unref(result);
-	return 0;
-}
-
-static void on_signal(GDBusProxy *proxy, gchar *sender, gchar *signame, GVariant *param, gpointer data)
-{
-	DbgPrint("Sender: %s\n", sender);
-	DbgPrint("SigName: %s\n", signame);
-}
-
-static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data)
-{
-	GVariant *result;
-	GError *err;
-	int r;
-	struct cmd_item *item;
-
-	item = data;
-
-	err = NULL;
-	result = g_dbus_proxy_call_finish(proxy, res, &err);
-	if (!result) {
-		if (err) {
-			ErrPrint("%s Error: %s\n", item->funcname, err->message);
-			g_error_free(err);
-		}
-
-		/*! \NOTE:
-		 * Release resource even if
-		 * we failed to finish the method call
-		 */
-		item->ttl--;
-		if (item->ttl > 0) {
-			s_info.cmd_list = dlist_prepend(s_info.cmd_list, item);
-			return;
-		}
-
-		goto out;
-	}
-
-	g_variant_get(result, "(i)", &r);
-	g_variant_unref(result);
-
-	DbgPrint("%s Returns: %d, handler: %p\n", item->funcname, r, item->handler);
-	if (item->ret_cb)
-		item->ret_cb(item->handler, r, item->data);
-
-out:
-	if (item->handler)
-		lb_unref(item->handler);
-	/* Decreate the item->param's refernece counter now. */
-	g_variant_unref(item->param);
-	free(item->funcname);
-	free(item);
-}
-
-static gboolean dbus_reconnect_cb(gpointer user_data)
-{
-	dbus_init();
-	s_info.recon_timer = 0;
-	return FALSE;
-}
-
-static gboolean cmd_consumer(gpointer user_data)
-{
-	struct dlist *l;
-	struct cmd_item *item;
-
-	if (!s_info.proxy) {
-		ErrPrint("Proxy is not valid yet, try again after 10ms\n");
-		return TRUE;
-	}
-
-	if (send_acquire() != 0) {
-		ErrPrint("Server is not ready to make connection, try again after 10ms\n");
-		return TRUE;
-	}
-
-	l = dlist_nth(s_info.cmd_list, 0);
-	if (l) {
-		item = dlist_data(l);
-
-		/*!
-		 * \NOTE:
-		 * Item will be deleted in the "done_cb"
-		 *
-		 * item->param be release by the g_dbus_proxy_call
-		 * so to use it again from the done_cb function,
-		 * increate the reference counter of the item->param
-		 */
-		g_dbus_proxy_call(s_info.proxy,
-			item->funcname,
-			g_variant_ref(item->param),
-			G_DBUS_CALL_FLAGS_NO_AUTO_START,
-			-1, NULL, (GAsyncReadyCallback)done_cb, item);
-
-		s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
-	}
-
-	if (!s_info.cmd_list) {
-		s_info.cmd_timer = 0;
-		return FALSE;
-	}
-
-	return TRUE;
 }
 
 static void method_fault_package(GDBusMethodInvocation *inv, GVariant *param)
@@ -260,13 +97,23 @@ static void method_fault_package(GDBusMethodInvocation *inv, GVariant *param)
 	const char *pkgname;
 	const char *filename;
 	const char *function;
+	char *_pkgname;
+	char *_filename;
+	char *_function;
 
 	g_variant_get(param, "(&s&s&s)", &pkgname, &filename, &function);
 
-	DbgPrint("%s(%s) is deactivated\n", pkgname, filename);
-	lb_invoke_fault_handler("deactivated", pkgname, filename, function);
+	_pkgname = strdup(pkgname);
+	_filename = strdup(filename);
+	_function = strdup(function);
 
+	DbgPrint("%s(%s) is deactivated\n", pkgname, filename);
 	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
+
+	lb_invoke_fault_handler("deactivated", _pkgname, _filename, _function);
+	free(_pkgname);
+	free(_filename);
+	free(_function);
 }
 
 static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
@@ -284,25 +131,19 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 
 	handler = lb_find_livebox(pkgname, filename);
 	if (!handler) {
-		ret = -ENOENT;
-		goto out;
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", -ENOENT));
+		return;
 	}
 
-	if (handler->magic != 0xbeefbeef) {
-		ErrPrint("Handler is not valid. magic: %lu\n", handler->magic);
-		ret = 0;
-		goto out;
-	}
-
-	if (handler->deleted != NOT_DELETED) {
+	if (handler->state == DELETE) {
 		/*!
 		 * \note
 		 * This handler is already deleted by the user.
 		 * So don't try to notice anything about this anymore.
 		 * Just ignore all events.
 		 */
-		ret = 0;
-		goto out;
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
+		return;
 	}
 
 	DbgPrint("Size of a PD is updated to [%dx%d]\n", pd_w, pd_h);
@@ -310,6 +151,7 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 
 	if (lb_text_pd(handler)) {
 		ret = parse_desc(handler, filename, 1);
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
 	} else {
 		if (lb_get_pd_fb(handler)) {
 			lb_update_pd_fb(handler, pd_w, pd_h);
@@ -319,21 +161,22 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 			 * The return value of lb_get_pd_fb function can be change,
 			 * So call lb_get_pd_fb again to get newly allocated pd buffer
 			 */
-			fb_sync(lb_get_pd_fb(handler));
+			ret = fb_sync(lb_get_pd_fb(handler));
+			if (ret < 0) {
+				g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
+				return;
+			}
 		}
 
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
 		lb_invoke_event_handler(handler, "pd,updated");
-		ret = 0;
 	}
-out:
-	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
 }
 
 static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 {
 	const char *pkgname;
 	const char *filename;
-	int ret;
 	struct livebox *handler;
 	int lb_w;
 	int lb_h;
@@ -345,64 +188,71 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 
 	handler = lb_find_livebox(pkgname, filename);
 	if (!handler) {
-		ret = -ENOENT;
-		goto out;
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", -ENOENT));
+		return;
 	}
 
-	if (handler->magic != 0xbeefbeef) {
-		ErrPrint("Handler is not valid. magic: %lu\n", handler->magic);
-		ret = 0;
-		goto out;
-	}
-
-	if (handler->deleted != NOT_DELETED) {
+	if (handler->state == DELETE) {
 		/*!
 		 * \note
 		 * Already deleted by the user.
 		 * Don't try to notice anything with this, Just ignore all events
 		 * Beacuse the user doesn't wants know about this anymore
 		 */
-		ret = 0;
-		goto out;
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
+		return;
 	}
 
 	lb_set_priority(handler, priority);
 	lb_set_size(handler, lb_w, lb_h);
 
 	if (lb_text_lb(handler)) {
+		int ret;
 		ret = parse_desc(handler, filename, 0);
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
 	} else {
 		if (lb_get_lb_fb(handler)) {
+			int ret;
 			lb_update_lb_fb(handler, lb_w, lb_h);
-			fb_sync(lb_get_lb_fb(handler));
+			ret = fb_sync(lb_get_lb_fb(handler));
+			if (ret < 0) {
+				g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
+				return;
+			}
 		}
 
 		DbgPrint("%s(%s) is updated\n", handler->pkgname, handler->filename);
-		lb_invoke_event_handler(handler, "lb,updated");
-		ret = 0;
-	}
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
 
-out:
-	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
+		lb_invoke_event_handler(handler, "lb,updated");
+	}
 }
 
 static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 {
 	struct livebox *handler;
-	const char *pkgname;
-	const char *filename;
+
 	int lb_w;
 	int lb_h;
 	int pd_w;
 	int pd_h;
+	const char *pkgname;
+	const char *filename;
+
 	const char *content;
 	const char *cluster;
 	const char *category;
 	const char *lb_fname;
 	const char *pd_fname;
+
+	char *_content;
+	char *_cluster;
+	char *_category;
+	char *_lb_fname;
+	char *_pd_fname;
+
 	double timestamp;
 	int auto_launch;
-	int ret;
 	double priority;
 	int size_list;
 	int user;
@@ -435,53 +285,44 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 		handler = lb_new_livebox(pkgname, filename);
 		if (!handler) {
 			ErrPrint("Failed to create a new livebox\n");
-			ret = -EFAULT;
-			goto out;
+			g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", -EFAULT));
+			return;
 		}
 	} else {
-		if (handler->magic != 0xbeefbeef) {
-			ErrPrint("Handler is not valid. magic: %lu\n", handler->magic);
-			ret = -EINVAL;
-			goto out;
-		}
-
 		lb_set_filename(handler, filename);
 
-		if (handler->deleted != NOT_DELETED) {
-			/*!
-			 * \note
-			 * before get this created event,
-			 * user delete this already.
-			 * So user doesn't wants to know about this anymore
-			 * just ignore created events
-			 */
-
-			if (handler->deleted == DELETE_ALL)
-				lb_send_delete(handler);
-
-			/*!
-			 * \note
-			 * This will make the method_delete function could not 
-			 * find the handler object if the handler->deleted == DELETE_ALL
-			 * So the method_delete function will return -ENOENT
-			 */
-			lb_unref(handler);
-			ret = 0;
-			goto out;
+		if (handler->state == DELETE) {
+			lb_send_delete(handler);
+			g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
+			return;
 		}
 	}
 
+	_lb_fname = strdup(lb_fname);
+	_pd_fname = strdup(pd_fname);
+	_cluster = strdup(cluster);
+	_category = strdup(category);
+	_content = strdup(content);
+	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
+
 	lb_set_size(handler, lb_w, lb_h);
-	lb_set_lb_fb(handler, lb_fname);
+	lb_set_lb_fb(handler, _lb_fname);
+	free(_lb_fname);
 
 	lb_set_pdsize(handler, pd_w, pd_h);
-	lb_set_pd_fb(handler, pd_fname);
+	lb_set_pd_fb(handler, _pd_fname);
+	free(_pd_fname);
 
 	lb_set_priority(handler, priority);
 
 	lb_set_size_list(handler, size_list);
-	lb_set_group(handler, cluster, category);
-	lb_set_content(handler, content);
+	lb_set_group(handler, _cluster, _category);
+	free(_cluster);
+	free(_category);
+
+	lb_set_content(handler, _content);
+	free(_content);
+
 	lb_set_user(handler, user);
 
 	lb_set_auto_launch(handler, auto_launch);
@@ -490,47 +331,34 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 	lb_set_period(handler, period);
 
 	lb_invoke_event_handler(handler, "lb,created");
-
-	ret = 0;
-out:
-	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
 }
 
 static void method_deleted(GDBusMethodInvocation *inv, GVariant *param)
 {
 	const char *pkgname;
 	const char *filename;
+	double timestamp;
 	struct livebox *handler;
-	int ret;
 
-	g_variant_get(param, "(&s&s)", &pkgname, &filename);
+	g_variant_get(param, "(&s&sd)", &pkgname, &filename, &timestamp);
 
-	handler = lb_find_livebox(pkgname, filename);
+	handler = lb_find_livebox_by_timestamp(timestamp);
 	if (!handler) {
 		/*!
 		 * \note
 		 * This can be happens only if the user delete a livebox
 		 * right after create it before receive created event.
 		 */
-		ret = -ENOENT;
-		goto out;
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", -ENOENT));
+		return;
 	}
 
-	if (handler->magic != 0xbeefbeef) {
-		ErrPrint("Handler is not valid. magic: %lu\n", handler->magic);
-		ret = -EINVAL;
-		goto out;
-	}
+	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, filename);
+	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
 
-	DbgPrint("%s(%s) is deleted\n", pkgname, filename);
 	lb_invoke_event_handler(handler, "lb,deleted");
-
 	/* Just try to delete it, if a user didn't remove it from the live box list */
 	lb_unref(handler);
-
-	ret = 0;
-out:
-	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
 }
 
 static void method_handler(GDBusConnection *conn,
@@ -580,9 +408,7 @@ static void method_handler(GDBusConnection *conn,
 				break;
 			}
 
-			DbgPrint("Call %s [BEGIN]\n", method_table[i].name);
 			method_table[i].method(invocation, param);
-			DbgPrint("Call %s [END]\n", method_table[i].name);
 			break;
 		}
 	}
@@ -638,8 +464,41 @@ errout:
 	return;
 }
 
+static inline void unregister_dbus_object(void)
+{
+	GDBusConnection *conn;
+
+	conn = g_dbus_proxy_get_connection(s_info.proxy);
+	if (!conn)
+		return;
+
+	/* FIXME: Do I really need to do this? */
+	g_dbus_connection_unregister_object(conn, s_info.reg_id);
+	s_info.reg_id = 0;
+
+	if (s_info.node_info) {
+		g_dbus_node_info_unref(s_info.node_info);
+		s_info.node_info = NULL;
+	}
+
+}
+
+static void on_signal(GDBusProxy *proxy, gchar *sender, gchar *signame, GVariant *param, gpointer data)
+{
+	DbgPrint("Sender: %s\n", sender);
+	DbgPrint("SigName: %s\n", signame);
+}
+
+static gboolean dbus_reconnect_cb(gpointer user_data)
+{
+	dbus_init();
+	s_info.recon_timer = 0;
+	return FALSE;
+}
+
 static void got_proxy_cb(GObject *obj, GAsyncResult *res, gpointer user_data)
 {
+	GVariant *param;
 	GError *err;
 
 	err = NULL;
@@ -658,76 +517,15 @@ static void got_proxy_cb(GObject *obj, GAsyncResult *res, gpointer user_data)
 	g_signal_connect(s_info.proxy, "g-signal", G_CALLBACK(on_signal), NULL);
 	register_dbus_object();
 
-	if (s_info.cmd_list && !s_info.cmd_timer) {
-		s_info.cmd_timer = g_timeout_add(10, cmd_consumer, NULL);
-		if (!s_info.cmd_timer)
-			ErrPrint("Failed to add timer\n");
-	}
-}
-
-int dbus_sync_command(const char *funcname, GVariant *param)
-{
-	GVariant *result;
-	GError *err;
-	int ret;
-
-	err = NULL;
-	result = g_dbus_proxy_call_sync(s_info.proxy, funcname, param,
-					G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, NULL, &err);
-	if (!result) {
-		if (err) {
-			ErrPrint("funcname: %s, Error: %s\n", funcname, err->message);
-			g_error_free(err);
-		}
-
-		return -EIO;
+	param = g_variant_new("(i)", getpid());
+	if (!param) {
+		unregister_dbus_object();
+		g_object_unref(s_info.proxy);
+		s_info.proxy = NULL;
+		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
-
-	return ret;
-}
-
-/*!
- * \note
- * "handler" could be NULL
- */
-int dbus_push_command(struct livebox *handler, const char *funcname, GVariant *param, void (*ret_cb)(struct livebox *handler, int ret, void *data), void *data)
-{
-	struct cmd_item *item;
-
-	item = malloc(sizeof(*item));
-	if (!item) {
-		ErrPrint("Failed to allocate mem for cmd_item\n");
-		return -ENOMEM;
-	}
-
-	item->funcname = strdup(funcname);
-	if (!item->funcname) {
-		ErrPrint("Failed to allocate mem for funcname - %s\n", funcname);
-		free(item);
-		return -ENOMEM;
-	}
-
-	if (handler)
-		lb_ref(handler);
-
-	item->param = param;
-	item->handler = handler;
-	item->ret_cb = ret_cb;
-	item->data = data;
-	item->ttl = DEFAULT_TTL;
-
-	s_info.cmd_list = dlist_append(s_info.cmd_list, item);
-
-	if (!s_info.cmd_timer && s_info.proxy) {
-		s_info.cmd_timer = g_timeout_add(10, cmd_consumer, NULL);
-		if (!s_info.cmd_timer)
-			ErrPrint("Failed to add timer\n");
-	}
-
-	return 0;
+	master_rpc_sync_request(NULL, "acquire", param);
 }
 
 int dbus_init(void)
@@ -746,26 +544,18 @@ int dbus_init(void)
 
 int dbus_fini(void)
 {
-	if (s_info.proxy) {
-		GDBusConnection *conn;
+	GVariant *param;
 
-		send_release();
+	if (!s_info.proxy)
+		return 0;
 
-		conn = g_dbus_proxy_get_connection(s_info.proxy);
-		if (conn) {
-			/* FIXME: Do I really need to do this? */
-			g_dbus_connection_unregister_object(conn, s_info.reg_id);
-			s_info.reg_id = 0;
-		}
+	param = g_variant_new("(i)", getpid());
+	if (param)
+		master_rpc_sync_request(NULL, "release", param);
 
-		g_object_unref(s_info.proxy);
-		s_info.proxy = NULL;
-	}
-
-	if (s_info.node_info) {
-		g_dbus_node_info_unref(s_info.node_info);
-		s_info.node_info = NULL;
-	}
+	unregister_dbus_object();
+	g_object_unref(s_info.proxy);
+	s_info.proxy = NULL;
 
 	return 0;
 }

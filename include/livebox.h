@@ -44,7 +44,7 @@ extern int livebox_init(void);
 extern int livebox_fini(void);
 
 extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period);
-extern int livebox_del(struct livebox *handler, int server);
+extern int livebox_del(struct livebox *handler, int unused);
 
 /*!
  * \note event list

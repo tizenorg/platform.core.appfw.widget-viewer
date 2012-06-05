@@ -24,18 +24,16 @@ extern void lb_set_text_pd(struct livebox *handler, int flag);
 extern int lb_text_lb(struct livebox *handler);
 extern int lb_text_pd(struct livebox *handler);
 extern void lb_set_period(struct livebox *handler, double period);
-extern void lb_ref(struct livebox *handler);
-extern void lb_unref(struct livebox *handler);
+extern struct livebox *lb_ref(struct livebox *handler);
+extern struct livebox *lb_unref(struct livebox *handler);
 extern int lb_send_delete(struct livebox *handler);
 
 struct livebox {
-	unsigned long magic;
 	int refcnt;
 	enum {
-		NOT_DELETED = 0x0,
-		DELETE_THIS = 0x01, /* Delete only for this client */
-		DELETE_ALL = 0x02, /* Delete for all clients */
-	} deleted;
+		CREATE = 0x0,
+		DELETE = 0x01, /* Delete only for this client */
+	} state;
 
 	char *cluster;
 	char *category;

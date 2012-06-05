@@ -20,7 +20,6 @@ struct fb_info {
 	int w;
 	int h;
 	int bufsz;
-	int fd;
 	void *buffer;
 	int created;
 };
@@ -51,23 +50,34 @@ static inline struct flock *file_lock(short type, short whence)
 
 int fb_sync(struct fb_info *info)
 {
-	if (info->created != 1)
+	int fd;
+
+	if (!info || info->created != 1)
 		return -EINVAL;
 
-//	fcntl(info->fd, F_SETLKW, file_lock(F_RDLCK, SEEK_SET));
-	if (lseek(info->fd, 0l, SEEK_SET) != 0) {
-		ErrPrint("seek: %s\n", strerror(errno));
-//		fcntl(info->fd, F_SETLKW, file_lock(F_UNLCK, SEEK_SET));
+	fd = open(info->filename, O_RDONLY);
+	if (fd < 0) {
+		ErrPrint("Open: %s\n", strerror(errno));
 		return -EIO;
 	}
 
-	if (read(info->fd, info->buffer, info->bufsz) != info->bufsz) {
+//	fcntl(info->fd, F_SETLKW, file_lock(F_RDLCK, SEEK_SET));
+//	if (lseek(fd, 0l, SEEK_SET) != 0) {
+//		ErrPrint("seek: %s\n", strerror(errno));
+//		fcntl(info->fd, F_SETLKW, file_lock(F_UNLCK, SEEK_SET));
+//		close(fd);
+//		return -EIO;
+//	}
+
+	if (read(fd, info->buffer, info->bufsz) != info->bufsz) {
 		ErrPrint("read: %s\n", strerror(errno));
 //		fcntl(info->fd, F_SETLKW, file_lock(F_UNLCK, SEEK_SET));
+		close(fd);
 		return -EIO;
 	}
 //	fcntl(info->fd, F_SETLKW, file_lock(F_UNLCK, SEEK_SET));
 
+	close(fd);
 	return 0;
 }
 
@@ -91,7 +101,6 @@ struct fb_info *fb_create(const char *filename, int w, int h)
 		return NULL;
 	}
 
-	info->fd = -EINVAL;
 	info->bufsz = -EINVAL;
 	info->buffer = NULL;
 	info->w = w;
@@ -109,32 +118,11 @@ int fb_create_buffer(struct fb_info *info)
 	if (info->created == 1)
 		return -EALREADY;
 
-	info->fd = open(info->filename, O_RDWR);
-	if (info->fd < 0) {
-		ErrPrint("Open: %s\n", strerror(errno));
-		return -EIO;
-	}
-
 	info->bufsz = info->w * info->h * sizeof(int);
-
-	/*
-	info->bufsz = lseek(info->fd, 0l, SEEK_END);
-	if (info->bufsz < 0) {
-		ErrPrint("lseek: %s\n", strerror(errno));
-		close(info->fd);
-		info->fd = -EINVAL;
-		return -EIO;
-	}
-
-	lseek(info->fd, 0l, SEEK_SET);
-	DbgPrint("Buffer size: %ld\n", info->bufsz);
-	*/
 
 	info->buffer = calloc(1, info->bufsz);
 	if (!info->buffer) {
 		ErrPrint("calloc: %s\n", strerror(errno));
-		close(info->fd);
-		info->fd = -EINVAL;
 		return -ENOMEM;
 	}
 
@@ -149,11 +137,6 @@ int fb_destroy_buffer(struct fb_info *info)
 
 	if (info->created != 1)
 		return -EINVAL;
-
-	if (info->fd > 0) {
-		close(info->fd);
-		info->fd = -EINVAL;
-	}
 
 	if (info->buffer) {
 		free(info->buffer);

@@ -46,7 +46,7 @@ int util_check_extension(const char *filename, const char *check_ptr)
 	return 0;
 }
 
-double util_get_timestamp(void)
+double util_timestamp(void)
 {
 	struct timeval tv;
 
