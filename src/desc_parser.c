@@ -47,8 +47,10 @@ static int update_text(struct livebox *handle, struct block *block, int is_pd)
 {
 	struct livebox_script_operators *ops;
 
-	if (!block || !block->part || !block->data)
+	if (!block || !block->part || !block->data) {
+		ErrPrint("Invalid argument\n");
 		return -EINVAL;
+	}
 
 	ops = is_pd ? &handle->pd_ops : &handle->ops;
 	if (ops->update_text)
@@ -60,8 +62,10 @@ static int update_text(struct livebox *handle, struct block *block, int is_pd)
 static int update_image(struct livebox *handle, struct block *block, int is_pd)
 {
 	struct livebox_script_operators *ops;
-	if (!block || !block->part)
+	if (!block || !block->part) {
+		ErrPrint("Invalid argument\n");
 		return -EINVAL;
+	}
 
 	ops = is_pd ? &handle->pd_ops : &handle->ops;
 	if (ops->update_image)
@@ -73,8 +77,10 @@ static int update_image(struct livebox *handle, struct block *block, int is_pd)
 static int update_edje(struct livebox *handle, struct block *block, int is_pd)
 {
 	struct livebox_script_operators *ops;
-	if (!block || !block->part)
+	if (!block || !block->part) {
+		ErrPrint("Invalid argument\n");
 		return -EINVAL;
+	}
 
 	ops = is_pd ? &handle->pd_ops : &handle->ops;
 	if (ops->update_edje)
@@ -87,8 +93,10 @@ static int update_signal(struct livebox *handle, struct block *block, int is_pd)
 {
 	struct livebox_script_operators *ops;
 
-	if (!block)
+	if (!block) {
+		ErrPrint("Invalid argument\n");
 		return -EINVAL;
+	}
 
 	ops = is_pd ? &handle->pd_ops : &handle->ops;
 	if (ops->update_signal)
@@ -102,8 +110,10 @@ static int update_drag(struct livebox *handle, struct block *block, int is_pd)
 	double dx, dy;
 	struct livebox_script_operators *ops;
 
-	if (!block || !block->data || !block->part)
+	if (!block || !block->data || !block->part) {
+		ErrPrint("Invalid argument\n");
 		return -EINVAL;
+	}
 
 	ops = is_pd ? &handle->pd_ops : &handle->ops;
 
@@ -122,9 +132,10 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 {
 	struct livebox_script_operators *ops;
 
-	if (!block || !block->part || !block->data)
+	if (!block || !block->part || !block->data) {
+		ErrPrint("Invalid argument\n");
 		return -EINVAL;
-
+	}
 
 	ops = is_pd ? &handle->pd_ops : &handle->ops;
 

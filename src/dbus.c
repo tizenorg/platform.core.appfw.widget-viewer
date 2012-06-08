@@ -204,10 +204,10 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 	}
 
 	lb_set_priority(handler, priority);
-	lb_set_size(handler, lb_w, lb_h);
 
 	if (lb_text_lb(handler)) {
 		int ret;
+		lb_set_size(handler, lb_w, lb_h);
 		ret = parse_desc(handler, filename, 0);
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
 	} else {
@@ -219,6 +219,8 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 				g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
 				return;
 			}
+		} else {
+			lb_set_size(handler, lb_w, lb_h);
 		}
 
 		DbgPrint("%s(%s) is updated\n", handler->pkgname, handler->filename);

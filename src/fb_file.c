@@ -22,6 +22,7 @@ struct fb_info {
 	int bufsz;
 	void *buffer;
 	int created;
+	int fd;
 };
 
 int fb_init(void)
@@ -50,34 +51,34 @@ static inline struct flock *file_lock(short type, short whence)
 
 int fb_sync(struct fb_info *info)
 {
-	int fd;
-
 	if (!info || info->created != 1)
 		return -EINVAL;
 
-	fd = open(info->filename, O_RDONLY);
-	if (fd < 0) {
-		ErrPrint("Open: %s\n", strerror(errno));
-		return -EIO;
+	if (info->fd <= 0) {
+		ErrPrint("Buffer handler is not valid, Let's try to fix it\n");
+		info->fd = open(info->filename, O_RDONLY);
+		if (info->fd < 0) {
+			ErrPrint("Failed to open a file %s because of %s\n",
+							info->filename, strerror(errno));
+			return -EIO;
+		}
 	}
 
 //	fcntl(info->fd, F_SETLKW, file_lock(F_RDLCK, SEEK_SET));
-//	if (lseek(fd, 0l, SEEK_SET) != 0) {
-//		ErrPrint("seek: %s\n", strerror(errno));
+	if (lseek(info->fd, 0l, SEEK_SET) != 0) {
+		ErrPrint("seek: %s\n", strerror(errno));
 //		fcntl(info->fd, F_SETLKW, file_lock(F_UNLCK, SEEK_SET));
 //		close(fd);
-//		return -EIO;
-//	}
+		return -EIO;
+	}
 
-	if (read(fd, info->buffer, info->bufsz) != info->bufsz) {
+	if (read(info->fd, info->buffer, info->bufsz) != info->bufsz) {
 		ErrPrint("read: %s\n", strerror(errno));
 //		fcntl(info->fd, F_SETLKW, file_lock(F_UNLCK, SEEK_SET));
-		close(fd);
 		return -EIO;
 	}
 //	fcntl(info->fd, F_SETLKW, file_lock(F_UNLCK, SEEK_SET));
 
-	close(fd);
 	return 0;
 }
 
@@ -85,23 +86,25 @@ struct fb_info *fb_create(const char *filename, int w, int h)
 {
 	struct fb_info *info;
 
-	if (!filename || filename[0] == '\0')
+	if (!filename || filename[0] == '\0') {
+		ErrPrint("Invalid filename\n");
 		return NULL;
+	}
 
 	info = calloc(1, sizeof(*info));
 	if (!info) {
-		ErrPrint("Memory: %s\n", strerror(errno));
+		ErrPrint("Heap: %s\n", strerror(errno));
 		return NULL;
 	}
 
 	info->filename = strdup(filename);
 	if (!info->filename) {
-		ErrPrint("Memory: %s\n", strerror(errno));
+		ErrPrint("Heap: %s\n", strerror(errno));
 		free(info);
 		return NULL;
 	}
 
-	info->bufsz = -EINVAL;
+	info->bufsz = 0;
 	info->buffer = NULL;
 	info->w = w;
 	info->h = h;
@@ -112,35 +115,55 @@ struct fb_info *fb_create(const char *filename, int w, int h)
 
 int fb_create_buffer(struct fb_info *info)
 {
-	if (!info)
+	if (!info) {
+		ErrPrint("FB Info handle is not valid\n");
 		return -EINVAL;
+	}
 
-	if (info->created == 1)
+	if (info->created == 1) {
+		DbgPrint("Buffer is already created\n");
 		return -EALREADY;
+	}
 
 	info->bufsz = info->w * info->h * sizeof(int);
-
-	info->buffer = calloc(1, info->bufsz);
-	if (!info->buffer) {
-		ErrPrint("calloc: %s\n", strerror(errno));
-		return -ENOMEM;
+	if (info->bufsz > 0) {
+		info->buffer = calloc(1, info->bufsz);
+		if (!info->buffer) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return -ENOMEM;
+		}
 	}
 
 	info->created = 1;
+
+	info->fd = open(info->filename, O_RDONLY);
+	if (info->fd < 0)
+		ErrPrint("Open file %s: %s\n", info->filename, strerror(errno));
+
 	return 0;
 }
 
 int fb_destroy_buffer(struct fb_info *info)
 {
-	if (!info)
+	if (!info) {
+		ErrPrint("Handle is not valid\n");
 		return -EINVAL;
+	}
 
-	if (info->created != 1)
+	if (info->created != 1) {
+		DbgPrint("Buffer is not created\n");
 		return -EINVAL;
+	}
+
+	if (info->fd > 0) {
+		close(info->fd);
+		info->fd = 0;
+	}
 
 	if (info->buffer) {
 		free(info->buffer);
 		info->buffer = NULL;
+		info->bufsz = 0;
 	}
 
 	info->created = 0;
@@ -149,8 +172,10 @@ int fb_destroy_buffer(struct fb_info *info)
 
 int fb_destroy(struct fb_info *info)
 {
-	if (!info || info->created)
+	if (!info || info->created) {
+		ErrPrint("Handle is not valid\n");
 		return -EINVAL;
+	}
 
 	free(info->filename);
 	free(info);
@@ -159,8 +184,10 @@ int fb_destroy(struct fb_info *info)
 
 int fb_is_created(struct fb_info *info)
 {
-	if (!info)
-		return -EINVAL;
+	if (!info) {
+		ErrPrint("Handle is not valid\n");
+		return 0;
+	}
 
 	return info->created;
 }
@@ -177,8 +204,10 @@ const char *fb_filename(struct fb_info *info)
 
 int fb_get_size(struct fb_info *info, int *w, int *h)
 {
-	if (!info)
+	if (!info) {
+		ErrPrint("Handle is not valid\n");
 		return -EINVAL;
+	}
 
 	*w = info->w;
 	*h = info->h;

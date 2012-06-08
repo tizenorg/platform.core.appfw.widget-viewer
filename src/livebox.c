@@ -310,7 +310,6 @@ static int send_mouse_event(struct livebox *handler, const char *event, double x
 {
 	GVariant *param;
 	double timestamp;
-	int ret;
 
 	DbgPrint("Send event [%s] with %lfx%lf\n", event, x, y);
 
@@ -318,14 +317,12 @@ static int send_mouse_event(struct livebox *handler, const char *event, double x
 	param = g_variant_new("(ssiiddd)", handler->pkgname, handler->filename,
 						handler->pd_w, handler->pd_h,
 						timestamp, x, y);
-	if (!param)
+	if (!param) {
+		ErrPrint("Failed to build param\n");
 		return -EFAULT;
+	}
 
-	ret = master_rpc_async_request(handler, event, param, mouse_event_cb, NULL);
-	if (ret < 0)
-		g_variant_unref(param);
-
-	return ret;
+	return master_rpc_async_request(handler, event, param, mouse_event_cb, NULL);
 }
 
 EAPI int livebox_init(void)
@@ -431,7 +428,6 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 		free(handler->content);
 		free(handler->pkgname);
 		free(handler);
-		g_variant_unref(param);
 		return NULL;
 	}
 
@@ -1105,6 +1101,7 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 
 EAPI void *livebox_fb(struct livebox *handler)
 {
+	void *ptr;
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
 		return NULL;
@@ -1115,7 +1112,9 @@ EAPI void *livebox_fb(struct livebox *handler)
 		return NULL;
 	}
 
-	return fb_buffer(handler->lb_fb);
+	ptr = fb_buffer(handler->lb_fb);
+	DbgPrint("PTR: %p\n", ptr);
+	return ptr;
 }
 
 EAPI void *livebox_pdfb(struct livebox *handler)
@@ -1479,24 +1478,33 @@ void lb_set_filename(struct livebox *handler, const char *filename)
 
 void lb_update_lb_fb(struct livebox *handler, int w, int h)
 {
-	int ow;
-	int oh;
+	int ow = 0;
+	int oh = 0;
 	const char *tmp;
 	char *filename;
 
-	if (!handler)
+	if (!handler) {
+		ErrPrint("Handler is not valid\n");
 		return;
+	}
 
-	if (!handler->lb_fb)
+	if (!handler->lb_fb) {
+		ErrPrint("Buffer type is not valid\n");
 		return;
+	}
 
 	fb_get_size(handler->lb_fb, &ow, &oh);
-	if (ow == w && oh == h)
-		return;
+	if (ow == w && oh == h) {
+		if (fb_is_created(handler->lb_fb)) {
+			DbgPrint("Size is not changed: %dx%d\n", w, h);
+			return;
+		}
+		DbgPrint("Size is same %dx%d, but this is the first time\n", w, h);
+	}
 
 	tmp = fb_filename(handler->lb_fb);
 	if (!tmp) {
-		ErrPrint("Filename for LB fb is not exists\n");
+		ErrPrint("Filename for LB fb is not specified\n");
 		return;
 	}
 
@@ -1506,14 +1514,10 @@ void lb_update_lb_fb(struct livebox *handler, int w, int h)
 	 * because the lb_set_pd_fb function will destroy this.
 	 * so we should copy it from here
 	 */
-	if (tmp) {
-		filename = strdup(tmp);
-		if (!filename) {
-			ErrPrint("Heap: %s\n", strerror(errno));
-			return;
-		}
-	} else {
-		filename = NULL;
+	filename = strdup(tmp);
+	if (!filename) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		return;
 	}
 
 	lb_set_size(handler, w, h);
@@ -1554,14 +1558,10 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 	 * because the lb_set_pd_fb function will destroy this.
 	 * so we should copy it from here
 	 */
-	if (tmp) {
-		filename = strdup(tmp);
-		if (!filename) {
-			ErrPrint("Heap: %s\n", strerror(errno));
-			return;
-		}
-	} else {
-		filename = NULL;
+	filename = strdup(tmp);
+	if (!filename) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		return;
 	}
 
 	/* This function will destroy FB if is exists */
@@ -1587,8 +1587,10 @@ void lb_set_lb_fb(struct livebox *handler, const char *filename)
 		handler->lb_fb = NULL;
 	}
 
-	if (!filename || filename[0] == '\0')
+	if (!filename || filename[0] == '\0') {
+		DbgPrint("Buffer filename is not valid\n");
 		return;
+	}
 
 	handler->lb_fb = fb_create(filename, handler->lb_w, handler->lb_h);
 	if (!handler->lb_fb) {
@@ -1603,7 +1605,6 @@ void lb_set_lb_fb(struct livebox *handler, const char *filename)
 		return;
 	}
 
-	fb_sync(handler->lb_fb);
 	handler->data_type = FBDATA;
 }
 
