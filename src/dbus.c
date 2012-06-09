@@ -284,7 +284,7 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 
 	handler = lb_find_livebox_by_timestamp(timestamp);
 	if (!handler) {
-		handler = lb_new_livebox(pkgname, filename);
+		handler = lb_new_livebox(pkgname, filename, timestamp);
 		if (!handler) {
 			ErrPrint("Failed to create a new livebox\n");
 			g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", -EFAULT));

@@ -6,7 +6,7 @@ extern void lb_invoke_fault_handler(const char *event, const char *pkgname, cons
 extern int lb_set_content(struct livebox *handler, const char *content);
 extern void lb_set_auto_launch(struct livebox *handler, int auto_launch);
 extern struct livebox *lb_find_livebox(const char *pkgname, const char *filename);
-extern struct livebox *lb_new_livebox(const char *pkgname, const char *filename);
+extern struct livebox *lb_new_livebox(const char *pkgname, const char *filename, double timestamp);
 extern struct livebox *lb_find_livebox_by_timestamp(double timestamp);
 extern void lb_set_filename(struct livebox *handler, const char *filename);
 extern void lb_set_size_list(struct livebox *handler, int size_list);

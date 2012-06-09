@@ -1405,7 +1405,7 @@ struct livebox *lb_find_livebox_by_timestamp(double timestamp)
 	return NULL;
 }
 
-struct livebox *lb_new_livebox(const char *pkgname, const char *filename)
+struct livebox *lb_new_livebox(const char *pkgname, const char *filename, double timestamp)
 {
 	struct livebox *handler;
 
@@ -1429,6 +1429,8 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *filename)
 		free(handler);
 		return NULL;
 	}
+
+	handler->timestamp = timestamp;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 	lb_ref(handler);
