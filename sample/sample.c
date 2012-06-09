@@ -239,6 +239,7 @@ static inline int create_new_pd(struct livebox *handler)
 			y = 40;
 		evas_object_move(info->pd, x, y);
 		evas_object_show(info->pd);
+		evas_object_layer_set(info->pd, EVAS_LAYER_MAX);
 
 		evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_DOWN, pd_mouse_down_cb, info);
 		evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_MOVE, pd_mouse_move_cb, info);
