@@ -311,10 +311,8 @@ static int send_mouse_event(struct livebox *handler, const char *event, double x
 	GVariant *param;
 	double timestamp;
 
-	DbgPrint("Send event [%s] with %lfx%lf\n", event, x, y);
-
 	timestamp = util_timestamp();
-	param = g_variant_new("(ssiiddd)", handler->pkgname, handler->filename,
+	param = g_variant_new("(issiiddd)", getpid(), handler->pkgname, handler->filename,
 						handler->pd_w, handler->pd_h,
 						timestamp, x, y);
 	if (!param) {
@@ -350,9 +348,6 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 	struct livebox *handler;
 	GVariant *param;
 	int ret;
-
-	DbgPrint("pkgname[%s], content[%s], cluster[%s], category[%s], period[%lf]\n",
-						pkgname, content, cluster, category, period);
 
 	if (!pkgname || !cluster || !category)
 		return NULL;
@@ -411,7 +406,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
-	param = g_variant_new("(dssssd)", handler->timestamp, pkgname, content, cluster, category, period);
+	param = g_variant_new("(idssssd)", getpid(), handler->timestamp, pkgname, content, cluster, category, period);
 	if (!param) {
 		free(handler->category);
 		free(handler->cluster);
@@ -462,7 +457,7 @@ EAPI int livebox_set_period(struct livebox *handler, double period)
 	if (!period_heap)
 		return -ENOMEM;
 
-	param = g_variant_new("(ssd)", handler->pkgname, handler->filename, period);
+	param = g_variant_new("(issd)", getpid(), handler->pkgname, handler->filename, period);
 	if (!param) {
 		free(period_heap);
 		return -EFAULT;
@@ -593,7 +588,7 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h)
 		return -EINVAL;
 	}
 
-	param = g_variant_new("(ssii)", handler->pkgname, handler->filename, w, h);
+	param = g_variant_new("(issii)", getpid(), handler->pkgname, handler->filename, w, h);
 	if (!param) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
@@ -622,7 +617,7 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 			ErrPrint("Failed to launch app %s\n", handler->pkgname);
 
 	timestamp = util_timestamp();
-	param = g_variant_new("(sssddd)", handler->pkgname, handler->filename, "clicked", timestamp, x, y);
+	param = g_variant_new("(isssddd)", getpid(), handler->pkgname, handler->filename, "clicked", timestamp, x, y);
 	if (!param) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
@@ -643,7 +638,6 @@ EAPI int livebox_has_pd(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	DbgPrint("%s(%s) has PD: %d\n", handler->pkgname, handler->filename, !!handler->pd_fb);
 	return !!handler->pd_fb;
 }
 
@@ -676,12 +670,10 @@ EAPI int livebox_create_pd(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (fb_is_created(handler->pd_fb) == 1) {
-		DbgPrint("PD is already created\n");
+	if (fb_is_created(handler->pd_fb) == 1)
 		return 0;
-	}
 
-	param = g_variant_new("(ss)", handler->pkgname, handler->filename);
+	param = g_variant_new("(iss)", getpid(), handler->pkgname, handler->filename);
 	if (!param) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
@@ -698,7 +690,7 @@ EAPI int livebox_activate(const char *pkgname)
 	if (!pkgname)
 		return -EINVAL;
 
-	param = g_variant_new("(s)", pkgname);
+	param = g_variant_new("(is)", getpid(), pkgname);
 	if (!param) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
@@ -732,7 +724,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	param = g_variant_new("(ss)", handler->pkgname, handler->filename);
+	param = g_variant_new("(iss)", getpid(), handler->pkgname, handler->filename);
 	if (!param) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
@@ -922,7 +914,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return -EINVAL;
 	}
 
-	param = g_variant_new("(ssss)", handler->pkgname, handler->filename, cluster, category);
+	param = g_variant_new("(issss)", getpid(), handler->pkgname, handler->filename, cluster, category);
 	if (!param) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
@@ -1113,7 +1105,6 @@ EAPI void *livebox_fb(struct livebox *handler)
 	}
 
 	ptr = fb_buffer(handler->lb_fb);
-	DbgPrint("PTR: %p\n", ptr);
 	return ptr;
 }
 
@@ -1194,7 +1185,7 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag)
 	if (handler->is_pinned_up == flag)
 		return 0;
 
-	param = g_variant_new("(ssi)", handler->pkgname, handler->filename, flag);
+	param = g_variant_new("(issi)", getpid(), handler->pkgname, handler->filename, flag);
 	if (!param) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
@@ -1261,7 +1252,7 @@ EAPI int livebox_is_exists(const char *pkgname)
 	GVariant *param;
 	int ret;
 
-	param = g_variant_new("(s)", pkgname);
+	param = g_variant_new("(is)", getpid(), pkgname);
 	if (!param) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
@@ -1304,7 +1295,7 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 	if (!source)
 		source = "";
 
-	param = g_variant_new("(ssssdddd)", handler->pkgname, handler->filename, emission, source, sx, sy, ex, ey);
+	param = g_variant_new("(issssdddd)", getpid(), handler->pkgname, handler->filename, emission, source, sx, sy, ex, ey);
 	if (!param) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
@@ -1497,11 +1488,8 @@ void lb_update_lb_fb(struct livebox *handler, int w, int h)
 
 	fb_get_size(handler->lb_fb, &ow, &oh);
 	if (ow == w && oh == h) {
-		if (fb_is_created(handler->lb_fb)) {
-			DbgPrint("Size is not changed: %dx%d\n", w, h);
+		if (fb_is_created(handler->lb_fb))
 			return;
-		}
-		DbgPrint("Size is same %dx%d, but this is the first time\n", w, h);
 	}
 
 	tmp = fb_filename(handler->lb_fb);
@@ -1542,10 +1530,8 @@ void lb_update_pd_fb(struct livebox *handler, int w, int h)
 
 	fb_get_size(handler->pd_fb, &ow, &oh);
 	if (ow == w && oh == h) {
-		if (fb_is_created(handler->pd_fb)) {
-			DbgPrint("PD size is not changed\n");
+		if (fb_is_created(handler->pd_fb))
 			return;
-		}
 	}
 
 	tmp = fb_filename(handler->pd_fb);
@@ -1589,10 +1575,8 @@ void lb_set_lb_fb(struct livebox *handler, const char *filename)
 		handler->lb_fb = NULL;
 	}
 
-	if (!filename || filename[0] == '\0') {
-		DbgPrint("Buffer filename is not valid\n");
+	if (!filename || filename[0] == '\0')
 		return;
-	}
 
 	handler->lb_fb = fb_create(filename, handler->lb_w, handler->lb_h);
 	if (!handler->lb_fb) {
@@ -1721,7 +1705,7 @@ int lb_send_delete(struct livebox *handler)
 {
 	GVariant *param;
 
-	param = g_variant_new("(ss)", handler->pkgname, handler->filename);
+	param = g_variant_new("(iss)", getpid(), handler->pkgname, handler->filename);
 	if (!param) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;

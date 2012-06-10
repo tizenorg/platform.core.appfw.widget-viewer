@@ -146,7 +146,6 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 		return;
 	}
 
-	DbgPrint("Size of a PD is updated to [%dx%d]\n", pd_w, pd_h);
 	lb_set_pdsize(handler, pd_w, pd_h);
 
 	if (lb_text_pd(handler)) {
@@ -223,7 +222,6 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 			lb_set_size(handler, lb_w, lb_h);
 		}
 
-		DbgPrint("%s(%s) is updated\n", handler->pkgname, handler->filename);
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
 
 		lb_invoke_event_handler(handler, "lb,updated");
@@ -273,8 +271,8 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 
 	DbgPrint("[%lf] pkgname: %s, filename: %s, content: %s, "
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
-		"cluster: %s, category: %s, lb_fname: \"%s\", pd_fname: \"%s\""
-		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d"
+		"cluster: %s, category: %s, lb_fname: \"%s\", pd_fname: \"%s\", "
+		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d, "
 		"text_lb: %d, text_pd: %d, period: %lf\n",
 		timestamp, pkgname, filename, content,
 		pd_w, pd_h, lb_w, lb_h,

@@ -51,8 +51,10 @@ static inline struct flock *file_lock(short type, short whence)
 
 int fb_sync(struct fb_info *info)
 {
-	if (!info || info->created != 1)
+	if (!info || info->created != 1) {
+		ErrPrint("FB Handle is not valid\n");
 		return -EINVAL;
+	}
 
 	if (info->fd <= 0) {
 		ErrPrint("Buffer handler is not valid, Let's try to fix it\n");
