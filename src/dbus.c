@@ -30,8 +30,8 @@ static struct info {
 	.reacquire_timer = 0,
 	.reg_id = 0,
 	.node_info = NULL,
-	.xml_data = "<node>"
-	"<interface name='" SERVICE_INTERFACE "'>"
+	.xml_data = "<node name ='" CLIENT_OBJECT_PATH "'>"
+	"<interface name='" CLIENT_SERVICE_INTERFACE "'>"
 	" <method name='fault_package'>"
 	"  <arg type='s' name='pkgname' direction='in' />"
 	"  <arg type='s' name='filename' direction='in' />"
@@ -299,18 +299,41 @@ static void method_created(GDBusMethodInvocation *inv, GVariant *param)
 	}
 
 	_lb_fname = strdup(lb_fname);
+	if (!_lb_fname)
+		ErrPrint("Heap: %s\n", strerror(errno));
+
 	_pd_fname = strdup(pd_fname);
+	if (!_pd_fname)
+		ErrPrint("Heap: %s\n", strerror(errno));
+
 	_cluster = strdup(cluster);
+	if (!_cluster)
+		ErrPrint("Heap: %s\n", strerror(errno));
+
 	_category = strdup(category);
+	if (!_category)
+		ErrPrint("Heap: %s\n", strerror(errno));
+
 	_content = strdup(content);
+	if (!_content)
+		ErrPrint("Heap: %s\n", strerror(errno));
+
 	g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 0));
 
 	lb_set_size(handler, lb_w, lb_h);
-	lb_set_lb_fb(handler, _lb_fname);
+
+	if (text_lb)
+		lb_set_text_lb(handler);
+	else
+		lb_set_lb_fb(handler, _lb_fname);
 	free(_lb_fname);
 
 	lb_set_pdsize(handler, pd_w, pd_h);
-	lb_set_pd_fb(handler, _pd_fname);
+
+	if (text_pd)
+		lb_set_text_pd(handler);
+	else
+		lb_set_pd_fb(handler, _pd_fname);
 	free(_pd_fname);
 
 	lb_set_priority(handler, priority);
@@ -441,7 +464,7 @@ static inline void register_dbus_object(void)
 
 	err = NULL;
 	s_info.reg_id = g_dbus_connection_register_object(conn,
-						OBJECT_PATH,
+						CLIENT_OBJECT_PATH,
 						s_info.node_info->interfaces[0],
 						&iface_vtable,
 						NULL, NULL,
@@ -533,9 +556,9 @@ int dbus_init(void)
 	g_dbus_proxy_new_for_bus(BUS_TYPE,
 			G_DBUS_PROXY_FLAGS_NONE,
 			NULL,
-			SERVICE_NAME,
-			OBJECT_PATH,
-			SERVICE_INTERFACE,
+			MASTER_SERVICE_NAME,
+			MASTER_OBJECT_PATH,
+			MASTER_SERVICE_INTERFACE,
 			NULL,
 			got_proxy_cb, NULL);
 					

@@ -134,6 +134,8 @@ int fb_create_buffer(struct fb_info *info)
 			ErrPrint("Heap: %s\n", strerror(errno));
 			return -ENOMEM;
 		}
+	} else {
+		DbgPrint("Buffer size is ZERO(%d)\n", info->bufsz);
 	}
 
 	info->created = 1;

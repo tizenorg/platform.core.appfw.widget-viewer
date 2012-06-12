@@ -52,7 +52,7 @@ static int update_text(struct livebox *handle, struct block *block, int is_pd)
 		return -EINVAL;
 	}
 
-	ops = is_pd ? &handle->pd_ops : &handle->ops;
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 	if (ops->update_text)
 		ops->update_text(handle, (const char *)block->id, (const char *)block->part, (const char *)block->data);
 
@@ -67,7 +67,7 @@ static int update_image(struct livebox *handle, struct block *block, int is_pd)
 		return -EINVAL;
 	}
 
-	ops = is_pd ? &handle->pd_ops : &handle->ops;
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 	if (ops->update_image)
 		ops->update_image(handle, block->id, block->part, block->data);
 
@@ -82,7 +82,7 @@ static int update_edje(struct livebox *handle, struct block *block, int is_pd)
 		return -EINVAL;
 	}
 
-	ops = is_pd ? &handle->pd_ops : &handle->ops;
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 	if (ops->update_edje)
 		ops->update_edje(handle, block->id, block->part, block->data, block->group);
 
@@ -98,7 +98,7 @@ static int update_signal(struct livebox *handle, struct block *block, int is_pd)
 		return -EINVAL;
 	}
 
-	ops = is_pd ? &handle->pd_ops : &handle->ops;
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 	if (ops->update_signal)
 		ops->update_signal(handle, block->id, block->data, block->part);
 
@@ -115,7 +115,7 @@ static int update_drag(struct livebox *handle, struct block *block, int is_pd)
 		return -EINVAL;
 	}
 
-	ops = is_pd ? &handle->pd_ops : &handle->ops;
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 
 	if (sscanf(block->data, "%lfx%lf", &dx, &dy) != 2) {
 		ErrPrint("Invalid format of data\n");
@@ -137,7 +137,7 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 		return -EINVAL;
 	}
 
-	ops = is_pd ? &handle->pd_ops : &handle->ops;
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 
 	if (!strcasecmp(block->part, INFO_SIZE)) {
 		int w, h;
@@ -162,7 +162,7 @@ static inline int update_begin(struct livebox *handle, int is_pd)
 {
 	struct livebox_script_operators *ops;
 
-	ops = is_pd ? &handle->pd_ops : &handle->ops;
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 
 	if (ops->update_begin)
 		ops->update_begin(handle);
@@ -174,7 +174,7 @@ static inline int update_end(struct livebox *handle, int is_pd)
 {
 	struct livebox_script_operators *ops;
 
-	ops = is_pd ? &handle->pd_ops : &handle->ops;
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 
 	if (ops->update_end)
 		ops->update_end(handle);

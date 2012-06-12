@@ -19,8 +19,8 @@ extern void lb_update_pd_fb(struct livebox *handler, int w, int h);
 extern void lb_update_lb_fb(struct livebox *handler, int w, int h);
 extern void lb_set_user(struct livebox *handler, int user);
 extern void lb_set_pinup(struct livebox *handler, int pinup);
-extern void lb_set_text_lb(struct livebox *handler, int flag);
-extern void lb_set_text_pd(struct livebox *handler, int flag);
+extern void lb_set_text_lb(struct livebox *handler);
+extern void lb_set_text_pd(struct livebox *handler);
 extern int lb_text_lb(struct livebox *handler);
 extern int lb_text_pd(struct livebox *handler);
 extern void lb_set_period(struct livebox *handler, double period);
@@ -40,41 +40,56 @@ struct livebox {
 
 	char *pkgname;
 	char *filename;
-
-	int size_list;
+	char *content;
 
 	double timestamp;
-
-	enum {
-		FILEDATA,
-		FBDATA,
-	} data_type;
-
-	char *content;
-	int lb_w;
-	int lb_h;
-	int pd_w;
-	int pd_h;
-	int auto_launch;
-	double priority;
-	double period;
 	double event_timestamp;
+
+	int is_user;
+
+	struct {
+		enum {
+			LB_FILE,
+			LB_FB,
+			LB_TEXT,
+		} type;
+
+		union {
+			struct fb_info *fb;
+			struct livebox_script_operators ops;
+		} data;
+
+		int size_list;
+
+		int width;
+		int height;
+		double priority;
+
+		int auto_launch;
+		double period;
+		int is_pinned_up;
+		int pinup_supported;
+	} lb;
+
+	struct {
+		enum {
+			PD_FILE,
+			PD_FB,
+			PD_TEXT,
+		} type;
+
+		union {
+			struct fb_info *fb;
+			struct livebox_script_operators ops;
+		} data;
+
+		int width;
+		int height;
+	} pd;
 
 	int nr_of_sizes;
 
-	struct fb_info *lb_fb;
-	struct fb_info *pd_fb;
-
-	int is_user;
-	int is_pinned_up;
-	int pinup_supported;
-	int text_lb;
-	int text_pd;
-
 	void *data;
-
-	struct livebox_script_operators ops;
-	struct livebox_script_operators pd_ops;
 };
 
 /* End of a file */

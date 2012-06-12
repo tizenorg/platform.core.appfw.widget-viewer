@@ -43,9 +43,17 @@ ADD_DEFINITIONS("-DNDEBUG")
 ADD_DEFINITIONS("-DMASTER_PKGNAME=\"com.samsung.data-provider-master\"")
 
 ADD_DEFINITIONS("-DBUS_TYPE=G_BUS_TYPE_SYSTEM")	# G_BUS_TYPE_SESSION
-ADD_DEFINITIONS("-DSERVICE_INTERFACE=\"com.samsung.dataprovider.server\"")
-ADD_DEFINITIONS("-DSERVICE_NAME=\"com.samsung.dataprovider.serviceinterface\"")
-ADD_DEFINITIONS("-DOBJECT_PATH=\"/com/samsung/dataprovider/serviceobject\"")
+ADD_DEFINITIONS("-DMASTER_OBJECT_PATH=\"/com/samsung/masterprovider/serviceobject\"")
+ADD_DEFINITIONS("-DMASTER_SERVICE_INTERFACE=\"com.samsung.masterprovider.server\"")
+ADD_DEFINITIONS("-DMASTER_SERVICE_NAME=\"com.samsung.masterprovider.serviceinterface\"")
+
+ADD_DEFINITIONS("-DSLAVE_OBJECT_PATH=\"/com/samsung/slaveprovider/serviceobject\"")
+ADD_DEFINITIONS("-DSLAVE_SERVICE_INTERFACE=\"com.samsung.slaveprovider.server\"")
+ADD_DEFINITIONS("-DSLAVE_SERVICE_NAME=\"com.samsung.slaveprovider.serviceinterface\"")
+
+ADD_DEFINITIONS("-DCLIENT_OBJECT_PATH=\"/com/samsung/liveboxviewer/serviceobject\"")
+ADD_DEFINITIONS("-DCLIENT_SERVICE_INTERFACE=\"com.samsung.liveboxviewer.server\"")
+ADD_DEFINITIONS("-DCLIENT_SERVICE_NAME=\"com.samsung.liveboxviewer.serviceinterface\"")
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/dlist.c
