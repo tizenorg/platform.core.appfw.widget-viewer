@@ -163,6 +163,7 @@ static void method_pd_updated(GDBusMethodInvocation *inv, GVariant *param)
 			ret = fb_sync(lb_get_pd_fb(handler));
 			if (ret < 0) {
 				g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
+				ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, basename((char *)filename));
 				return;
 			}
 		}
@@ -216,6 +217,7 @@ static void method_lb_updated(GDBusMethodInvocation *inv, GVariant *param)
 			ret = fb_sync(lb_get_lb_fb(handler));
 			if (ret < 0) {
 				g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", ret));
+				ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, basename((char *)filename));
 				return;
 			}
 		} else {

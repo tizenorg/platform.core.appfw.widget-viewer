@@ -1317,17 +1317,24 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 
 int lb_set_group(struct livebox *handler, const char *cluster, const char *category)
 {
-	void *pc;
-	void *ps;
+	void *pc = NULL;
+	void *ps = NULL;
 
-	pc = strdup(cluster);
-	if (!pc)
-		return -ENOMEM;
+	if (cluster) {
+		pc = strdup(cluster);
+		if (!pc) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return -ENOMEM;
+		}
+	}
 
-	ps = strdup(category);
-	if (!ps) {
-		free(pc);
-		return -ENOMEM;
+	if (category) {
+		ps = strdup(category);
+		if (!ps) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			free(pc);
+			return -ENOMEM;
+		}
 	}
 
 	if (handler->cluster)
@@ -1375,16 +1382,16 @@ void lb_invoke_event_handler(struct livebox *handler, const char *event)
 	{
 		DbgPrint("Inovke %s for %s\n", event, handler->pkgname);
 		if (handler->lb.type == LB_FB)
-			DbgPrint("LB[FB] = %s\n", fb_filename(handler->lb.data.fb));
+			DbgPrint("LB[FB] = %s\n", basename((char *)fb_filename(handler->lb.data.fb)));
 		else if (handler->lb.type == LB_TEXT)
-			DbgPrint("LB[TEXT] = %s\n", handler->filename);
+			DbgPrint("LB[TEXT] = %s\n", basename(handler->filename));
 		else if (handler->lb.type == LB_FILE)
-			DbgPrint("LB[FILE] = %s\n", handler->filename);
+			DbgPrint("LB[FILE] = %s\n", basename(handler->filename));
 
 		if (handler->pd.type == PD_FB)
-			DbgPrint("PD[FB] = %s\n", fb_filename(handler->pd.data.fb));
+			DbgPrint("PD[FB] = %s\n", basename((char *)fb_filename(handler->pd.data.fb)));
 		else if (handler->pd.type == PD_TEXT)
-			DbgPrint("PD[TEXT] = %s\n", handler->filename);
+			DbgPrint("PD[TEXT] = %s\n", basename(handler->filename));
 	}
 
 	dlist_foreach_safe(s_info.event_list, l, n, info) {
@@ -1465,8 +1472,10 @@ int lb_set_content(struct livebox *handler, const char *content)
 
 	if (content) {
 		handler->content = strdup(content);
-		if (!handler->content)
+		if (!handler->content) {
+			ErrPrint("Heap: %s\n", strerror(errno));
 			return -ENOMEM;
+		}
 	}
 
 	return 0;
