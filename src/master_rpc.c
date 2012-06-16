@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <gio/gio.h>
-#include <libgen.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,17 +10,19 @@
 #include "dlist.h"
 #include "livebox.h"
 #include "livebox_internal.h"
-#include "dbus.h"
+#include "packet.h"
+#include "connector_packet.h"
 #include "master_rpc.h"
+#include "client.h"
+#include "util.h"
 
 #define DEFAULT_TTL 10
 
-struct packet {
+struct command {
 	int ttl;
-	char *funcname;
-	GVariant *param;
+	struct packet *packet;
 	struct livebox *handler;
-	void (*ret_cb)(struct livebox *handler, GVariant *result, void *data);
+	void (*ret_cb)(struct livebox *handler, const struct packet *result, void *data);
 	void *data;
 };
 
@@ -35,61 +36,50 @@ static struct {
 	.cmd_list = NULL,
 };
 
-static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data);
+static int done_cb(pid_t pid, int handle, const struct packet *packet, void *data);
 
-static inline struct packet *pop_packet(void)
+static inline struct command *pop_command(void)
 {
 	struct dlist *l;
-	struct packet *packet;
+	struct command *command;
 
 	l = dlist_nth(s_info.cmd_list, 0);
 	if (!l)
 		return NULL;
 
-	packet = dlist_data(l);
+	command = dlist_data(l);
 	s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
-	return packet;
+	return command;
 }
 
-static inline struct packet *create_packet(struct livebox *handler, const char *funcname, GVariant *param)
+static inline struct command *create_command(struct livebox *handler, struct packet *packet)
 {
-	struct packet *packet;
+	struct command *command;
 
-	packet = malloc(sizeof(*packet));
-	if (!packet) {
-		ErrPrint("Failed to allocate mem for packet\n");
+	command = malloc(sizeof(*command));
+	if (!command) {
+		ErrPrint("Failed to allocate mem for command\n");
 		return NULL;
 	}
 
-	packet->funcname = strdup(funcname);
-	if (!packet->funcname) {
-		ErrPrint("Failed to allocate mem for funcname - %s\n", funcname);
-		free(packet);
-		return NULL;
-	}
-
-	packet->handler = lb_ref(handler);
-	packet->param = g_variant_ref(param);
-	return packet;
+	command->handler = lb_ref(handler);
+	command->packet = packet_ref(packet);
+	return command;
 }
 
-static inline void destroy_packet(struct packet *packet)
+static inline void destroy_command(struct command *command)
 {
-	g_variant_unref(packet->param);
-	lb_unref(packet->handler);
-	free(packet->funcname);
-	free(packet);
+	packet_unref(command->packet);
+	lb_unref(command->handler);
+	free(command);
 }
 
 static gboolean cmd_consumer(gpointer user_data)
 {
-	struct packet *packet;
+	struct command *command;
 
-	if (!dbus_proxy())
-		return TRUE;
-
-	packet = pop_packet();
-	if (!packet) {
+	command = pop_command();
+	if (!command) {
 		s_info.cmd_timer = 0;
 		return FALSE;
 	}
@@ -102,18 +92,24 @@ static gboolean cmd_consumer(gpointer user_data)
 	 * so to use it again from the done_cb function,
 	 * increate the reference counter of the item->param
 	 */
-	g_dbus_proxy_call(dbus_proxy(),
-		packet->funcname,
-		packet->param,
-		G_DBUS_CALL_FLAGS_NO_AUTO_START,
-		-1, NULL, (GAsyncReadyCallback)done_cb, packet);
-
+	DbgPrint("Send packet to master [%s]\n", packet_command(command->packet));
+	if (connector_packet_async_send(client_fd(), command->packet, done_cb, command) < 0) {
+		if (command->ret_cb)
+			command->ret_cb(command->handler, NULL, command->data);
+		destroy_command(command);
+	}
 	return TRUE;
 }
 
-static inline void check_and_fire_consumer(void)
+static inline void prepend_command(struct command *command)
 {
-	if (!s_info.cmd_list || s_info.cmd_timer)
+	s_info.cmd_list = dlist_prepend(s_info.cmd_list, command);
+	master_rpc_check_and_fire_consumer();
+}
+
+void master_rpc_check_and_fire_consumer(void)
+{
+	if (!s_info.cmd_list || s_info.cmd_timer || client_fd() < 0)
 		return;
 
 	s_info.cmd_timer = g_timeout_add(10, cmd_consumer, NULL);
@@ -121,105 +117,83 @@ static inline void check_and_fire_consumer(void)
 		ErrPrint("Failed to add timer\n");
 }
 
-static inline void prepend_packet(struct packet *packet)
+static int done_cb(pid_t pid, int handle, const struct packet *packet, void *data)
 {
-	DbgPrint("Re-send a packet: %s (ttl: %d)\n", packet->funcname, packet->ttl);
-	s_info.cmd_list = dlist_prepend(s_info.cmd_list, packet);
-	check_and_fire_consumer();
-}
+	struct command *command;
+	int ret;
 
-static void done_cb(GDBusProxy *proxy, GAsyncResult *res, void *data)
-{
-	GVariant *result;
-	GError *err;
-	struct packet *packet;
+	command = data;
 
-	packet = data;
-
-	err = NULL;
-	result = g_dbus_proxy_call_finish(proxy, res, &err);
-	if (!result) {
-		if (err) {
-			ErrPrint("%s Error: %s\n", packet->funcname, err->message);
-			g_error_free(err);
-		}
-
+	if (!packet) {
 		/*! \NOTE:
 		 * Release resource even if
 		 * we failed to finish the method call
 		 */
-		packet->ttl--;
-		if (packet->ttl > 0) {
-			prepend_packet(packet);
-			return;
+		command->ttl--;
+		if (command->ttl > 0) {
+			prepend_command(command);
+			return 0;
 		}
-
-		if (packet->ret_cb)
-			packet->ret_cb(packet->handler, NULL, packet->data);
 
 		goto out;
 	}
 
-	if (packet->ret_cb)
-		packet->ret_cb(packet->handler, result, packet->data);
-	else
-		g_variant_unref(result);
+	packet_get(packet, "i", &ret);
+	DbgPrint("[%s] Returns: %d\n", packet_command(packet), ret);
 
 out:
-	destroy_packet(packet);
+	if (command->ret_cb)
+		command->ret_cb(command->handler, packet, command->data);
+
+	destroy_command(command);
+	return 0;
 }
 
-static inline void push_packet(struct packet *packet)
+static inline void push_command(struct command *command)
 {
-	s_info.cmd_list = dlist_append(s_info.cmd_list, packet);
-	check_and_fire_consumer();
+	s_info.cmd_list = dlist_append(s_info.cmd_list, command);
+	master_rpc_check_and_fire_consumer();
 }
 
 /*!
  * \note
  * "handler" could be NULL
  */
-int master_rpc_async_request(struct livebox *handler, const char *funcname, GVariant *param, void (*ret_cb)(struct livebox *handler, GVariant *result, void *data), void *data)
+int master_rpc_async_request(struct livebox *handler, struct packet *packet, int urgent, void (*ret_cb)(struct livebox *handler, const struct packet *result, void *data), void *data)
 {
-	struct packet *packet;
+	struct command *command;
 
-	packet = create_packet(handler, funcname, param);
-	if (!packet) {
+	command = create_command(handler, packet);
+	if (!command) {
+		ErrPrint("Failed to create a command\n");
 		if (ret_cb)
 			ret_cb(handler, NULL, data);
 
-		g_variant_unref(param);
+		packet_unref(packet);
 		return -EFAULT;
 	}
 
-	packet->ret_cb = ret_cb;
-	packet->data = data;
-	packet->ttl = DEFAULT_TTL;
+	command->ret_cb = ret_cb;
+	command->data = data;
+	command->ttl = DEFAULT_TTL;
 
-	push_packet(packet);
+	if (urgent)
+		prepend_command(command);
+	else
+		push_command(command);
+
+	packet_unref(packet);
 	return 0;
 }
 
-int master_rpc_sync_request(struct livebox *handler, const char *func, GVariant *param)
+int master_rpc_sync_request(struct packet *packet)
 {
-	GVariant *result;
-	GError *err;
+	struct packet *result;
 	int ret;
 
-	err = NULL;
-	result = g_dbus_proxy_call_sync(dbus_proxy(), func, param, G_DBUS_CALL_FLAGS_NO_AUTO_START, -1, NULL, &err);
-	if (!result) {
-		if (err) {
-			ErrPrint("acquire Error: %s\n", err->message);
-			g_error_free(err);
-		}
-
-		ErrPrint("Failed to send 'acquire'\n");
-		return -EIO;
-	}
-
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	result = connector_packet_oneshot_send(client_addr(), packet);
+	packet_get(result, "i", &ret);
+	packet_unref(result);
 
 	return ret;
 }

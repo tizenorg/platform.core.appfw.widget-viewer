@@ -59,10 +59,14 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/dlist.c
 	src/livebox.c
 	src/util.c
-	src/dbus.c
 	src/fb_file.c
 	src/desc_parser.c
 	src/master_rpc.c
+	src/packet.c
+	src/connector.c
+	src/connector_packet.c
+	src/secom_socket.c
+	src/client.c
 )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${VERSION_MAJOR})
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})

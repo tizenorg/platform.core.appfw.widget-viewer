@@ -55,4 +55,16 @@ double util_timestamp(void)
 	return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0f;
 }
 
+const char *util_basename(const char *name)
+{
+	int length;
+	length = name ? strlen(name) : 0;
+	if (!length)
+		return ".";
+
+	while (--length > 0 && name[length] != '/');
+
+	return length <= 0 ? name : name + length;
+}
+
 /* End of a file */

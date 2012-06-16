@@ -7,11 +7,11 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <libgen.h>
 
 #include <dlog.h>
 
 #include "debug.h"
+#include "util.h"
 
 int errno;
 

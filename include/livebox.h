@@ -74,6 +74,7 @@ extern void *livebox_event_handler_unset(int (*cb)(struct livebox *handler, cons
  * "invalid,request" - Package is not valid
  * "deactivated" - Package is deactivated
  * "activation,failed" - Failed to activate a package
+ * "provider,disconnected" - Provder is disconnected
  */
 extern int livebox_fault_handler_set(int (*cb)(const char *, const char *, const char *, const char *, void *), void *data);
 /*!

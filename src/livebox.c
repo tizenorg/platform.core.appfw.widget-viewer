@@ -2,9 +2,6 @@
 #include <errno.h>
 #include <stdlib.h> /* malloc */
 #include <string.h> /* strdup */
-#include <libgen.h>
-
-#include <gio/gio.h>
 
 #include <aul.h>
 #include <dlog.h>
@@ -15,8 +12,10 @@
 #include "livebox_internal.h"
 #include "dlist.h"
 #include "util.h"
-#include "dbus.h"
+#include "packet.h"
 #include "master_rpc.h"
+#include "connector_packet.h"
+#include "client.h"
 
 #define EAPI __attribute__((visibility("default")))
 #define EVENT_INTERVAL	0.05f
@@ -65,23 +64,22 @@ static int update_event_timestamp(struct livebox *handler)
 	return 0;
 }
 
-static void mouse_event_cb(struct livebox *handler, GVariant *result, void *data)
+static void mouse_event_cb(struct livebox *handler, const struct packet *packet, void *data)
 {
 	int ret;
 
-	if (!result) {
+	if (!packet) {
 		lb_invoke_event_handler(handler, "event,ignored");
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(packet, "i", &ret);
 
 	if (ret < 0)
 		lb_invoke_event_handler(handler, "event,ingored");
 }
 
-static void resize_cb(struct livebox *handler, GVariant *result, void *data)
+static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -90,14 +88,13 @@ static void resize_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret < 0)
 		lb_invoke_event_handler(handler, "event,ignored");
 }
 
-static void clicked_cb(struct livebox *handler, GVariant *result, void *data)
+static void clicked_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -106,15 +103,14 @@ static void clicked_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret < 0)
 		lb_invoke_event_handler(handler, "event,ignored");
 		
 }
 
-static void text_signal_cb(struct livebox *handler, GVariant *result, void *data)
+static void text_signal_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -123,8 +119,7 @@ static void text_signal_cb(struct livebox *handler, GVariant *result, void *data
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret < 0)
 		lb_invoke_event_handler(handler, "event,ignored");
@@ -132,7 +127,7 @@ static void text_signal_cb(struct livebox *handler, GVariant *result, void *data
 	return;
 }
 
-static void set_group_cb(struct livebox *handler, GVariant *result, void *data)
+static void set_group_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -141,8 +136,7 @@ static void set_group_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret < 0)
 		lb_invoke_event_handler(handler, "event,ignored");
@@ -150,7 +144,7 @@ static void set_group_cb(struct livebox *handler, GVariant *result, void *data)
 	return;
 }
 
-static void period_ret_cb(struct livebox *handler, GVariant *result, void *data)
+static void period_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	double *period;
 	int ret;
@@ -160,8 +154,7 @@ static void period_ret_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	period = (double *)data;
 
@@ -175,7 +168,7 @@ static void period_ret_cb(struct livebox *handler, GVariant *result, void *data)
 	free(data);
 }
 
-static void del_ret_cb(struct livebox *handler, GVariant *result, void *data)
+static void del_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -184,8 +177,7 @@ static void del_ret_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret < 0) {
 		lb_invoke_event_handler(handler, "event,ignored");
@@ -193,15 +185,14 @@ static void del_ret_cb(struct livebox *handler, GVariant *result, void *data)
 	}
 }
 
-static void new_ret_cb(struct livebox *handler, GVariant *result, void *data)
+static void new_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
 	if (!result)
 		return;
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret >= 0)
 		return;
@@ -216,7 +207,7 @@ static void new_ret_cb(struct livebox *handler, GVariant *result, void *data)
 	lb_unref(handler);
 }
 
-static void pd_created_cb(struct livebox *handler, GVariant *result, void *data)
+static void pd_created_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -225,8 +216,7 @@ static void pd_created_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret < 0) {
 		DbgPrint("Livebox returns %d\n", ret);
@@ -247,7 +237,7 @@ static void pd_created_cb(struct livebox *handler, GVariant *result, void *data)
 		lb_invoke_event_handler(handler, "pd,created");
 }
 
-static void activated_cb(struct livebox *handler, GVariant *result, void *data)
+static void activated_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 	char *pkgname = data;
@@ -258,8 +248,7 @@ static void activated_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret == 0)
 		lb_invoke_fault_handler("activated", pkgname, NULL, NULL);
@@ -271,7 +260,7 @@ static void activated_cb(struct livebox *handler, GVariant *result, void *data)
 	free(pkgname);
 }
 
-static void pd_destroy_cb(struct livebox *handler, GVariant *result, void *data)
+static void pd_destroy_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -280,8 +269,7 @@ static void pd_destroy_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret < 0) {
 		DbgPrint("PD destroy returns %d\n", ret);
@@ -293,7 +281,7 @@ static void pd_destroy_cb(struct livebox *handler, GVariant *result, void *data)
 	lb_invoke_event_handler(handler, "pd,deleted");
 }
 
-static void pinup_done_cb(struct livebox *handler, GVariant *result, void *data)
+static void pinup_done_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -302,8 +290,7 @@ static void pinup_done_cb(struct livebox *handler, GVariant *result, void *data)
 		return;
 	}
 
-	g_variant_get(result, "(i)", &ret);
-	g_variant_unref(result);
+	packet_get(result, "i", &ret);
 
 	if (ret != 0) {
 		ErrPrint("Pinup is not changed: %s\n", strerror(ret));
@@ -316,19 +303,19 @@ static void pinup_done_cb(struct livebox *handler, GVariant *result, void *data)
 
 static int send_mouse_event(struct livebox *handler, const char *event, double x, double y)
 {
-	GVariant *param;
+	struct packet *packet;
 	double timestamp;
 
 	timestamp = util_timestamp();
-	param = g_variant_new("(issiiddd)", getpid(), handler->pkgname, handler->filename,
+	packet = packet_create(event, "ssiiddd", handler->pkgname, handler->filename,
 						handler->pd.width, handler->pd.height,
 						timestamp, x, y);
-	if (!param) {
+	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, event, param, mouse_event_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, mouse_event_cb, NULL);
 }
 
 EAPI int livebox_init(void)
@@ -341,20 +328,20 @@ EAPI int livebox_init(void)
 		__file_log_fp = fdopen(1, "w+t");
 #endif
 
-	dbus_init();
+	client_init();
 	return 0;
 }
 
 EAPI int livebox_fini(void)
 {
-	dbus_fini();
+	client_fini();
 	return 0;
 }
 
 EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period)
 {
 	struct livebox *handler;
-	GVariant *param;
+	struct packet *packet;
 	int ret;
 
 	if (!pkgname || !cluster || !category)
@@ -415,8 +402,8 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
-	param = g_variant_new("(idssssd)", getpid(), handler->timestamp, pkgname, content, cluster, category, period);
-	if (!param) {
+	packet = packet_create("new", "dssssd", handler->timestamp, pkgname, content, cluster, category, period);
+	if (!packet) {
 		free(handler->category);
 		free(handler->cluster);
 		free(handler->content);
@@ -425,7 +412,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 		return NULL;
 	}
 
-	ret = master_rpc_async_request(handler, "new", param, new_ret_cb, NULL);
+	ret = master_rpc_async_request(handler, packet, 0, new_ret_cb, NULL);
 	if (ret < 0) {
 		free(handler->category);
 		free(handler->cluster);
@@ -451,7 +438,7 @@ EAPI double livebox_period(struct livebox *handler)
 
 EAPI int livebox_set_period(struct livebox *handler, double period)
 {
-	GVariant *param;
+	struct packet *packet;
 	double *period_heap;
 
 	if (!handler || !handler->filename || handler->state == DELETE) {
@@ -466,14 +453,14 @@ EAPI int livebox_set_period(struct livebox *handler, double period)
 	if (!period_heap)
 		return -ENOMEM;
 
-	param = g_variant_new("(issd)", getpid(), handler->pkgname, handler->filename, period);
-	if (!param) {
+	packet = packet_create("set_period", "ssd", handler->pkgname, handler->filename, period);
+	if (!packet) {
 		free(period_heap);
 		return -EFAULT;
 	}
 
 	*period_heap = period;
-	return master_rpc_async_request(handler, "set_period", param, period_ret_cb, (void *)period_heap);
+	return master_rpc_async_request(handler, packet, 0, period_ret_cb, (void *)period_heap);
 }
 
 EAPI int livebox_del(struct livebox *handler, int unused)
@@ -585,7 +572,7 @@ EAPI void *livebox_event_handler_unset(int (*cb)(struct livebox *, const char *,
 
 EAPI int livebox_resize(struct livebox *handler, int w, int h)
 {
-	GVariant *param;
+	struct packet *packet;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -597,18 +584,18 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h)
 		return -EINVAL;
 	}
 
-	param = g_variant_new("(issii)", getpid(), handler->pkgname, handler->filename, w, h);
-	if (!param) {
+	packet = packet_create("resize", "ssii", handler->pkgname, handler->filename, w, h);
+	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, "resize", param, resize_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, resize_cb, NULL);
 }
 
 EAPI int livebox_click(struct livebox *handler, double x, double y)
 {
-	GVariant *param;
+	struct packet *packet;
 	double timestamp;
 
 	if (!handler) {
@@ -626,13 +613,13 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 			ErrPrint("Failed to launch app %s\n", handler->pkgname);
 
 	timestamp = util_timestamp();
-	param = g_variant_new("(isssddd)", getpid(), handler->pkgname, handler->filename, "clicked", timestamp, x, y);
-	if (!param) {
+	packet = packet_create("clicked", "sssddd", handler->pkgname, handler->filename, "clicked", timestamp, x, y);
+	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, "clicked", param, clicked_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, clicked_cb, NULL);
 }
 
 EAPI int livebox_has_pd(struct livebox *handler)
@@ -667,7 +654,7 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 
 EAPI int livebox_create_pd(struct livebox *handler)
 {
-	GVariant *param;
+	struct packet *packet;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -684,25 +671,25 @@ EAPI int livebox_create_pd(struct livebox *handler)
 		return 0;
 	}
 
-	param = g_variant_new("(iss)", getpid(), handler->pkgname, handler->filename);
-	if (!param) {
+	packet = packet_create("create_pd", "ss", handler->pkgname, handler->filename);
+	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, "create_pd", param, pd_created_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, pd_created_cb, NULL);
 }
 
 EAPI int livebox_activate(const char *pkgname)
 {
-	GVariant *param;
+	struct packet *packet;
 	char *str;
 
 	if (!pkgname)
 		return -EINVAL;
 
-	param = g_variant_new("(is)", getpid(), pkgname);
-	if (!param) {
+	packet = packet_create("activate_package", "s", pkgname);
+	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
@@ -710,15 +697,16 @@ EAPI int livebox_activate(const char *pkgname)
 	str = strdup(pkgname);
 	if (!str) {
 		ErrPrint("Heap: %s\n", strerror(errno));
+		packet_destroy(packet);
 		return -ENOMEM;
 	}
 
-	return master_rpc_async_request(NULL, "activate_package", param, activated_cb, str);
+	return master_rpc_async_request(NULL, packet, 0, activated_cb, str);
 }
 
 EAPI int livebox_destroy_pd(struct livebox *handler)
 {
-	GVariant *param;
+	struct packet *packet;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -735,13 +723,13 @@ EAPI int livebox_destroy_pd(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	param = g_variant_new("(iss)", getpid(), handler->pkgname, handler->filename);
-	if (!param) {
+	packet = packet_create("destroy_pd", "ss", handler->pkgname, handler->filename);
+	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, "destroy_pd", param, pd_destroy_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, pd_destroy_cb, NULL);
 }
 
 EAPI int livebox_pd_mouse_down(struct livebox *handler, double x, double y)
@@ -913,7 +901,7 @@ EAPI int livebox_get_size(struct livebox *handler, int *w, int *h)
 
 EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const char *category)
 {
-	GVariant *param;
+	struct packet *packet;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -925,13 +913,13 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return -EINVAL;
 	}
 
-	param = g_variant_new("(issss)", getpid(), handler->pkgname, handler->filename, cluster, category);
-	if (!param) {
+	packet = packet_create("change_group", "ssss", handler->pkgname, handler->filename, cluster, category);
+	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, "change_group", param, set_group_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, set_group_cb, NULL);
 }
 
 EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category)
@@ -1181,7 +1169,7 @@ EAPI int livebox_is_user(struct livebox *handler)
 
 EAPI int livebox_set_pinup(struct livebox *handler, int flag)
 {
-	GVariant *param;
+	struct packet *packet;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1196,13 +1184,13 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag)
 	if (handler->lb.is_pinned_up == flag)
 		return 0;
 
-	param = g_variant_new("(issi)", getpid(), handler->pkgname, handler->filename, flag);
-	if (!param) {
+	packet = packet_create("pinup_changed", "ssi", handler->pkgname, handler->filename, flag);
+	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, "pinup_changed", param, pinup_done_cb, (void *)flag);
+	return master_rpc_async_request(handler, packet, 0, pinup_done_cb, (void *)flag);
 }
 
 EAPI int livebox_pinup(struct livebox *handler)
@@ -1260,16 +1248,16 @@ EAPI void *livebox_get_data(struct livebox *handler)
 
 EAPI int livebox_is_exists(const char *pkgname)
 {
-	GVariant *param;
+	struct packet *packet;
 	int ret;
 
-	param = g_variant_new("(is)", getpid(), pkgname);
-	if (!param) {
+	packet = packet_create("livebox_is_exists", "s", pkgname);
+	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return 0;
 	}
 
-	ret = master_rpc_sync_request(NULL, "livebox_is_exists", param);
+	ret = master_rpc_sync_request(packet);
 	return ret == 0;
 }
 
@@ -1288,7 +1276,7 @@ EAPI const char *livebox_content(struct livebox *handler)
 
 EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey)
 {
-	GVariant *param;
+	struct packet *packet;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1306,13 +1294,14 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 	if (!source)
 		source = "";
 
-	param = g_variant_new("(issssdddd)", getpid(), handler->pkgname, handler->filename, emission, source, sx, sy, ex, ey);
-	if (!param) {
+	packet = packet_create("text_signal", "ssssdddd",
+				handler->pkgname, handler->filename, emission, source, sx, sy, ex, ey);
+	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, "text_signal", param, text_signal_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, text_signal_cb, NULL);
 }
 
 int lb_set_group(struct livebox *handler, const char *cluster, const char *category)
@@ -1382,16 +1371,16 @@ void lb_invoke_event_handler(struct livebox *handler, const char *event)
 	{
 		DbgPrint("Inovke %s for %s\n", event, handler->pkgname);
 		if (handler->lb.type == LB_FB)
-			DbgPrint("LB[FB] = %s\n", basename((char *)fb_filename(handler->lb.data.fb)));
+			DbgPrint("LB[FB] = %s\n", util_basename(fb_filename(handler->lb.data.fb)));
 		else if (handler->lb.type == LB_TEXT)
-			DbgPrint("LB[TEXT] = %s\n", basename(handler->filename));
+			DbgPrint("LB[TEXT] = %s\n", util_basename(handler->filename));
 		else if (handler->lb.type == LB_FILE)
-			DbgPrint("LB[FILE] = %s\n", basename(handler->filename));
+			DbgPrint("LB[FILE] = %s\n", util_basename(handler->filename));
 
 		if (handler->pd.type == PD_FB)
-			DbgPrint("PD[FB] = %s\n", basename((char *)fb_filename(handler->pd.data.fb)));
+			DbgPrint("PD[FB] = %s\n", util_basename(fb_filename(handler->pd.data.fb)));
 		else if (handler->pd.type == PD_TEXT)
-			DbgPrint("PD[TEXT] = %s\n", basename(handler->filename));
+			DbgPrint("PD[TEXT] = %s\n", util_basename(handler->filename));
 	}
 
 	dlist_foreach_safe(s_info.event_list, l, n, info) {
@@ -1742,15 +1731,15 @@ struct livebox *lb_unref(struct livebox *handler)
 
 int lb_send_delete(struct livebox *handler)
 {
-	GVariant *param;
+	struct packet *packet;
 
-	param = g_variant_new("(iss)", getpid(), handler->pkgname, handler->filename);
-	if (!param) {
+	packet = packet_create("delete", "ss", handler->pkgname, handler->filename);
+	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, "delete", param, del_ret_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, del_ret_cb, NULL);
 }
 
 /* End of a file */

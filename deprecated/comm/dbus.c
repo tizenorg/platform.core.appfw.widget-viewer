@@ -526,6 +526,8 @@ static void got_proxy_cb(GObject *obj, GAsyncResult *res, gpointer user_data)
 	GVariant *param;
 	GError *err;
 
+	DbgPrint("Got proxy\n");
+
 	err = NULL;
 	s_info.proxy = g_dbus_proxy_new_for_bus_finish(res, &err);
 	if (!s_info.proxy) {
@@ -555,6 +557,7 @@ static void got_proxy_cb(GObject *obj, GAsyncResult *res, gpointer user_data)
 
 int dbus_init(void)
 {
+	DbgPrint("Initiate dbus\n");
 	g_dbus_proxy_new_for_bus(BUS_TYPE,
 			G_DBUS_PROXY_FLAGS_NONE,
 			NULL,

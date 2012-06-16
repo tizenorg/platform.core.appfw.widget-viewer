@@ -3,7 +3,6 @@
 #include <stdlib.h> /* malloc */
 #include <string.h> /* strdup */
 #include <ctype.h>
-#include <libgen.h>
 
 #include <dlog.h>
 
@@ -12,6 +11,7 @@
 #include "livebox_internal.h"
 #include "desc_parser.h"
 #include "dlist.h"
+#include "util.h"
 
 #define TYPE_TEXT "text"
 #define TYPE_IMAGE "image"
