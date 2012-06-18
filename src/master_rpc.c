@@ -6,12 +6,13 @@
 
 #include <dlog.h>
 
+#include <packet.h>
+#include <connector_packet.h>
+
 #include "debug.h"
 #include "dlist.h"
 #include "livebox.h"
 #include "livebox_internal.h"
-#include "packet.h"
-#include "connector_packet.h"
 #include "master_rpc.h"
 #include "client.h"
 #include "util.h"

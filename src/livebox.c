@@ -6,15 +6,16 @@
 #include <aul.h>
 #include <dlog.h>
 
+#include <connector_packet.h>
+#include <packet.h>
+
 #include "debug.h"
 #include "fb_file.h"
 #include "livebox.h"
 #include "livebox_internal.h"
 #include "dlist.h"
 #include "util.h"
-#include "packet.h"
 #include "master_rpc.h"
-#include "connector_packet.h"
 #include "client.h"
 
 #define EAPI __attribute__((visibility("default")))

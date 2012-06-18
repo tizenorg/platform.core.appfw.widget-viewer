@@ -5,17 +5,18 @@
 #include <dlog.h>
 #include <glib.h>
 
+#include <packet.h>
+#include <connector_packet.h>
+#include <connector.h>
+
 #include "debug.h"
 #include "client.h"
-#include "packet.h"
-#include "connector_packet.h"
 #include "livebox.h"
 #include "livebox_internal.h"
 #include "desc_parser.h"
 #include "fb_file.h"
 #include "util.h"
 #include "master_rpc.h"
-#include "connector.h"
 
 static inline void make_connection(void);
 

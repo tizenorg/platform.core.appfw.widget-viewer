@@ -10,6 +10,7 @@ BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(gio-2.0)
+BuildRequires: pkgconfig(connector)
 
 %description
 Livebox viewer development library
