@@ -1257,8 +1257,8 @@ EAPI int livebox_is_exists(const char *pkgname)
 		ErrPrint("Failed to build a param\n");
 		return 0;
 	}
-
 	ret = master_rpc_sync_request(packet);
+	packet_destroy(packet);
 	return ret == 0;
 }
 
