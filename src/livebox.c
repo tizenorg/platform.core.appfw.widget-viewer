@@ -302,14 +302,13 @@ static void pinup_done_cb(struct livebox *handler, const struct packet *result, 
 	}
 }
 
-static int send_mouse_event(struct livebox *handler, const char *event, double x, double y)
+static int send_mouse_event(struct livebox *handler, const char *event, double x, double y, int w, int h)
 {
 	struct packet *packet;
 	double timestamp;
 
 	timestamp = util_timestamp();
-	packet = packet_create(event, "ssiiddd", handler->pkgname, handler->filename,
-						handler->pd.width, handler->pd.height,
+	packet = packet_create(event, "ssiiddd", handler->pkgname, handler->filename, w, h,
 						timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
@@ -745,7 +744,7 @@ EAPI int livebox_pd_mouse_down(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	return send_mouse_event(handler, "pd_mouse_down", x, y);
+	return send_mouse_event(handler, "pd_mouse_down", x, y, handler->pd.width, handler->pd.height);
 }
 
 EAPI int livebox_pd_mouse_up(struct livebox *handler, double x, double y)
@@ -760,7 +759,7 @@ EAPI int livebox_pd_mouse_up(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	return send_mouse_event(handler, "pd_mouse_up", x, y);
+	return send_mouse_event(handler, "pd_mouse_up", x, y, handler->pd.width, handler->pd.height);
 }
 
 EAPI int livebox_pd_mouse_move(struct livebox *handler, double x, double y)
@@ -781,7 +780,7 @@ EAPI int livebox_pd_mouse_move(struct livebox *handler, double x, double y)
 	if (ret < 0)
 		return ret;
 
-	return send_mouse_event(handler, "pd_mouse_move", x, y);
+	return send_mouse_event(handler, "pd_mouse_move", x, y, handler->pd.width, handler->pd.height);
 }
 
 EAPI int livebox_livebox_mouse_down(struct livebox *handler, double x, double y)
@@ -796,7 +795,7 @@ EAPI int livebox_livebox_mouse_down(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	return send_mouse_event(handler, "lb_mouse_down", x, y);
+	return send_mouse_event(handler, "lb_mouse_down", x, y, handler->lb.width, handler->lb.height);
 }
 
 EAPI int livebox_livebox_mouse_up(struct livebox *handler, double x, double y)
@@ -811,7 +810,7 @@ EAPI int livebox_livebox_mouse_up(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	return send_mouse_event(handler, "lb_mouse_up", x, y);
+	return send_mouse_event(handler, "lb_mouse_up", x, y, handler->lb.width, handler->lb.height);
 }
 
 EAPI int livebox_livebox_mouse_move(struct livebox *handler, double x, double y)
@@ -832,7 +831,7 @@ EAPI int livebox_livebox_mouse_move(struct livebox *handler, double x, double y)
 	if (ret < 0)
 		return ret;
 
-	return send_mouse_event(handler, "lb_mouse_move", x, y);
+	return send_mouse_event(handler, "lb_mouse_move", x, y, handler->lb.width, handler->lb.height);
 }
 
 EAPI const char *livebox_filename(struct livebox *handler)
