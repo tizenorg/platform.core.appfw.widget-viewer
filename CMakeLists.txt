@@ -19,7 +19,7 @@ pkg_check_modules(pkgs REQUIRED
 	aul
 	glib-2.0
 	gio-2.0
-	connector
+	com-core
 )
 
 FOREACH(flag ${pkgs_CFLAGS})
@@ -30,37 +30,17 @@ SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fvisibility=hidden -Wall -Werror -Winline")
 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
 
-#ADD_DEFINITIONS("-Werror")
-#ADD_DEFINITIONS("-Wall")
-#ADD_DEFINITIONS("-Wextra")
-#ADD_DEFINITIONS("-ansi")
-#ADD_DEFINITIONS("-pedantic")
-
 ADD_DEFINITIONS("-DPREFIX=\"${PREFIX}\"")
 ADD_DEFINITIONS("-DLOG_TAG=\"${PROJECT_NAME}\"")
 ADD_DEFINITIONS("-DLIVE_IMAGE_FOLDER=\"/opt/share/live_magazine/\"")
 ADD_DEFINITIONS("-DNDEBUG")
 #ADD_DEFINITIONS("-DFLOG")
 ADD_DEFINITIONS("-DMASTER_PKGNAME=\"com.samsung.data-provider-master\"")
-
-ADD_DEFINITIONS("-DBUS_TYPE=G_BUS_TYPE_SYSTEM")	# G_BUS_TYPE_SESSION
-ADD_DEFINITIONS("-DMASTER_OBJECT_PATH=\"/com/samsung/masterprovider/serviceobject\"")
-ADD_DEFINITIONS("-DMASTER_SERVICE_INTERFACE=\"com.samsung.masterprovider.server\"")
-ADD_DEFINITIONS("-DMASTER_SERVICE_NAME=\"com.samsung.masterprovider.serviceinterface\"")
-
-ADD_DEFINITIONS("-DSLAVE_OBJECT_PATH=\"/com/samsung/slaveprovider/serviceobject\"")
-ADD_DEFINITIONS("-DSLAVE_SERVICE_INTERFACE=\"com.samsung.slaveprovider.server\"")
-ADD_DEFINITIONS("-DSLAVE_SERVICE_NAME=\"com.samsung.slaveprovider.serviceinterface\"")
-
-ADD_DEFINITIONS("-DCLIENT_OBJECT_PATH=\"/com/samsung/liveboxviewer/serviceobject\"")
-ADD_DEFINITIONS("-DCLIENT_SERVICE_INTERFACE=\"com.samsung.liveboxviewer.server\"")
-ADD_DEFINITIONS("-DCLIENT_SERVICE_NAME=\"com.samsung.liveboxviewer.serviceinterface\"")
-
 ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/dlist.c
 	src/livebox.c
 	src/util.c
-	src/fb_file.c
+	src/fb.c
 	src/desc_parser.c
 	src/master_rpc.c
 	src/client.c

@@ -94,7 +94,6 @@ static void lb_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_
 	livebox_livebox_mouse_down(info->handler, rx, ry);
 }
 
-
 static void lb_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
 	Evas_Event_Mouse_Up *up = event_info;
@@ -216,35 +215,39 @@ static inline int create_new_pd(struct livebox *handler)
 	} else {
 		Evas_Coord w, h;
 		Evas_Coord x, y;
+		void *fb;
 
 		livebox_get_pdsize(handler, &w, &h);
 		fprintf(stderr, "PDSize: %dx%d\n", w, h);
+		fb = livebox_acquire_pdfb(handler);
+		if (fb) {
+			evas_object_image_size_set(info->pd, w, h); 
+			evas_object_image_colorspace_set(info->pd, EVAS_COLORSPACE_ARGB8888);
+			evas_object_image_alpha_set(info->pd, EINA_TRUE);
 
-		evas_object_image_size_set(info->pd, w, h); 
-		evas_object_image_colorspace_set(info->pd, EVAS_COLORSPACE_ARGB8888);
-		evas_object_image_alpha_set(info->pd, EINA_TRUE);
+			evas_object_image_fill_set(info->pd, 0, 0, w, h);
+			fprintf(stderr, "PD ptr: %p\n", fb);
+			evas_object_image_data_set(info->pd, fb);
+			evas_object_image_data_update_add(info->pd, 0, 0, w, h);
+			evas_object_resize(info->pd, w, h);
+			if (s_info.w != w)
+				x = (rand() % (s_info.w - w));
+			else
+				x = 0;
 
-		evas_object_image_fill_set(info->pd, 0, 0, w, h);
-		fprintf(stderr, "PD ptr: %p\n", livebox_pdfb(handler));
-		evas_object_image_data_set(info->pd, livebox_pdfb(handler));
-		evas_object_image_data_update_add(info->pd, 0, 0, w, h);
-		evas_object_resize(info->pd, w, h);
-		if (s_info.w != w)
-			x = (rand() % (s_info.w - w));
-		else
-			x = 0;
+			y = (rand() % ((s_info.h / 2) - h));
+			if (y < 40)
+				y = 40;
+			evas_object_move(info->pd, x, y);
+			evas_object_show(info->pd);
+			evas_object_layer_set(info->pd, EVAS_LAYER_MAX);
 
-		y = (rand() % ((s_info.h / 2) - h));
-		if (y < 40)
-			y = 40;
-		evas_object_move(info->pd, x, y);
-		evas_object_show(info->pd);
-		evas_object_layer_set(info->pd, EVAS_LAYER_MAX);
-
-		evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_DOWN, pd_mouse_down_cb, info);
-		evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_MOVE, pd_mouse_move_cb, info);
-		evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_UP, pd_mouse_up_cb, info);
-		fprintf(stderr, "PD created\n");
+			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_DOWN, pd_mouse_down_cb, info);
+			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_MOVE, pd_mouse_move_cb, info);
+			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_UP, pd_mouse_up_cb, info);
+			fprintf(stderr, "PD created\n");
+			livebox_release_pdfb(fb);
+		}
 	}
 
 	return 0;
@@ -268,13 +271,12 @@ static inline int create_new_box(struct livebox *handler)
 	} else {
 		Evas_Coord w, h;
 		Evas_Coord x, y;
+		void *fb = NULL;
 
 		livebox_get_size(handler, &w, &h);
 		fprintf(stderr, "created size: %dx%d\n", w, h);
 		if (!livebox_is_file(handler)) {
-			void *fb;
-
-			fb = livebox_fb(handler);
+			fb = livebox_acquire_fb(handler);
 			evas_object_image_size_set(info->box, w, h);
 			evas_object_image_colorspace_set(info->box, EVAS_COLORSPACE_ARGB8888);
 			evas_object_image_alpha_set(info->box, EINA_TRUE);
@@ -311,6 +313,11 @@ static inline int create_new_box(struct livebox *handler)
 		evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_UP, box_mouse_up_cb, info);
 		evas_object_layer_set(info->box, livebox_priority(info->handler) * 10);
 		evas_object_show(info->box);
+		if (fb) {
+			fprintf(stderr, "Release buffer begin\n");
+			livebox_release_fb(fb);
+			fprintf(stderr, "Release buffer done\n");
+		}
 	}
 
 	info->pd = NULL;
@@ -436,8 +443,12 @@ static inline int update_box(struct livebox *handler)
 
 			if (livebox_is_file(handler))
 				reload_file(info->box, livebox_filename(handler), livebox_priority(handler), w, h);
-			else
-				reload_buffer(info->box, livebox_fb(handler), 1.0, w, h);
+			else {
+				void *fb;
+				fb = livebox_acquire_fb(handler);
+				reload_buffer(info->box, fb, 1.0, w, h);
+				livebox_release_fb(fb);
+			}
 
 			return 0;
 		}
@@ -459,8 +470,12 @@ static inline int update_pd(struct livebox *handler)
 		if (info->handler == handler) {
 			if (!info->pd)
 				create_new_pd(handler);
-			else
-				reload_buffer(info->pd, livebox_pdfb(handler), 1.0, w, h);
+			else {
+				void *fb;
+				fb = livebox_acquire_pdfb(handler);
+				reload_buffer(info->pd, fb, 1.0, w, h);
+				livebox_release_pdfb(fb);
+			}
 
 			return 0;
 		}

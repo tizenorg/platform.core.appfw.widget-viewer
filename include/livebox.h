@@ -102,8 +102,14 @@ extern int livebox_is_user(struct livebox *handler);
 
 extern const char *livebox_content(struct livebox *handler);
 extern const char *livebox_filename(struct livebox *handler);
-extern void *livebox_fb(struct livebox *handler);
-extern void *livebox_pdfb(struct livebox *handler);
+
+extern void *livebox_acquire_fb(struct livebox *handler);
+extern int livebox_release_fb(void *buffer);
+extern int livebox_fb_refcnt(void *buffer);
+
+extern void *livebox_acquire_pdfb(struct livebox *handler);
+extern int livebox_release_pdfb(void *buffer);
+extern int livebox_pdfb_refcnt(void *buffer);
 
 extern int livebox_get_size(struct livebox *handler, int *w, int *h);
 extern int livebox_get_pdsize(struct livebox *handler, int *w, int *h);

@@ -1,20 +1,21 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 
 #include <dlog.h>
 #include <glib.h>
 
 #include <packet.h>
-#include <connector_packet.h>
-#include <connector.h>
+#include <com-core.h>
+#include <com-core_packet.h>
 
 #include "debug.h"
 #include "client.h"
 #include "livebox.h"
 #include "livebox_internal.h"
 #include "desc_parser.h"
-#include "fb_file.h"
+#include "fb.h"
 #include "util.h"
 #include "master_rpc.h"
 
@@ -35,7 +36,12 @@ static struct packet *master_fault_package(pid_t pid, int handle, struct packet 
 	const char *function;
 	struct packet *result;
 
-	packet_get(packet, "sss", &pkgname, &filename, &function);
+	if (packet_get(packet, "sss", &pkgname, &filename, &function) != 3) {
+		ErrPrint("Invalid arguments\n");
+		result = packet_create_reply(packet, "i", -EINVAL);
+		return result;
+	}
+
 	lb_invoke_fault_handler("deactivated", pkgname, filename, function);
 	DbgPrint("%s(%s) is deactivated\n", pkgname, filename);
 
@@ -51,7 +57,11 @@ static struct packet *master_deleted(pid_t pid, int handle, struct packet *packe
 	struct livebox *handler;
 	struct packet *result;
 
-	packet_get(packet, "ssd", &pkgname, &filename, &timestamp);
+	if (packet_get(packet, "ssd", &pkgname, &filename, &timestamp) != 3) {
+		ErrPrint("Invalid arguemnt\n");
+		result = packet_create_reply(packet, "i", -EINVAL);
+		return result;
+	}
 
 	handler = lb_find_livebox_by_timestamp(timestamp);
 	if (!handler) {
@@ -77,13 +87,23 @@ static struct packet *master_lb_updated(pid_t pid, int handle, struct packet *pa
 {
 	const char *pkgname;
 	const char *filename;
+	const char *fbfile;
 	struct livebox *handler;
 	int lb_w;
 	int lb_h;
 	double priority;
 	struct packet *result;
+	int ret;
 
-	packet_get(packet, "ssiid", &pkgname, &filename, &lb_w, &lb_h, &priority);
+	ret = packet_get(packet, "sssiid", &pkgname, &filename, &fbfile, &lb_w, &lb_h, &priority);
+	if (ret != 6) {
+		ErrPrint("Invalid argument\n");
+		result = packet_create_reply(packet, "i", -EINVAL);
+		return result;
+	}
+
+	DbgPrint("pkgname: %s, filename: %s, fbfile: %s, lb_w: %d, lb_h: %d, priority: %lf\n",
+						pkgname, filename, fbfile, lb_w, lb_h, priority);
 
 	handler = lb_find_livebox(pkgname, filename);
 	if (!handler) {
@@ -105,29 +125,28 @@ static struct packet *master_lb_updated(pid_t pid, int handle, struct packet *pa
 	lb_set_priority(handler, priority);
 
 	if (lb_text_lb(handler)) {
-		int ret;
 		lb_set_size(handler, lb_w, lb_h);
 		ret = parse_desc(handler, filename, 0);
 		result = packet_create_reply(packet, "i", ret);
 		return result;
-	} else {
-		if (lb_get_lb_fb(handler)) {
-			int ret;
-			lb_update_lb_fb(handler, lb_w, lb_h);
-			ret = fb_sync(lb_get_lb_fb(handler));
-			if (ret < 0) {
-				ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(filename));
-				result = packet_create_reply(packet, "i", ret);
-				return result;
-			}
-		} else {
-			lb_set_size(handler, lb_w, lb_h);
-		}
-
-		lb_invoke_event_handler(handler, "lb,updated");
-		result = packet_create_reply(packet, "i", 0);
-		return result;
 	}
+
+	if (lb_get_lb_fb(handler)) {
+		lb_set_size(handler, lb_w, lb_h);
+		lb_set_lb_fb(handler, fbfile);
+		ret = fb_sync(lb_get_lb_fb(handler));
+		if (ret < 0)
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(filename));
+	} else {
+		lb_set_size(handler, lb_w, lb_h);
+		ret = 0;
+	}
+
+	if (ret == 0)
+		lb_invoke_event_handler(handler, "lb,updated");
+
+	result = packet_create_reply(packet, "i", ret);
+	return result;
 }
 
 static struct packet *master_pd_updated(pid_t pid, int handle, struct packet *packet)
@@ -135,13 +154,19 @@ static struct packet *master_pd_updated(pid_t pid, int handle, struct packet *pa
 	const char *pkgname;
 	const char *filename;
 	const char *descfile;
+	const char *fbfile;
 	int ret;
 	struct livebox *handler;
 	int pd_w;
 	int pd_h;
 	struct packet *result;
 
-	packet_get(packet, "sssii", &pkgname, &filename, &descfile, &pd_w, &pd_h);
+	ret = packet_get(packet, "ssssii", &pkgname, &filename, &descfile, &fbfile, &pd_w, &pd_h);
+	if (ret != 6) {
+		ErrPrint("Invalid argument\n");
+		result = packet_create_reply(packet, "i", -EINVAL);
+		return result;
+	}
 
 	handler = lb_find_livebox(pkgname, filename);
 	if (!handler) {
@@ -164,30 +189,29 @@ static struct packet *master_pd_updated(pid_t pid, int handle, struct packet *pa
 
 	if (lb_text_pd(handler)) {
 		ret = parse_desc(handler, filename, 1);
-		result = packet_create_reply(packet, "i", ret);
-		return result;
 	} else {
-		if (lb_get_pd_fb(handler)) {
-			lb_update_pd_fb(handler, pd_w, pd_h);
-			/*!
-			 * \note
-			 * After lb_update_pd_fb function,
-			 * The return value of lb_get_pd_fb function can be change,
-			 * So call lb_get_pd_fb again to get newly allocated pd buffer
-			 */
-			ret = fb_sync(lb_get_pd_fb(handler));
+		if (lb_set_pd_fb(handler, fbfile) == 0) {
+			ret = fb_create_buffer(lb_get_pd_fb(handler));
 			if (ret < 0) {
-				ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(filename));
+				ErrPrint("Error: %s\n", strerror(ret));
 				result = packet_create_reply(packet, "i", ret);
 				return result;
 			}
 		}
 
-		lb_invoke_event_handler(handler, "pd,updated");
+		ret = fb_sync(lb_get_pd_fb(handler));
+		if (ret < 0) {
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(filename));
+			result = packet_create_reply(packet, "i", ret);
+			return result;
+		}
 
-		result = packet_create_reply(packet, "i", 0);
-		return result;
+		lb_invoke_event_handler(handler, "pd,updated");
+		ret = 0;
 	}
+
+	result = packet_create_reply(packet, "i", ret);
+	return result;
 }
 
 static struct packet *master_created(pid_t pid, int handle, struct packet *packet)
@@ -218,13 +242,20 @@ static struct packet *master_created(pid_t pid, int handle, struct packet *packe
 	double period;
 	struct packet *result;
 
-	packet_get(packet, "dsssiiiissssidiiiiid",
+	int ret;
+
+	ret = packet_get(packet, "dsssiiiissssidiiiiid",
 			&timestamp,
 			&pkgname, &filename, &content,
 			&lb_w, &lb_h, &pd_w, &pd_h,
 			&cluster, &category, &lb_fname, &pd_fname,
 			&auto_launch, &priority, &size_list, &user, &pinup_supported,
 			&text_lb, &text_pd, &period);
+	if (ret != 20) {
+		ErrPrint("Invalid argument\n");
+		result = packet_create_reply(packet, "i", -EINVAL);
+		return result;
+	}
 
 	DbgPrint("[%lf] pkgname: %s, filename: %s, content: %s, "
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
@@ -257,13 +288,16 @@ static struct packet *master_created(pid_t pid, int handle, struct packet *packe
 
 	lb_set_size(handler, lb_w, lb_h);
 
-	if (text_lb)
+	if (text_lb) {
 		lb_set_text_lb(handler);
-	else
+	} else {
 		lb_set_lb_fb(handler, lb_fname);
+		ret = fb_sync(lb_get_lb_fb(handler));
+		if (ret < 0)
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(filename));
+	}
 
 	lb_set_pdsize(handler, pd_w, pd_h);
-
 	if (text_pd)
 		lb_set_text_pd(handler);
 	else
@@ -322,8 +356,11 @@ static void acquire_cb(struct livebox *handler, const struct packet *result, voi
 		DbgPrint("Result packet is not valid\n");
 	} else {
 		int ret;
-		packet_get(result, "i", &ret);
-		DbgPrint("Acquire returns: %d\n", ret);
+
+		if (packet_get(result, "i", &ret) != 1)
+			ErrPrint("Invalid argument\n");
+		else
+			DbgPrint("Acquire returns: %d\n", ret);
 	}
 
 	return;
@@ -349,7 +386,7 @@ static inline void make_connection(void)
 
 	DbgPrint("Let's making connection!\n");
 
-	s_info.fd = connector_packet_client_init("/tmp/.live.socket", 0, s_table);
+	s_info.fd = com_core_packet_client_init("/tmp/.live.socket", 0, s_table);
 	if (s_info.fd < 0) {
 		s_info.reconnector = g_timeout_add(10000, connector_cb, NULL); /*!< After 10 secs later, try to connect again */
 		if (s_info.reconnector == 0)
@@ -361,7 +398,7 @@ static inline void make_connection(void)
 
 	packet = packet_create("acquire", "d", util_timestamp());
 	if (!packet) {
-		connector_packet_client_fini(s_info.fd);
+		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
 		return;
 	}
@@ -369,7 +406,7 @@ static inline void make_connection(void)
 	ret = master_rpc_async_request(NULL, packet, 1, acquire_cb, NULL);
 	if (ret < 0) {
 		ErrPrint("Master RPC returns %d\n", ret);
-		connector_packet_client_fini(s_info.fd);
+		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
 	}
 
@@ -396,14 +433,14 @@ static int disconnected_cb(int handle, void *data)
 		make_connection();
 	}
 
-	lb_invoke_fault_handler("provider,disconnected", "com.samsung.data-provider-master", "default", "disconnected");
+	lb_invoke_fault_handler("provider,disconnected", MASTER_PKGNAME, "default", "disconnected");
 	return 0;
 }
 
 int client_init(void)
 {
-	connector_add_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
-	connector_add_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
+	com_core_add_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
+	com_core_add_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
 	make_connection();
 	return 0;
 }
@@ -420,9 +457,9 @@ const char *client_addr(void)
 
 int client_fini(void)
 {
-	connector_packet_client_fini(s_info.fd);
-	connector_del_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
-	connector_del_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
+	com_core_packet_client_fini(s_info.fd);
+	com_core_del_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
+	com_core_del_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
 	s_info.fd = -1;
 	return 0;
 }

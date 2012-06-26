@@ -7,7 +7,7 @@
 #include <dlog.h>
 
 #include <packet.h>
-#include <connector_packet.h>
+#include <com-core_packet.h>
 
 #include "debug.h"
 #include "dlist.h"
@@ -94,7 +94,7 @@ static gboolean cmd_consumer(gpointer user_data)
 	 * increate the reference counter of the item->param
 	 */
 	DbgPrint("Send packet to master [%s]\n", packet_command(command->packet));
-	if (connector_packet_async_send(client_fd(), command->packet, done_cb, command) < 0) {
+	if (com_core_packet_async_send(client_fd(), command->packet, done_cb, command) < 0) {
 		if (command->ret_cb)
 			command->ret_cb(command->handler, NULL, command->data);
 		destroy_command(command);
@@ -192,7 +192,7 @@ int master_rpc_sync_request(struct packet *packet)
 	struct packet *result;
 	int ret;
 
-	result = connector_packet_oneshot_send(client_addr(), packet);
+	result = com_core_packet_oneshot_send(client_addr(), packet);
 	packet_get(result, "i", &ret);
 	packet_unref(result);
 
