@@ -74,7 +74,7 @@ static int update_image(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static int update_edje(struct livebox *handle, struct block *block, int is_pd)
+static int update_script(struct livebox *handle, struct block *block, int is_pd)
 {
 	struct livebox_script_operators *ops;
 	if (!block || !block->part) {
@@ -83,8 +83,8 @@ static int update_edje(struct livebox *handle, struct block *block, int is_pd)
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
-	if (ops->update_edje)
-		ops->update_edje(handle, block->id, block->part, block->data, block->group);
+	if (ops->update_script)
+		ops->update_script(handle, block->id, block->part, block->data, block->group);
 
 	return 0;
 }
@@ -229,7 +229,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		},
 		{
 			.type = TYPE_EDJE,
-			.handler = update_edje,
+			.handler = update_script,
 		},
 		{
 			.type = TYPE_SIGNAL,

@@ -36,6 +36,7 @@ static struct info {
 	.pkg_list = NULL,
 	.c_list = NULL,
 	.s_list = NULL,
+	.pd_btn = NULL,
 };
 
 struct box_info {
@@ -91,7 +92,7 @@ static void lb_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_
 	rx = (double)(down->canvas.x - x) / (double)w;
 	ry = (double)(down->canvas.y - y) / (double)h;
 
-	livebox_livebox_mouse_down(info->handler, rx, ry);
+	livebox_content_event(info->handler, LB_MOUSE_DOWN, rx, ry);
 }
 
 static void lb_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -106,7 +107,7 @@ static void lb_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_
 	rx = (double)(up->canvas.x - x) / (double)w;
 	ry = (double)(up->canvas.y - y) / (double)h;
 
-	livebox_livebox_mouse_up(info->handler, rx, ry);
+	livebox_content_event(info->handler, LB_MOUSE_MOVE, rx, ry);
 }
 
 static void lb_mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -121,7 +122,7 @@ static void lb_mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_in
 	rx = (double)(up->canvas.x - x) / (double)w;
 	ry = (double)(up->canvas.y - y) / (double)h;
 
-	livebox_livebox_mouse_up(info->handler, rx, ry);
+	livebox_content_event(info->handler, LB_MOUSE_UP, rx, ry);
 }
 
 static void pd_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -136,7 +137,7 @@ static void pd_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_
 	rx = (double)(down->canvas.x - x) / (double)w;
 	ry = (double)(down->canvas.y - y) / (double)h;
 
-	livebox_pd_mouse_down(info->handler, rx, ry);
+	livebox_content_event(info->handler, PD_MOUSE_DOWN, rx, ry);
 }
 
 static void pd_mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -151,7 +152,7 @@ static void pd_mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_in
 	rx = (double)(up->canvas.x - x) / (double)w;
 	ry = (double)(up->canvas.y - y) / (double)h;
 
-	livebox_pd_mouse_up(info->handler, rx, ry);
+	livebox_content_event(info->handler, PD_MOUSE_UP, rx, ry);
 }
 
 static void pd_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -166,7 +167,7 @@ static void pd_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_
 	rx = (double)(move->cur.canvas.x - x) / (double)w;
 	ry = (double)(move->cur.canvas.y - y) / (double)h;
 
-	livebox_pd_mouse_move(info->handler, rx, ry);
+	livebox_content_event(info->handler, PD_MOUSE_MOVE, rx, ry);
 }
 
 static void box_mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -182,75 +183,6 @@ static void box_mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_i
 	ry = (double)(up->canvas.y - y) / (double)h;
 
 	livebox_click(info->handler, rx, ry);
-}
-
-static inline struct box_info *find_box_info(struct livebox *handler)
-{
-	Eina_List *l;
-	Eina_List *n;
-	struct box_info *info;
-
-	EINA_LIST_FOREACH_SAFE(s_info.boxes, l, n, info) {
-		if (info->handler == handler)
-			return info;
-	}
-
-	return NULL;
-}
-
-static inline int create_new_pd(struct livebox *handler)
-{
-	struct box_info *info;
-
-	info = find_box_info(handler);
-	if (!info)
-		return -ENOENT;
-
-	if (info->pd)
-		return -EEXIST;
-
-	info->pd = evas_object_image_add(evas_object_evas_get(s_info.win));
-	if (!info->pd) {
-		fprintf(stderr, "Failed to add an image object for pd\n");
-	} else {
-		Evas_Coord w, h;
-		Evas_Coord x, y;
-		void *fb;
-
-		livebox_get_pdsize(handler, &w, &h);
-		fprintf(stderr, "PDSize: %dx%d\n", w, h);
-		fb = livebox_acquire_pdfb(handler);
-		if (fb) {
-			evas_object_image_size_set(info->pd, w, h); 
-			evas_object_image_colorspace_set(info->pd, EVAS_COLORSPACE_ARGB8888);
-			evas_object_image_alpha_set(info->pd, EINA_TRUE);
-
-			evas_object_image_fill_set(info->pd, 0, 0, w, h);
-			fprintf(stderr, "PD ptr: %p\n", fb);
-			evas_object_image_data_set(info->pd, fb);
-			evas_object_image_data_update_add(info->pd, 0, 0, w, h);
-			evas_object_resize(info->pd, w, h);
-			if (s_info.w != w)
-				x = (rand() % (s_info.w - w));
-			else
-				x = 0;
-
-			y = (rand() % ((s_info.h / 2) - h));
-			if (y < 40)
-				y = 40;
-			evas_object_move(info->pd, x, y);
-			evas_object_show(info->pd);
-			evas_object_layer_set(info->pd, EVAS_LAYER_MAX);
-
-			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_DOWN, pd_mouse_down_cb, info);
-			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_MOVE, pd_mouse_move_cb, info);
-			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_UP, pd_mouse_up_cb, info);
-			fprintf(stderr, "PD created\n");
-			livebox_release_pdfb(fb);
-		}
-	}
-
-	return 0;
 }
 
 static inline int create_new_box(struct livebox *handler)
@@ -275,19 +207,23 @@ static inline int create_new_box(struct livebox *handler)
 
 		livebox_get_size(handler, &w, &h);
 		fprintf(stderr, "created size: %dx%d\n", w, h);
-		if (!livebox_is_file(handler)) {
+		if (livebox_lb_type(handler) == LB_TYPE_BUFFER) {
 			fb = livebox_acquire_fb(handler);
-			evas_object_image_size_set(info->box, w, h);
-			evas_object_image_colorspace_set(info->box, EVAS_COLORSPACE_ARGB8888);
-			evas_object_image_alpha_set(info->box, EINA_TRUE);
-			evas_object_image_fill_set(info->box, 0, 0, w, h);
-			evas_object_image_data_set(info->box, fb);
-			evas_object_image_data_update_add(info->box, 0, 0, w, h);
+			if (fb) {
+				evas_object_image_size_set(info->box, w, h);
+				evas_object_image_colorspace_set(info->box, EVAS_COLORSPACE_ARGB8888);
+				evas_object_image_alpha_set(info->box, EINA_TRUE);
+				evas_object_image_fill_set(info->box, 0, 0, w, h);
+				evas_object_image_data_copy_set(info->box, fb);
+				evas_object_image_data_update_add(info->box, 0, 0, w, h);
 
-			evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_DOWN, lb_mouse_down_cb, info);
-			evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_MOVE, lb_mouse_move_cb, info);
-			evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_UP, lb_mouse_up_cb, info);
-			fprintf(stderr, "Buffer type livebox is created\n");
+				evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_DOWN, lb_mouse_down_cb, info);
+				evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_MOVE, lb_mouse_move_cb, info);
+				evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_UP, lb_mouse_up_cb, info);
+				fprintf(stderr, "Buffer type livebox is created\n");
+			} else {
+				fprintf(stderr, "Failed to get FB <<<<<<<<<<<<<<<<<<<<<<<<<<<<,\n");
+			}
 		} else {
 			evas_object_image_file_set(info->box, livebox_filename(info->handler), NULL);
 			evas_object_image_fill_set(info->box, 0, 0, w, h);
@@ -326,6 +262,37 @@ static inline int create_new_box(struct livebox *handler)
 	return 0;
 }
 
+static void activated_cb(struct livebox *handler, int ret, void *data)
+{
+	char *pkgname = data;
+
+	fprintf(stderr, "Activate %s returns %d\n", pkgname, ret);
+
+	free(pkgname);
+}
+
+static void lb_created_cb(struct livebox *handler, int ret, void *data)
+{
+	if (ret >= 0)
+		create_new_box(handler);
+	else
+		fprintf(stderr, "Failed to create a new livebox\n");
+}
+
+static inline struct box_info *find_box_info(struct livebox *handler)
+{
+	Eina_List *l;
+	Eina_List *n;
+	struct box_info *info;
+
+	EINA_LIST_FOREACH_SAFE(s_info.boxes, l, n, info) {
+		if (info->handler == handler)
+			return info;
+	}
+
+	return NULL;
+}
+
 static inline int delete_pd(struct livebox *handler)
 {
 	struct box_info *info;
@@ -338,6 +305,83 @@ static inline int delete_pd(struct livebox *handler)
 	}
 
 	return 0;
+}
+
+static void pd_destroyed_cb(struct livebox *handler, int ret, void *data)
+{
+	struct box_info *box = data;
+
+	if (ret == 0) {
+		evas_object_del(box->pd);
+		box->pd = NULL;
+
+		elm_object_part_text_set(s_info.pd_btn, "default", "CreatePD");
+	}
+}
+
+static inline int create_new_pd(struct livebox *handler)
+{
+	struct box_info *info;
+
+	info = find_box_info(handler);
+	if (!info)
+		return -ENOENT;
+
+	if (info->pd)
+		return -EEXIST;
+
+	info->pd = evas_object_image_add(evas_object_evas_get(s_info.win));
+	if (!info->pd) {
+		fprintf(stderr, "Failed to add an image object for pd\n");
+	} else {
+		Evas_Coord w, h;
+		Evas_Coord x, y;
+		void *fb;
+
+		livebox_get_pdsize(handler, &w, &h);
+		fprintf(stderr, "PDSize: %dx%d\n", w, h);
+		fb = livebox_acquire_pdfb(handler);
+		if (fb) {
+			evas_object_image_size_set(info->pd, w, h); 
+			evas_object_image_colorspace_set(info->pd, EVAS_COLORSPACE_ARGB8888);
+			evas_object_image_alpha_set(info->pd, EINA_TRUE);
+
+			evas_object_image_fill_set(info->pd, 0, 0, w, h);
+			fprintf(stderr, "PD ptr: %p\n", fb);
+			evas_object_image_data_copy_set(info->pd, fb);
+			evas_object_image_data_update_add(info->pd, 0, 0, w, h);
+			evas_object_resize(info->pd, w, h);
+			if (s_info.w != w)
+				x = (rand() % (s_info.w - w));
+			else
+				x = 0;
+
+			y = (rand() % ((s_info.h / 2) - h));
+			if (y < 40)
+				y = 40;
+			evas_object_move(info->pd, x, y);
+			evas_object_show(info->pd);
+			evas_object_layer_set(info->pd, EVAS_LAYER_MAX);
+
+			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_DOWN, pd_mouse_down_cb, info);
+			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_MOVE, pd_mouse_move_cb, info);
+			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_UP, pd_mouse_up_cb, info);
+			fprintf(stderr, "PD created: %p\n", fb);
+			livebox_release_pdfb(fb);
+		}
+	}
+
+	return 0;
+}
+
+static void pd_created_cb(struct livebox *handler, int ret, void *data)
+{
+	if (ret == 0) {
+		create_new_pd(handler);
+		elm_object_part_text_set(data, "default", "DestroyPD");
+	} else {
+		fprintf(stderr, "Failed to create a new pd\n");
+	}
 }
 
 static inline int delete_box(struct livebox *handler)
@@ -381,7 +425,7 @@ static inline void reload_buffer(Evas_Object *box, void *buffer, double priority
 	if (ow != w || oh != h) {
 		evas_object_image_size_set(box, w, h);
 		evas_object_image_fill_set(box, 0, 0, w, h);
-		evas_object_image_data_set(box, buffer);
+		evas_object_image_data_copy_set(box, buffer);
 		evas_object_resize(box, w, h);
 	}
 
@@ -441,13 +485,18 @@ static inline int update_box(struct livebox *handler)
 			if (!info->box)
 				return -EINVAL;
 
-			if (livebox_is_file(handler))
+			if (livebox_lb_type(handler) == LB_TYPE_IMAGE)
 				reload_file(info->box, livebox_filename(handler), livebox_priority(handler), w, h);
 			else {
 				void *fb;
 				fb = livebox_acquire_fb(handler);
-				reload_buffer(info->box, fb, 1.0, w, h);
-				livebox_release_fb(fb);
+				if (fb) {
+					fprintf(stderr, "pd: updated %p\n", fb);
+					reload_buffer(info->box, fb, 1.0, w, h);
+					livebox_release_fb(fb);
+				} else {
+					fprintf(stderr, ">>>>>>>>>>> Buffer is not exists\n");
+				}
 			}
 
 			return 0;
@@ -468,13 +517,18 @@ static inline int update_pd(struct livebox *handler)
 
 	EINA_LIST_FOREACH(s_info.boxes, l, info) {
 		if (info->handler == handler) {
-			if (!info->pd)
+			if (!info->pd) {
 				create_new_pd(handler);
-			else {
+			} else {
 				void *fb;
 				fb = livebox_acquire_pdfb(handler);
-				reload_buffer(info->pd, fb, 1.0, w, h);
-				livebox_release_pdfb(fb);
+				if (fb) {
+					fprintf(stderr, "pd: updated %p\n", fb);
+					reload_buffer(info->pd, fb, 1.0, w, h);
+					livebox_release_pdfb(fb);
+				} else {
+					fprintf(stderr, "!!!!!!!!!!!!!!! pd buffer is not valid\n");
+				}
 			}
 
 			return 0;
@@ -491,16 +545,7 @@ static int fault_cb(const char *event, const char *pkgname, const char *filename
 	fprintf(stderr, "filename: %s\n", filename);
 	fprintf(stderr, "funcname: %s\n", funcname);
 
-	if (!strcmp(event, "invalid,request"))
-		return EXIT_SUCCESS;
-
-	if (!strcmp(event, "activated"))
-		return EXIT_SUCCESS;
-
-	if (!strcmp(event, "activation,failed"))
-		return EXIT_SUCCESS;
-
-	livebox_activate(pkgname);
+	livebox_activate(pkgname, activated_cb, strdup(pkgname));
 	return EXIT_SUCCESS;
 }
 
@@ -518,10 +563,6 @@ static int event_cb(struct livebox *handler, const char *event, void *data)
 		delete_box(handler);
 	else if (!strcmp(event, "lb,updated"))
 		update_box(handler);
-	else if (!strcmp(event, "pd,created"))
-		create_new_pd(handler);
-	else if (!strcmp(event, "pd,deleted"))
-		delete_pd(handler);
 	else if (!strcmp(event, "pd,updated"))
 		update_pd(handler);
 
@@ -738,9 +779,10 @@ static void btn_clicked_cb(void *data, Evas_Object *obj, void *event_info)
 	fprintf(stderr, "content_info: \"default\" [FIXED]]\n");
 
 	struct livebox *handler;
-	handler = livebox_add(pkgname, "default", c_name, s_name, DEFAULT_PERIOD);
+	handler = livebox_add(pkgname, "default", c_name, s_name, DEFAULT_PERIOD, lb_created_cb, NULL);
 	if (!handler)
 		fprintf(stderr, "Failed to create a livebox\n");
+
 	fprintf(stderr, "Handler added: %p\n", handler);
 }
 
@@ -760,15 +802,10 @@ static void pd_clicked_cb(void *data, Evas_Object *obj, void *event_info)
 
 	text = elm_object_part_text_get(obj, "default");
 	if (!strcmp(text, "DestroyPD")) {
-		elm_object_part_text_set(obj, "default", "CreatePD");
-		evas_object_del(box->pd);
-		box->pd = NULL;
-		livebox_destroy_pd(box->handler);
+		livebox_destroy_pd(box->handler, pd_destroyed_cb, box);
 	} else if (!strcmp(text, "CreatePD")) {
-		if (livebox_has_pd(box->handler)) {
-			livebox_create_pd(box->handler);
-			elm_object_part_text_set(obj, "default", "DestroyPD");
-		}
+		if (livebox_has_pd(box->handler))
+			livebox_create_pd(box->handler, pd_created_cb, obj);
 	}
 }
 
@@ -819,7 +856,7 @@ static int shortcut_request_cb(const char *pkgname,
 		return -EINVAL;
 	}
 	
-	handler = livebox_add(pkgname, content, "user,created", "default", period);
+	handler = livebox_add(pkgname, content, "user,created", "default", period, lb_created_cb, NULL);
 	if (!handler) {
 		fprintf(stderr, "Failed to add a new livebox\n");
 		return -EFAULT;
@@ -928,7 +965,7 @@ static int app_reset(bundle *b,void *data)
 	fprintf(stderr, "cluster: %s\n", cluster);
 	fprintf(stderr, "category: %s\n", category);
 
-	handler = livebox_add(pkgname, content, cluster, category, DEFAULT_PERIOD);
+	handler = livebox_add(pkgname, content, cluster, category, DEFAULT_PERIOD, lb_created_cb, NULL);
 	if (!handler)
 		fprintf(stderr, "Failed to create a livebox\n");
 

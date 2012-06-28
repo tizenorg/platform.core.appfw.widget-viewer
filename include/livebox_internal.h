@@ -88,6 +88,13 @@ struct livebox {
 	int nr_of_sizes;
 
 	void *data;
+
+	ret_cb_t created_cb;
+	void *created_cbdata;
+	int is_created;
+
+	ret_cb_t deleted_cb;
+	void *deleted_cbdata;
 };
 
 /* End of a file */

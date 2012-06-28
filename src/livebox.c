@@ -35,6 +35,11 @@ static struct info {
 	.fault_list = NULL,
 };
 
+struct cb_info {
+	ret_cb_t cb;
+	void *data;
+};
+
 struct event_info {
 	int (*handler)(struct livebox *handler, const char *event, void *data);
 	void *user_data;
@@ -44,6 +49,24 @@ struct fault_info {
 	int (*handler)(const char *event, const char *pkgname, const char *filename, const char *func, void *data);
 	void *user_data;
 };
+
+static inline struct cb_info *create_cb_info(ret_cb_t cb, void *data)
+{
+	struct cb_info *info;
+
+	info = malloc(sizeof(*info));
+	if (!info)
+		return NULL;
+
+	info->cb = cb;
+	info->data = data;
+	return info;
+}
+
+static inline void destroy_cb_info(struct cb_info *info)
+{
+	free(info);
+}
 
 /*!
  * \note
@@ -69,15 +92,11 @@ static void mouse_event_cb(struct livebox *handler, const struct packet *packet,
 {
 	int ret;
 
-	if (!packet) {
-		lb_invoke_event_handler(handler, "event,ignored");
+	if (!packet)
 		return;
-	}
 
-	if (packet_get(packet, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+	if (packet_get(packet, "i", &ret) != 1)
 		return;
-	}
 
 	if (ret < 0)
 		lb_invoke_event_handler(handler, "event,ingored");
@@ -86,56 +105,68 @@ static void mouse_event_cb(struct livebox *handler, const struct packet *packet,
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
+	struct cb_info *info = data;
+	ret_cb_t cb;
+	void *cbdata;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
 
 	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
-	if (ret < 0)
-		lb_invoke_event_handler(handler, "event,ignored");
+	if (cb)
+		cb(handler, ret, cbdata);
 }
 
 static void clicked_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 
-	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
+	if (!result)
 		return;
-	}
 
-	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+	if (packet_get(result, "i", &ret) != 1)
 		return;
-	}
 
-	if (ret < 0)
-		lb_invoke_event_handler(handler, "event,ignored");
-		
+	DbgPrint("clicked returns %d\n", ret);
 }
 
 static void text_signal_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
+	void *cbdata;
+	struct cb_info *info = data;
+	ret_cb_t cb;
+
+	cbdata = info->data;
+	cb = info->cb;
+	destroy_cb_info(info);
 
 	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
-	if (ret < 0)
-		lb_invoke_event_handler(handler, "event,ignored");
+	if (cb)
+		cb(handler, ret, cbdata);
 
 	return;
 }
@@ -143,50 +174,59 @@ static void text_signal_cb(struct livebox *handler, const struct packet *result,
 static void set_group_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
+	void *cbdata;
+	struct cb_info *info = data;
+	ret_cb_t cb;
+
+	cbdata = info->data;
+	cb = info->cb;
 
 	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
-	if (ret < 0)
-		lb_invoke_event_handler(handler, "event,ignored");
-
+	if (cb)
+		cb(handler, ret, cbdata);
 	return;
 }
 
 static void period_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
-	double *period;
+	struct cb_info *info = data;
+	double period;
 	int ret;
+	ret_cb_t cb;
+	void *cbdata;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
 
 	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
-		free(data);
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
-	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
-		free(data);
+	if (packet_get(result, "id", &ret, &period) != 2) {
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
-	period = (double *)data;
+	if (ret == 0)
+		lb_set_period(handler, period);
 
-	if (ret < 0)
-		lb_invoke_event_handler(handler, "event,ignored");
-	else if (ret == 0)
-		lb_set_period(handler, *period);
-	else
-		ErrPrint("Unknown returns %d\n", ret);
-
-	free(data);
+	if (cb)
+		cb(handler, ret, cbdata);
 }
 
 static void del_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -194,37 +234,50 @@ static void del_ret_cb(struct livebox *handler, const struct packet *result, voi
 	int ret;
 
 	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (handler->deleted_cb)
+			handler->deleted_cb(handler, -EFAULT, handler->deleted_cbdata);
+
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (handler->deleted_cb)
+			handler->deleted_cb(handler, -EINVAL, handler->deleted_cbdata);
 		return;
 	}
 
-	if (ret < 0) {
-		lb_invoke_event_handler(handler, "event,ignored");
-		return;
-	}
+	DbgPrint("Returns %d\n", ret);
 }
 
 static void new_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
+	struct cb_info *info = data;
+	ret_cb_t cb;
+	void *cbdata;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
 
 	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
-	if (ret >= 0)
+	if (ret >= 0) {
+		DbgPrint("new request is sent, just waiting the created event\n");
+		handler->created_cb = cb;
+		handler->created_cbdata = cbdata;
 		return;
+	}
 
 	/*!
 	 * \note
@@ -232,116 +285,140 @@ static void new_ret_cb(struct livebox *handler, const struct packet *result, voi
 	 * so user has to know about this.
 	 * notice it to user using "deleted" event.
 	 */
-	lb_invoke_event_handler(handler, "lb,deleted");
+	if (cb)
+		cb(handler, ret, cbdata);
+
 	lb_unref(handler);
 }
 
 static void pd_created_cb(struct livebox *handler, const struct packet *result, void *data)
 {
+	struct cb_info *info = data;
+	void *cbdata;
+	ret_cb_t cb;
 	int ret;
 
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(data);
+
 	if (!result) {
-		lb_invoke_event_handler(handler, "pd,create,failed");
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "pd,create,failed");
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
 	if (ret < 0) {
 		DbgPrint("Livebox returns %d\n", ret);
-		lb_invoke_event_handler(handler, "pd,create,failed");
+		if (cb)
+			cb(handler, ret, cbdata);
 		return;
 	}
 
 	if (!handler->pd.data.fb) {
 		DbgPrint("Failed to create a PD (FB is not valid)\n");
-		lb_invoke_event_handler(handler, "pd,create,failed");
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
 	ret = fb_create_buffer(handler->pd.data.fb);
-	if (ret < 0)
-		lb_invoke_event_handler(handler, "pd,create,failed");
-	else
-		lb_invoke_event_handler(handler, "pd,created");
+	if (cb)
+		cb(handler, ret, cbdata);
 }
 
 static void activated_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
-	char *pkgname = data;
+	struct cb_info *info = data;
+	void *cbdata;
+	ret_cb_t cb;
+	const char *pkgname = "";
+
+	cbdata = info->data;
+	cb = info->cb;
+	destroy_cb_info(info);
 
 	if (!result) {
-		lb_invoke_fault_handler("activation,failed", pkgname, NULL, NULL);
-		free(pkgname);
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
-	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_fault_handler("activation,failed", pkgname, NULL, NULL);
-		free(pkgname);
+	if (packet_get(result, "is", &ret, &pkgname) != 2) {
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
-	if (ret == 0)
-		lb_invoke_fault_handler("activated", pkgname, NULL, NULL);
-	else if (ret == -EINVAL)
-		lb_invoke_fault_handler("invalid,request", pkgname, NULL, NULL);
-	else
-		lb_invoke_fault_handler("activation,failed", pkgname, NULL, NULL);
-
-	free(pkgname);
+	if (cb)
+		cb(handler, ret, cbdata);
 }
 
 static void pd_destroy_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
+	ret_cb_t cb;
+	void *cbdata;
+	struct cb_info *info = data;
+
+	cbdata = info->data;
+	cb = info->cb;
+	destroy_cb_info(info);
 
 	fb_destroy_buffer(handler->pd.data.fb);
 
 	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
-	if (ret < 0) {
-		DbgPrint("PD destroy returns %d\n", ret);
-		lb_invoke_event_handler(handler, "event,ignored");
-		return;
-	}
-
-	lb_invoke_event_handler(handler, "pd,deleted");
+	if (cb)
+		cb(handler, ret, cbdata);
 }
 
 static void pinup_done_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
+	int pinup;
+	ret_cb_t cb;
+	void *cbdata;
+	struct cb_info *info = data;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
 
 	if (!result) {
-		lb_invoke_event_handler(handler, "event,ignored");
+		if (cb)
+			cb(handler, -EFAULT, cbdata);
 		return;
 	}
 
-	if (packet_get(result, "i", &ret) != 1) {
-		lb_invoke_event_handler(handler, "event,ignored");
+	if (packet_get(result, "ii", &ret, &pinup) != 2) {
+		if (cb)
+			cb(handler, -EINVAL, cbdata);
 		return;
 	}
 
-	if (ret != 0) {
-		ErrPrint("Pinup is not changed: %s\n", strerror(ret));
-		lb_invoke_event_handler(handler, "pinup,failed");
-	} else {
-		handler->lb.is_pinned_up = (int)data;
-		lb_invoke_event_handler(handler, "pinup,changed");
-	}
+	if (ret == 0)
+		handler->lb.is_pinned_up = pinup;
+
+	if (cb)
+		cb(handler, ret, cbdata);
 }
 
 static int send_mouse_event(struct livebox *handler, const char *event, double x, double y, int w, int h)
@@ -380,14 +457,17 @@ EAPI int livebox_fini(void)
 	return 0;
 }
 
-EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period)
+EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data)
 {
 	struct livebox *handler;
 	struct packet *packet;
 	int ret;
 
-	if (!pkgname || !cluster || !category)
+	if (!pkgname || !cluster || !category) {
+		ErrPrint("Invalid arguments: pkgname[%p], cluster[%p], category[%p]\n",
+								pkgname, cluster, category);
 		return NULL;
+	}
 
 	handler = calloc(1, sizeof(*handler));
 	if (!handler) {
@@ -441,11 +521,13 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 
 	handler->timestamp = util_timestamp();
 	handler->is_user = 1;
+	handler->is_created = 0;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
 	packet = packet_create("new", "dssssd", handler->timestamp, pkgname, content, cluster, category, period);
 	if (!packet) {
+		ErrPrint("Failed to create a new packet\n");
 		free(handler->category);
 		free(handler->cluster);
 		free(handler->content);
@@ -454,8 +536,9 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 		return NULL;
 	}
 
-	ret = master_rpc_async_request(handler, packet, 0, new_ret_cb, NULL);
+	ret = master_rpc_async_request(handler, packet, 0, new_ret_cb, create_cb_info(cb, data));
 	if (ret < 0) {
+		ErrPrint("Failed to send a new packet\n");
 		free(handler->category);
 		free(handler->cluster);
 		free(handler->content);
@@ -464,6 +547,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 		return NULL;
 	}
 
+	DbgPrint("Successfully sent a new request (%s)\n", pkgname);
 	handler->state = CREATE;
 	return lb_ref(handler);
 }
@@ -478,10 +562,9 @@ EAPI double livebox_period(struct livebox *handler)
 	return handler->lb.period;
 }
 
-EAPI int livebox_set_period(struct livebox *handler, double period)
+EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
-	double *period_heap;
 
 	if (!handler || !handler->filename || handler->state == DELETE) {
 		ErrPrint("Handler is not valid\n");
@@ -491,21 +574,14 @@ EAPI int livebox_set_period(struct livebox *handler, double period)
 	if (handler->lb.period == period)
 		return 0;
 
-	period_heap = malloc(sizeof(*period_heap));
-	if (!period_heap)
-		return -ENOMEM;
-
 	packet = packet_create("set_period", "ssd", handler->pkgname, handler->filename, period);
-	if (!packet) {
-		free(period_heap);
+	if (!packet)
 		return -EFAULT;
-	}
 
-	*period_heap = period;
-	return master_rpc_async_request(handler, packet, 0, period_ret_cb, (void *)period_heap);
+	return master_rpc_async_request(handler, packet, 0, period_ret_cb, create_cb_info(cb, data));
 }
 
-EAPI int livebox_del(struct livebox *handler, int unused)
+EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -518,6 +594,8 @@ EAPI int livebox_del(struct livebox *handler, int unused)
 	}
 
 	handler->state = DELETE;
+	handler->deleted_cb = cb;
+	handler->deleted_cbdata = data;
 
 	if (!handler->filename) {
 		/*!
@@ -614,7 +692,7 @@ EAPI void *livebox_event_handler_unset(int (*cb)(struct livebox *, const char *,
 	return NULL;
 }
 
-EAPI int livebox_resize(struct livebox *handler, int w, int h)
+EAPI int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 
@@ -634,7 +712,7 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h)
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, resize_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, resize_cb, create_cb_info(cb, data));
 }
 
 EAPI int livebox_click(struct livebox *handler, double x, double y)
@@ -696,7 +774,7 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 	return fb_is_created(handler->pd.data.fb);
 }
 
-EAPI int livebox_create_pd(struct livebox *handler)
+EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 
@@ -721,13 +799,12 @@ EAPI int livebox_create_pd(struct livebox *handler)
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, pd_created_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, pd_created_cb, create_cb_info(cb, data));
 }
 
-EAPI int livebox_activate(const char *pkgname)
+EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
-	char *str;
 
 	if (!pkgname)
 		return -EINVAL;
@@ -738,17 +815,10 @@ EAPI int livebox_activate(const char *pkgname)
 		return -EFAULT;
 	}
 
-	str = strdup(pkgname);
-	if (!str) {
-		ErrPrint("Heap: %s\n", strerror(errno));
-		packet_destroy(packet);
-		return -ENOMEM;
-	}
-
-	return master_rpc_async_request(NULL, packet, 0, activated_cb, str);
+	return master_rpc_async_request(NULL, packet, 0, activated_cb, create_cb_info(cb, data));
 }
 
-EAPI int livebox_destroy_pd(struct livebox *handler)
+EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 
@@ -773,41 +843,14 @@ EAPI int livebox_destroy_pd(struct livebox *handler)
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, pd_destroy_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, pd_destroy_cb, create_cb_info(cb, data));
 }
 
-EAPI int livebox_pd_mouse_down(struct livebox *handler, double x, double y)
+EAPI int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y)
 {
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
-	}
-
-	if (!handler->pd.data.fb || handler->state == DELETE || !handler->filename) {
-		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
-	}
-
-	return send_mouse_event(handler, "pd_mouse_down", x, y, handler->pd.width, handler->pd.height);
-}
-
-EAPI int livebox_pd_mouse_up(struct livebox *handler, double x, double y)
-{
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
-	}
-
-	if (!handler->pd.data.fb || handler->state == DELETE || !handler->filename) {
-		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
-	}
-
-	return send_mouse_event(handler, "pd_mouse_up", x, y, handler->pd.width, handler->pd.height);
-}
-
-EAPI int livebox_pd_mouse_move(struct livebox *handler, double x, double y)
-{
+	int w;
+	int h;
+	const char *cmd;
 	int ret;
 
 	if (!handler) {
@@ -815,67 +858,92 @@ EAPI int livebox_pd_mouse_move(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (!handler->pd.data.fb || handler->state == DELETE || !handler->filename) {
+	if (handler->state == DELETE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
 
-	ret = update_event_timestamp(handler);
-	if (ret < 0)
-		return ret;
+	switch (type) {
+	case LB_MOUSE_DOWN:
+		if (!handler->lb.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
 
-	return send_mouse_event(handler, "pd_mouse_move", x, y, handler->pd.width, handler->pd.height);
-}
+		cmd = "lb_mouse_down";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
 
-EAPI int livebox_livebox_mouse_down(struct livebox *handler, double x, double y)
-{
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
+	case LB_MOUSE_UP:
+		if (!handler->lb.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		cmd = "lb_mouse_up";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case LB_MOUSE_MOVE:
+		if (!handler->lb.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		ret = update_event_timestamp(handler);
+		if (ret < 0)
+			return ret;
+
+		cmd = "lb_mouse_move";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case PD_MOUSE_DOWN:
+		if (!handler->pd.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_mouse_down";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	case PD_MOUSE_MOVE:
+		if (!handler->pd.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		ret = update_event_timestamp(handler);
+		if (ret < 0)
+			return ret;
+
+		cmd = "pd_mouse_move";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	case PD_MOUSE_UP:
+		if (!handler->pd.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_mouse_up";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	default:
+		ErrPrint("Invalid event type\n");
 		return -EINVAL;
 	}
 
-	if (!handler->lb.data.fb || handler->state == DELETE || !handler->filename) {
-		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
-	}
-
-	return send_mouse_event(handler, "lb_mouse_down", x, y, handler->lb.width, handler->lb.height);
-}
-
-EAPI int livebox_livebox_mouse_up(struct livebox *handler, double x, double y)
-{
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
-	}
-
-	if (!handler->lb.data.fb || handler->state == DELETE || !handler->filename) {
-		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
-	}
-
-	return send_mouse_event(handler, "lb_mouse_up", x, y, handler->lb.width, handler->lb.height);
-}
-
-EAPI int livebox_livebox_mouse_move(struct livebox *handler, double x, double y)
-{
-	int ret;
-
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
-	}
-
-	if (!handler->lb.data.fb || handler->state == DELETE || !handler->filename) {
-		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
-	}
-
-	ret = update_event_timestamp(handler);
-	if (ret < 0)
-		return ret;
-
-	return send_mouse_event(handler, "lb_mouse_move", x, y, handler->lb.width, handler->lb.height);
+	return send_mouse_event(handler, cmd, x, y, w, h);
 }
 
 EAPI const char *livebox_filename(struct livebox *handler)
@@ -943,7 +1011,7 @@ EAPI int livebox_get_size(struct livebox *handler, int *w, int *h)
 	return 0;
 }
 
-EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const char *category)
+EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const char *category, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 
@@ -963,7 +1031,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, set_group_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, set_group_cb, create_cb_info(cb, data));
 }
 
 EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category)
@@ -1045,61 +1113,66 @@ EAPI double livebox_priority(struct livebox *handler)
 	return handler->lb.priority;
 }
 
-EAPI int livebox_delete_cluster(const char *cluster)
+EAPI int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data)
 {
 	ErrPrint("Not implemented yet\n");
 	return -ENOSYS;
 }
 
-EAPI int livebox_delete_category(const char *cluster, const char *category)
+EAPI int livebox_delete_category(const char *cluster, const char *category, ret_cb_t cb, void *data)
 {
 	ErrPrint("Not implemented yet\n");
 	return -ENOSYS;
 }
 
-EAPI int livebox_is_file(struct livebox *handler)
+EAPI enum livebox_lb_type livebox_lb_type(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_TYPE_INVALID;
 	}
 
 	if (handler->state == DELETE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_TYPE_INVALID;
 	}
 
-	return handler->lb.type == LB_FILE;
+	switch (handler->lb.type) {
+	case LB_FILE:
+		return LB_TYPE_IMAGE;
+	case LB_FB:
+		return LB_TYPE_BUFFER;
+	case LB_TEXT:
+		return LB_TYPE_TEXT;
+	default:
+		break;
+	}
+
+	return LB_TYPE_INVALID;
 }
 
-EAPI int livebox_is_text(struct livebox *handler)
+EAPI enum livebox_pd_type livebox_pd_type(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return PD_TYPE_INVALID;
 	}
 
 	if (handler->state == DELETE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return PD_TYPE_INVALID;
 	}
 
-	return handler->lb.type == LB_TEXT;
-}
-
-EAPI int livebox_pd_is_text(struct livebox *handler)
-{
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+	switch (handler->pd.type) {
+	case PD_TEXT:
+		return PD_TYPE_TEXT;
+	case PD_FB:
+		return PD_TYPE_BUFFER;
+	default:
+		break;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
-		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
-	}
-
-	return handler->pd.type == PD_TEXT;
+	return PD_TYPE_INVALID;
 }
 
 EAPI int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops)
@@ -1136,7 +1209,6 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 
 EAPI void *livebox_acquire_fb(struct livebox *handler)
 {
-	void *ptr;
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
 		return NULL;
@@ -1147,8 +1219,7 @@ EAPI void *livebox_acquire_fb(struct livebox *handler)
 		return NULL;
 	}
 
-	ptr = fb_acquire_buffer(handler->lb.data.fb);
-	return ptr;
+	return fb_acquire_buffer(handler->lb.data.fb);
 }
 
 EAPI int livebox_release_fb(void *buffer)
@@ -1168,7 +1239,7 @@ EAPI void *livebox_acquire_pdfb(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state == DELETE || !handler->filename || handler->pd.type != PD_FB) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -1231,7 +1302,7 @@ EAPI int livebox_is_user(struct livebox *handler)
 	return handler->is_user;
 }
 
-EAPI int livebox_set_pinup(struct livebox *handler, int flag)
+EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 
@@ -1254,10 +1325,10 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag)
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, pinup_done_cb, (void *)flag);
+	return master_rpc_async_request(handler, packet, 0, pinup_done_cb, create_cb_info(cb, data));
 }
 
-EAPI int livebox_pinup(struct livebox *handler)
+EAPI int livebox_is_pinned_up(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1320,6 +1391,7 @@ EAPI int livebox_is_exists(const char *pkgname)
 		ErrPrint("Failed to build a param\n");
 		return 0;
 	}
+
 	ret = master_rpc_sync_request(packet);
 	packet_destroy(packet);
 	return ret == 0;
@@ -1338,7 +1410,7 @@ EAPI const char *livebox_content(struct livebox *handler)
 	return handler->content;
 }
 
-EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey)
+EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 
@@ -1365,7 +1437,7 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, text_signal_cb, NULL);
+	return master_rpc_async_request(handler, packet, 0, text_signal_cb, create_cb_info(cb, data));
 }
 
 int lb_set_group(struct livebox *handler, const char *cluster, const char *category)
@@ -1735,6 +1807,8 @@ int lb_send_delete(struct livebox *handler)
 	packet = packet_create("delete", "ss", handler->pkgname, handler->filename);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
+		if (handler->deleted_cb)
+			handler->deleted_cb(handler, -EFAULT, handler->deleted_cbdata);
 		return -EFAULT;
 	}
 

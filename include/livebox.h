@@ -10,9 +10,9 @@ struct livebox;
 /*!
  * \note size list
  * 172x172
- * 372x172
- * 372x372
- * 720x372
+ * 348x172
+ * 348x348
+ * 700x348
  */
 #define NR_OF_SIZE_LIST 4
 #define DEFAULT_PERIOD -1.0f
@@ -27,127 +27,469 @@ static const struct supported_size_list {
 	{ 700, 348 },
 };
 
-struct livebox_script_operators {
-	int (*update_begin)(struct livebox *handle);
-	int (*update_end)(struct livebox *handle);
+enum content_event_type {
+	LB_MOUSE_DOWN = 0x0001, /*!< Mouse down event for livebox */
+	LB_MOUSE_UP = 0x0002, /*!< Mouse up event for livebox */
+	LB_MOUSE_MOVE = 0x0004, /*!< Mouse move event for livebox */
 
-	int (*update_text)(struct livebox *handle, const char *id, const char *part, const char *data);
-	int (*update_image)(struct livebox *handle, const char *id, const char *part, const char *data);
-	int (*update_edje)(struct livebox *handle, const char *id, const char *part, const char *file, const char *group);
-	int (*update_signal)(struct livebox *handle, const char *id, const char *emission, const char *signal);
-	int (*update_drag)(struct livebox *handle, const char *id, const char *part, double dx, double dy);
-	int (*update_info_size)(struct livebox *handle, const char *id, int w, int h);
-	int (*update_info_category)(struct livebox *handle, const char *id, const char *category);
+	PD_MOUSE_DOWN = 0x0100, /*!< PD down event for livebox */
+	PD_MOUSE_UP = 0x0200, /*!< PD up event for livebox */
+	PD_MOUSE_MOVE = 0x0400, /*!< PD move event for livebox */
+
+	PD_EVENT_MAX = 0xFFFFFFFF,
 };
 
+enum livebox_lb_type {
+	LB_TYPE_IMAGE = 0x01,
+	LB_TYPE_BUFFER = 0x02,
+	LB_TYPE_TEXT = 0x04,
+
+	LB_TYPE_INVALID = 0xFF,
+};
+
+enum livebox_pd_type {
+	PD_TYPE_BUFFER = 0x01,
+	PD_TYPE_TEXT = 0x02,
+
+	PD_TYPE_INVALID = 0xFF,
+};
+
+/*!
+ * \note
+ * TEXT type livebox contents handling opertators.
+ */
+struct livebox_script_operators {
+	int (*update_begin)(struct livebox *handle); /*!< Content parser is started */
+	int (*update_end)(struct livebox *handle); /*!< Content parser is stopped */
+
+	/*!
+	 * \brief
+	 * Listed functions will be called when parser meets each typed component
+	 */
+	int (*update_text)(struct livebox *handle, const char *id, const char *part, const char *data); /*!< Update text content */
+	int (*update_image)(struct livebox *handle, const char *id, const char *part, const char *data); /*!< Update image content */
+	int (*update_script)(struct livebox *handle, const char *id, const char *part, const char *file, const char *group); /*!< Update script content */
+	int (*update_signal)(struct livebox *handle, const char *id, const char *emission, const char *signal); /*!< Update signal */
+	int (*update_drag)(struct livebox *handle, const char *id, const char *part, double dx, double dy); /*!< Update drag info */
+	int (*update_info_size)(struct livebox *handle, const char *id, int w, int h); /*!< Update content size */
+	int (*update_info_category)(struct livebox *handle, const char *id, const char *category); /*!< Update content category info */
+};
+
+typedef void (*ret_cb_t)(struct livebox *handle, int ret, void *data);
+
+/*!
+ * \brief Initialize the livebox system
+ * \return
+ */
 extern int livebox_init(void);
+
+/*!
+ * \brief Finalize the livebox system
+ * \return
+ */
 extern int livebox_fini(void);
 
-extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period);
-extern int livebox_del(struct livebox *handler, int unused);
+/*!
+ * \brief Add a new livebox
+ * \param[in] pkgname
+ * \param[in] content
+ * \param[in] cluster
+ * \param[in] category
+ * \param[in] period
+ * \param[in] cb
+ * \param[in] data
+ * \return handle
+ */
+extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Delete a livebox
+ * \param[in] handle
+ * \return
+ */
+extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
 
 /*!
  * \note event list
- * "lb,updated" - Contents of the given livebox is updated.
- * "pd,updated" - Contents of the given pd is updated.
- * "lb,created" - A new livebox is created
- * "lb,deleted" - Given livebox is deleted
- * "pd,created" - frame buffer of PD is created
- * "pd,create,failed" - frame buffer of PD is not created
- * "pd,deleted" - frame buffer of PD is deleted
- * "pinup,changed" - Pinup status is changed
- * "pinup,failed" - Pinup status is not changed
- * "event,ignored" - Event is not delivered to the livebox
+ * 	"lb,updated" - Contents of the given livebox is updated.
+ * 	"pd,updated" - Contents of the given pd is updated.
+ * 	"lb,created" - A new livebox is created
+ * 	"lb,deleted" - Given livebox is deleted
+ * 	"pinup,changed" - Pinup status is changed
+ * \brief Set a livebox events callback
+ * \param[in] cb
+ * \param[in] data
+ * \sa livebox_event_handler_unset
  */
 extern int livebox_event_handler_set(int (*cb)(struct livebox *handler, const char *event, void *data), void *data);
+
 /*!
- * return pointer of 'data'
+ * \brief Unset the livebox event handler
+ * \return pointer of 'data' which is registered from the livebox_event_handler_set
+ * \sa livebox_event_handler_set
  */
 extern void *livebox_event_handler_unset(int (*cb)(struct livebox *handler, const char *event, void *data));
 
 /*!
- * \note argument list
+ * \note
+ *   argument list
  * 	event, pkgname, filename, funcname
  *
- * event list
- * "activated" - Package is successfully activated
- * "invalid,request" - Package is not valid
- * "deactivated" - Package is deactivated
- * "activation,failed" - Failed to activate a package
- * "provider,disconnected" - Provder is disconnected
+ *   event list
+ * 	"deactivated" - Package is deactivated
+ *	"provider,disconnected" - Provder is disconnected
+ *
+ * \brief
+ *   Live box fault event handler registeration function
+ * \param[in] cb
+ * \param[in] data
+ * \return int
  */
 extern int livebox_fault_handler_set(int (*cb)(const char *, const char *, const char *, const char *, void *), void *data);
+
 /*!
- * return pointer of 'data'
+ * \brief Unset the live box fault event handler
+ * \param[in] cb
+ * \return pointer of 'data'
  */
 extern void *livebox_fault_handler_unset(int (*cb)(const char *, const char *, const char *, const char *, void *));
 
-extern int livebox_activate(const char *pkgname);
+/*!
+ * \brief Activate the faulted livebox.
+ * \param[in] pkgname
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_activate(const char *pkgname, ret_cb_t cb, void *data);
 
-extern int livebox_resize(struct livebox *handler, int w, int h);
+/*!
+ * \brief Resize the livebox
+ * \param[in] handler
+ * \param[in] w
+ * \param[in] h
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Send the click event for a livebox.
+ * \param[in] handler
+ * \param[in] x
+ * \param[in] y
+ * \return int
+ */
 extern int livebox_click(struct livebox *handler, double x, double y);
 
-extern int livebox_set_group(struct livebox *handler, const char *cluster, const char *category);
+/*!
+ * \brief Change the cluster/sub-cluster name of given livebox handler
+ * \param[in] handler
+ * \param[in] cluster
+ * \param[in] category
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_set_group(struct livebox *handler, const char *cluster, const char *category, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Get the cluster and category(sub-cluster) name of given livebox (It is not I18N format, only english)
+ * \param[in] handler
+ * \param[in] cluster
+ * \param[in] category
+ * \return int
+ */
 extern int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category);
 
+/*!
+ * \brief Get the period of this livebox handler
+ * \param[in] handler
+ * \return int
+ */
 extern double livebox_period(struct livebox *handler);
-extern int livebox_set_period(struct livebox *handler, double period);
 
-extern int livebox_delete_cluster(const char *cluster);
-extern int livebox_delete_category(const char *cluster, const char *category);
+/*!
+ * \brief Change the update period
+ * \param[in] handler
+ * \param[in] period
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb, void *data);
 
-extern int livebox_is_text(struct livebox *handler);
-extern int livebox_is_file(struct livebox *handler);
+/*!
+ * \brief Delete the cluster
+ * \param[in] cluster
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Delete the category(sub-cluster)
+ * \param[in] cluster
+ * \param[in] category
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_delete_category(const char *cluster, const char *category, ret_cb_t cb, void *data);
+
+
+/*!
+ * \brief Is this an text type livebox?
+ * \param[in] handler
+ * \return content_type
+ */
+extern enum livebox_lb_type livebox_lb_type(struct livebox *handler);
+
+/*!
+ * \brief Is this livebox is created by a user?
+ * \param[in] handler
+ * \return int
+ */
 extern int livebox_is_user(struct livebox *handler);
 
+/*!
+ * \brief Get the content information string of given livebox
+ * \param[in] handler
+ * \return content
+ */
 extern const char *livebox_content(struct livebox *handler);
+
+/*!
+ * \brief Get the filename of given livebox, if it is an IMAGE type livebox
+ * \param[in] handler
+ * \return filename
+ */
 extern const char *livebox_filename(struct livebox *handler);
 
-extern void *livebox_acquire_fb(struct livebox *handler);
-extern int livebox_release_fb(void *buffer);
-extern int livebox_fb_refcnt(void *buffer);
-
-extern void *livebox_acquire_pdfb(struct livebox *handler);
-extern int livebox_release_pdfb(void *buffer);
-extern int livebox_pdfb_refcnt(void *buffer);
-
-extern int livebox_get_size(struct livebox *handler, int *w, int *h);
-extern int livebox_get_pdsize(struct livebox *handler, int *w, int *h);
-
-extern int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, int *h);
+/*!
+ * \brief Get the package name of given livebox handler
+ * \param[in] handler
+ * \return pkgname
+ */
 extern const char *livebox_pkgname(struct livebox *handler);
+
+/*!
+ * \brief Get the priority of a current content.
+ * \param[in] handler
+ * \return priority
+ */
 extern double livebox_priority(struct livebox *handler);
 
+/*!
+ * \brief Acquire the buffer of given livebox (Only for the buffer type)
+ * \param[in] handler
+ * \return address of a FB
+ */
+extern void *livebox_acquire_fb(struct livebox *handler);
+
+/*!
+ * \brief Release the buffer of a livebox (Only for the buffer type)
+ * \param[in] buffer
+ * \return int
+ */
+extern int livebox_release_fb(void *buffer);
+
+/*!
+ * \brief Get the reference count of Livebox buffer (Only for the buffer type)
+ * \param[in] buffer
+ * \return int
+ */
+extern int livebox_fb_refcnt(void *buffer);
+
+/*!
+ * \brief Acquire the buffer of a PD frame (Only for the buffer type)
+ * \param[in] handler
+ * \return int
+ */
+extern void *livebox_acquire_pdfb(struct livebox *handler);
+
+/*!
+ * \brief Release the acquired buffer of the PD Frame (Only for the buffer type)
+ * \param[in] buffer
+ * \return int
+ */
+extern int livebox_release_pdfb(void *buffer);
+
+/*!
+ * \brief Reference count of given PD buffer (Only for the buffer type)
+ * \param[in] buffer
+ * \return int
+ */
+extern int livebox_pdfb_refcnt(void *buffer);
+
+/*!
+ * \brief Get the size of the Livebox
+ * \param[in] handler
+ * \param[out] w
+ * \param[out] h
+ * \return int
+ */
+extern int livebox_get_size(struct livebox *handler, int *w, int *h);
+
+/*!
+ * \brief Get the size of the Progressive Disclosure
+ * \param[in] handler
+ * \param[out] w
+ * \param[out] h
+ * \return int
+ */
+extern int livebox_get_pdsize(struct livebox *handler, int *w, int *h);
+
+/*!
+ * \brief List of supported sizes of given handler
+ * \param[in] handler
+ * \param[out] cnt
+ * \param[out] w
+ * \param[out] h
+ * \return int
+ */
+extern int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, int *h);
+
+/*!
+ * \brief BUFFER SIZE of the livebox if it is a buffer type
+ * \param[in] handler
+ * \return int
+ */
 extern int livebox_lbfb_bufsz(struct livebox *handler);
+
+/*!
+ * \brief BUFFER SIZE of the progiressive disclosure if it is a buffer type
+ * \param[in] handler
+ * \return int
+ */
 extern int livebox_pdfb_bufsz(struct livebox *handler);
 
-extern int livebox_pd_mouse_down(struct livebox *handler, double x, double y);
-extern int livebox_pd_mouse_up(struct livebox *handler, double x, double y);
-extern int livebox_pd_mouse_move(struct livebox *handler, double x, double y);
+/*!
+ * \brief Send the content event (for buffer type) to provider(livebox)
+ * \param[in] handler
+ * \param[in] type
+ * \param[in] x
+ * \param[in] y
+ */
+extern int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y);
 
-extern int livebox_livebox_mouse_down(struct livebox *handler, double x, double y);
-extern int livebox_livebox_mouse_up(struct livebox *handler, double x, double y);
-extern int livebox_livebox_mouse_move(struct livebox *handler, double x, double y);
+/*!
+ * \brief Do pin up or not.
+ * \param[in] handler
+ * \param[in] flag
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void *data);
 
-extern int livebox_set_pinup(struct livebox *handler, int flag);
-extern int livebox_pinup(struct livebox *handler);
+/*!
+ * \brief Check the PIN-UP status of given handler
+ * \param[in] handler
+ * \return int
+ */
+extern int livebox_is_pinned_up(struct livebox *handler);
+
+/*!
+ * \brief Check the PINUP feature availability of the given handler
+ * \param[in] handler
+ * \return int
+ */
 extern int livebox_has_pinup(struct livebox *handler);
 
+/*!
+ * \brief Check the PD existence of given handler
+ * \param[in] handler
+ * \return int
+ */
 extern int livebox_has_pd(struct livebox *handler);
-extern int livebox_create_pd(struct livebox *handler);
-extern int livebox_destroy_pd(struct livebox *handler);
+
+/*!
+ * \brief Create the PD of given handler
+ * \param[in] handler
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Destroy the PD of given handler if it is created.
+ * \param[in] handler
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Check the create status of given livebox handler
+ * \param[in] handler
+ * \return int
+ */
 extern int livebox_pd_is_created(struct livebox *handler);
-extern int livebox_pd_is_text(struct livebox *handler);
 
-extern int livebox_set_data(struct livebox *handler, void *data);
-extern void *livebox_get_data(struct livebox *handler);
+/*!
+ * \brief Check the content type of the progressive disclosure of given handler
+ * \param[in] handler
+ * \return int
+ */
+extern enum livebox_pd_type livebox_pd_type(struct livebox *handler);
 
+/*!
+ * \brief Check the existence of a livebox about given package name
+ * \param[in] pkgname
+ * \return int
+ */
 extern int livebox_is_exists(const char *pkgname);
 
+/*!
+ * \brief Set function table for parsing the text content of a livebox
+ * \param[in] handler
+ * \param[in] ops
+ * \return int
+ */
 extern int livebox_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
+
+/*!
+ * \brief Set function table for parsing the text content of a Progressive Disclosure
+ * \param[in] handler
+ * \param[in] ops
+ * \return int
+ */
 extern int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
 
-extern int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey);
+/*!
+ * \brief Emit a text signal to given livebox only if it is a text type.
+ * \param[in] handler
+ * \param[in] emission
+ * \param[in] source
+ * \param[in] sx
+ * \param[in] sy
+ * \param[in] ex
+ * \param[in] ey
+ * \param[in] cb
+ * \param[in] data
+ */
+extern int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Set a private data pointer to carry it using given handler
+ * \param[in] handler
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_set_data(struct livebox *handler, void *data);
+
+/*!
+ * \brief Get private data pointer which is carried by given handler
+ * \param[in] handler
+ * \return int
+ */
+extern void *livebox_get_data(struct livebox *handler);
+
 #ifdef __cplusplus
 }
 #endif

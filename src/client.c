@@ -75,7 +75,11 @@ static struct packet *master_deleted(pid_t pid, int handle, struct packet *packe
 	}
 
 	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, filename);
-	lb_invoke_event_handler(handler, "lb,deleted");
+	if (handler->created_cb && !handler->is_created)
+		handler->created_cb(handler, -EFAULT, handler->created_cbdata);
+	else if (handler->state != DELETE)
+		lb_invoke_event_handler(handler, "lb,deleted");
+
 	/* Just try to delete it, if a user didn't remove it from the live box list */
 	lb_unref(handler);
 
@@ -317,7 +321,16 @@ static struct packet *master_created(pid_t pid, int handle, struct packet *packe
 
 	lb_set_period(handler, period);
 
-	lb_invoke_event_handler(handler, "lb,created");
+	if (handler->created_cb) {
+		if (handler->is_created == 1) {
+			ErrPrint(">>>>>>> Unacceptable state exists\n");
+		} else {
+			handler->created_cb(handler, 0, handler->created_cbdata);
+			handler->is_created = 1;
+		}
+	} else {
+		lb_invoke_event_handler(handler, "lb,created");
+	}
 
 	result = packet_create_reply(packet, "i", 0);
 	return result;

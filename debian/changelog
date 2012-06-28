@@ -1,7 +1,23 @@
-livebox-viewer (0.1.2) unstable; urgency=low
+livebox-viewer (0.3.0) unstable; urgency=low
+
+  * Git: slp/pkgs/l/livebox-viewer
+  * Tag: livebox-viewer_0.3.0
+
+  API changed
+
+ -- Sung-jae Park <nicesj.park@samsung.com>  Thu, 28 Jun 2012 22:49:36 +0900
+
+livebox-viewer (0.2.0) unstable; urgency=low
 
   * Git: slp/pkgs/l/livebox-viewer
   * Tag: livebox-viewer_0.2.0
+
+ -- Sung-jae Park <nicesj.park@samsung.com>  Thu, 28 Jun 2012 22:49:14 +0900
+
+livebox-viewer (0.1.2) unstable; urgency=low
+
+  * Git: slp/pkgs/l/livebox-viewer
+  * Tag: livebox-viewer_0.1.2
 
  -- Sung-jae Park <nicesj.park@samsung.com>  Sat, 16 Jun 2012 22:36:52 +0900
 
