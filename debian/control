@@ -8,7 +8,7 @@ Standards-Version: 0.1.0
 Package: liblivebox-viewer
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libdlog-0, libaul-1, libglib2.0, libcom-core
+Depends: ${shlibs:Depends}, ${misc:Depends}, libdlog-0, libaul-1, libcom-core
 Description: Livebox supporting library (shared object)
 
 Package: liblivebox-viewer-dev

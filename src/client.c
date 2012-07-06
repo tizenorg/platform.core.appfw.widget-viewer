@@ -29,7 +29,7 @@ static struct info {
 	.reconnector = 0,
 };
 
-static struct packet *master_fault_package(pid_t pid, int handle, struct packet *packet)
+static struct packet *master_fault_package(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
 	const char *filename;
@@ -49,7 +49,7 @@ static struct packet *master_fault_package(pid_t pid, int handle, struct packet 
 	return result;
 }
 
-static struct packet *master_deleted(pid_t pid, int handle, struct packet *packet)
+static struct packet *master_deleted(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
 	const char *filename;
@@ -87,7 +87,7 @@ static struct packet *master_deleted(pid_t pid, int handle, struct packet *packe
 	return result;
 }
 
-static struct packet *master_lb_updated(pid_t pid, int handle, struct packet *packet)
+static struct packet *master_lb_updated(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
 	const char *filename;
@@ -153,7 +153,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, struct packet *pa
 	return result;
 }
 
-static struct packet *master_pd_updated(pid_t pid, int handle, struct packet *packet)
+static struct packet *master_pd_updated(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
 	const char *filename;
@@ -218,7 +218,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, struct packet *pa
 	return result;
 }
 
-static struct packet *master_created(pid_t pid, int handle, struct packet *packet)
+static struct packet *master_created(pid_t pid, int handle, const struct packet *packet)
 {
 	struct livebox *handler;
 
