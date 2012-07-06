@@ -554,7 +554,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 
 EAPI double livebox_period(struct livebox *handler)
 {
-	if (!handler || handler->state == DELETE || !handler->filename) {
+	if (!handler || handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return 0.0f;
 	}
@@ -566,7 +566,7 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 {
 	struct packet *packet;
 
-	if (!handler || !handler->filename || handler->state == DELETE) {
+	if (!handler || !handler->filename || handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -588,7 +588,7 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE) {
+	if (handler->state != CREATE) {
 		ErrPrint("Handler is already deleted\n");
 		return -EINVAL;
 	}
@@ -701,7 +701,7 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -725,7 +725,7 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -751,7 +751,7 @@ EAPI int livebox_has_pd(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -766,7 +766,7 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (!handler->pd.data.fb || handler->state == DELETE || !handler->filename) {
+	if (!handler->pd.data.fb || handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -783,7 +783,7 @@ EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return -EINVAL;
 	}
 
-	if (!handler->pd.data.fb || handler->state == DELETE || !handler->filename) {
+	if (!handler->pd.data.fb || handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -827,7 +827,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return -EINVAL;
 	}
 
-	if (!handler->pd.data.fb || handler->state == DELETE || !handler->filename) {
+	if (!handler->pd.data.fb || handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -858,7 +858,7 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -953,7 +953,7 @@ EAPI const char *livebox_filename(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state == DELETE) {
+	if (handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -971,7 +971,7 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -996,7 +996,7 @@ EAPI int livebox_get_size(struct livebox *handler, int *w, int *h)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1020,7 +1020,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return -EINVAL;
 	}
 
-	if (!cluster || !category || handler->state == DELETE || !handler->filename) {
+	if (!cluster || !category || handler->state != CREATE || !handler->filename) {
 		ErrPrint("Invalid argument\n");
 		return -EINVAL;
 	}
@@ -1041,7 +1041,7 @@ EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char 
 		return -EINVAL;
 	}
 
-	if (!cluster || !category || handler->state == DELETE || !handler->filename) {
+	if (!cluster || !category || handler->state != CREATE || !handler->filename) {
 		ErrPrint("Invalid argument\n");
 		return -EINVAL;
 	}
@@ -1061,7 +1061,7 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 		return -EINVAL;
 	}
 
-	if (!cnt || handler->state == DELETE || !handler->filename) {
+	if (!cnt || handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1090,7 +1090,7 @@ EAPI const char *livebox_pkgname(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state == DELETE) {
+	if (handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -1105,7 +1105,7 @@ EAPI double livebox_priority(struct livebox *handler)
 		return 0.0f;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid (%p)\n", handler);
 		return -1.0f;
 	}
@@ -1132,7 +1132,7 @@ EAPI enum livebox_lb_type livebox_lb_type(struct livebox *handler)
 		return LB_TYPE_INVALID;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return LB_TYPE_INVALID;
 	}
@@ -1158,7 +1158,7 @@ EAPI enum livebox_pd_type livebox_pd_type(struct livebox *handler)
 		return PD_TYPE_INVALID;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return PD_TYPE_INVALID;
 	}
@@ -1182,7 +1182,7 @@ EAPI int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_scr
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE) {
+	if (handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1198,7 +1198,7 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE) {
+	if (handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1214,7 +1214,7 @@ EAPI void *livebox_acquire_fb(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state == DELETE || !handler->filename || handler->lb.type != LB_FB) {
+	if (handler->state != CREATE || !handler->filename || handler->lb.type != LB_FB) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -1239,7 +1239,7 @@ EAPI void *livebox_acquire_pdfb(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state == DELETE || !handler->filename || handler->pd.type != PD_FB) {
+	if (handler->state != CREATE || !handler->filename || handler->pd.type != PD_FB) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -1264,7 +1264,7 @@ EAPI int livebox_pdfb_bufsz(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1279,7 +1279,7 @@ EAPI int livebox_lbfb_bufsz(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1294,7 +1294,7 @@ EAPI int livebox_is_user(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE) {
+	if (handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return -EINVAL;
 	}
@@ -1311,7 +1311,7 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename) {
+	if (handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1335,7 +1335,7 @@ EAPI int livebox_is_pinned_up(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename)
+	if (handler->state != CREATE || !handler->filename)
 		return -EINVAL;
 
 	return handler->lb.is_pinned_up;
@@ -1348,7 +1348,7 @@ EAPI int livebox_has_pinup(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE || !handler->filename)
+	if (handler->state != CREATE || !handler->filename)
 		return -EINVAL;
 
 	return handler->lb.pinup_supported;
@@ -1361,7 +1361,7 @@ EAPI int livebox_set_data(struct livebox *handler, void *data)
 		return -EINVAL;
 	}
 
-	if (handler->state == DELETE)
+	if (handler->state != CREATE)
 		return -EINVAL;
 
 	handler->data = data;
@@ -1375,7 +1375,7 @@ EAPI void *livebox_get_data(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state == DELETE)
+	if (handler->state != CREATE)
 		return NULL;
 
 	return handler->data;
@@ -1404,7 +1404,7 @@ EAPI const char *livebox_content(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state == DELETE)
+	if (handler->state != CREATE)
 		return NULL;
 
 	return handler->content;
@@ -1419,7 +1419,7 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 		return -EINVAL;
 	}
 
-	if ((handler->lb.type != LB_TEXT && !handler->pd.type != PD_TEXT) || handler->state == DELETE || !handler->filename) {
+	if ((handler->lb.type != LB_TEXT && !handler->pd.type != PD_TEXT) || handler->state != CREATE || !handler->filename) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1582,6 +1582,7 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *filename, double
 	handler->timestamp = timestamp;
 	handler->lb.type = LB_FILE;
 	handler->pd.type = PD_FB;
+	handler->state = CREATE;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 	lb_ref(handler);
@@ -1781,6 +1782,7 @@ struct livebox *lb_unref(struct livebox *handler)
 
 	dlist_remove_data(s_info.livebox_list, handler);
 
+	handler->state = DELETE;
 	free(handler->cluster);
 	free(handler->category);
 	free(handler->filename);

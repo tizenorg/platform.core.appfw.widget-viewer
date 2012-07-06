@@ -254,6 +254,9 @@ void *fb_acquire_buffer(struct fb_info *info)
 {
 	struct buffer *buffer;
 
+	if (!info)
+		return NULL;
+
 	buffer = info->buffer;
 	if (!buffer)
 		return NULL;

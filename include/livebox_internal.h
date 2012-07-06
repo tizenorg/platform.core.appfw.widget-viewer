@@ -29,8 +29,8 @@ extern int lb_send_delete(struct livebox *handler);
 struct livebox {
 	int refcnt;
 	enum {
-		CREATE = 0x0,
-		DELETE = 0x01, /* Delete only for this client */
+		CREATE = 0xBEEFbeef,
+		DELETE = 0xDEADdead, /* Delete only for this client */
 	} state;
 
 	char *cluster;

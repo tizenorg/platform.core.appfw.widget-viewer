@@ -77,7 +77,7 @@ static struct packet *master_deleted(pid_t pid, int handle, struct packet *packe
 	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, filename);
 	if (handler->created_cb && !handler->is_created)
 		handler->created_cb(handler, -EFAULT, handler->created_cbdata);
-	else if (handler->state != DELETE)
+	else if (handler->state == CREATE)
 		lb_invoke_event_handler(handler, "lb,deleted");
 
 	/* Just try to delete it, if a user didn't remove it from the live box list */
@@ -115,7 +115,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, struct packet *pa
 		return result;
 	}
 
-	if (handler->state == DELETE) {
+	if (handler->state != CREATE) {
 		/*!
 		 * \note
 		 * Already deleted by the user.
@@ -178,7 +178,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, struct packet *pa
 		return result;
 	}
 
-	if (handler->state == DELETE) {
+	if (handler->state != CREATE) {
 		/*!
 		 * \note
 		 * This handler is already deleted by the user.
@@ -283,7 +283,7 @@ static struct packet *master_created(pid_t pid, int handle, struct packet *packe
 	} else {
 		lb_set_filename(handler, filename);
 
-		if (handler->state == DELETE) {
+		if (handler->state != CREATE) {
 			lb_send_delete(handler);
 			result = packet_create_reply(packet, "i", 0);
 			return result;
@@ -294,7 +294,7 @@ static struct packet *master_created(pid_t pid, int handle, struct packet *packe
 
 	if (text_lb) {
 		lb_set_text_lb(handler);
-	} else {
+	} else if (strlen(lb_fname)) {
 		lb_set_lb_fb(handler, lb_fname);
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret < 0)
