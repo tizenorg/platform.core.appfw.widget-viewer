@@ -299,6 +299,9 @@ int fb_refcnt(void *data)
 {
 	struct buffer *buffer;
 
+	if (!data)
+		return -EINVAL;
+
 	buffer = container_of(data, struct buffer, data);
 
 	if (buffer->state != CREATED) {

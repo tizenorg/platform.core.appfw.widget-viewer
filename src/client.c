@@ -261,7 +261,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		return result;
 	}
 
-	DbgPrint("[%lf] pkgname: %s, filename: %s, content: %s, "
+	ErrPrint("[%lf] pkgname: %s, filename: %s, content: %s, "
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
 		"cluster: %s, category: %s, lb_fname: \"%s\", pd_fname: \"%s\", "
 		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d, "
@@ -288,6 +288,20 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			result = packet_create_reply(packet, "i", 0);
 			return result;
 		}
+	}
+
+	if (handler->is_created == 1) {
+		ErrPrint("Already created: timestamp[%lf] "
+			"pkgname[%s], filename[%s] content[%s] "
+			"cluster[%s] category[%s] lb_fname[%s] pd_fname[%s]\n",
+				timestamp,
+				pkgname, filename,
+				content,
+				cluster, category,
+				lb_fname, pd_fname);
+
+		result = packet_create_reply(packet, "i", 0);
+		return result;
 	}
 
 	lb_set_size(handler, lb_w, lb_h);
@@ -322,12 +336,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	lb_set_period(handler, period);
 
 	if (handler->created_cb) {
-		if (handler->is_created == 1) {
-			ErrPrint(">>>>>>> Unacceptable state exists\n");
-		} else {
-			handler->created_cb(handler, 0, handler->created_cbdata);
-			handler->is_created = 1;
-		}
+		handler->created_cb(handler, 0, handler->created_cbdata);
+		handler->is_created = 1;
 	} else {
 		lb_invoke_event_handler(handler, "lb,created");
 	}
