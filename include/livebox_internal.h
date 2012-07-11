@@ -8,7 +8,7 @@ extern void lb_set_auto_launch(struct livebox *handler, int auto_launch);
 extern struct livebox *lb_find_livebox(const char *pkgname, const char *filename);
 extern struct livebox *lb_new_livebox(const char *pkgname, const char *filename, double timestamp);
 extern struct livebox *lb_find_livebox_by_timestamp(double timestamp);
-extern void lb_set_filename(struct livebox *handler, const char *filename);
+extern void lb_set_id(struct livebox *handler, const char *id);
 extern void lb_set_size_list(struct livebox *handler, int size_list);
 extern void lb_set_priority(struct livebox *handler, double priority);
 extern int lb_set_lb_fb(struct livebox *handler, const char *filename);
@@ -26,6 +26,21 @@ extern struct livebox *lb_ref(struct livebox *handler);
 extern struct livebox *lb_unref(struct livebox *handler);
 extern int lb_send_delete(struct livebox *handler);
 
+enum lb_type { /*!< Must have to be sync with data-provider-master */
+	_LB_TYPE_NONE = 0x0,
+	_LB_TYPE_SCRIPT,
+	_LB_TYPE_FILE,
+	_LB_TYPE_TEXT,
+	_LB_TYPE_BUFFER,
+};
+
+enum pd_type { /*!< Must have to be sync with data-provider-master */
+	_PD_TYPE_NONE = 0x0,
+	_PD_TYPE_SCRIPT,
+	_PD_TYPE_TEXT,
+	_PD_TYPE_BUFFER,
+};
+
 struct livebox {
 	int refcnt;
 	enum {
@@ -37,7 +52,7 @@ struct livebox {
 	char *category;
 
 	char *pkgname;
-	char *filename;
+	char *id;
 	char *content;
 
 	double timestamp;
@@ -46,12 +61,7 @@ struct livebox {
 	int is_user;
 
 	struct {
-		enum {
-			LB_FILE,
-			LB_FB,
-			LB_TEXT,
-		} type;
-
+		enum lb_type type;
 		union {
 			struct fb_info *fb;
 			struct livebox_script_operators ops;
@@ -70,12 +80,7 @@ struct livebox {
 	} lb;
 
 	struct {
-		enum {
-			PD_FILE,
-			PD_FB,
-			PD_TEXT,
-		} type;
-
+		enum pd_type type;
 		union {
 			struct fb_info *fb;
 			struct livebox_script_operators ops;

@@ -22,6 +22,7 @@
 extern int util_check_extension(const char *filename, const char *check_ptr);
 extern double util_timestamp(void);
 extern const char *util_basename(const char *name);
+#define URI_TO_PATH(uri)	((uri) + 7)
 
 #define container_of(ptr, type, member) \
         ({ const typeof( ((type *)0)->member ) *__mptr = (ptr);    \

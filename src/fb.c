@@ -25,24 +25,21 @@ struct fb_info {
 		FB_TYPE_FILE,
 		FB_TYPE_SHM,
 	} type;
-	char *filename;
+	char *id;
 	int w;
 	int h;
 	int bufsz;
 	void *buffer;
 
-	int id;
+	int handle;
 };
 
-struct buffer {
+struct buffer { /*!< Must has to be sync with slave & provider */
 	enum {
 		CREATED = 0x00beef00,
 		DESTROYED = 0x00dead00,
 	} state;
-	enum {
-		BUFFER_FILE = 0x0,
-		BUFFER_SHM = 0x1,
-	} type;
+	enum buffer_type type;
 	int refcnt;
 	char data[];
 };
@@ -88,7 +85,7 @@ int fb_sync(struct fb_info *info)
 		return -EINVAL;
 	}
 
-	if (!info->filename || info->filename[0] == '\0') {
+	if (!info->id || info->id[0] == '\0') {
 		DbgPrint("Ingore sync\n");
 		return 0;
 	}
@@ -98,9 +95,14 @@ int fb_sync(struct fb_info *info)
 		return 0;
 	}
 
-	fd = open(info->filename, O_RDONLY);
+	if (strncmp(info->id, "file://", 7)) {
+		DbgPrint("Invalid URI: [%s]\n", info->id);
+		return -EINVAL;
+	}
+
+	fd = open(URI_TO_PATH(info->id), O_RDONLY);
 	if (fd < 0) {
-		ErrPrint("Failed to open a file %s because of %s\n", info->filename, strerror(errno));
+		ErrPrint("Failed to open a file (%s) because of (%s)\n", URI_TO_PATH(info->id), strerror(errno));
 		return -EIO;
 	}
 
@@ -111,16 +113,16 @@ int fb_sync(struct fb_info *info)
 	}
 
 	close(fd);
-	DbgPrint("Sync done (%s, %p)\n", info->filename, buffer);
+	DbgPrint("Sync done (%s, %p)\n", info->id, buffer);
 	return 0;
 }
 
-struct fb_info *fb_create(const char *filename, int w, int h)
+struct fb_info *fb_create(const char *id, int w, int h)
 {
 	struct fb_info *info;
 
-	if (!filename || filename[0] == '\0') {
-		ErrPrint("Invalid filename\n");
+	if (!id || id[0] == '\0') {
+		ErrPrint("Invalid id\n");
 		return NULL;
 	}
 
@@ -130,21 +132,21 @@ struct fb_info *fb_create(const char *filename, int w, int h)
 		return NULL;
 	}
 
-	info->filename = strdup(filename);
-	if (!info->filename) {
+	info->id = strdup(id);
+	if (!info->id) {
 		ErrPrint("Heap: %s\n", strerror(errno));
 		free(info);
 		return NULL;
 	}
 
-	if (!strcmp(info->filename, "undefined")) {
+	if (!strlen(info->id)) {
 		info->type = FB_TYPE_UNKNOWN;
-		info->id = -EINVAL;
-	} else if (sscanf(info->filename, "shm://%d", &info->id) == 1) {
+		info->handle = -EINVAL;
+	} else if (sscanf(info->id, "shm://%d", &info->handle) == 1) {
 		info->type = FB_TYPE_SHM;
 	} else {
 		info->type = FB_TYPE_FILE;
-		info->id = -EINVAL;
+		info->handle = -EINVAL;
 	}
 
 	info->bufsz = 0;
@@ -178,18 +180,18 @@ int fb_create_buffer(struct fb_info *info)
 			return -ENOMEM;
 		}
 
-		buffer->type = BUFFER_FILE;
+		buffer->type = BUFFER_TYPE_FILE;
 	} else {
-		DbgPrint("SHMID: %d\n", info->id);
+		DbgPrint("SHMID: %d\n", info->handle);
 
-		buffer = shmat(info->id, NULL, 0);
+		buffer = shmat(info->handle, NULL, 0);
 		if (!buffer) {
 			ErrPrint("shmat: %s\n", strerror(errno));
 			info->bufsz = 0;
 			return -EFAULT;
 		}
 
-		buffer->type = BUFFER_SHM;
+		buffer->type = BUFFER_TYPE_SHM;
 	}
 	buffer->refcnt = 1;
 	buffer->state = CREATED;
@@ -219,6 +221,7 @@ int fb_destroy_buffer(struct fb_info *info)
 		info->bufsz = 0;
 		fb_release_buffer(buffer->data);
 	}
+
 	return 0;
 }
 
@@ -235,7 +238,7 @@ int fb_destroy(struct fb_info *info)
 		fb_release_buffer(buffer->data);
 	}
 
-	free(info->filename);
+	free(info->id);
 	free(info);
 	return 0;
 }
@@ -284,10 +287,10 @@ int fb_release_buffer(void *data)
 		DbgPrint("FB released (%p)\n", buffer);
 		buffer->state = DESTROYED;
 
-		if (buffer->type == BUFFER_SHM) {
+		if (buffer->type == BUFFER_TYPE_SHM) {
 			if (shmdt(buffer) < 0)
 				ErrPrint("shmdt: %s\n", strerror(errno));
-		} else if (buffer->type == BUFFER_FILE) {
+		} else if (buffer->type == BUFFER_TYPE_FILE) {
 			free(buffer);
 		}
 	}
@@ -312,9 +315,9 @@ int fb_refcnt(void *data)
 	return buffer->refcnt;
 }
 
-const char *fb_filename(struct fb_info *info)
+const char *fb_id(struct fb_info *info)
 {
-	return info ? info->filename : NULL;
+	return info ? info->id : NULL;
 }
 
 int fb_get_size(struct fb_info *info, int *w, int *h)

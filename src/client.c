@@ -32,18 +32,18 @@ static struct info {
 static struct packet *master_fault_package(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
-	const char *filename;
+	const char *id;
 	const char *function;
 	struct packet *result;
 
-	if (packet_get(packet, "sss", &pkgname, &filename, &function) != 3) {
+	if (packet_get(packet, "sss", &pkgname, &id, &function) != 3) {
 		ErrPrint("Invalid arguments\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
 		return result;
 	}
 
-	lb_invoke_fault_handler("deactivated", pkgname, filename, function);
-	DbgPrint("%s(%s) is deactivated\n", pkgname, filename);
+	lb_invoke_fault_handler("deactivated", pkgname, id, function);
+	DbgPrint("%s(%s) is deactivated\n", pkgname, id);
 
 	result = packet_create_reply(packet, "i", 0);
 	return result;
@@ -52,12 +52,12 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 static struct packet *master_deleted(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
-	const char *filename;
+	const char *id;
 	double timestamp;
 	struct livebox *handler;
 	struct packet *result;
 
-	if (packet_get(packet, "ssd", &pkgname, &filename, &timestamp) != 3) {
+	if (packet_get(packet, "ssd", &pkgname, &id, &timestamp) != 3) {
 		ErrPrint("Invalid arguemnt\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
 		return result;
@@ -74,7 +74,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		return result;
 	}
 
-	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, filename);
+	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, id);
 	if (handler->created_cb && !handler->is_created)
 		handler->created_cb(handler, -EFAULT, handler->created_cbdata);
 	else if (handler->state == CREATE)
@@ -90,7 +90,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 static struct packet *master_lb_updated(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
-	const char *filename;
+	const char *id;
 	const char *fbfile;
 	struct livebox *handler;
 	int lb_w;
@@ -99,17 +99,17 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	struct packet *result;
 	int ret;
 
-	ret = packet_get(packet, "sssiid", &pkgname, &filename, &fbfile, &lb_w, &lb_h, &priority);
+	ret = packet_get(packet, "sssiid", &pkgname, &id, &fbfile, &lb_w, &lb_h, &priority);
 	if (ret != 6) {
 		ErrPrint("Invalid argument\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
 		return result;
 	}
 
-	DbgPrint("pkgname: %s, filename: %s, fbfile: %s, lb_w: %d, lb_h: %d, priority: %lf\n",
-						pkgname, filename, fbfile, lb_w, lb_h, priority);
+	DbgPrint("pkgname: %s, id: %s, fbfile: %s, lb_w: %d, lb_h: %d, priority: %lf\n",
+						pkgname, id, fbfile, lb_w, lb_h, priority);
 
-	handler = lb_find_livebox(pkgname, filename);
+	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
 		result = packet_create_reply(packet, "i", -ENOENT);
 		return result;
@@ -130,7 +130,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 
 	if (lb_text_lb(handler)) {
 		lb_set_size(handler, lb_w, lb_h);
-		ret = parse_desc(handler, filename, 0);
+		ret = parse_desc(handler, URI_TO_PATH(id), 0);
 		result = packet_create_reply(packet, "i", ret);
 		return result;
 	}
@@ -140,7 +140,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		lb_set_lb_fb(handler, fbfile);
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret < 0)
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(filename));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
 	} else {
 		lb_set_size(handler, lb_w, lb_h);
 		ret = 0;
@@ -156,7 +156,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 static struct packet *master_pd_updated(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
-	const char *filename;
+	const char *id;
 	const char *descfile;
 	const char *fbfile;
 	int ret;
@@ -165,14 +165,14 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	int pd_h;
 	struct packet *result;
 
-	ret = packet_get(packet, "ssssii", &pkgname, &filename, &descfile, &fbfile, &pd_w, &pd_h);
+	ret = packet_get(packet, "ssssii", &pkgname, &id, &descfile, &fbfile, &pd_w, &pd_h);
 	if (ret != 6) {
 		ErrPrint("Invalid argument\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
 		return result;
 	}
 
-	handler = lb_find_livebox(pkgname, filename);
+	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
 		result = packet_create_reply(packet, "i", -ENOENT);
 		return result;
@@ -192,7 +192,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	lb_set_pdsize(handler, pd_w, pd_h);
 
 	if (lb_text_pd(handler)) {
-		ret = parse_desc(handler, filename, 1);
+		ret = parse_desc(handler, URI_TO_PATH(id), 1);
 	} else {
 		if (lb_set_pd_fb(handler, fbfile) == 0) {
 			ret = fb_create_buffer(lb_get_pd_fb(handler));
@@ -205,7 +205,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 
 		ret = fb_sync(lb_get_pd_fb(handler));
 		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(filename));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
 			result = packet_create_reply(packet, "i", ret);
 			return result;
 		}
@@ -227,7 +227,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	int pd_w;
 	int pd_h;
 	const char *pkgname;
-	const char *filename;
+	const char *id;
 
 	const char *content;
 	const char *cluster;
@@ -241,8 +241,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	int size_list;
 	int user;
 	int pinup_supported;
-	int text_lb;
-	int text_pd;
+	enum lb_type lb_type;
+	enum pd_type pd_type;
 	double period;
 	struct packet *result;
 
@@ -250,38 +250,38 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	ret = packet_get(packet, "dsssiiiissssidiiiiid",
 			&timestamp,
-			&pkgname, &filename, &content,
+			&pkgname, &id, &content,
 			&lb_w, &lb_h, &pd_w, &pd_h,
 			&cluster, &category, &lb_fname, &pd_fname,
 			&auto_launch, &priority, &size_list, &user, &pinup_supported,
-			&text_lb, &text_pd, &period);
+			&lb_type, &pd_type, &period);
 	if (ret != 20) {
 		ErrPrint("Invalid argument\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
 		return result;
 	}
 
-	ErrPrint("[%lf] pkgname: %s, filename: %s, content: %s, "
+	ErrPrint("[%lf] pkgname: %s, id: %s, content: %s, "
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
 		"cluster: %s, category: %s, lb_fname: \"%s\", pd_fname: \"%s\", "
 		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d, "
-		"text_lb: %d, text_pd: %d, period: %lf\n",
-		timestamp, pkgname, filename, content,
+		"lb_type: %d, pd_type: %d, period: %lf\n",
+		timestamp, pkgname, id, content,
 		pd_w, pd_h, lb_w, lb_h,
 		cluster, category, lb_fname, pd_fname,
 		auto_launch, priority, size_list, user, pinup_supported,
-		text_lb, text_pd, period);
+		lb_type, pd_type, period);
 
 	handler = lb_find_livebox_by_timestamp(timestamp);
 	if (!handler) {
-		handler = lb_new_livebox(pkgname, filename, timestamp);
+		handler = lb_new_livebox(pkgname, id, timestamp);
 		if (!handler) {
 			ErrPrint("Failed to create a new livebox\n");
 			result = packet_create_reply(packet, "i", -EFAULT);
 			return result;
 		}
 	} else {
-		lb_set_filename(handler, filename);
+		lb_set_id(handler, id);
 
 		if (handler->state != CREATE) {
 			lb_send_delete(handler);
@@ -292,10 +292,10 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	if (handler->is_created == 1) {
 		ErrPrint("Already created: timestamp[%lf] "
-			"pkgname[%s], filename[%s] content[%s] "
+			"pkgname[%s], id[%s] content[%s] "
 			"cluster[%s] category[%s] lb_fname[%s] pd_fname[%s]\n",
 				timestamp,
-				pkgname, filename,
+				pkgname, id,
 				content,
 				cluster, category,
 				lb_fname, pd_fname);
@@ -305,21 +305,46 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	}
 
 	lb_set_size(handler, lb_w, lb_h);
+	handler->lb.type = lb_type;
 
-	if (text_lb) {
-		lb_set_text_lb(handler);
-	} else if (strlen(lb_fname)) {
+	switch (lb_type) {
+	case _LB_TYPE_FILE:
+		break;
+	case _LB_TYPE_SCRIPT:
+	case _LB_TYPE_BUFFER:
+		if (!strlen(lb_fname))
+			break;
 		lb_set_lb_fb(handler, lb_fname);
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret < 0)
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(filename));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
+		break;
+	case _LB_TYPE_TEXT:
+		lb_set_text_lb(handler);
+		break;
+	default:
+		break;
 	}
 
+	handler->pd.type = pd_type;
 	lb_set_pdsize(handler, pd_w, pd_h);
-	if (text_pd)
-		lb_set_text_pd(handler);
-	else
+	switch (pd_type) {
+	case _PD_TYPE_SCRIPT:
+	case _PD_TYPE_BUFFER:
+		if (!strlen(pd_fname))
+			break;
+
 		lb_set_pd_fb(handler, pd_fname);
+		ret = fb_sync(lb_get_pd_fb(handler));
+		if (ret < 0)
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
+		break;
+	case _PD_TYPE_TEXT:
+		lb_set_text_pd(handler);
+		break;
+	default:
+		break;
+	}
 
 	lb_set_priority(handler, priority);
 
@@ -342,29 +367,28 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		lb_invoke_event_handler(handler, "lb,created");
 	}
 
-	result = packet_create_reply(packet, "i", 0);
-	return result;
+	return packet_create_reply(packet, "i", 0);
 }
 
 static struct method s_table[] = {
 	{
-		.cmd = "fault_packet", /* pkgname, filename, function, ret */
+		.cmd = "fault_packet", /* pkgname, id, function, ret */
 		.handler = master_fault_package,
 	},
 	{
-		.cmd = "deleted", /* pkgname, filename, timestamp, ret */
+		.cmd = "deleted", /* pkgname, id, timestamp, ret */
 		.handler = master_deleted,
 	},
 	{
-		.cmd = "lb_updated", /* pkgname, filename, lb_w, lb_h, priority, ret */
+		.cmd = "lb_updated", /* pkgname, id, lb_w, lb_h, priority, ret */
 		.handler = master_lb_updated,
 	},
 	{
-		.cmd = "pd_updated", /* pkgname, filename, descfile, pd_w, pd_h, ret */
+		.cmd = "pd_updated", /* pkgname, id, descfile, pd_w, pd_h, ret */
 		.handler = master_pd_updated,
 	},
 	{
-		.cmd = "created", /* timestamp, pkgname, filename, content, lb_w, lb_h, pd_w, pd_h, cluster, category, lb_file, pd_file, auto_launch, priority, size_list, is_user, pinup_supported, text_lb, text_pd, period, ret */
+		.cmd = "created", /* timestamp, pkgname, id, content, lb_w, lb_h, pd_w, pd_h, cluster, category, lb_file, pd_file, auto_launch, priority, size_list, is_user, pinup_supported, text_lb, text_pd, period, ret */
 		.handler = master_created,
 	},
 	{

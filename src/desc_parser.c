@@ -186,7 +186,6 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 {
 	FILE *fp;
 	int ch;
-	const char *filename;
 	enum state {
 		UNKNOWN = 0x10,
 		BLOCK_OPEN = 0x11,
@@ -256,8 +255,6 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 	}
 
 	update_begin(handle, is_pd);
-
-	filename = handle->filename;
 
 	state = UNKNOWN;
 	field_idx = 0;
@@ -519,7 +516,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			break;
 		case BLOCK_CLOSE:
 			if (!block->file) {
-				block->file = strdup(filename);
+				block->file = strdup(URI_TO_PATH(handle->id));
 				if (!block->file)
 					goto errout;
 			}
