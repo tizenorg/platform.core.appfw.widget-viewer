@@ -18,6 +18,7 @@
 #include "fb.h"
 #include "util.h"
 #include "master_rpc.h"
+#include "conf.h"
 
 static inline void make_connection(void);
 
@@ -433,9 +434,9 @@ static inline void make_connection(void)
 
 	DbgPrint("Let's making connection!\n");
 
-	s_info.fd = com_core_packet_client_init("/tmp/.live.socket", 0, s_table);
+	s_info.fd = com_core_packet_client_init(LIVE_SOCKET, 0, s_table);
 	if (s_info.fd < 0) {
-		s_info.reconnector = g_timeout_add(10000, connector_cb, NULL); /*!< After 10 secs later, try to connect again */
+		s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL); /*!< After 10 secs later, try to connect again */
 		if (s_info.reconnector == 0)
 			ErrPrint("Failed to fire the reconnector\n");
 
@@ -474,7 +475,7 @@ static int disconnected_cb(int handle, void *data)
 		return 0;
 	}
 
-	s_info.reconnector = g_timeout_add(10000, connector_cb, NULL); /*!< After 10 secs later, try to connect again */
+	s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL); /*!< After 10 secs later, try to connect again */
 	if (s_info.reconnector == 0) {
 		ErrPrint("Failed to fire the reconnector\n");
 		make_connection();
@@ -499,7 +500,7 @@ int client_fd(void)
 
 const char *client_addr(void)
 {
-	return "/tmp/.live.socket";
+	return LIVE_SOCKET;
 }
 
 int client_fini(void)
