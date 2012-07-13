@@ -1841,4 +1841,30 @@ int lb_send_delete(struct livebox *handler)
 	return master_rpc_async_request(handler, packet, 0, del_ret_cb, NULL);
 }
 
+int livebox_subscribe_group(const char *cluster, const char *category)
+{
+	struct packet *packet;
+
+	packet = packet_create("subscribe", "ss", cluster ? cluster : "", category ? category : "");
+	if (!packet) {
+		ErrPrint("Failed to subscribe cluster\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
+}
+
+int livebox_unsubscribe_group(const char *cluster, const char *category)
+{
+	struct packet *packet;
+
+	packet = packet_create("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
+	if (!packet) {
+		ErrPrint("Failed to unsubscribe cluster\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
+}
+
 /* End of a file */

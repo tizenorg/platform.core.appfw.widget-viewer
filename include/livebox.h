@@ -490,6 +490,24 @@ extern int livebox_set_data(struct livebox *handler, void *data);
  */
 extern void *livebox_get_data(struct livebox *handler);
 
+/*!
+ * \brief Subscribe the event for liveboxes only in given cluster and sub-cluster
+ * \param[in] cluster   "*" can be used for subscribe all cluster's liveboxes event.
+ *                      If you use the "*", value in the category will be ignored.
+ * \param[in] category  "*" can be used for subscribe all sub-cluster's liveboxes event in given "cluster"
+ * \return int Success 0, fails error code
+ */
+extern int livebox_subscribe_group(const char *cluster, const char *category);
+
+/*!
+ * \brief Unsubscribe the event for the liveboxes, but you will receive already added liveboxes event.
+ * \param[in] cluster   "*" can be used for subscribe all cluster's liveboxes event.
+ *                      If you use the "*", value in the category will be ignored.
+ * \param[in] category  "*" can be used for subscribe all sub-cluster's liveboxes event in given "cluster"
+ * \return int Success 0, fails error code
+ */
+extern int livebox_unsubscribe_group(const char *cluster, const char *category);
+
 #ifdef __cplusplus
 }
 #endif
