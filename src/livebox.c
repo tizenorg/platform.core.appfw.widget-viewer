@@ -397,7 +397,6 @@ static void pd_destroy_cb(struct livebox *handler, const struct packet *result, 
 static void pinup_done_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
-	int pinup;
 	ret_cb_t cb;
 	void *cbdata;
 	struct cb_info *info = data;
@@ -407,22 +406,19 @@ static void pinup_done_cb(struct livebox *handler, const struct packet *result, 
 	destroy_cb_info(info);
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
+		ret = -EFAULT;
+	} else {
+		if (packet_get(result, "i", &ret) != 1) {
+			ret = -EINVAL;
+		}
 	}
 
-	if (packet_get(result, "ii", &ret, &pinup) != 2) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-		return;
-	}
-
-	if (ret == 0)
-		handler->lb.is_pinned_up = pinup;
-
-	if (cb)
+	if (ret == 0) {
+		handler->pinup_cb = cb;
+		handler->pinup_cbdata = cbdata;
+	} else if (cb) {
 		cb(handler, ret, cbdata);
+	}
 }
 
 static int send_mouse_event(struct livebox *handler, const char *event, double x, double y, int w, int h)

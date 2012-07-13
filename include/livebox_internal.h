@@ -100,6 +100,9 @@ struct livebox {
 
 	ret_cb_t deleted_cb;
 	void *deleted_cbdata;
+
+	ret_cb_t pinup_cb;
+	void *pinup_cbdata;
 };
 
 /* End of a file */

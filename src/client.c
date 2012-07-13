@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <dlog.h>
 #include <glib.h>
@@ -47,6 +48,54 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 	DbgPrint("%s(%s) is deactivated\n", pkgname, id);
 
 	result = packet_create_reply(packet, "i", 0);
+	return result;
+}
+
+static struct packet *master_pinup(pid_t pid, int handle, const struct packet *packet)
+{
+	const char *pkgname;
+	const char *id;
+	const char *content;
+	struct livebox *handler;
+	struct packet *result;
+	char *new_content;
+	int ret;
+	int pinup;
+
+	if (packet_get(packet, "iisss", &ret, &pinup, &pkgname, &id, &content) != 4) {
+		ErrPrint("Invalid argument\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ret = -ENOENT;
+		goto out;
+	}
+
+	if (ret == 0) {
+		new_content = strdup(content);
+		if (!new_content) {
+			ret = -ENOMEM;
+			goto out;
+		}
+
+		free(handler->content);
+		handler->content = new_content;
+		handler->lb.is_pinned_up = pinup;
+	}
+
+	if (handler->pinup_cb) {
+		handler->pinup_cb(handler, ret, handler->pinup_cbdata);
+		handler->pinup_cb = NULL; /*!< Reset pinup cb */
+	} else {
+		lb_invoke_event_handler(handler, "lb,pinup");
+	}
+
+	ret = 0;
+out:
+	result = packet_create_reply(packet, "i", ret);
 	return result;
 }
 
@@ -391,6 +440,10 @@ static struct method s_table[] = {
 	{
 		.cmd = "created", /* timestamp, pkgname, id, content, lb_w, lb_h, pd_w, pd_h, cluster, category, lb_file, pd_file, auto_launch, priority, size_list, is_user, pinup_supported, text_lb, text_pd, period, ret */
 		.handler = master_created,
+	},
+	{
+		.cmd = "pinup",
+		.handler = master_pinup,
 	},
 	{
 		.cmd = NULL,
