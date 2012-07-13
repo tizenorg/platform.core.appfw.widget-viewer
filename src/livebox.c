@@ -263,12 +263,16 @@ static void new_ret_cb(struct livebox *handler, const struct packet *result, voi
 	if (!result) {
 		if (cb)
 			cb(handler, -EFAULT, cbdata);
+
+		lb_unref(handler);
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
 		if (cb)
 			cb(handler, -EINVAL, cbdata);
+
+		lb_unref(handler);
 		return;
 	}
 
