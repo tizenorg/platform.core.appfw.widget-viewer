@@ -1841,7 +1841,7 @@ int lb_send_delete(struct livebox *handler)
 	return master_rpc_async_request(handler, packet, 0, del_ret_cb, NULL);
 }
 
-int livebox_subscribe_group(const char *cluster, const char *category)
+EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
 
@@ -1854,7 +1854,7 @@ int livebox_subscribe_group(const char *cluster, const char *category)
 	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
 }
 
-int livebox_unsubscribe_group(const char *cluster, const char *category)
+EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
 
