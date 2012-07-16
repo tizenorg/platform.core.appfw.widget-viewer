@@ -873,6 +873,7 @@ static int app_create(void *data)
 	int h = 0;
 
 	livebox_init();
+	livebox_subscribe_group("*", "*");
 
 	s_info.win = elm_win_add(NULL, "test", ELM_WIN_BASIC);
 	if (!s_info.win)

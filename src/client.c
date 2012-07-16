@@ -41,6 +41,8 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 	if (packet_get(packet, "sss", &pkgname, &id, &function) != 3) {
 		ErrPrint("Invalid arguments\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -48,6 +50,8 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 	DbgPrint("%s(%s) is deactivated\n", pkgname, id);
 
 	result = packet_create_reply(packet, "i", 0);
+	if (!result)
+		ErrPrint("Faield to create a reply packet\n");
 	return result;
 }
 
@@ -96,6 +100,8 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	ret = 0;
 out:
 	result = packet_create_reply(packet, "i", ret);
+	if (!result)
+		ErrPrint("Failed to create a reply packet\n");
 	return result;
 }
 
@@ -110,6 +116,8 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	if (packet_get(packet, "ssd", &pkgname, &id, &timestamp) != 3) {
 		ErrPrint("Invalid arguemnt\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -121,19 +129,25 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		 * right after create it before receive created event.
 		 */
 		result = packet_create_reply(packet, "i", -ENOENT);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
 	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, id);
-	if (handler->created_cb && !handler->is_created)
-		handler->created_cb(handler, -EFAULT, handler->created_cbdata);
-	else if (handler->state == CREATE)
+	if (!handler->is_created) {
+		if (handler->created_cb)
+			handler->created_cb(handler, -EFAULT, handler->created_cbdata);
+	} else if (handler->state == CREATE) {
 		lb_invoke_event_handler(handler, "lb,deleted");
+	}
 
 	/* Just try to delete it, if a user didn't remove it from the live box list */
 	lb_unref(handler);
 
 	result = packet_create_reply(packet, "i", 0);
+	if (!result)
+		ErrPrint("Failed to create a reply packet\n");
 	return result;
 }
 
@@ -153,6 +167,8 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	if (ret != 6) {
 		ErrPrint("Invalid argument\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -162,6 +178,8 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
 		result = packet_create_reply(packet, "i", -ENOENT);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -173,6 +191,8 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		 * Beacuse the user doesn't wants know about this anymore
 		 */
 		result = packet_create_reply(packet, "i", 0);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -182,6 +202,8 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		lb_set_size(handler, lb_w, lb_h);
 		ret = parse_desc(handler, URI_TO_PATH(id), 0);
 		result = packet_create_reply(packet, "i", ret);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -200,6 +222,8 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		lb_invoke_event_handler(handler, "lb,updated");
 
 	result = packet_create_reply(packet, "i", ret);
+	if (!result)
+		ErrPrint("Failed to create a reply packet\n");
 	return result;
 }
 
@@ -219,12 +243,16 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	if (ret != 6) {
 		ErrPrint("Invalid argument\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
 		result = packet_create_reply(packet, "i", -ENOENT);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -236,6 +264,8 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 		 * Just ignore all events.
 		 */
 		result = packet_create_reply(packet, "i", 0);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -249,6 +279,8 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 			if (ret < 0) {
 				ErrPrint("Error: %s\n", strerror(ret));
 				result = packet_create_reply(packet, "i", ret);
+				if (!result)
+					ErrPrint("Failed to create a reply packet\n");
 				return result;
 			}
 		}
@@ -257,6 +289,8 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
 			result = packet_create_reply(packet, "i", ret);
+			if (!result)
+				ErrPrint("Failed to create a reply packet\n");
 			return result;
 		}
 
@@ -265,6 +299,8 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	}
 
 	result = packet_create_reply(packet, "i", ret);
+	if (!result)
+		ErrPrint("Failed to create a reply packet\n");
 	return result;
 }
 
@@ -308,6 +344,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	if (ret != 20) {
 		ErrPrint("Invalid argument\n");
 		result = packet_create_reply(packet, "i", -EINVAL);
+		if (!result)
+			ErrPrint("Failed to create a reply packet\n");
 		return result;
 	}
 
@@ -328,30 +366,35 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		if (!handler) {
 			ErrPrint("Failed to create a new livebox\n");
 			result = packet_create_reply(packet, "i", -EFAULT);
+			if (!result)
+				ErrPrint("Failed to create a reply packet\n");
 			return result;
 		}
 	} else {
+		if (handler->is_created == 1) {
+			ErrPrint("Already created: timestamp[%lf] "
+				"pkgname[%s], id[%s] content[%s] "
+				"cluster[%s] category[%s] lb_fname[%s] pd_fname[%s]\n",
+					timestamp, pkgname, id,
+					content, cluster, category,
+					lb_fname, pd_fname);
+
+			result = packet_create_reply(packet, "i", 0);
+			if (!result)
+				ErrPrint("Failed to send a reply packet\n");
+
+			return result;
+		}
+
 		lb_set_id(handler, id);
 
 		if (handler->state != CREATE) {
 			lb_send_delete(handler);
 			result = packet_create_reply(packet, "i", 0);
+			if (!result)
+				ErrPrint("Failed to create a reply packet\n");
 			return result;
 		}
-	}
-
-	if (handler->is_created == 1) {
-		ErrPrint("Already created: timestamp[%lf] "
-			"pkgname[%s], id[%s] content[%s] "
-			"cluster[%s] category[%s] lb_fname[%s] pd_fname[%s]\n",
-				timestamp,
-				pkgname, id,
-				content,
-				cluster, category,
-				lb_fname, pd_fname);
-
-		result = packet_create_reply(packet, "i", 0);
-		return result;
 	}
 
 	lb_set_size(handler, lb_w, lb_h);
@@ -410,14 +453,16 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	lb_set_period(handler, period);
 
-	if (handler->created_cb) {
+	if (handler->created_cb)
 		handler->created_cb(handler, 0, handler->created_cbdata);
-		handler->is_created = 1;
-	} else {
+	else
 		lb_invoke_event_handler(handler, "lb,created");
-	}
 
-	return packet_create_reply(packet, "i", 0);
+	handler->is_created = 1;
+	result = packet_create_reply(packet, "i", 0);
+	if (!result)
+		ErrPrint("Failed to create a reply packet\n");
+	return result;
 }
 
 static struct method s_table[] = {
