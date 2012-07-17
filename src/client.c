@@ -66,7 +66,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	int ret;
 	int pinup;
 
-	if (packet_get(packet, "iisss", &ret, &pinup, &pkgname, &id, &content) != 4) {
+	if (packet_get(packet, "iisss", &ret, &pinup, &pkgname, &id, &content) != 5) {
 		ErrPrint("Invalid argument\n");
 		ret = -EINVAL;
 		goto out;

@@ -193,8 +193,13 @@ int master_rpc_sync_request(struct packet *packet)
 	int ret;
 
 	result = com_core_packet_oneshot_send(client_addr(), packet);
-	packet_get(result, "i", &ret);
-	packet_unref(result);
+	if (result) {
+		packet_get(result, "i", &ret);
+		packet_unref(result);
+	} else {
+		ErrPrint("Failed to send a sync request\n");
+		ret = -EFAULT;
+	}
 
 	return ret;
 }
