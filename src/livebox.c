@@ -394,6 +394,54 @@ static void pd_destroy_cb(struct livebox *handler, const struct packet *result, 
 		cb(handler, ret, cbdata);
 }
 
+static void delete_cluster_cb(struct livebox *handler, const struct packet *result, void *data)
+{
+	struct cb_info *info = data;
+	int ret;
+	ret_cb_t cb;
+	void *cbdata;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
+
+	if (!result) {
+		ret = -EFAULT;
+	} else {
+		if (packet_get(result, "i", &ret) != 1)
+			ret = -EINVAL;
+	}
+
+	DbgPrint("Delete category returns: %d\n", ret);
+
+	if (cb)
+		cb(handler, ret, cbdata);
+}
+
+static void delete_category_cb(struct livebox *handler, const struct packet *result, void *data)
+{
+	struct cb_info *info = data;
+	int ret;
+	ret_cb_t cb;
+	void *cbdata;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
+
+	if (!result) {
+		ret = -EFAULT;
+	} else {
+		if (packet_get(result, "i", &ret) != 1)
+			ret = -EINVAL;
+	}
+
+	DbgPrint("Delete category returns: %d\n", ret);
+
+	if (cb)
+		cb(handler, ret, cbdata);
+}
+
 static void pinup_done_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
@@ -1115,14 +1163,28 @@ EAPI double livebox_priority(struct livebox *handler)
 
 EAPI int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data)
 {
-	ErrPrint("Not implemented yet\n");
-	return -ENOSYS;
+	struct packet *packet;
+
+	packet = packet_create("delete_cluster", "s", cluster);
+	if (!packet) {
+		ErrPrint("Failed to build a param\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(NULL, packet, 0, delete_cluster_cb, create_cb_info(cb, data));
 }
 
 EAPI int livebox_delete_category(const char *cluster, const char *category, ret_cb_t cb, void *data)
 {
-	ErrPrint("Not implemented yet\n");
-	return -ENOSYS;
+	struct packet *packet;
+
+	packet = packet_create("delete_category", "ss", cluster, category);
+	if (!packet) {
+		ErrPrint("Failed to build a param\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(NULL, packet, 0, delete_category_cb, create_cb_info(cb, data));
 }
 
 EAPI enum livebox_lb_type livebox_lb_type(struct livebox *handler)
@@ -1865,6 +1927,20 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 	}
 
 	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
+}
+
+EAPI int livebox_enumerate_cluster_list(void (*cb)(const char *cluster))
+{
+	DbgPrint("Not implemented\n");
+	/* Use the DB for this */
+	return -ENOSYS;
+}
+
+EAPI int livebox_enumerate_category_list(const char *cluster, void (*cb)(const char *category))
+{
+	DbgPrint("Not implemented\n");
+	/* Use the DB for this */
+	return -ENOSYS;
 }
 
 /* End of a file */

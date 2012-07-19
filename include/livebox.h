@@ -508,6 +508,21 @@ extern int livebox_subscribe_group(const char *cluster, const char *category);
  */
 extern int livebox_unsubscribe_group(const char *cluster, const char *category);
 
+/*!
+ * \brief Get the list of cluster (SYNC Callback)
+ * \param[in] cb Callback for getting the name(id) list of the cluster
+ * \return int Number of listed items, or negative value(errno) for error
+ */
+extern int livebox_enumerate_cluster_list(void (*cb)(const char *cluster));
+
+/*!
+ * \brief Get the list of sub-cluster of the "cluster" (SYNC Callback)
+ * \param[in] cluster Cluster ID for getting the sub-cluster list
+ * \param[in] cb Callback for getting the name(id) list of the category of the "cluster"
+ * \return int Number of listed items, or negative value(errno) for error
+ */
+extern int livebox_enumerate_category_list(const char *cluster, void (*cb)(const char *category));
+
 #ifdef __cplusplus
 }
 #endif
