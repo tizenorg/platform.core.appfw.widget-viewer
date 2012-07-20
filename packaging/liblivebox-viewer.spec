@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for the development of a livebox viewer
-Version: 0.3.3
+Version: 0.3.4
 Release: 1
 Group: main/app
 License: Samsung Proprietary License
@@ -25,9 +25,9 @@ Livebox viewer development library (dev)
 
 %prep
 %setup -q
-cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 
 %build
+cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 make %{?jobs:-j%jobs}
 
 %install

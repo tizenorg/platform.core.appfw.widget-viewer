@@ -523,6 +523,14 @@ extern int livebox_enumerate_cluster_list(void (*cb)(const char *cluster));
  */
 extern int livebox_enumerate_category_list(const char *cluster, void (*cb)(const char *category));
 
+/*!
+ * \brief Refresh the group(cluster/sub-cluser(aka. category))
+ * \param[in] cluster Cluster ID
+ * \param[in] category Sub-cluster ID
+ * \return int Success 0 or negative value
+ */
+extern int livebox_refresh_group(const char *cluster, const char *category);
+
 #ifdef __cplusplus
 }
 #endif

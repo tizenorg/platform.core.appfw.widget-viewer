@@ -1909,7 +1909,7 @@ EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 
 	packet = packet_create("subscribe", "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
-		ErrPrint("Failed to subscribe cluster\n");
+		ErrPrint("Failed to create a packet\n");
 		return -EFAULT;
 	}
 
@@ -1922,7 +1922,7 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 
 	packet = packet_create("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
-		ErrPrint("Failed to unsubscribe cluster\n");
+		ErrPrint("Failed to create a packet\n");
 		return -EFAULT;
 	}
 
@@ -1941,6 +1941,24 @@ EAPI int livebox_enumerate_category_list(const char *cluster, void (*cb)(const c
 	DbgPrint("Not implemented\n");
 	/* Use the DB for this */
 	return -ENOSYS;
+}
+
+EAPI int livebox_refresh_group(const char *cluster, const char *category)
+{
+	struct packet *packet;
+
+	if (!cluster || !category) {
+		ErrPrint("Invalid argument\n");
+		return -EINVAL;
+	}
+
+	packet = packet_create("refresh_group", "ss", cluster, category);
+	if (!packet) {
+		ErrPrint("Failed to create a packet\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
 }
 
 /* End of a file */
