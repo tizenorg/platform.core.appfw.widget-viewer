@@ -25,6 +25,7 @@ extern void lb_set_period(struct livebox *handler, double period);
 extern struct livebox *lb_ref(struct livebox *handler);
 extern struct livebox *lb_unref(struct livebox *handler);
 extern int lb_send_delete(struct livebox *handler);
+extern int lb_delete_all(void);
 
 enum lb_type { /*!< Must have to be sync with data-provider-master */
 	_LB_TYPE_NONE = 0x0,

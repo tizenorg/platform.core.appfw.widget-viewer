@@ -12,6 +12,7 @@
 #include "desc_parser.h"
 #include "dlist.h"
 #include "util.h"
+#include "critical_log.h"
 
 #define TYPE_TEXT "text"
 #define TYPE_IMAGE "image"
@@ -286,7 +287,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 
 			block = calloc(1, sizeof(*block));
 			if (!block) {
-				ErrPrint("Heap: %s\n", strerror(errno));
+				CRITICAL_LOG("Heap: %s\n", strerror(errno));
 				update_end(handle, is_pd);
 				fclose(fp);
 				return -ENOMEM;
@@ -394,10 +395,11 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		case VALUE_TYPE:
 			if (idx == block->type_len) {
 				block->type_len += 256;
-				block->type =
-					realloc(block->type, block->type_len);
-				if (!block->type)
+				block->type = realloc(block->type, block->type_len);
+				if (!block->type) {
+					CRITICAL_LOG("Heap: %s\n", strerror(errno));
 					goto errout;
+				}
 			}
 
 			if (ch == '\n') {
@@ -415,10 +417,11 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		case VALUE_PART:
 			if (idx == block->part_len) {
 				block->part_len += 256;
-				block->part =
-					realloc(block->part, block->part_len);
-				if (!block->part)
+				block->part = realloc(block->part, block->part_len);
+				if (!block->part) {
+					CRITICAL_LOG("Heap: %s\n", strerror(errno));
 					goto errout;
+				}
 			}
 
 			if (ch == '\n') {
@@ -436,10 +439,11 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		case VALUE_DATA:
 			if (idx == block->data_len) {
 				block->data_len += 256;
-				block->data =
-					realloc(block->data, block->data_len);
-				if (!block->data)
+				block->data = realloc(block->data, block->data_len);
+				if (!block->data) {
+					CRITICAL_LOG("Heap: %s\n", strerror(errno));
 					goto errout;
+				}
 			}
 
 			if (ch == '\n') {
@@ -457,10 +461,11 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		case VALUE_FILE:
 			if (idx == block->file_len) {
 				block->file_len += 256;
-				block->file =
-					realloc(block->file, block->file_len);
-				if (!block->file)
+				block->file = realloc(block->file, block->file_len);
+				if (!block->file) {
+					CRITICAL_LOG("Heap: %s\n", strerror(errno));
 					goto errout;
+				}
 			}
 
 			if (ch == '\n') {
@@ -478,10 +483,11 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		case VALUE_GROUP:
 			if (idx == block->group_len) {
 				block->group_len += 256;
-				block->group = realloc(block->group,
-							block->group_len);
-				if (!block->group)
+				block->group = realloc(block->group, block->group_len);
+				if (!block->group) {
+					CRITICAL_LOG("Heap: %s\n", strerror(errno));
 					goto errout;
+				}
 			}
 
 			if (ch == '\n') {
@@ -499,8 +505,10 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			if (idx == block->id_len) {
 				block->id_len += 256;
 				block->id = realloc(block->id, block->id_len);
-				if (!block->id)
+				if (!block->id) {
+					CRITICAL_LOG("Heap: %s\n", strerror(errno));
 					goto errout;
+				}
 			}
 
 			if (ch == '\n') {

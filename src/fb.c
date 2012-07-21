@@ -16,6 +16,7 @@
 #include "debug.h"
 #include "util.h"
 #include "fb.h"
+#include "critical_log.h"
 
 int errno;
 
@@ -128,13 +129,13 @@ struct fb_info *fb_create(const char *id, int w, int h)
 
 	info = calloc(1, sizeof(*info));
 	if (!info) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		CRITICAL_LOG("Heap: %s\n", strerror(errno));
 		return NULL;
 	}
 
 	info->id = strdup(id);
 	if (!info->id) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		CRITICAL_LOG("Heap: %s\n", strerror(errno));
 		free(info);
 		return NULL;
 	}
@@ -175,7 +176,7 @@ int fb_create_buffer(struct fb_info *info)
 	if (info->type == FB_TYPE_FILE || info->type == FB_TYPE_UNKNOWN) {
 		buffer = calloc(1, sizeof(*buffer) + info->bufsz);
 		if (!buffer) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			CRITICAL_LOG("Heap: %s\n", strerror(errno));
 			info->bufsz = 0;
 			return -ENOMEM;
 		}

@@ -17,6 +17,7 @@
 #include "util.h"
 #include "master_rpc.h"
 #include "client.h"
+#include "critical_log.h"
 
 #define EAPI __attribute__((visibility("default")))
 #define EVENT_INTERVAL	0.05f
@@ -55,8 +56,10 @@ static inline struct cb_info *create_cb_info(ret_cb_t cb, void *data)
 	struct cb_info *info;
 
 	info = malloc(sizeof(*info));
-	if (!info)
+	if (!info) {
+		CRITICAL_LOG("Heap: %s\n", strerror(errno));
 		return NULL;
+	}
 
 	info->cb = cb;
 	info->data = data;
@@ -95,8 +98,10 @@ static void mouse_event_cb(struct livebox *handler, const struct packet *packet,
 	if (!packet)
 		return;
 
-	if (packet_get(packet, "i", &ret) != 1)
+	if (packet_get(packet, "i", &ret) != 1) {
+		ErrPrint("Invalid argument\n");
 		return;
+	}
 
 	if (ret < 0)
 		lb_invoke_event_handler(handler, "event,ingored");
@@ -114,15 +119,10 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 	destroy_cb_info(info);
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
-	}
-
-	if (packet_get(result, "i", &ret) != 1) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-		return;
+		ret = -EFAULT;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ErrPrint("Invalid argument\n");
+		ret = -EINVAL;
 	}
 
 	if (cb)
@@ -154,20 +154,14 @@ static void text_signal_cb(struct livebox *handler, const struct packet *result,
 	destroy_cb_info(info);
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
-	}
-
-	if (packet_get(result, "i", &ret) != 1) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-		return;
+		ret = -EFAULT;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ErrPrint("Invalid argument\n");
+		ret = -EINVAL;
 	}
 
 	if (cb)
 		cb(handler, ret, cbdata);
-
 	return;
 }
 
@@ -182,15 +176,10 @@ static void set_group_cb(struct livebox *handler, const struct packet *result, v
 	cb = info->cb;
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
-	}
-
-	if (packet_get(result, "i", &ret) != 1) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-		return;
+		ret = -EFAULT;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ErrPrint("Invalid argument\n");
+		ret = -EINVAL;
 	}
 
 	if (cb)
@@ -211,15 +200,10 @@ static void period_ret_cb(struct livebox *handler, const struct packet *result, 
 	destroy_cb_info(info);
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
-	}
-
-	if (packet_get(result, "id", &ret, &period) != 2) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-		return;
+		ret = -EFAULT;
+	} else if (packet_get(result, "id", &ret, &period) != 2) {
+		ErrPrint("Invalid argument\n");
+		ret = -EINVAL;
 	}
 
 	if (ret == 0)
@@ -234,19 +218,23 @@ static void del_ret_cb(struct livebox *handler, const struct packet *result, voi
 	int ret;
 
 	if (!result) {
-		if (handler->deleted_cb)
-			handler->deleted_cb(handler, -EFAULT, handler->deleted_cbdata);
-
-		return;
+		ret = -EFAULT;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ErrPrint("Invalid argument\n");
+		ret = -EINVAL;
 	}
 
-	if (packet_get(result, "i", &ret) != 1) {
-		if (handler->deleted_cb)
-			handler->deleted_cb(handler, -EINVAL, handler->deleted_cbdata);
-		return;
-	}
+	DbgPrint("Returns %d (waiting deleted event)\n", ret);
 
-	DbgPrint("Returns %d\n", ret);
+	/*!
+	 * \note
+	 * Do not call the deleted callback from here.
+	 * master will send the "deleted" event.
+	 * Then invoke this callback.
+	 *
+	 * if (handler->deleted_cb)
+	 * 	handler->deleted_cb(handler, ret, handler->deleted_cbdata);
+	 */
 }
 
 static void new_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -494,6 +482,7 @@ EAPI int livebox_init(void)
 	if (!__file_log_fp)
 		__file_log_fp = fdopen(1, "w+t");
 #endif
+	critical_log_init();
 
 	client_init();
 	return 0;
@@ -668,7 +657,7 @@ EAPI int livebox_fault_handler_set(int (*cb)(const char *, const char *, const c
 
 	info = malloc(sizeof(*info));
 	if (!info) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		CRITICAL_LOG("Heap: %s\n", strerror(errno));
 		return -ENOMEM;
 	}
 
@@ -709,7 +698,7 @@ EAPI int livebox_event_handler_set(int (*cb)(struct livebox *, const char *, voi
 
 	info = malloc(sizeof(*info));
 	if (!info) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		CRITICAL_LOG("Heap: %s\n", strerror(errno));
 		return -ENOMEM;
 	}
 
@@ -1512,7 +1501,7 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 	if (cluster) {
 		pc = strdup(cluster);
 		if (!pc) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			CRITICAL_LOG("Heap: %s (cluster: %s)\n", strerror(errno), cluster);
 			return -ENOMEM;
 		}
 	}
@@ -1520,7 +1509,7 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 	if (category) {
 		ps = strdup(category);
 		if (!ps) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			CRITICAL_LOG("Heap: %s (category: %s)\n", strerror(errno), category);
 			free(pc);
 			return -ENOMEM;
 		}
@@ -1675,6 +1664,20 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *id, double times
 	return handler;
 }
 
+int lb_delete_all(void)
+{
+	struct dlist *l;
+	struct dlist *n;
+	struct livebox *handler;
+
+	dlist_foreach_safe(s_info.livebox_list, l, n, handler) {
+		lb_invoke_event_handler(handler, "lb,deleted");
+		lb_unref(handler);
+	}
+
+	return 0;
+}
+
 int lb_set_content(struct livebox *handler, const char *content)
 {
 	if (handler->content) {
@@ -1685,7 +1688,7 @@ int lb_set_content(struct livebox *handler, const char *content)
 	if (content) {
 		handler->content = strdup(content);
 		if (!handler->content) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			CRITICAL_LOG("Heap: %s (content: %s)\n", strerror(errno), content);
 			return -ENOMEM;
 		}
 	}
