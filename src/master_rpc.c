@@ -94,7 +94,7 @@ static gboolean cmd_consumer(gpointer user_data)
 	 * increate the reference counter of the item->param
 	 */
 	DbgPrint("Send packet to master [%s]\n", packet_command(command->packet));
-	if (com_core_packet_async_send(client_fd(), command->packet, done_cb, command) < 0) {
+	if (com_core_packet_async_send(client_fd(), command->packet, 0u, done_cb, command) < 0) {
 		if (command->ret_cb)
 			command->ret_cb(command->handler, NULL, command->data);
 		destroy_command(command);
