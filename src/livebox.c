@@ -938,6 +938,50 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		h = handler->lb.height;
 		break;
 
+	case LB_MOUSE_ENTER:
+		if (!handler->lb.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		cmd = "lb_mouse_enter";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case LB_MOUSE_LEAVE:
+		if (!handler->lb.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		cmd = "lb_mouse_leave";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case PD_MOUSE_ENTER:
+		if (!handler->pd.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_mouse_enter";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	case PD_MOUSE_LEAVE:
+		if (!handler->pd.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_mouse_leave";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
 	case PD_MOUSE_DOWN:
 		if (!handler->pd.data.fb) {
 			ErrPrint("Handler is not valid\n");

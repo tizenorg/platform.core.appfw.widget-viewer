@@ -31,10 +31,14 @@ enum content_event_type {
 	LB_MOUSE_DOWN = 0x0001, /*!< Mouse down event for livebox */
 	LB_MOUSE_UP = 0x0002, /*!< Mouse up event for livebox */
 	LB_MOUSE_MOVE = 0x0004, /*!< Mouse move event for livebox */
+	LB_MOUSE_ENTER = 0x0008,
+	LB_MOUSE_LEAVE = 0x0010,
 
 	PD_MOUSE_DOWN = 0x0100, /*!< PD down event for livebox */
 	PD_MOUSE_UP = 0x0200, /*!< PD up event for livebox */
 	PD_MOUSE_MOVE = 0x0400, /*!< PD move event for livebox */
+	PD_MOUSE_ENTER = 0x0800,
+	PD_MOUSE_LEAVE = 0x1000,
 
 	PD_EVENT_MAX = 0xFFFFFFFF,
 };
