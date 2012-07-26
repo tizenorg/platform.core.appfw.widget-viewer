@@ -201,6 +201,7 @@ int master_rpc_sync_request(struct packet *packet)
 		ret = -EFAULT;
 	}
 
+	packet_unref(packet);
 	return ret;
 }
 

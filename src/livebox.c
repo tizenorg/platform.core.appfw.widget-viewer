@@ -1480,18 +1480,7 @@ EAPI void *livebox_get_data(struct livebox *handler)
 
 EAPI int livebox_is_exists(const char *pkgname)
 {
-	struct packet *packet;
-	int ret;
-
-	packet = packet_create("livebox_is_exists", "s", pkgname);
-	if (!packet) {
-		ErrPrint("Failed to build a param\n");
-		return 0;
-	}
-
-	ret = master_rpc_sync_request(packet);
-	packet_destroy(packet);
-	return ret == 0;
+	return util_validate_livebox_package(pkgname) == 0;
 }
 
 EAPI const char *livebox_content(struct livebox *handler)

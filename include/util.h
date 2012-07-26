@@ -22,6 +22,7 @@
 extern int util_check_extension(const char *filename, const char *check_ptr);
 extern double util_timestamp(void);
 extern const char *util_basename(const char *name);
+extern int util_validate_livebox_package(const char *pkgname);
 #define URI_TO_PATH(uri)	((uri) + 7)
 
 #define container_of(ptr, type, member) \
