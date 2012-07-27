@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for the development of a livebox viewer
-Version: 0.3.7
+Version: 0.3.8
 Release: 1
 Group: main/app
 License: Samsung Proprietary License

@@ -100,7 +100,7 @@ static inline int check_web_livebox(const char *pkgname)
 	char *path;
 
 	len = strlen(pkgname) * 2;
-	len += strlen("/opts/app/%s/res/wgt/livebox/index.html");
+	len += strlen("/opts/apps/%s/res/wgt/livebox/index.html");
 
 	path = malloc(len + 1);
 	if (!path) {
