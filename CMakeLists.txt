@@ -36,6 +36,7 @@ ADD_DEFINITIONS("-DLIVE_IMAGE_FOLDER=\"/opt/share/live_magazine/\"")
 ADD_DEFINITIONS("-DNDEBUG")
 #ADD_DEFINITIONS("-DFLOG")
 ADD_DEFINITIONS("-DMASTER_PKGNAME=\"com.samsung.data-provider-master\"")
+ADD_DEFINITIONS("-DSOCKET_FILE=\"/opt/share/live_magazine/.live.socket\"")
 ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/dlist.c
 	src/livebox.c

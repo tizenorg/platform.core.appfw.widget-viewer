@@ -508,7 +508,7 @@ static inline void make_connection(void)
 
 	DbgPrint("Let's making connection!\n");
 
-	s_info.fd = com_core_packet_client_init(LIVE_SOCKET, 0, s_table);
+	s_info.fd = com_core_packet_client_init(SOCKET_FILE, 0, s_table);
 	if (s_info.fd < 0) {
 		s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL); /*!< After 10 secs later, try to connect again */
 		if (s_info.reconnector == 0)
@@ -542,6 +542,11 @@ static int connected_cb(int handle, void *data)
 
 static int disconnected_cb(int handle, void *data)
 {
+	if (s_info.fd != handle) {
+		/*!< This handle is not my favor */
+		return 0;
+	}
+
 	s_info.fd = -1; /*!< Disconnected */
 
 	if (s_info.reconnector > 0) {
@@ -577,7 +582,7 @@ int client_fd(void)
 
 const char *client_addr(void)
 {
-	return LIVE_SOCKET;
+	return SOCKET_FILE;
 }
 
 int client_fini(void)
