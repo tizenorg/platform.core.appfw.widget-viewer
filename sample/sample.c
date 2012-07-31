@@ -576,24 +576,29 @@ static void win_del(void *data, Evas_Object *obj, void *event)
 
 static void item_cb(void *data, Evas_Object *obj, void *event_info)
 {
-	fprintf(stderr, "Pressed: %p\n", obj);
+	fprintf(stderr, "Pressed: %p, %s\n", obj, (char *)data);
+	free(s_info.pkgname);
+	s_info.pkgname = strdup(data);
 }
 
 static void category_cb(void *data, Evas_Object *obj, void *event_info)
 {
 	fprintf(stderr, "category: %s\n", (char *)data);
+	free(s_info.category);
+	s_info.category = strdup(data);
 }
 
 static void cluster_cb(void *data, Evas_Object *obj, void *event_info)
 {
 	fprintf(stderr, "cluster: %s\n", (char *)data);
+	free(s_info.cluster);
+	s_info.cluster = strdup(data);
 }
 
 static inline void pkg_list(void)
 {
 	struct dirent *ent;
 	DIR *dir;
-	const char *name;
 
 	s_info.pkg_list = elm_list_add(s_info.bg);
 	if (!s_info.pkg_list)
@@ -609,32 +614,16 @@ static inline void pkg_list(void)
 		Evas_Object *icon;
 		//Evas_Object *button;
 		char *iconpath;
-		char *tmppath;
-		int len;
+		char *name;
 
 		while ((ent = readdir(dir))) {
 			if (ent->d_name[0] == '.')
 				continue;
 
-			len = strlen(ent->d_name) * 2;
-			len += strlen("/opt/live/%s/libexec/liblive-%s.so");
-
-			tmppath = malloc(len + 1);
-			if (!tmppath) {
-				perror("malloc");
+			if (!livebox_is_exists(ent->d_name))
 				continue;
-			}
 
-			snprintf(tmppath, len, "/opt/live/%s/libexec/liblive-%s.so",
-								ent->d_name, ent->d_name);
-			if (access(tmppath, F_OK|R_OK) != 0) {
-				fprintf(stderr, "It seems that the %s is not a package\n",
-										ent->d_name);
-				free(tmppath);
-				continue;
-			}
-
-			iconpath = util_get_iconfile(tmppath);
+			iconpath = util_get_iconfile(ent->d_name);
 			if (!iconpath)
 				iconpath = strdup("nofile");
 
@@ -649,16 +638,11 @@ static inline void pkg_list(void)
 			}
 			free(iconpath);
 
-			len = strlen(ent->d_name);
-			while (len > 0 && ent->d_name[len] != '.')
-				len--;
+			name = ent->d_name + strlen(ent->d_name) - 1;
+			while (*name != '.')
+				name--;
 
-			if (len > 0)
-				name = ent->d_name + len + 1;
-			else
-				name = ent->d_name;
-
-			item = elm_list_item_append(s_info.pkg_list, name, icon, NULL, item_cb, NULL);
+			item = elm_list_item_append(s_info.pkg_list, name + 1, icon, NULL, item_cb, strdup(ent->d_name));
 			if (!item) {
 				if (icon)
 					evas_object_del(icon);
@@ -746,40 +730,11 @@ static inline void group_list(void)
 
 static void btn_clicked_cb(void *data, Evas_Object *obj, void *event_info)
 {
-	Elm_Object_Item *pkg;
-	Elm_Object_Item *c_item;
-	Elm_Object_Item *s_item;
-	const char *p_name;
-	const char *c_name;
-	const char *s_name;
-	char pkgname[PATH_MAX];
-
-	pkg = elm_list_selected_item_get(s_info.pkg_list);
-	c_item = elm_list_selected_item_get(s_info.c_list);
-	s_item = elm_list_selected_item_get(s_info.s_list);
-
-	if (pkg)
-		p_name = elm_object_item_part_text_get(pkg, "default");
-	else
-		p_name = "nicesj";
-
-	snprintf(pkgname, sizeof(pkgname), "com.samsung.%s", p_name);
-
-	if (c_item)
-		c_name = elm_object_item_part_text_get(c_item, "default");
-	else
-		c_name = "user,created";
-
-	if (s_item)
-		s_name = elm_object_item_part_text_get(s_item, "default");
-	else
-		s_name = "default";
-
-	fprintf(stderr, "pkgname: %s, c_name: %s, s_name: %s\n", pkgname, c_name, s_name);
+	fprintf(stderr, "pkgname: %s, c_name: %s, s_name: %s\n", s_info.pkgname, s_info.cluster, s_info.category);
 	fprintf(stderr, "content_info: \"default\" [FIXED]]\n");
 
 	struct livebox *handler;
-	handler = livebox_add(pkgname, "default", c_name, s_name, DEFAULT_PERIOD, lb_created_cb, NULL);
+	handler = livebox_add(s_info.pkgname, "default", s_info.cluster, s_info.category, DEFAULT_PERIOD, lb_created_cb, NULL);
 	if (!handler)
 		fprintf(stderr, "Failed to create a livebox\n");
 

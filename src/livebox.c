@@ -608,8 +608,10 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 		return -EINVAL;
 	}
 
-	if (handler->lb.period == period)
-		return 0;
+	if (handler->lb.period == period) {
+		DbgPrint("No changes\n");
+		return -EALREADY;
+	}
 
 	packet = packet_create("set_period", "ssd", handler->pkgname, handler->id, period);
 	if (!packet)
@@ -741,6 +743,11 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
+	}
+
+	if (handler->lb.width == w && handler->lb.height == h) {
+		DbgPrint("No changes\n");
+		return -EALREADY;
 	}
 
 	packet = packet_create("resize", "ssii", handler->pkgname, handler->id, w, h);
