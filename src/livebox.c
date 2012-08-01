@@ -51,6 +51,31 @@ struct fault_info {
 	void *user_data;
 };
 
+static inline void default_create_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default created event handler: %d\n", ret);
+}
+
+static inline void default_delete_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default deleted event handler: %d\n", ret);
+}
+
+static inline void default_pinup_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default pinup event handler: %d\n", ret);
+}
+
+static inline void default_group_changed_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default group changed event handler: %d\n", ret);
+}
+
+static inline void default_period_changed_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default period changed event handler: %d\n", ret);
+}
+
 static inline struct cb_info *create_cb_info(ret_cb_t cb, void *data)
 {
 	struct cb_info *info;
@@ -125,6 +150,16 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 		ret = -EINVAL;
 	}
 
+	/*!
+	 * \note
+	 * In case of resize request,
+	 * The livebox handler will not have resized value right after this callback,
+	 * It can only get the new size when it makes updates.
+	 *
+	 * So the user can only get the resized value(result) from the first update event
+	 * after this request.
+	 */
+
 	if (cb)
 		cb(handler, ret, cbdata);
 }
@@ -165,15 +200,16 @@ static void text_signal_cb(struct livebox *handler, const struct packet *result,
 	return;
 }
 
-static void set_group_cb(struct livebox *handler, const struct packet *result, void *data)
+static void set_group_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
 	void *cbdata;
-	struct cb_info *info = data;
 	ret_cb_t cb;
+	struct cb_info *info = data;
 
 	cbdata = info->data;
 	cb = info->cb;
+	destroy_cb_info(info);
 
 	if (!result) {
 		ret = -EFAULT;
@@ -182,15 +218,19 @@ static void set_group_cb(struct livebox *handler, const struct packet *result, v
 		ret = -EINVAL;
 	}
 
-	if (cb)
+	if (ret == 0) { /*!< Group information is successfully changed */
+		handler->group_changed_cb = cb;
+		handler->group_cbdata = cbdata;
+	} else if (cb) {
 		cb(handler, ret, cbdata);
+	}
+
 	return;
 }
 
 static void period_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	struct cb_info *info = data;
-	double period;
 	int ret;
 	ret_cb_t cb;
 	void *cbdata;
@@ -201,30 +241,45 @@ static void period_ret_cb(struct livebox *handler, const struct packet *result, 
 
 	if (!result) {
 		ret = -EFAULT;
-	} else if (packet_get(result, "id", &ret, &period) != 2) {
+	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
 		ret = -EINVAL;
 	}
 
-	if (ret == 0)
-		lb_set_period(handler, period);
-
-	if (cb)
+	if (ret == 0) {
+		handler->period_changed_cb = cb;
+		handler->period_cbdata = cbdata;
+	} else if (cb) {
 		cb(handler, ret, cbdata);
+	}
 }
 
 static void del_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
+	struct cb_info *info = data;
 	int ret;
+	ret_cb_t cb;
+	void *cbdata;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
 
 	if (!result) {
+		ErrPrint("Connection lost?\n");
 		ret = -EFAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
 		ret = -EINVAL;
 	}
 
-	DbgPrint("Returns %d (waiting deleted event)\n", ret);
+	if (ret == 0) {
+		DbgPrint("Returns %d (waiting deleted event)\n", ret);
+		handler->deleted_cb = cb;
+		handler->deleted_cbdata = cbdata;
+	} else if (cb) {
+		cb(handler, ret, cbdata);
+	}
 
 	/*!
 	 * \note
@@ -419,9 +474,8 @@ static void delete_category_cb(struct livebox *handler, const struct packet *res
 
 	if (!result) {
 		ret = -EFAULT;
-	} else {
-		if (packet_get(result, "i", &ret) != 1)
-			ret = -EINVAL;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ret = -EINVAL;
 	}
 
 	DbgPrint("Delete category returns: %d\n", ret);
@@ -443,10 +497,8 @@ static void pinup_done_cb(struct livebox *handler, const struct packet *result, 
 
 	if (!result) {
 		ret = -EFAULT;
-	} else {
-		if (packet_get(result, "i", &ret) != 1) {
-			ret = -EINVAL;
-		}
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ret = -EINVAL;
 	}
 
 	if (ret == 0) {
@@ -548,6 +600,9 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 		return NULL;
 	}
 
+	if (!cb)
+		cb = default_create_cb;
+
 	/* Data provider will set this */
 	handler->lb.type = _LB_TYPE_FILE;
 	handler->pd.type = _PD_TYPE_SCRIPT;
@@ -558,7 +613,6 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 
 	handler->timestamp = util_timestamp();
 	handler->is_user = 1;
-	handler->is_created = 0;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
@@ -614,8 +668,13 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 	}
 
 	packet = packet_create("set_period", "ssd", handler->pkgname, handler->id, period);
-	if (!packet)
+	if (!packet) {
+		ErrPrint("Failed to build a packet %s\n", handler->pkgname);
 		return -EFAULT;
+	}
+
+	if (!cb)
+		cb = default_period_changed_cb;
 
 	return master_rpc_async_request(handler, packet, 0, period_ret_cb, create_cb_info(cb, data));
 }
@@ -633,8 +692,6 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 	}
 
 	handler->state = DELETE;
-	handler->deleted_cb = cb;
-	handler->deleted_cbdata = data;
 
 	if (!handler->id) {
 		/*!
@@ -643,11 +700,18 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 		 * It means a user didn't receive created event yet.
 		 * Then just stop to delete procedure from here.
 		 * Because the "created" event handler will release this.
+		 * By the way, if the user adds any callback for getting return status of this,
+		 * call it at here.
 		 */
+		if (cb)
+			cb(handler, 0, data);
 		return 0;
 	}
 
-	return lb_send_delete(handler);
+	if (!cb)
+		cb = default_delete_cb;
+
+	return lb_send_delete(handler, cb, data);
 }
 
 EAPI int livebox_fault_handler_set(int (*cb)(const char *, const char *, const char *, const char *, void *), void *data)
@@ -1113,13 +1177,21 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return -EINVAL;
 	}
 
+	if (!strcmp(handler->cluster, cluster) && !strcmp(handler->category, category)) {
+		DbgPrint("No changes\n");
+		return -EALREADY;
+	}
+
 	packet = packet_create("change_group", "ssss", handler->pkgname, handler->id, cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, set_group_cb, create_cb_info(cb, data));
+	if (!cb)
+		cb = default_group_changed_cb;
+
+	return master_rpc_async_request(handler, packet, 0, set_group_ret_cb, create_cb_info(cb, data));
 }
 
 EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category)
@@ -1328,6 +1400,7 @@ EAPI void *livebox_acquire_fb(struct livebox *handler)
 
 EAPI int livebox_release_fb(void *buffer)
 {
+	DbgPrint("Release buffer: %p\n", buffer);
 	return fb_release_buffer(buffer);
 }
 
@@ -1420,14 +1493,19 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 		return -EINVAL;
 	}
 
-	if (handler->lb.is_pinned_up == flag)
-		return 0;
+	if (handler->lb.is_pinned_up == flag) {
+		DbgPrint("No changes\n");
+		return -EALREADY;
+	}
 
 	packet = packet_create("pinup_changed", "ssi", handler->pkgname, handler->id, flag);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
+
+	if (!cb)
+		cb = default_pinup_cb;
 
 	return master_rpc_async_request(handler, packet, 0, pinup_done_cb, create_cb_info(cb, data));
 }
@@ -1911,7 +1989,7 @@ struct livebox *lb_unref(struct livebox *handler)
 
 	dlist_remove_data(s_info.livebox_list, handler);
 
-	handler->state = DELETE;
+	handler->state = DESTROYED;
 	free(handler->cluster);
 	free(handler->category);
 	free(handler->id);
@@ -1931,19 +2009,33 @@ struct livebox *lb_unref(struct livebox *handler)
 	return NULL;
 }
 
-int lb_send_delete(struct livebox *handler)
+int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+
+	if (!cb && !!data) {
+		ErrPrint("Invalid argument\n");
+		return -EINVAL;
+	}
+
+	if (handler->deleted_cb) {
+		ErrPrint("Already in-progress\n");
+		return -EINPROGRESS;
+	}
 
 	packet = packet_create("delete", "ss", handler->pkgname, handler->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		if (handler->deleted_cb)
-			handler->deleted_cb(handler, -EFAULT, handler->deleted_cbdata);
+		if (cb)
+			cb(handler, -EFAULT, data);
+
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, del_ret_cb, NULL);
+	if (!cb)
+		cb = default_delete_cb;
+
+	return master_rpc_async_request(handler, packet, 0, del_ret_cb, create_cb_info(cb, data));
 }
 
 EAPI int livebox_subscribe_group(const char *cluster, const char *category)

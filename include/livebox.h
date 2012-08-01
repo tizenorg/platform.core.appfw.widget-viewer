@@ -117,9 +117,14 @@ extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
  * \note event list
  * 	"lb,updated" - Contents of the given livebox is updated.
  * 	"pd,updated" - Contents of the given pd is updated.
+ *
  * 	"lb,created" - A new livebox is created
  * 	"lb,deleted" - Given livebox is deleted
+ *
+ * 	"group,changed" - Group(cluster/sub-cluster) information is changed
  * 	"pinup,changed" - Pinup status is changed
+ * 	"period,changed" - Update period is changed
+ *
  * \brief Set a livebox events callback
  * \param[in] cb
  * \param[in] data
