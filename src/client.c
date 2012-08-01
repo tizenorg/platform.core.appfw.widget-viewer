@@ -20,6 +20,7 @@
 #include "util.h"
 #include "master_rpc.h"
 #include "conf.h"
+#include "critical_log.h"
 
 static inline void make_connection(void);
 
@@ -80,19 +81,20 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 
 	if (ret == 0) {
 		new_content = strdup(content);
-		if (!new_content) {
+		if (new_content) {
+			free(handler->content);
+			handler->content = new_content;
+			handler->lb.is_pinned_up = pinup;
+		} else {
 			ret = -ENOMEM;
-			goto out;
 		}
-
-		free(handler->content);
-		handler->content = new_content;
-		handler->lb.is_pinned_up = pinup;
 	}
 
 	if (handler->pinup_cb) {
 		handler->pinup_cb(handler, ret, handler->pinup_cbdata);
+
 		handler->pinup_cb = NULL; /*!< Reset pinup cb */
+		handler->pinup_cbdata = NULL;
 	} else {
 		lb_invoke_event_handler(handler, "lb,pinup");
 	}
@@ -102,6 +104,7 @@ out:
 	result = packet_create_reply(packet, "i", ret);
 	if (!result)
 		ErrPrint("Failed to create a reply packet\n");
+
 	return result;
 }
 
@@ -131,24 +134,62 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		goto out;
 	}
 
-	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, id);
-	if (!handler->is_created) {
-		if (handler->created_cb)
-			handler->created_cb(handler, -EFAULT, handler->created_cbdata);
-	} else if (handler->state == CREATE) {
-		lb_invoke_event_handler(handler, "lb,deleted");
-	} else if (handler->deleted_cb) {
-		handler->deleted_cb(handler, 0, handler->deleted_cbdata);
+	/*!< Check validity of this "handler" */
+	if (handler->state != CREATE) {
+		if (handler->state != DELETE) {
+			/*!
+			 * \note
+			 * This is not possible
+			 */
+			CRITICAL_LOG("Already deleted handler (%s - %s)\n", pkgname, id);
+			return NULL;
+		}
 	}
+
+	if (!handler->id) {
+		/*!
+		 * \note
+		 * This is not possible,
+		 * master_deleted can only be called after creating an instance.
+		 */
+		CRITICAL_LOG("Livebox is not created yet (%s - %s)\n", pkgname, id);
+		return NULL;
+	}
+
+	ret = 0;
+
+	if (handler->created_cb == handler->deleted_cb) {
+		if (handler->created_cbdata != handler->deleted_cbdata)
+			CRITICAL_LOG("cb is same but cbdata is different (%s - %s)\n", pkgname, id);
+
+		DbgPrint("Call the created cb with -ECANCELED\n");
+		handler->created_cb(handler, -ECANCELED, handler->created_cbdata);
+
+		handler->created_cb = NULL;
+		handler->created_cbdata = NULL;
+		handler->deleted_cb = NULL;
+		handler->deleted_cbdata = NULL;
+	} else if (handler->deleted_cb) {
+		DbgPrint("Call the deleted cb\n");
+		handler->deleted_cb(handler, ret, handler->deleted_cbdata);
+
+		handler->deleted_cb = NULL;
+		handler->deleted_cbdata = NULL;
+	} else {
+		DbgPrint("Call the lb,deleted\n");
+		lb_invoke_event_handler(handler, "lb,deleted");
+	}
+
+	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, id);
 
 	/* Just try to delete it, if a user didn't remove it from the live box list */
 	lb_unref(handler);
-	ret = 0;
 
 out:
 	result = packet_create_reply(packet, "i", ret);
 	if (!result)
 		ErrPrint("Failed to create a reply packet\n");
+
 	return result;
 }
 
@@ -286,6 +327,113 @@ out:
 	return result;
 }
 
+static struct packet *master_period_changed(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int ret;
+	double period;
+	int status;
+	struct packet *result;
+
+	ret = packet_get(packet, "idss", &status, &period, &pkgname, &id);
+	if (ret != 4) {
+		ErrPrint("Invalid argument\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Livebox(%s - %s) is not found\n", pkgname, id);
+		ret = -ENOENT;
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		ret = -EPERM;
+		goto out;
+	}
+
+	if (status == 0)
+		lb_set_period(handler, period);
+
+	if (handler->period_changed_cb) {
+		handler->period_changed_cb(handler, status, handler->group_cbdata);
+
+		handler->period_changed_cb = NULL;
+		handler->period_cbdata = NULL;
+	} else {
+		lb_invoke_event_handler(handler, "period,changed");
+	}
+
+	ret = 0;
+
+out:
+	result = packet_create_reply(packet, "i", ret);
+	if (!result)
+		ErrPrint("Failed to create a reply packet\n");
+
+	return result;
+}
+
+static struct packet *master_group_changed(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int ret;
+	const char *cluster;
+	const char *category;
+	int status;
+	struct packet *result;
+
+	ret = packet_get(packet, "ssiss", &pkgname, &id, &status, &cluster, &category);
+	if (ret != 5) {
+		ErrPrint("Invalid argument\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ret = -ENOENT;
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		/*!
+		 * \note
+		 * Do no access this handler,
+		 * You cannot believe this handler anymore.
+		 */
+		ret = -EPERM;
+		goto out;
+	}
+
+	if (status == 0)
+		lb_set_group(handler, cluster, category);
+
+	if (handler->group_changed_cb) {
+		handler->group_changed_cb(handler, status, handler->group_cbdata);
+
+		handler->group_changed_cb = NULL;
+		handler->group_cbdata = NULL;
+	} else {
+		lb_invoke_event_handler(handler, "group,changed");
+	}
+
+	ret = 0;
+
+out:
+	result = packet_create_reply(packet, "i", ret);
+	if (!result)
+		ErrPrint("Failed to create a reply packet\n");
+
+	return result;
+}
+
 static struct packet *master_created(pid_t pid, int handle, const struct packet *packet)
 {
 	struct livebox *handler;
@@ -313,6 +461,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	enum pd_type pd_type;
 	double period;
 	struct packet *result;
+
+	int old_state = DESTROYED;
 
 	int ret;
 
@@ -348,8 +498,30 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			ret = -EFAULT;
 			goto out;
 		}
+
+		old_state = handler->state;
 	} else {
-		if (handler->is_created == 1) {
+		if (handler->state != CREATE) {
+			if (handler->state != DELETE) {
+				/*!
+				 * \note
+				 * This is not possible!!!
+				 */
+				ErrPrint("Invalid handler\n");
+				ret = -EINVAL;
+				goto out;
+			}
+
+			/*!
+			 * \note
+			 * After get the delete states,
+			 * call the create callback with deleted result.
+			 */
+		}
+
+		old_state = handler->state;
+
+		if (handler->id) {
 			ErrPrint("Already created: timestamp[%lf] "
 				"pkgname[%s], id[%s] content[%s] "
 				"cluster[%s] category[%s] lb_fname[%s] pd_fname[%s]\n",
@@ -357,17 +529,11 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 					content, cluster, category,
 					lb_fname, pd_fname);
 
-			ret = 0;
+			ret = -EALREADY;
 			goto out;
 		}
 
 		lb_set_id(handler, id);
-
-		if (handler->state != CREATE) {
-			lb_send_delete(handler);
-			ret = 0;
-			goto out;
-		}
 	}
 
 	lb_set_size(handler, lb_w, lb_h);
@@ -426,15 +592,44 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	lb_set_period(handler, period);
 
-	if (handler->created_cb)
-		handler->created_cb(handler, 0, handler->created_cbdata);
-	else
-		lb_invoke_event_handler(handler, "lb,created");
-
-	handler->is_created = 1;
 	ret = 0;
 
+	if (handler->state == CREATE) {
+		/*!
+		 * \note
+		 * These callback can change the handler->state.
+		 * So we have to use the "old_state" which stored state before call these callbacks
+		 */
+
+		if (handler->created_cb) {
+			DbgPrint("Invoke the created_cb\n");
+			handler->created_cb(handler, ret, handler->created_cbdata);
+
+			handler->created_cb = NULL;
+			handler->created_cbdata = NULL;
+		} else {
+			DbgPrint("Invoke the lb,created\n");
+			lb_invoke_event_handler(handler, "lb,created");
+		}
+	}
+
 out:
+	if (ret == 0 && old_state == DELETE) {
+		DbgPrint("Send the delete request\n");
+		lb_send_delete(handler, handler->created_cb, handler->created_cbdata);
+
+		/*!
+		 * \note
+		 * handler->created_cb = NULL;
+		 * handler->created_cbdata = NULL;
+		 *
+		 * Do not clear this to use this from the deleted event callback.
+		 * if this value is not cleared when the deleted event callback check it,
+		 * it means that the created function is not called yet.
+		 * Then the call the deleted event callback with -ECANCELED errno.
+		 */
+	}
+
 	result = packet_create_reply(packet, "i", ret);
 	if (!result)
 		ErrPrint("Failed to create a reply packet\n");
@@ -461,6 +656,14 @@ static struct method s_table[] = {
 	{
 		.cmd = "created", /* timestamp, pkgname, id, content, lb_w, lb_h, pd_w, pd_h, cluster, category, lb_file, pd_file, auto_launch, priority, size_list, is_user, pinup_supported, text_lb, text_pd, period, ret */
 		.handler = master_created,
+	},
+	{
+		.cmd = "group_changed",
+		.handler = master_group_changed,
+	},
+	{
+		.cmd = "period_changed",
+		.handler = master_period_changed,
 	},
 	{
 		.cmd = "pinup",

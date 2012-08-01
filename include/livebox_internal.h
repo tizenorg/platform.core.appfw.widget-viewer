@@ -24,7 +24,7 @@ extern int lb_text_pd(struct livebox *handler);
 extern void lb_set_period(struct livebox *handler, double period);
 extern struct livebox *lb_ref(struct livebox *handler);
 extern struct livebox *lb_unref(struct livebox *handler);
-extern int lb_send_delete(struct livebox *handler);
+extern int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data);
 extern int lb_delete_all(void);
 
 enum lb_type { /*!< Must have to be sync with data-provider-master */
@@ -47,6 +47,7 @@ struct livebox {
 	enum {
 		CREATE = 0xBEEFbeef,
 		DELETE = 0xDEADdead, /* Delete only for this client */
+		DESTROYED = 0x00DEAD00,
 	} state;
 
 	char *cluster;
@@ -97,13 +98,18 @@ struct livebox {
 
 	ret_cb_t created_cb;
 	void *created_cbdata;
-	int is_created;
 
 	ret_cb_t deleted_cb;
 	void *deleted_cbdata;
 
 	ret_cb_t pinup_cb;
 	void *pinup_cbdata;
+
+	ret_cb_t group_changed_cb;
+	void *group_cbdata;
+
+	ret_cb_t period_changed_cb;
+	void *period_cbdata;
 };
 
 /* End of a file */

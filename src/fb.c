@@ -273,8 +273,10 @@ int fb_release_buffer(void *data)
 {
 	struct buffer *buffer;
 
-	if (!data)
+	if (!data) {
+		DbgPrint("Here?\n");
 		return 0;
+	}
 
 	buffer = container_of(data, struct buffer, data);
 
