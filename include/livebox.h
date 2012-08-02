@@ -14,7 +14,7 @@ struct livebox;
  * 348x348
  * 700x348
  */
-#define NR_OF_SIZE_LIST 4
+#define NR_OF_SIZE_LIST 5
 #define DEFAULT_PERIOD -1.0f
 
 static const struct supported_size_list {
@@ -25,6 +25,7 @@ static const struct supported_size_list {
 	{ 348, 172 },
 	{ 348, 348 },
 	{ 700, 348 },
+	{ 700, 172 },
 };
 
 enum content_event_type {
