@@ -56,6 +56,7 @@ struct livebox {
 	char *pkgname;
 	char *id;
 	char *content;
+	char *filename;
 
 	double timestamp;
 	double event_timestamp;

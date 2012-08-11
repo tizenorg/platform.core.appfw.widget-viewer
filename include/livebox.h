@@ -14,18 +14,19 @@ struct livebox;
  * 348x348
  * 700x348
  */
-#define NR_OF_SIZE_LIST 5
+#define NR_OF_SIZE_LIST 6
 #define DEFAULT_PERIOD -1.0f
 
 static const struct supported_size_list {
 	int w;
 	int h;
 } SIZE_LIST[NR_OF_SIZE_LIST] = {
-	{ 172, 172 },
-	{ 348, 172 },
-	{ 348, 348 },
-	{ 700, 348 },
-	{ 700, 172 },
+	{ 172, 172 }, /*!< 1x1 */
+	{ 348, 172 }, /*!< 2x1 */
+	{ 348, 348 }, /*!< 2x2 */
+	{ 700, 348 }, /*!< 4x2 */
+	{ 700, 172 }, /*!< 4x1 */
+	{ 700, 700 }, /*!< 4x4 */
 };
 
 enum content_event_type {

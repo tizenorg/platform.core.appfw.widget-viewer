@@ -74,9 +74,14 @@ int fb_sync(struct fb_info *info)
 	int fd;
 	struct buffer *buffer;
 
-	if (!info || !info->buffer) {
+	if (!info) {
 		ErrPrint("FB Handle is not valid\n");
 		return -EINVAL;
+	}
+
+	if (!info->buffer) {
+		DbgPrint("Buffer is not prepared\n");
+		return 0;
 	}
 
 	buffer = info->buffer;
