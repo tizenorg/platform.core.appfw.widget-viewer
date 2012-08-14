@@ -214,8 +214,9 @@ static inline int create_new_box(struct livebox *handler)
 				evas_object_image_colorspace_set(info->box, EVAS_COLORSPACE_ARGB8888);
 				evas_object_image_alpha_set(info->box, EINA_TRUE);
 				evas_object_image_fill_set(info->box, 0, 0, w, h);
-				evas_object_image_data_copy_set(info->box, fb);
+				evas_object_image_data_set(info->box, fb);
 				evas_object_image_data_update_add(info->box, 0, 0, w, h);
+				evas_object_image_reload(info->box);
 
 				evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_DOWN, lb_mouse_down_cb, info);
 				evas_object_event_callback_add(info->box, EVAS_CALLBACK_MOUSE_MOVE, lb_mouse_move_cb, info);
@@ -322,6 +323,7 @@ static void pd_destroyed_cb(struct livebox *handler, int ret, void *data)
 static inline int create_new_pd(struct livebox *handler)
 {
 	struct box_info *info;
+	Evas_Coord w, h;
 
 	info = find_box_info(handler);
 	if (!info)
@@ -330,15 +332,15 @@ static inline int create_new_pd(struct livebox *handler)
 	if (info->pd)
 		return -EEXIST;
 
-	info->pd = evas_object_image_add(evas_object_evas_get(s_info.win));
+	livebox_get_pdsize(handler, &w, &h);
+
+	info->pd = evas_object_image_filled_add(evas_object_evas_get(s_info.win));
 	if (!info->pd) {
 		fprintf(stderr, "Failed to add an image object for pd\n");
 	} else {
-		Evas_Coord w, h;
 		Evas_Coord x, y;
 		void *fb;
 
-		livebox_get_pdsize(handler, &w, &h);
 		fprintf(stderr, "PDSize: %dx%d\n", w, h);
 		fb = livebox_acquire_pdfb(handler);
 		if (fb) {
@@ -348,7 +350,7 @@ static inline int create_new_pd(struct livebox *handler)
 
 			evas_object_image_fill_set(info->pd, 0, 0, w, h);
 			fprintf(stderr, "PD ptr: %p\n", fb);
-			evas_object_image_data_copy_set(info->pd, fb);
+			evas_object_image_data_set(info->pd, fb);
 			evas_object_image_data_update_add(info->pd, 0, 0, w, h);
 			evas_object_resize(info->pd, w, h);
 			if (s_info.w != w)
@@ -366,7 +368,8 @@ static inline int create_new_pd(struct livebox *handler)
 			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_DOWN, pd_mouse_down_cb, info);
 			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_MOVE, pd_mouse_move_cb, info);
 			evas_object_event_callback_add(info->pd, EVAS_CALLBACK_MOUSE_UP, pd_mouse_up_cb, info);
-			fprintf(stderr, "PD created: %p\n", fb);
+			evas_object_image_reload(info->pd);
+			fprintf(stderr, "PD created: %p (%dx%d)\n", fb, x, y);
 			livebox_release_pdfb(fb);
 		}
 	}
@@ -422,13 +425,11 @@ static inline void reload_buffer(Evas_Object *box, void *buffer, double priority
 	y += ((oh - h) / 2);
 
 	evas_object_move(box, x, y);
-	if (ow != w || oh != h) {
-		evas_object_image_size_set(box, w, h);
-		evas_object_image_fill_set(box, 0, 0, w, h);
-		evas_object_image_data_copy_set(box, buffer);
-		evas_object_resize(box, w, h);
-	}
 
+	evas_object_image_size_set(box, w, h);
+	evas_object_image_fill_set(box, 0, 0, w, h);
+	evas_object_resize(box, w, h);
+	evas_object_image_data_set(box, buffer);
 	evas_object_image_data_update_add(box, 0, 0, w, h);
 	evas_object_show(box);
 }
@@ -493,6 +494,7 @@ static inline int update_box(struct livebox *handler)
 				if (fb) {
 					fprintf(stderr, "pd: updated %p\n", fb);
 					reload_buffer(info->box, fb, 1.0, w, h);
+					evas_object_image_reload(info->box);
 					livebox_release_fb(fb);
 				} else {
 					fprintf(stderr, ">>>>>>>>>>> Buffer is not exists\n");
@@ -525,6 +527,7 @@ static inline int update_pd(struct livebox *handler)
 				if (fb) {
 					fprintf(stderr, "pd: updated %p\n", fb);
 					reload_buffer(info->pd, fb, 1.0, w, h);
+					evas_object_image_reload(info->pd);
 					livebox_release_pdfb(fb);
 				} else {
 					fprintf(stderr, "!!!!!!!!!!!!!!! pd buffer is not valid\n");
@@ -828,7 +831,7 @@ static int app_create(void *data)
 	int h = 0;
 
 	livebox_init();
-	livebox_subscribe_group("*", "*");
+//	livebox_subscribe_group("*", "*");
 
 	s_info.win = elm_win_add(NULL, "test", ELM_WIN_BASIC);
 	if (!s_info.win)

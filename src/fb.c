@@ -25,6 +25,7 @@ struct fb_info {
 		FB_TYPE_UNKNOWN,
 		FB_TYPE_FILE,
 		FB_TYPE_SHM,
+		FB_TYPE_PIXMAP,
 	} type;
 	char *id;
 	int w;
@@ -96,7 +97,7 @@ int fb_sync(struct fb_info *info)
 		return 0;
 	}
 
-	if (info->type == FB_TYPE_UNKNOWN) {
+	if (info->type != FB_TYPE_FILE) {
 		DbgPrint("Ingore sync\n");
 		return 0;
 	}
@@ -150,6 +151,8 @@ struct fb_info *fb_create(const char *id, int w, int h)
 		info->handle = -EINVAL;
 	} else if (sscanf(info->id, "shm://%d", &info->handle) == 1) {
 		info->type = FB_TYPE_SHM;
+	} else if (sscanf(info->id, "pixmap://%d", &info->handle) == 1) {
+		info->type = FB_TYPE_PIXMAP;
 	} else {
 		info->type = FB_TYPE_FILE;
 		info->handle = -EINVAL;
@@ -187,20 +190,30 @@ int fb_create_buffer(struct fb_info *info)
 		}
 
 		buffer->type = BUFFER_TYPE_FILE;
-	} else {
+		buffer->refcnt = 1;
+		buffer->state = CREATED;
+	} else if (info->type == FB_TYPE_SHM) {
 		DbgPrint("SHMID: %d\n", info->handle);
+		if (info->handle < 0) {
+			DbgPrint("SHM is not prepared yet\n");
+			info->bufsz = 0;
+			return 0;
+		}
 
 		buffer = shmat(info->handle, NULL, 0);
-		if (!buffer) {
+		if (buffer == (void *)-1) {
 			ErrPrint("shmat: %s\n", strerror(errno));
 			info->bufsz = 0;
 			return -EFAULT;
 		}
-
-		buffer->type = BUFFER_TYPE_SHM;
+	} else if (info->type == FB_TYPE_PIXMAP) {
+		buffer = NULL;
+		ErrPrint("pixmap is not supported yet\n");
+	} else {
+		ErrPrint("Invalid FB type\n");
+		return -EINVAL;
 	}
-	buffer->refcnt = 1;
-	buffer->state = CREATED;
+
 	info->buffer = buffer;
 
 	DbgPrint("FB allocated (%p)\n", info->buffer);
@@ -263,14 +276,31 @@ void *fb_acquire_buffer(struct fb_info *info)
 {
 	struct buffer *buffer;
 
-	if (!info)
+	if (!info) {
+		ErrPrint("info == NIL\n");
 		return NULL;
+	}
 
 	buffer = info->buffer;
-	if (!buffer)
+	if (!buffer) {
+		ErrPrint("info->buffer == NIL\n");
 		return NULL;
+	}
 
-	buffer->refcnt++;
+	if (buffer->type == BUFFER_TYPE_SHM) {
+		buffer = shmat(info->handle, NULL, 0);
+		if (buffer == (void *)-1) {
+			ErrPrint("shmat: %s\n", strerror(errno));
+			return NULL;
+		}
+	} else if (buffer->type == BUFFER_TYPE_PIXMAP) {
+		ErrPrint("Pixmap is not supported yet\n");
+		return NULL;
+	} else {
+		buffer->refcnt++;
+		DbgPrint("FB acquired (%p) %d\n", buffer, buffer->refcnt);
+	}
+
 	return buffer->data;
 }
 
@@ -279,7 +309,7 @@ int fb_release_buffer(void *data)
 	struct buffer *buffer;
 
 	if (!data) {
-		DbgPrint("Here?\n");
+		DbgPrint("buffer data == NIL\n");
 		return 0;
 	}
 
@@ -290,16 +320,26 @@ int fb_release_buffer(void *data)
 		return -EINVAL;
 	}
 
-	buffer->refcnt--;
-	if (buffer->refcnt == 0) {
-		DbgPrint("FB released (%p)\n", buffer);
-		buffer->state = DESTROYED;
+	if (buffer->type == BUFFER_TYPE_SHM) {
+		if (shmdt(buffer) < 0)
+			ErrPrint("shmdt: %s\n", strerror(errno));
+	} else if (buffer->type == BUFFER_TYPE_PIXMAP) {
+		ErrPrint("Pixmap is not supported yet\n");
+		return -ENOTSUP;
+	} else {
+		buffer->refcnt--;
+		if (buffer->refcnt == 0) {
+			DbgPrint("FB released (%p)\n", buffer);
+			buffer->state = DESTROYED;
 
-		if (buffer->type == BUFFER_TYPE_SHM) {
-			if (shmdt(buffer) < 0)
-				ErrPrint("shmdt: %s\n", strerror(errno));
-		} else if (buffer->type == BUFFER_TYPE_FILE) {
-			free(buffer);
+			if (buffer->type == BUFFER_TYPE_SHM) {
+				if (shmdt(buffer) < 0)
+					ErrPrint("shmdt: %s\n", strerror(errno));
+			} else if (buffer->type == BUFFER_TYPE_FILE) {
+				free(buffer);
+			}
+		} else {
+			DbgPrint("FB decrease[%p] refcnt: %d\n", buffer, buffer->refcnt);
 		}
 	}
 
@@ -309,6 +349,7 @@ int fb_release_buffer(void *data)
 int fb_refcnt(void *data)
 {
 	struct buffer *buffer;
+	int ret;
 
 	if (!data)
 		return -EINVAL;
@@ -320,7 +361,23 @@ int fb_refcnt(void *data)
 		return -EINVAL;
 	}
 
-	return buffer->refcnt;
+	if (buffer->type == BUFFER_TYPE_SHM) {
+		struct shmid_ds buf;
+
+		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
+			ErrPrint("Error: %s\n", strerror(errno));
+			return -EFAULT;
+		}
+
+		ret = buf.shm_nattch;
+	} else if (buffer->type == BUFFER_TYPE_PIXMAP) {
+		ErrPrint("Pixmap is not supported yet\n");
+		return -ENOTSUP;
+	} else {
+		ret = buffer->refcnt;
+	}
+
+	return ret;
 }
 
 const char *fb_id(struct fb_info *info)

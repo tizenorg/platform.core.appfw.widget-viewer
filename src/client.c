@@ -237,10 +237,12 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	if (lb_text_lb(handler)) {
 		lb_set_size(handler, lb_w, lb_h);
 		ret = parse_desc(handler, URI_TO_PATH(id), 0);
+		/*!
+		 * \note
+		 * DESC parser will call the "text event callback".
+		 */
 		goto out;
-	}
-
-	if (lb_get_lb_fb(handler)) {
+	} else if (lb_get_lb_fb(handler)) {
 		lb_set_size(handler, lb_w, lb_h);
 		lb_set_lb_fb(handler, fbfile);
 		ret = fb_sync(lb_get_lb_fb(handler));

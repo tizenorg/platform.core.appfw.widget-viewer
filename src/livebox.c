@@ -1139,6 +1139,20 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 
 	*w = handler->pd.width;
 	*h = handler->pd.height;
+
+	switch (handler->pd.type) {
+	case _PD_TYPE_BUFFER:
+	case _PD_TYPE_SCRIPT:
+		if (!fb_is_created(handler->pd.data.fb)) {
+			DbgPrint("Buffer is not created yet - reset size\n");
+			*w = 0;
+			*h = 0;
+		}
+		break;
+	default:
+		break;
+	}
+
 	return 0;
 }
 
@@ -1164,6 +1178,20 @@ EAPI int livebox_get_size(struct livebox *handler, int *w, int *h)
 
 	*w = handler->lb.width;
 	*h = handler->lb.height;
+
+	switch (handler->lb.type) {
+	case _LB_TYPE_BUFFER:
+	case _LB_TYPE_SCRIPT:
+		if (!fb_is_created(handler->lb.data.fb)) {
+			DbgPrint("Buffer is not created yet - reset size\n");
+			*w = 0;
+			*h = 0;
+		}
+		break;
+	default:
+		break;
+	}
+
 	return 0;
 }
 
@@ -1394,8 +1422,13 @@ EAPI void *livebox_acquire_fb(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state != CREATE || !handler->id || handler->lb.type != _LB_TYPE_SCRIPT) {
-		ErrPrint("Handler is not valid\n");
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Invalid handle\n");
+		return NULL;
+	}
+
+	if (handler->lb.type != _LB_TYPE_SCRIPT && handler->lb.type != _LB_TYPE_BUFFER) {
+		ErrPrint("Handler is not valid type\n");
 		return NULL;
 	}
 
@@ -1404,7 +1437,6 @@ EAPI void *livebox_acquire_fb(struct livebox *handler)
 
 EAPI int livebox_release_fb(void *buffer)
 {
-	DbgPrint("Release buffer: %p\n", buffer);
 	return fb_release_buffer(buffer);
 }
 
@@ -1420,8 +1452,13 @@ EAPI void *livebox_acquire_pdfb(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state != CREATE || !handler->id || handler->pd.type != _PD_TYPE_SCRIPT) {
-		ErrPrint("Handler is not valid\n");
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Invalid handler\n");
+		return NULL;
+	}
+
+	if (handler->pd.type != _PD_TYPE_SCRIPT && handler->pd.type != _PD_TYPE_BUFFER) {
+		ErrPrint("Handler is not valid type\n");
 		return NULL;
 	}
 
@@ -1651,12 +1688,14 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 
 void lb_set_size(struct livebox *handler, int w, int h)
 {
+	DbgPrint("LB[%s] Size: %dx%d\n", util_basename(fb_id(handler->lb.data.fb)), w, h);
 	handler->lb.width = w;
 	handler->lb.height = h;
 }
 
 void lb_set_pdsize(struct livebox *handler, int w, int h)
 {
+	DbgPrint("PD[%s] Size: %dx%d\n", util_basename(fb_id(handler->pd.data.fb)), w, h);
 	handler->pd.width = w;
 	handler->pd.height = h;
 }
@@ -1939,7 +1978,6 @@ int lb_set_lb_fb(struct livebox *handler, const char *filename)
 		return -EFAULT;
 	}
 
-	handler->lb.type = _LB_TYPE_SCRIPT;
 	if (fb)
 		fb_destroy(fb);
 	return 0;
@@ -1976,7 +2014,6 @@ int lb_set_pd_fb(struct livebox *handler, const char *filename)
 		return -EFAULT;
 	}
 
-	handler->pd.type = _PD_TYPE_SCRIPT;
 	if (fb)
 		fb_destroy(fb);
 	return 0;

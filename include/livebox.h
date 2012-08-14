@@ -45,6 +45,7 @@ enum content_event_type {
 	PD_EVENT_MAX = 0xFFFFFFFF,
 };
 
+/* Exported to user app */
 enum livebox_lb_type {
 	LB_TYPE_IMAGE = 0x01,
 	LB_TYPE_BUFFER = 0x02,
