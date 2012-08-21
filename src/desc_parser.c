@@ -548,6 +548,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			free(block->group);
 			free(block->id);
 			free(block);
+			block = NULL;
 
 			state = UNKNOWN;
 			break;

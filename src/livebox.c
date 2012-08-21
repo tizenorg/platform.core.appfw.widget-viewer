@@ -1631,7 +1631,7 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 		return -EINVAL;
 	}
 
-	if ((handler->lb.type != _LB_TYPE_TEXT && !handler->pd.type != _PD_TYPE_TEXT) || handler->state != CREATE || !handler->id) {
+	if ((handler->lb.type != _LB_TYPE_TEXT && handler->pd.type != _PD_TYPE_TEXT) || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
