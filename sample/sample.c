@@ -97,15 +97,15 @@ static void lb_mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_
 
 static void lb_mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
-	Evas_Event_Mouse_Up *up = event_info;
+	Evas_Event_Mouse_Move *move = event_info;
 	Evas_Coord x, y, w, h;
 	double rx, ry;
 	struct box_info *info = data;
 
 	evas_object_geometry_get(obj, &x, &y, &w, &h);
 
-	rx = (double)(up->canvas.x - x) / (double)w;
-	ry = (double)(up->canvas.y - y) / (double)h;
+	rx = (double)(move->canvas.x - x) / (double)w;
+	ry = (double)(move->canvas.y - y) / (double)h;
 
 	livebox_content_event(info->handler, LB_MOUSE_MOVE, rx, ry);
 }
