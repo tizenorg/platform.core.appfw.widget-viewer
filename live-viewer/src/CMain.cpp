@@ -1,5 +1,7 @@
 #include <Elementary.h>
+#include <Ecore_X.h>
 #include <appcore-efl.h>
+#include <libgen.h>
 
 #include <dlog.h>
 #include <ail.h>
@@ -24,52 +26,7 @@ CMain::~CMain()
 {
 }
 
-int CMain::OnCreate(void *_this)
-{
-	CMain *inst = _this;
-	if (!inst)
-		return -EINVAL;
-
-	return inst->m_OnCreate();
-}
-
-int CMain::OnTerminate(void *_this)
-{
-	CMain *inst = _this;
-	if (!inst)
-		return -EINVAL;
-
-	return inst->m_OnTerminate();
-}
-
-int CMain::OnPause(void *_this)
-{
-	CMain *inst = _this;
-	if (!inst)
-		return -EINVAL;
-
-	return inst->m_OnPause();
-}
-
-int CMain::OnResume(void *_this)
-{
-	CMain *inst = _this;
-	if (!inst)
-		return -EINVAL;
-
-	return inst->m_OnResume();
-}
-
-int CMain::OnReset(bundle *b, void *_this)
-{
-	CMain *inst = _this;
-	if (!inst)
-		return -EINVAL;
-
-	return inst->m_OnReset(b);
-}
-
-int CMain::m_OnCreate(void)
+int CMain::OnCreate(void)
 {
 	Evas_Object *win;
 	int w;
@@ -78,7 +35,7 @@ int CMain::m_OnCreate(void)
 	/* Getting the entire screen(root window) size */
 	ecore_x_window_size_get(0, &w, &h);
 
-	win = elm_win_add("Live viewer", ELM_WIN_BASIC);
+	win = elm_win_add(NULL, "Live viewer", ELM_WIN_BASIC);
 	if (!win) {
 		ErrPrint("Failed to create a new window\n");
 		return -EFAULT;
@@ -99,30 +56,30 @@ int CMain::m_OnCreate(void)
 	return 0;
 }
 
-int CMain::m_OnTerminate(void)
+int CMain::OnTerminate(void)
 {
 	Evas_Object *win;
 
 	delete m_pLiveBoxMgr;
 
-	win = CResourceMgr::GetInstance()->UnregisterObject("window");
+	win = (Evas_Object *)CResourceMgr::GetInstance()->UnregisterObject("window");
 	if (win)
 		evas_object_del(win);
 
 	return 0;
 }
 
-int CMain::m_OnPause(void)
+int CMain::OnPause(void)
 {
 	return 0;
 }
 
-int CMain::m_OnResume(void)
+int CMain::OnResume(void)
 {
 	return 0;
 }
 
-int CMain::m_OnReset(bundle *b)
+int CMain::OnReset(bundle *b)
 {
 	const char *tmp;
 	const char *pkgname;
@@ -166,6 +123,45 @@ int CMain::m_OnReset(bundle *b)
 	DbgPrint("verbose: %d\n", m_fVerbose);
 
 	return 0;
+}
+
+static int app_create(void *data)
+{
+	return 0;
+}
+
+static int app_terminate(void *data)
+{
+	return 0;
+}
+
+static int app_pause(void *data)
+{
+	return 0;
+}
+
+static int app_resume(void *data)
+{
+	return 0;
+}
+
+static int app_reset(bundle *b, void *data)
+{
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	struct appcore_ops ops;
+
+	ops.create = app_create;
+	ops.terminate = app_terminate;
+	ops.pause = app_pause;
+	ops.resume = app_resume;
+	ops.reset = app_reset;
+	ops.data = NULL;
+
+	return appcore_efl_main("test", &argc, &argv, &ops);
 }
 
 /* End of a file */

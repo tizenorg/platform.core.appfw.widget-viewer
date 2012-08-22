@@ -20,7 +20,7 @@ public:
 	int DestroyPD(void);
 
 private:
-	static int m_OnCreate(void);
+	int m_OnCreate(void);
 
 	struct livebox *m_pHandler;
 

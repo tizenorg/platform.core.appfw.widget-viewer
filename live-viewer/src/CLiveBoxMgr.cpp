@@ -1,4 +1,5 @@
 #include <Elementary.h>
+#include <libgen.h>
 
 #include <livebox.h>
 #include <dlog.h>
@@ -20,9 +21,11 @@ CLiveBoxMgr::~CLiveBoxMgr(void)
 	struct dlist *l;
 	struct dlist *n;
 	CLiveBox *box;
+	void *data;
 
-	dlist_foreach_safe(s_pBoxList, l, n, box) {
-		s_pBoxList = dlist_remove(m_pBox_list, box);
+	dlist_foreach_safe(s_pBoxList, l, n, data) {
+		box = (CLiveBox *)data;
+		s_pBoxList = dlist_remove(s_pBoxList, l);
 		delete box;
 	}
 
@@ -32,7 +35,7 @@ CLiveBoxMgr::~CLiveBoxMgr(void)
 int CLiveBoxMgr::OnEvent(struct livebox *handler, const char *event, void *data)
 {
 	CLiveBox *box;
-	int ret;
+	int ret = 0;
 
 	if (!strcmp(event, "lb,created")) {
 		try {
@@ -42,46 +45,44 @@ int CLiveBoxMgr::OnEvent(struct livebox *handler, const char *event, void *data)
 		}
 
 		s_pBoxList = dlist_append(s_pBoxList, box);
-		ret = 0;
 	} else if (!strcmp(event, "lb,updated")) {
 		box = (CLiveBox *)livebox_get_data(handler);
 		if (!box)
 			return -EINVAL;
 
-		ret = box->OnUpdateLB();
+		box->OnUpdateLB();
 	} else if (!strcmp(event, "lb,deleted")) {
 		box = (CLiveBox *)livebox_get_data(handler);
 		if (!box)
 			return -EINVAL;
 
-		s_pBoxList = dlist_remove(s_pBoxList, box);
+		dlist_remove_data(s_pBoxList, box);
 		box->SetHandler(NULL); /* To prevent to delete a livebox again */
 		delete box;
-		ret = 0;
 	} else if (!strcmp(event, "pd,updated")) {
 		box = (CLiveBox *)livebox_get_data(handler);
 		if (!box)
 			return -EINVAL;
 		
-		ret = box->OnUpdatePD();
+		box->OnUpdatePD();
 	} else if (!strcmp(event, "group,changed")) {
 		box = (CLiveBox *)livebox_get_data(handler);
 		if (!box)
 			return -EINVAL;
 		
-		ret = box->OnGroupChanged();
+		box->OnGroupChanged();
 	} else if (!strcmp(event, "pinup,changed")) {
 		box = (CLiveBox *)livebox_get_data(handler);
 		if (!box)
 			return -EINVAL;
 
-		ret = box->OnPinupChanged();
+		box->OnPinupChanged();
 	} else if (!strcmp(event, "period,changed")) {
 		box = (CLiveBox *)livebox_get_data(handler);
 		if (!box)
 			return -EINVAL;
 
-		ret = box->OnPeriodChanged();
+		box->OnPeriodChanged();
 	} else {
 		DbgPrint("Unknown event: %s\n", event);
 		ret = -ENOSYS;

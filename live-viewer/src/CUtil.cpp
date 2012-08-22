@@ -1,4 +1,5 @@
 #include <Elementary.h>
+#include <libgen.h>
 
 #include <ail.h>
 #include <dlog.h>
@@ -52,7 +53,7 @@ char *CUtil::GetIconFile(const char *pkgname)
 Evas_Object *CUtil::CreateCanvasImage(Evas_Object *parent, int w, int h)
 {
 	Evas_Object *pCanvasImage;
-	pCanvasImage = evas_object_image_filled_add(evas_object_get_evas(parent));
+	pCanvasImage = evas_object_image_filled_add(evas_object_evas_get(parent));
 	if (!pCanvasImage)
 		return NULL;
 
@@ -69,7 +70,7 @@ int CUtil::UpdateCanvasImage(Evas_Object *image, void *data, int w, int h)
 {
 	evas_object_image_size_set(image, w, h);
 	evas_object_image_fill_set(image, 0, 0, w, h);
-	evas_object_data_copy_set(image, data);
+	evas_object_image_data_copy_set(image, data);
 	evas_object_image_data_update_add(image, 0, 0, w, h);
 
 	evas_object_resize(image, w, h);
@@ -80,7 +81,7 @@ int CUtil::UpdateCanvasImage(Evas_Object *image, const char *filename, int w, in
 {
 	const char *pOldFilename;
 
-	evas_object_image_file_get(image, &pOldFilename);
+	evas_object_image_file_get(image, &pOldFilename, NULL);
 	if (pOldFilename && !strcmp(filename, pOldFilename))
 		evas_object_image_reload(image);
 	else

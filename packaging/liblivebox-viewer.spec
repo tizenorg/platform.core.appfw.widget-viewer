@@ -31,24 +31,15 @@ Livebox viewer development library (dev)
 cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 make %{?jobs:-j%jobs}
 
-cd live-viewer
-cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
-make %{?jobs:-j%jobs}
-cd ..
-
 %install
 rm -rf %{buildroot}
 %make_install
-cd live-viewer
-%make_install
-cd ..
 
 %post
 
 %files
 %defattr(-,root,root,-)
 /usr/lib/*.so*
-/usr/bin/*
 
 %files devel
 %defattr(-,root,root,-)
