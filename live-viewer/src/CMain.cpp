@@ -11,6 +11,7 @@
 #include "dlist.h"
 #include "CUtil.h"
 #include "CResourceMgr.h"
+#include "CLiveBox.h"
 #include "CLiveBoxMgr.h"
 #include "CMain.h"
 
@@ -29,6 +30,7 @@ CMain::~CMain()
 int CMain::OnCreate(void)
 {
 	Evas_Object *win;
+	Evas_Object *layout;
 	int w;
 	int h;
 
@@ -53,14 +55,32 @@ int CMain::OnCreate(void)
 	}
 
 	CResourceMgr::GetInstance()->RegisterObject("window", win);
+
+	layout = elm_layout_add(win);
+	if (layout) {
+		if (elm_layout_file_set(layout, "/usr/share/live-viewer/res/edje/live-viewer.edj", "layout") == EINA_FALSE) {
+			evas_object_del(layout);
+			ErrPrint("Failed to load a layout edje\n");
+		} else {
+			evas_object_move(layout, 0, 0);
+			evas_object_resize(layout, w, h);
+			evas_object_show(layout);
+			CResourceMgr::GetInstance()->RegisterObject("layout", layout);
+		}
+	}
 	return 0;
 }
 
 int CMain::OnTerminate(void)
 {
 	Evas_Object *win;
+	Evas_Object *layout;
 
 	delete m_pLiveBoxMgr;
+
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->UnregisterObject("layout");
+	if (layout)
+		evas_object_del(layout);
 
 	win = (Evas_Object *)CResourceMgr::GetInstance()->UnregisterObject("window");
 	if (win)
@@ -87,6 +107,7 @@ int CMain::OnReset(bundle *b)
 	const char *category;
 	const char *content;
 	double period;
+	CLiveBox *box;
 
 	pkgname = bundle_get_val(b, "pkgname");
 	if (!pkgname) {
@@ -122,46 +143,70 @@ int CMain::OnReset(bundle *b)
 	DbgPrint("period: %lf\n", period);
 	DbgPrint("verbose: %d\n", m_fVerbose);
 
+	try {
+		box = new CLiveBox(pkgname, content, cluster, category, period);
+	} catch (...) {
+		ErrPrint("Failed to create a new box\n");
+	}
+
 	return 0;
 }
 
 static int app_create(void *data)
 {
+	CMain *obj = (CMain *)data;
+	obj->OnCreate();
 	return 0;
 }
 
 static int app_terminate(void *data)
 {
+	CMain *obj = (CMain *)data;
+	obj->OnTerminate();
 	return 0;
 }
 
 static int app_pause(void *data)
 {
+	CMain *obj = (CMain *)data;
+	obj->OnPause();
 	return 0;
 }
 
 static int app_resume(void *data)
 {
+	CMain *obj = (CMain *)data;
+	obj->OnResume();
 	return 0;
 }
 
 static int app_reset(bundle *b, void *data)
 {
+	CMain *obj = (CMain *)data;
+	obj->OnReset(b);
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
 	struct appcore_ops ops;
+	CMain *obj;
+
+	try {
+		obj = new CMain();
+	} catch (...) {
+		ErrPrint("Failed to initiate the CMain\n");
+		return -EFAULT;
+	}
 
 	ops.create = app_create;
 	ops.terminate = app_terminate;
 	ops.pause = app_pause;
 	ops.resume = app_resume;
 	ops.reset = app_reset;
-	ops.data = NULL;
+	ops.data = obj;
 
-	return appcore_efl_main("test", &argc, &argv, &ops);
+	return appcore_efl_main("live-viewer", &argc, &argv, &ops);
 }
 
 /* End of a file */

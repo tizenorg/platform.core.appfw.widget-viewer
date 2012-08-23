@@ -472,11 +472,10 @@ static void delete_category_cb(struct livebox *handler, const struct packet *res
 	cbdata = info->data;
 	destroy_cb_info(info);
 
-	if (!result) {
+	if (!result)
 		ret = -EFAULT;
-	} else if (packet_get(result, "i", &ret) != 1) {
+	else if (packet_get(result, "i", &ret) != 1)
 		ret = -EINVAL;
-	}
 
 	DbgPrint("Delete category returns: %d\n", ret);
 
@@ -495,11 +494,10 @@ static void pinup_done_cb(struct livebox *handler, const struct packet *result, 
 	cbdata = info->data;
 	destroy_cb_info(info);
 
-	if (!result) {
+	if (!result)
 		ret = -EFAULT;
-	} else if (packet_get(result, "i", &ret) != 1) {
+	else if (packet_get(result, "i", &ret) != 1)
 		ret = -EINVAL;
-	}
 
 	if (ret == 0) {
 		handler->pinup_cb = cb;

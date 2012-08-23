@@ -1,0 +1,218 @@
+images {
+	/* image: "a" COMP; */
+}
+
+collections {
+	group {
+		name: "layout";
+		parts {
+			part {
+				name: "indicator";
+				type: RECT;
+				mouse_events: 0;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 100/1280; }
+					color: 0 0 0 0;
+				}
+			}
+
+			part {
+				name: "viewer,helper";
+				type: TEXT;
+				mouse_events: 0;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; to, "viewer"; }
+					rel2 { relative: 1.0 1.0; to, "viewer"; }
+					text {
+						font: "SLP:style=medium";
+						size: 10;
+						fit: 1 1;
+						text: "viewer";
+						align: 0.5 0.5;
+					}
+				}
+			}
+
+			part {
+				name: "viewer";
+				type: SWALLOW;
+				mouse_events: 1;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 10/720 1.0; to, "indicator"; }
+					rel2 { relative: 710/720 800/1280; }
+				}
+			}
+
+			part {
+				name: "controller,txt";
+				type: TEXT;
+				mouse_events: 0;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; to, "controller"; }
+					rel2 { relative: 1.0 1.0; to, "controller"; }
+					text {
+						font: "SLP:style=medium";
+						size: 10;
+						fit: 1 1;
+						text: "ctrl";
+						align: 0.5 0.5;
+					}
+				}
+			}
+
+			part {
+				name: "controller";
+				type: SWALLOW;
+				mouse_events: 1;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 1.0; to_y, "viewer"; }
+					rel2 { relative: 0.5 1.0; }
+				}
+			}
+
+			part {
+				name: "logger,txt";
+				type: TEXT;
+				mouse_events: 0;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; to, "logger"; }
+					rel2 { relative: 1.0 1.0; to, "logger"; }
+					text {
+						font: "SLP:style=medium";
+						size: 10;
+						fit: 1 1;
+						text: "logger";
+						align: 0.5 0.5;
+					}
+				}
+			}
+
+			part {
+				name: "logger";
+				type: SWALLOW;
+				mouse_events: 1;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.5 1.0; to_y, "viewer"; }
+					rel2 { relative: 1.0 1.0; }
+				}
+			}
+		}
+	}
+
+	group {
+		name: "icon,slot";
+		parts {
+			part {
+				name: "bg";
+				type: RECT;
+				mouse_events: 1;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 1.0; }
+					color: 100 100 100 100;
+				}
+			}
+
+			part {
+				name: "livebox";
+				type: SWALLOW;
+				mouse_events: 1;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 1.0; }
+				}
+
+				description {
+					state: "size_172x172" 0.0;
+					rel1 { relative: ((700-172)/2.0)/700 ((700-172)/2.0)/700; }
+					rel2 { relative: ((700+172)/2.0)/700 ((700+172)/2.0)/700; }
+				}
+
+				description {
+					state: "size_348x172" 0.0;
+					rel1 { relative: ((700-348)/2.0)/700 ((700-172)/2.0)/700; }
+					rel2 { relative: ((700+348)/2.0)/700 ((700+172)/2.0)/700; }
+				}
+
+				description {
+					state: "size_348x348" 0.0;
+					rel1 { relative: ((700-348)/2.0)/700 ((700-348)/2.0)/700; }
+					rel2 { relative: ((700+348)/2.0)/700 ((700+348)/2.0)/700; }
+				}
+
+				description {
+					state: "size_700x172" 0.0;
+					rel1 { relative: 0.0 ((700-172)/2.0)/700; }
+					rel2 { relative: 1.0 ((700+172)/2.0)/700; }
+				}
+
+				description {
+					state: "size_700x348" 0.0;
+					rel1 { relative: 0.0 ((700-348)/2.0)/700; }
+					rel2 { relative: 1.0 ((700+348)/2.0)/700; }
+				}
+
+				description {
+					state: "size_700x700" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 1.0; }
+				}
+			}
+		}
+
+		programs {
+			program {
+				name: "lb,172x172";
+				signal: "resize,to,172x172";
+				source: "livebox";
+				action: STATE_SET "size_172x172" 0.0;
+				target: "livebox";
+			}
+			program {
+				name: "lb,348x172";
+				signal: "resize,to,348x172";
+				source: "livebox";
+				action: STATE_SET "size_348x172" 0.0;
+				target: "livebox";
+			}
+			program {
+				name: "lb,348x348";
+				signal: "resize,to,348x348";
+				source: "livebox";
+				action: STATE_SET "size_348x348" 0.0;
+				target: "livebox";
+			}
+			program {
+				name: "lb,700x172";
+				signal: "resize,to,700x172";
+				source: "livebox";
+				action: STATE_SET "size_700x172" 0.0;
+				target: "livebox";
+			}
+			program {
+				name: "lb,700x348";
+				signal: "resize,to,700x348";
+				source: "livebox";
+				action: STATE_SET "size_700x348" 0.0;
+				target: "livebox";
+			}
+			program {
+				name: "lb,700x700";
+				signal: "resize,to,700x700";
+				source: "livebox";
+				action: STATE_SET "size_700x700" 0.0;
+				target: "livebox";
+			}
+		}
+	}
+}

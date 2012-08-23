@@ -8,6 +8,7 @@
 #include "CUtil.h"
 #include "CResourceMgr.h"
 #include "CLiveBox.h"
+#include "CLiveBoxMgr.h"
 
 static void s_OnEdjeEvent(void *data, Evas_Object *obj, const char *emission, const char *source)
 {
@@ -151,10 +152,11 @@ static void s_OnCreate(struct livebox *handle, int ret, void *data)
 	}
 
 	DbgPrint("Live box CREATE returns %d\n", ret);
-	if (ret < 0)
+	if (ret < 0) {
 		delete box;
-	else
+	} else {
 		box->OnCreate(handle);
+	}
 }
 
 CLiveBox::CLiveBox(const char *pkgname, const char *content, const char *cluster, const char *category, double period)
@@ -171,6 +173,12 @@ CLiveBox::CLiveBox(const char *pkgname, const char *content, const char *cluster
 
 CLiveBox::~CLiveBox(void)
 {
+	CLiveBoxMgr *mgr;
+
+	mgr = (CLiveBoxMgr *)CResourceMgr::GetInstance()->GetObject("LiveBoxMgr");
+	if (mgr)
+		mgr->Remove(this);
+
 	if (m_pIconSlot) {
 		Evas_Object *image;
 
@@ -272,6 +280,7 @@ void CLiveBox::OnCreate(struct livebox *handler)
 		 * \note
 		 * Keep the m_pHandler to delete it from the destructor
 		 */
+		delete this;
 	}
 
 	return;
@@ -281,7 +290,7 @@ void CLiveBox::OnUpdateLB(void)
 {
 	int w;
 	int h;
-	char size_str[] = "size_0000x0000";
+	char size_str[] = "resize,to,0000x0000";
 
 	if (!m_pIconSlot || !m_pLBImage)
 		return;
@@ -318,10 +327,10 @@ void CLiveBox::OnUpdateLB(void)
 		CUtil::UpdateCanvasImage(m_pLBImage, filename, w, h);
 	}
 
-	snprintf(size_str, sizeof(size_str), "size_%dx%d", w, h);
+	snprintf(size_str, sizeof(size_str), "resize,to,%dx%d", w, h);
 	DbgPrint("Size string: %s\n", size_str);
 
-	edje_object_signal_emit(elm_layout_edje_get(m_pIconSlot), size_str, "lb,resize,to");
+	edje_object_signal_emit(elm_layout_edje_get(m_pIconSlot), size_str, "livebox");
 	return;
 }
 
@@ -374,7 +383,9 @@ void CLiveBox::OnPinupChanged(void)
 
 int CLiveBox::m_OnCreate(void)
 {
+	CLiveBoxMgr *mgr;
 	Evas_Object *win;
+	Evas_Object *layout;
 	int w;
 	int h;
 
@@ -390,7 +401,7 @@ int CLiveBox::m_OnCreate(void)
 		return -EFAULT;
 	}
 
-	if (!elm_layout_file_set(m_pIconSlot, "/usr/share/live-viewer/icon_slot.edj", "icon,slot")) {
+	if (elm_layout_file_set(m_pIconSlot, "/usr/share/live-viewer/res/edje/live-viewer.edj", "icon,slot") == EINA_FALSE) {
 		ErrPrint("Failed to load an icon slot EDJE\n");
 		evas_object_del(m_pIconSlot);
 		m_pIconSlot = NULL;
@@ -415,6 +426,18 @@ int CLiveBox::m_OnCreate(void)
 	evas_object_move(m_pIconSlot, 0, 0);
 	evas_object_resize(m_pIconSlot, w, (h >> 1));
 	evas_object_show(m_pIconSlot);
+
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
+	if (!layout)
+		return -EFAULT;
+
+	elm_object_part_content_set(layout, "viewer", m_pIconSlot);
+
+	mgr = (CLiveBoxMgr *)CResourceMgr::GetInstance()->GetObject("LiveBoxMgr");
+	if (mgr)
+		mgr->Add(this);
+	else
+		ErrPrint("Live box manager is not exists\n");
 
 	/* Try to update content */
 	OnUpdateLB();

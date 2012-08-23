@@ -86,6 +86,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			handler->content = new_content;
 			handler->lb.is_pinned_up = pinup;
 		} else {
+			ErrPrint("Heap: %s\n", strerror(errno));
 			ret = -ENOMEM;
 		}
 	}
@@ -96,7 +97,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		handler->pinup_cb = NULL; /*!< Reset pinup cb */
 		handler->pinup_cbdata = NULL;
 	} else {
-		lb_invoke_event_handler(handler, "lb,pinup");
+		lb_invoke_event_handler(handler, "pinup,changed");
 	}
 
 	ret = 0;

@@ -8,12 +8,30 @@
 #include "CUtil.h"
 #include "CLiveBox.h"
 #include "CLiveBoxMgr.h"
+#include "CResourceMgr.h"
 
 struct dlist *CLiveBoxMgr::s_pBoxList = NULL;
+
+static int s_EventHandler(struct livebox *handler, const char *event, void *data)
+{
+	CLiveBoxMgr *mgr = (CLiveBoxMgr *)data;
+	return mgr ? mgr->OnEvent(handler, event) : 0;
+}
+
+static int s_FaultHandler(const char *event, const char *pkgname, const char *filename, const char *funcname, void *data)
+{
+	DbgPrint("Event: %s, package: %s\n", event, pkgname);
+	DbgPrint("ID: %s\n", filename);
+	DbgPrint("Function: %s\n", funcname);
+	return 0;
+}
 
 CLiveBoxMgr::CLiveBoxMgr(void)
 {
 	livebox_init();
+	livebox_event_handler_set(s_EventHandler, this);
+	livebox_fault_handler_set(s_FaultHandler, this);
+	CResourceMgr::GetInstance()->RegisterObject("LiveBoxMgr", this);
 }
 
 CLiveBoxMgr::~CLiveBoxMgr(void)
@@ -23,69 +41,53 @@ CLiveBoxMgr::~CLiveBoxMgr(void)
 	CLiveBox *box;
 	void *data;
 
+	if (CResourceMgr::GetInstance()->UnregisterObject("LiveBoxMgr") != this)
+		ErrPrint("Live box manager is not matched\n");
+
 	dlist_foreach_safe(s_pBoxList, l, n, data) {
 		box = (CLiveBox *)data;
-		s_pBoxList = dlist_remove(s_pBoxList, l);
 		delete box;
 	}
 
 	livebox_fini();
 }
 
-int CLiveBoxMgr::OnEvent(struct livebox *handler, const char *event, void *data)
+int CLiveBoxMgr::OnEvent(struct livebox *handler, const char *event)
 {
 	CLiveBox *box;
 	int ret = 0;
 
+	DbgPrint("Event: %s\n", event);
 	if (!strcmp(event, "lb,created")) {
 		try {
 			box = new CLiveBox(handler);
 		} catch (...) {
 			return -EFAULT;
 		}
+	} else { 
+		box = (CLiveBox *)livebox_get_data(handler);
+		if (!box) {
+			ErrPrint("Failed to find a livebox\n");
+			return -EINVAL;
+		}
 
-		s_pBoxList = dlist_append(s_pBoxList, box);
-	} else if (!strcmp(event, "lb,updated")) {
-		box = (CLiveBox *)livebox_get_data(handler);
-		if (!box)
-			return -EINVAL;
-
-		box->OnUpdateLB();
-	} else if (!strcmp(event, "lb,deleted")) {
-		box = (CLiveBox *)livebox_get_data(handler);
-		if (!box)
-			return -EINVAL;
-
-		dlist_remove_data(s_pBoxList, box);
-		box->SetHandler(NULL); /* To prevent to delete a livebox again */
-		delete box;
-	} else if (!strcmp(event, "pd,updated")) {
-		box = (CLiveBox *)livebox_get_data(handler);
-		if (!box)
-			return -EINVAL;
-		
-		box->OnUpdatePD();
-	} else if (!strcmp(event, "group,changed")) {
-		box = (CLiveBox *)livebox_get_data(handler);
-		if (!box)
-			return -EINVAL;
-		
-		box->OnGroupChanged();
-	} else if (!strcmp(event, "pinup,changed")) {
-		box = (CLiveBox *)livebox_get_data(handler);
-		if (!box)
-			return -EINVAL;
-
-		box->OnPinupChanged();
-	} else if (!strcmp(event, "period,changed")) {
-		box = (CLiveBox *)livebox_get_data(handler);
-		if (!box)
-			return -EINVAL;
-
-		box->OnPeriodChanged();
-	} else {
-		DbgPrint("Unknown event: %s\n", event);
-		ret = -ENOSYS;
+		if (!strcmp(event, "lb,updated")) {
+			box->OnUpdateLB();
+		} else if (!strcmp(event, "lb,deleted")) {
+			box->SetHandler(NULL); /* To prevent to delete a livebox again */
+			delete box;
+		} else if (!strcmp(event, "pd,updated")) {
+			box->OnUpdatePD();
+		} else if (!strcmp(event, "group,changed")) {
+			box->OnGroupChanged();
+		} else if (!strcmp(event, "pinup,changed")) {
+			box->OnPinupChanged();
+		} else if (!strcmp(event, "period,changed")) {
+			box->OnPeriodChanged();
+		} else {
+			DbgPrint("Unknown event: %s\n", event);
+			ret = -ENOSYS;
+		}
 	}
 
 	return ret;
@@ -104,6 +106,30 @@ int CLiveBoxMgr::OnFaultEvent(const char *event, const char *pkgname, const char
 		ErrPrint("Unknown event: %s\n", event);
 	}
 
+	return 0;
+}
+
+int CLiveBoxMgr::Add(CLiveBox *box)
+{
+	struct dlist *l;
+	CLiveBox *item;
+	void *data;
+
+	dlist_foreach(s_pBoxList, l, data) {
+		item = (CLiveBox *)data;
+		if (item == box) {
+			DbgPrint("Already registered\n");
+			return 0;
+		}
+	}
+
+	s_pBoxList = dlist_append(s_pBoxList, box);
+	return 0;
+}
+
+int CLiveBoxMgr::Remove(CLiveBox *box)
+{
+	dlist_remove_data(s_pBoxList, box);
 	return 0;
 }
 

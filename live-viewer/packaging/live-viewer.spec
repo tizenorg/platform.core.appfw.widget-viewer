@@ -13,6 +13,7 @@ BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(appcore-efl)
 BuildRequires: pkgconfig(livebox-viewer)
 BuildRequires: pkgconfig(ecore-x)
+BuildRequires: edje-bin
 
 %description
 Livebox viewer development library
@@ -33,3 +34,4 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 /usr/bin/*
+/usr/share/*
