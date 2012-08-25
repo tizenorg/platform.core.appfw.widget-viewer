@@ -3,20 +3,51 @@
 
 #include <livebox.h>
 #include <dlog.h>
+#include <bundle.h>
 
 #include "dlist.h"
 #include "CUtil.h"
 #include "CResourceMgr.h"
 #include "CLiveBox.h"
 #include "CLiveBoxMgr.h"
+#include "CMain.h"
+
+#define LOGSIZE 128
+
+static void s_DestroyPD(struct livebox *handle, int ret, void *data)
+{
+	CLiveBox *box;
+	char buffer[LOGSIZE];
+
+	box = (CLiveBox *)data;
+	if (!box) {
+		ErrPrint("Unknown livebox\n");
+		return;
+	}
+
+	snprintf(buffer, sizeof(buffer), "PD Close returns %d", ret);
+	CMain::GetInstance()->AppendLog(buffer);
+	if (ret >= 0) {
+		box->OnDestroyPD();
+		CMain::GetInstance()->TogglePDCtrl(false);
+	}
+}
 
 static void s_OnEdjeEvent(void *data, Evas_Object *obj, const char *emission, const char *source)
 {
 	CLiveBox *box = (CLiveBox *)data;
-	struct livebox *handler;
 
-	handler = box->Handler();
-	DbgPrint("handler[%p] emission[%s] source[%s]\n", handler, emission, source);
+	if (!strcmp(emission, "closed") && !strcmp(source, "pd")) {
+		livebox_destroy_pd(box->Handler(), s_DestroyPD, box);
+		return;
+	}
+
+	DbgPrint("emission[%s] source[%s]\n", emission, source);
+/*
+	char buffer[LOGSIZE];
+	snprintf(buffer, sizeof(buffer), "%s - %s", emission, source);
+	CMain::GetInstance->AppendLog(buffer);
+*/
 }
 
 static void s_OnLBMouseDown(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -24,20 +55,21 @@ static void s_OnLBMouseDown(void *data, Evas *e, Evas_Object *obj, void *event_i
 	Evas_Event_Mouse_Down *down = (Evas_Event_Mouse_Down *)event_info;
 	CLiveBox *box = (CLiveBox *)data;
 	struct livebox *handler;
-	int ix, iy, iw, ih;
-	double rx;
-	double ry;
 
 	handler = box->Handler();
 	if (!handler)
 		return;
 
-	evas_object_geometry_get(obj, &ix, &iy, &iw, &ih);
+	if (livebox_lb_type(handler) == LB_TYPE_BUFFER) {
+		int ix, iy, iw, ih;
+		double rx, ry;
+		evas_object_geometry_get(obj, &ix, &iy, &iw, &ih);
 
-	rx = (double)(down->canvas.x - ix) / (double)iw;
-	ry = (double)(down->canvas.y - iy) / (double)ih;
+		rx = (double)(down->canvas.x - ix) / (double)iw;
+		ry = (double)(down->canvas.y - iy) / (double)ih;
 
-	livebox_content_event(handler, LB_MOUSE_DOWN, rx, ry);
+		livebox_content_event(handler, LB_MOUSE_DOWN, rx, ry);
+	}
 }
 
 static void s_OnLBMouseMove(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -45,19 +77,21 @@ static void s_OnLBMouseMove(void *data, Evas *e, Evas_Object *obj, void *event_i
 	Evas_Event_Mouse_Move *move = (Evas_Event_Mouse_Move *)event_info;
 	CLiveBox *box = (CLiveBox *)data;
 	struct livebox *handler;
-	int ix, iy, iw, ih;
-	double rx, ry;
 
 	handler = box->Handler();
 	if (!handler)
 		return;
 
-	evas_object_geometry_get(obj, &ix, &iy, &iw, &ih);
+	if (livebox_lb_type(handler) == LB_TYPE_BUFFER) {
+		int ix, iy, iw, ih;
+		double rx, ry;
+		evas_object_geometry_get(obj, &ix, &iy, &iw, &ih);
 
-	rx = (double)(move->cur.canvas.x - ix) / (double)iw;
-	ry = (double)(move->cur.canvas.y - iy) / (double)ih;
+		rx = (double)(move->cur.canvas.x - ix) / (double)iw;
+		ry = (double)(move->cur.canvas.y - iy) / (double)ih;
 
-	livebox_content_event(handler, LB_MOUSE_MOVE, rx, ry);
+		livebox_content_event(handler, LB_MOUSE_MOVE, rx, ry);
+	}
 }
 
 static void s_OnLBMouseUp(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -65,19 +99,22 @@ static void s_OnLBMouseUp(void *data, Evas *e, Evas_Object *obj, void *event_inf
 	Evas_Event_Mouse_Up *up = (Evas_Event_Mouse_Up *)event_info;
 	CLiveBox *box = (CLiveBox *)data;
 	struct livebox *handler;
-	int ix, iy, iw, ih;
-	double rx, ry;
 
 	handler = box->Handler();
 	if (!handler)
 		return;
 
+	int ix, iy, iw, ih;
+	double rx, ry;
 	evas_object_geometry_get(obj, &ix, &iy, &iw, &ih);
 
 	rx = (double)(up->canvas.x - ix) / (double)iw;
 	ry = (double)(up->canvas.y - iy) / (double)ih;
 
-	livebox_content_event(handler, LB_MOUSE_UP, rx, ry);
+	if (livebox_lb_type(handler) == LB_TYPE_BUFFER)
+		livebox_content_event(handler, LB_MOUSE_UP, rx, ry);
+	else
+		livebox_click(handler, rx, ry);
 }
 
 static void s_OnPDMouseDown(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -141,6 +178,25 @@ static void s_OnPDMouseUp(void *data, Evas *e, Evas_Object *obj, void *event_inf
 	livebox_content_event(handler, PD_MOUSE_UP, rx, ry);
 }
 
+static void s_CreatePD(struct livebox *handle, int ret, void *data)
+{
+	CLiveBox *box;
+	char buffer[LOGSIZE];
+
+	box = (CLiveBox *)data;
+	if (!box) {
+		ErrPrint("Unknown livebox\n");
+		return;
+	}
+
+	snprintf(buffer, sizeof(buffer), "PD Open returns %d", ret);
+	CMain::GetInstance()->AppendLog(buffer);
+	if (ret >= 0) {
+		box->OnCreatePD();
+		CMain::GetInstance()->TogglePDCtrl(true);
+	}
+}
+
 static void s_OnCreate(struct livebox *handle, int ret, void *data)
 {
 	CLiveBox *box;
@@ -159,6 +215,26 @@ static void s_OnCreate(struct livebox *handle, int ret, void *data)
 	}
 }
 
+static void s_ResizeCB(struct livebox *handle, int ret, void *data)
+{
+	CLiveBox *box;
+	char buffer[LOGSIZE];
+
+	box = (CLiveBox *)data;
+	if (!box) {
+		ErrPrint("Unknown livebox\n");
+		return;
+	}
+
+	snprintf(buffer, sizeof(buffer), "Resize returns %d", ret);
+	CMain::GetInstance()->AppendLog(buffer);
+	if (ret < 0) {
+		ErrPrint("Failed to resize a livebox\n");
+	} else {
+		box->OnUpdateLB();
+	}
+}
+
 CLiveBox::CLiveBox(const char *pkgname, const char *content, const char *cluster, const char *category, double period)
 : m_pHandler(NULL)
 , m_pIconSlot(NULL)
@@ -169,11 +245,15 @@ CLiveBox::CLiveBox(const char *pkgname, const char *content, const char *cluster
 	handler = livebox_add(pkgname, content, cluster, category, period, s_OnCreate, this);
 	if (!handler) /* Do not set this as a m_pHandler */
 		throw EFAULT;
+
+	memset(m_sSize, 0, sizeof(m_sSize));
 }
 
 CLiveBox::~CLiveBox(void)
 {
 	CLiveBoxMgr *mgr;
+
+	CMain::GetInstance()->DestroyPDCtrl();
 
 	mgr = (CLiveBoxMgr *)CResourceMgr::GetInstance()->GetObject("LiveBoxMgr");
 	if (mgr)
@@ -220,49 +300,13 @@ CLiveBox::CLiveBox(struct livebox *handler)
 
 int CLiveBox::CreatePD(void)
 {
-	int w;
-	int h;
-
-	if (m_pPDImage) {
-		DbgPrint("PD is already created\n");
-		return 0;
-	}
-
-	if (livebox_get_pdsize(m_pHandler, &w, &h) < 0)
-		return -EINVAL;
-
-	if (w <= 0 || h <= 0)
-		return 0;
-
-	m_pPDImage = (Evas_Object *)CUtil::CreateCanvasImage((Evas_Object *)CResourceMgr::GetInstance()->GetObject("window"), w, h);
-	if (!m_pPDImage)
-		return -EFAULT;
-
-	evas_object_event_callback_add(m_pPDImage, EVAS_CALLBACK_MOUSE_DOWN, s_OnPDMouseDown, this);
-	evas_object_event_callback_add(m_pPDImage, EVAS_CALLBACK_MOUSE_MOVE, s_OnPDMouseMove, this);
-	evas_object_event_callback_add(m_pPDImage, EVAS_CALLBACK_MOUSE_UP, s_OnPDMouseUp, this);
-
-	elm_object_part_content_set(m_pIconSlot, "pd", m_pPDImage);
-
-	OnUpdatePD();
+	livebox_create_pd(m_pHandler, s_CreatePD, this);
 	return 0;
 }
 
 int CLiveBox::DestroyPD(void)
 {
-	Evas_Object *pd;
-
-	pd = elm_object_part_content_unset(m_pIconSlot, "pd");
-	if (pd != m_pPDImage) {
-		DbgPrint("Swallowed object is not matched\n");
-		if (m_pPDImage)
-			evas_object_del(m_pPDImage);
-	}
-
-	if (pd)
-		evas_object_del(pd);
-
-	m_pPDImage = NULL;
+	elm_object_signal_emit(m_pIconSlot, "close", "pd");
 	return 0;
 }
 
@@ -281,6 +325,10 @@ void CLiveBox::OnCreate(struct livebox *handler)
 		 * Keep the m_pHandler to delete it from the destructor
 		 */
 		delete this;
+	} else {
+		CMain::GetInstance()->UpdateCtrl(this);
+		if (livebox_has_pd(m_pHandler))
+			CMain::GetInstance()->CreatePDCtrl(this);
 	}
 
 	return;
@@ -288,15 +336,18 @@ void CLiveBox::OnCreate(struct livebox *handler)
 
 void CLiveBox::OnUpdateLB(void)
 {
-	int w;
-	int h;
-	char size_str[] = "resize,to,0000x0000";
+	int w, h;
+	int ow, oh;
+	char buffer[LOGSIZE];
 
 	if (!m_pIconSlot || !m_pLBImage)
 		return;
 
 	if (livebox_get_size(m_pHandler, &w, &h) < 0)
 		return;
+
+	snprintf(buffer, sizeof(buffer), "LB Updated (%dx%d)", w, h);
+	CMain::GetInstance()->AppendLog(buffer);
 
 	if (w < 0 || h < 0)
 		return;
@@ -327,23 +378,82 @@ void CLiveBox::OnUpdateLB(void)
 		CUtil::UpdateCanvasImage(m_pLBImage, filename, w, h);
 	}
 
-	snprintf(size_str, sizeof(size_str), "resize,to,%dx%d", w, h);
-	DbgPrint("Size string: %s\n", size_str);
+	if (sscanf(m_sSize, "resize,to,%dx%d", &ow, &oh) == 2) {
+		if (ow == w && oh == h) {
+			DbgPrint("No changes\n");
+			return;
+		}
+	}
 
-	edje_object_signal_emit(elm_layout_edje_get(m_pIconSlot), size_str, "livebox");
+	snprintf(m_sSize, sizeof(m_sSize), "resize,to,%dx%d", w, h);
+	elm_object_signal_emit(m_pIconSlot, m_sSize, "livebox");
 	return;
+}
+
+void CLiveBox::OnDestroyPD(void)
+{
+	Evas_Object *pd;
+
+	if (!m_pPDImage)
+		return;
+
+	pd = elm_object_part_content_unset(m_pIconSlot, "pd");
+	if (pd != m_pPDImage) {
+		DbgPrint("Swallowed object is not matched\n");
+		if (m_pPDImage)
+			evas_object_del(m_pPDImage);
+	}
+
+	if (pd)
+		evas_object_del(pd);
+
+	m_pPDImage = NULL;
+}
+
+void CLiveBox::OnCreatePD(void)
+{
+	int w;
+	int h;
+
+	if (m_pPDImage) {
+		DbgPrint("PD is already created\n");
+		return;
+	}
+
+	if (livebox_get_pdsize(m_pHandler, &w, &h) < 0)
+		return;
+
+	if (w <= 0 || h <= 0)
+		return;
+
+	m_pPDImage = (Evas_Object *)CUtil::CreateCanvasImage((Evas_Object *)CResourceMgr::GetInstance()->GetObject("window"), w, h);
+	if (!m_pPDImage)
+		return;
+
+	evas_object_event_callback_add(m_pPDImage, EVAS_CALLBACK_MOUSE_DOWN, s_OnPDMouseDown, this);
+	evas_object_event_callback_add(m_pPDImage, EVAS_CALLBACK_MOUSE_MOVE, s_OnPDMouseMove, this);
+	evas_object_event_callback_add(m_pPDImage, EVAS_CALLBACK_MOUSE_UP, s_OnPDMouseUp, this);
+
+	elm_object_part_content_set(m_pIconSlot, "pd", m_pPDImage);
+
+	OnUpdatePD();
+	elm_object_signal_emit(m_pIconSlot, "open", "pd");
 }
 
 void CLiveBox::OnUpdatePD(void)
 {
 	int w;
 	int h;
+	char buffer[LOGSIZE];
 
 	if (!m_pPDImage)
 		return;
 
 	if (livebox_get_pdsize(m_pHandler, &w, &h) < 0)
 		return;
+
+	snprintf(buffer, sizeof(buffer), "PD size %dx%d", w, h);
+	CMain::GetInstance()->AppendLog(buffer);
 
 	if (w < 0 || h < 0)
 		return;
@@ -361,6 +471,8 @@ void CLiveBox::OnUpdatePD(void)
 		if (!data)
 			return;
 		CUtil::UpdateCanvasImage(m_pPDImage, data, w, h);
+		evas_object_size_hint_min_set(m_pPDImage, w, h);
+		evas_object_size_hint_max_set(m_pPDImage, w, h);
 		livebox_release_pdfb(data);
 	} else {
 		ErrPrint("Unsupported media format\n");
@@ -371,6 +483,9 @@ void CLiveBox::OnUpdatePD(void)
 
 void CLiveBox::OnPeriodChanged(void)
 {
+	char buffer[LOGSIZE];
+	snprintf(buffer, sizeof(buffer), "Period: %lf", livebox_period(m_pHandler));
+	CMain::GetInstance()->AppendLog(buffer);
 }
 
 void CLiveBox::OnGroupChanged(void)
@@ -379,6 +494,9 @@ void CLiveBox::OnGroupChanged(void)
 
 void CLiveBox::OnPinupChanged(void)
 {
+	char buffer[LOGSIZE];
+	snprintf(buffer, sizeof(buffer), "Pinup: %d", livebox_is_pinned_up(m_pHandler));
+	CMain::GetInstance()->AppendLog(buffer);
 }
 
 int CLiveBox::m_OnCreate(void)
@@ -408,7 +526,7 @@ int CLiveBox::m_OnCreate(void)
 		return -EIO;
 	}
 
-	edje_object_signal_callback_add(elm_layout_edje_get(m_pIconSlot), "*", "*", s_OnEdjeEvent, this);
+	elm_object_signal_callback_add(m_pIconSlot, "*", "*", s_OnEdjeEvent, this);
 
 	m_pLBImage = (Evas_Object *)CUtil::CreateCanvasImage(win, w, h >> 1);
 	if (!m_pLBImage) {
@@ -442,6 +560,20 @@ int CLiveBox::m_OnCreate(void)
 	/* Try to update content */
 	OnUpdateLB();
 	return 0;
+}
+
+int CLiveBox::Resize(int w, int h)
+{
+	livebox_resize(m_pHandler, w, h, s_ResizeCB, this);
+	return 0;
+}
+
+int CLiveBox::GetSizeList(int *cnt, int *w, int *h)
+{
+	if (!m_pHandler || !cnt || !w || !h)
+		return -EINVAL;
+
+	return livebox_get_supported_sizes(m_pHandler, cnt, w, h);
 }
 
 /* End of a file */

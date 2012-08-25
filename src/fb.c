@@ -21,17 +21,11 @@
 int errno;
 
 struct fb_info {
-	enum {
-		FB_TYPE_UNKNOWN,
-		FB_TYPE_FILE,
-		FB_TYPE_SHM,
-		FB_TYPE_PIXMAP,
-	} type;
 	char *id;
 	int w;
 	int h;
 	int bufsz;
-	void *buffer;
+	struct buffer *buffer;
 
 	int handle;
 };
@@ -73,7 +67,6 @@ static inline struct flock *file_lock(short type, short whence)
 int fb_sync(struct fb_info *info)
 {
 	int fd;
-	struct buffer *buffer;
 
 	if (!info) {
 		ErrPrint("FB Handle is not valid\n");
@@ -85,9 +78,7 @@ int fb_sync(struct fb_info *info)
 		return 0;
 	}
 
-	buffer = info->buffer;
-
-	if (buffer->state != CREATED) {
+	if (info->buffer->state != CREATED) {
 		ErrPrint("Invalid state of a FB\n");
 		return -EINVAL;
 	}
@@ -97,30 +88,30 @@ int fb_sync(struct fb_info *info)
 		return 0;
 	}
 
-	if (info->type != FB_TYPE_FILE) {
+	if (info->buffer->type != BUFFER_TYPE_FILE) {
 		DbgPrint("Ingore sync\n");
 		return 0;
 	}
 
-	if (strncmp(info->id, "file://", 7)) {
+	if (strncmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 		DbgPrint("Invalid URI: [%s]\n", info->id);
 		return -EINVAL;
 	}
 
-	fd = open(URI_TO_PATH(info->id), O_RDONLY);
+	fd = open(util_uri_to_path(info->id), O_RDONLY);
 	if (fd < 0) {
-		ErrPrint("Failed to open a file (%s) because of (%s)\n", URI_TO_PATH(info->id), strerror(errno));
+		ErrPrint("Failed to open a file (%s) because of (%s)\n", util_uri_to_path(info->id), strerror(errno));
 		return -EIO;
 	}
 
-	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
+	if (read(fd, info->buffer->data, info->bufsz) != info->bufsz) {
 		ErrPrint("read: %s\n", strerror(errno));
 		close(fd);
 		return -EIO;
 	}
 
 	close(fd);
-	DbgPrint("Sync done (%s, %p)\n", info->id, buffer);
+	DbgPrint("Sync done (%s, %p)\n", info->id, info->buffer);
 	return 0;
 }
 
@@ -129,7 +120,7 @@ struct fb_info *fb_create(const char *id, int w, int h)
 	struct fb_info *info;
 
 	if (!id || id[0] == '\0') {
-		ErrPrint("Invalid id\n");
+		ErrPrint("Invalid ID\n");
 		return NULL;
 	}
 
@@ -146,15 +137,9 @@ struct fb_info *fb_create(const char *id, int w, int h)
 		return NULL;
 	}
 
-	if (!strlen(info->id)) {
-		info->type = FB_TYPE_UNKNOWN;
-		info->handle = -EINVAL;
-	} else if (sscanf(info->id, "shm://%d", &info->handle) == 1) {
-		info->type = FB_TYPE_SHM;
-	} else if (sscanf(info->id, "pixmap://%d", &info->handle) == 1) {
-		info->type = FB_TYPE_PIXMAP;
+	if (sscanf(info->id, SCHEMA_SHM "%d", &info->handle) == 1) {
+	} else if (sscanf(info->id, SCHEMA_PIXMAP "%d", &info->handle) == 1) {
 	} else {
-		info->type = FB_TYPE_FILE;
 		info->handle = -EINVAL;
 	}
 
@@ -181,7 +166,7 @@ int fb_create_buffer(struct fb_info *info)
 		return 0;
 	}
 
-	if (info->type == FB_TYPE_FILE || info->type == FB_TYPE_UNKNOWN) {
+	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 		buffer = calloc(1, sizeof(*buffer) + info->bufsz);
 		if (!buffer) {
 			CRITICAL_LOG("Heap: %s\n", strerror(errno));
@@ -192,7 +177,7 @@ int fb_create_buffer(struct fb_info *info)
 		buffer->type = BUFFER_TYPE_FILE;
 		buffer->refcnt = 1;
 		buffer->state = CREATED;
-	} else if (info->type == FB_TYPE_SHM) {
+	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		DbgPrint("SHMID: %d\n", info->handle);
 		if (info->handle < 0) {
 			DbgPrint("SHM is not prepared yet\n");
@@ -206,7 +191,7 @@ int fb_create_buffer(struct fb_info *info)
 			info->bufsz = 0;
 			return -EFAULT;
 		}
-	} else if (info->type == FB_TYPE_PIXMAP) {
+	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 		buffer = NULL;
 		ErrPrint("pixmap is not supported yet\n");
 	} else {
@@ -230,16 +215,17 @@ int fb_destroy_buffer(struct fb_info *info)
 		return -EINVAL;
 	}
 
-	if (info->buffer) {
-		buffer = info->buffer;
-		/*!
-		 * \note
-		 * Reset the buffer pointer.
-		 */
-		info->buffer = NULL;
-		info->bufsz = 0;
-		fb_release_buffer(buffer->data);
-	}
+	if (!info->buffer)
+		return 0;
+
+	buffer = info->buffer;
+	/*!
+	 * \note
+	 * Reset the buffer pointer.
+	 */
+	info->buffer = NULL;
+	info->bufsz = 0;
+	fb_release_buffer(buffer->data);
 
 	return 0;
 }
@@ -251,12 +237,7 @@ int fb_destroy(struct fb_info *info)
 		return -EINVAL;
 	}
 
-	if (info->buffer) {
-		struct buffer *buffer;
-		buffer = info->buffer;
-		fb_release_buffer(buffer->data);
-	}
-
+	fb_destroy_buffer(info);
 	free(info->id);
 	free(info);
 	return 0;
@@ -281,11 +262,12 @@ void *fb_acquire_buffer(struct fb_info *info)
 		return NULL;
 	}
 
-	buffer = info->buffer;
-	if (!buffer) {
-		ErrPrint("info->buffer == NIL\n");
+	if (!info->buffer) {
+		ErrPrint("Buffer is not created\n");
 		return NULL;
 	}
+
+	buffer = info->buffer;
 
 	if (buffer->type == BUFFER_TYPE_SHM) {
 		buffer = shmat(info->handle, NULL, 0);
@@ -331,13 +313,7 @@ int fb_release_buffer(void *data)
 		if (buffer->refcnt == 0) {
 			DbgPrint("FB released (%p)\n", buffer);
 			buffer->state = DESTROYED;
-
-			if (buffer->type == BUFFER_TYPE_SHM) {
-				if (shmdt(buffer) < 0)
-					ErrPrint("shmdt: %s\n", strerror(errno));
-			} else if (buffer->type == BUFFER_TYPE_FILE) {
-				free(buffer);
-			}
+			free(buffer);
 		} else {
 			DbgPrint("FB decrease[%p] refcnt: %d\n", buffer, buffer->refcnt);
 		}

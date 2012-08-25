@@ -524,7 +524,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			break;
 		case BLOCK_CLOSE:
 			if (!block->file) {
-				block->file = strdup(URI_TO_PATH(handle->id));
+				block->file = strdup(util_uri_to_path(handle->id));
 				if (!block->file)
 					goto errout;
 			}

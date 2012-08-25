@@ -8,6 +8,8 @@ public:
 
 	void OnUpdateLB(void);
 	void OnUpdatePD(void);
+	void OnCreatePD(void);
+	void OnDestroyPD(void);
 
 	void OnPeriodChanged(void);
 	void OnGroupChanged(void);
@@ -19,6 +21,10 @@ public:
 	int CreatePD(void);
 	int DestroyPD(void);
 
+	int GetSizeList(int *cnt, int *w, int *h);
+
+	int Resize(int w, int h);
+
 private:
 	int m_OnCreate(void);
 
@@ -27,6 +33,7 @@ private:
 	Evas_Object *m_pIconSlot;
 	Evas_Object *m_pLBImage;
 	Evas_Object *m_pPDImage;
+	char m_sSize[20];
 };
 
 /* End of a file */

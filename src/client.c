@@ -237,7 +237,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 
 	if (lb_text_lb(handler)) {
 		lb_set_size(handler, lb_w, lb_h);
-		ret = parse_desc(handler, URI_TO_PATH(id), 0);
+		ret = parse_desc(handler, util_uri_to_path(id), 0);
 		/*!
 		 * \note
 		 * DESC parser will call the "text event callback".
@@ -248,7 +248,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		lb_set_lb_fb(handler, fbfile);
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret < 0)
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 	} else {
 		lb_set_size(handler, lb_w, lb_h);
 		ret = 0;
@@ -303,7 +303,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	lb_set_pdsize(handler, pd_w, pd_h);
 
 	if (lb_text_pd(handler)) {
-		ret = parse_desc(handler, URI_TO_PATH(id), 1);
+		ret = parse_desc(handler, util_uri_to_path(id), 1);
 	} else {
 		if (lb_set_pd_fb(handler, fbfile) == 0) {
 			ret = fb_create_buffer(lb_get_pd_fb(handler));
@@ -315,7 +315,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 
 		ret = fb_sync(lb_get_pd_fb(handler));
 		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 			goto out;
 		}
 
@@ -552,7 +552,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		lb_set_lb_fb(handler, lb_fname);
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret < 0)
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 		break;
 	case _LB_TYPE_TEXT:
 		lb_set_text_lb(handler);
@@ -572,7 +572,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		lb_set_pd_fb(handler, pd_fname);
 		ret = fb_sync(lb_get_pd_fb(handler));
 		if (ret < 0)
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(URI_TO_PATH(id)));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 		break;
 	case _PD_TYPE_TEXT:
 		lb_set_text_pd(handler);

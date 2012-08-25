@@ -1112,7 +1112,7 @@ EAPI const char *livebox_filename(struct livebox *handler)
 		return handler->filename;
 
 	/* Oooops */
-	return URI_TO_PATH(handler->id);
+	return util_uri_to_path(handler->id);
 }
 
 EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
@@ -1723,7 +1723,7 @@ static inline void debug_dump(struct livebox *handler)
 		DbgPrint("LB[BUFFER] = %s\n", util_basename(fb_id(handler->lb.data.fb)));
 		break;
 	case _LB_TYPE_TEXT:
-		DbgPrint("LB[TEXT] = %s\n", util_basename(URI_TO_PATH(handler->id)));
+		DbgPrint("LB[TEXT] = %s\n", util_basename(util_uri_to_path(handler->id)));
 		break;
 	default:
 		break;
@@ -1737,7 +1737,7 @@ static inline void debug_dump(struct livebox *handler)
 		DbgPrint("PD[BUFFER] = %s\n", util_basename(fb_id(handler->pd.data.fb)));
 		break;
 	case _PD_TYPE_TEXT:
-		DbgPrint("PD[TEXT] = %s\n", util_basename(URI_TO_PATH(handler->id)));
+		DbgPrint("PD[TEXT] = %s\n", util_basename(util_uri_to_path(handler->id)));
 		break;
 	default:
 		break;
@@ -1795,7 +1795,7 @@ static inline char *get_file_kept_in_safe(const char *id)
 	int len;
 	int base_idx;
 
-	path = URI_TO_PATH(id);
+	path = util_uri_to_path(id);
 	if (!path) {
 		ErrPrint("Invalid URI(%s)\n", id);
 		return NULL;
@@ -1852,7 +1852,7 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *id, double times
 
 	handler->filename = get_file_kept_in_safe(id);
 	if (!handler->filename) {
-		handler->filename = strdup(URI_TO_PATH(id));
+		handler->filename = strdup(util_uri_to_path(id));
 		if (!handler->filename)
 			ErrPrint("Error: %s\n", strerror(errno));
 	}
@@ -1928,7 +1928,7 @@ void lb_set_id(struct livebox *handler, const char *id)
 
 	handler->filename = get_file_kept_in_safe(id);
 	if (!handler->filename) {
-		handler->filename = strdup(URI_TO_PATH(id));
+		handler->filename = strdup(util_uri_to_path(id));
 		if (!handler->filename)
 			ErrPrint("Error: %s\n", strerror(errno));
 	}

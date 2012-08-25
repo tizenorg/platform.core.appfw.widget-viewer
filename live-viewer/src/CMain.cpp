@@ -17,6 +17,8 @@
 
 int errno;
 
+CMain *CMain::m_pInstance = NULL;
+
 CMain::CMain()
 : m_fVerbose(0)
 , m_pLiveBoxMgr(NULL)
@@ -25,6 +27,139 @@ CMain::CMain()
 
 CMain::~CMain()
 {
+}
+
+int CMain::m_CreateController(void)
+{
+	Evas_Object *win;
+	Evas_Object *layout;
+	Evas_Object *list;
+
+	win = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("window");
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
+
+	list = elm_list_add(win);
+	if (!list) {
+		ErrPrint("Failed to create a size-LIST Ctrl\n");
+		return -EFAULT;
+	}
+	elm_object_part_content_set(layout, "controller", list);
+	return 0;
+}
+
+static void s_BtnClicked(void *data, Evas_Object *obj, void *event_info)
+{
+	CLiveBox *box = (CLiveBox *)data;
+
+	if (!strcmp(elm_object_part_text_get(obj, NULL), "Open PD"))
+		box->CreatePD();
+	else if (!strcmp(elm_object_part_text_get(obj, NULL), "Close PD"))
+		box->DestroyPD();
+	else
+		ErrPrint("Unknown label\n");
+}
+
+int CMain::TogglePDCtrl(int is_on)
+{
+	Evas_Object *layout;
+	Evas_Object *btn;
+
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
+	if (!layout)
+		return -EINVAL;
+
+	btn = elm_object_part_content_get(layout, "pd");
+	if (!btn)
+		return -EINVAL;
+
+	elm_object_part_text_set(btn, NULL, is_on ? "Close PD" : "Open PD");
+	return 0;
+}
+
+int CMain::CreatePDCtrl(CLiveBox *box)
+{
+	Evas_Object *win;
+	Evas_Object *layout;
+	Evas_Object *btn;
+
+	win = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("window");
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
+
+	btn = elm_button_add(win);
+	if (btn) {
+		elm_object_part_text_set(btn, NULL, "Open PD");
+		elm_object_part_content_set(layout, "pd", btn);
+
+		evas_object_smart_callback_add(btn, "clicked", s_BtnClicked, box);
+	}
+
+	return 0;
+}
+
+int CMain::DestroyPDCtrl(void)
+{
+	Evas_Object *win;
+	Evas_Object *layout;
+	Evas_Object *btn;
+
+	win = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("window");
+	if (!win)
+		return -EINVAL;
+
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
+	if (!layout)
+		return -EINVAL;
+
+	btn = elm_object_part_content_unset(layout, "pd");
+	if (btn)
+		evas_object_del(btn);
+
+	return 0;
+}
+
+int CMain::m_CreateLogger(void)
+{
+	Evas_Object *win;
+	Evas_Object *layout;
+	Evas_Object *list;
+
+	win = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("window");
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
+
+	list = elm_list_add(win);
+	if (!list) {
+		ErrPrint("Failed to create a size-LIST Ctrl\n");
+		return -EFAULT;
+	}
+	elm_list_select_mode_set(list, ELM_OBJECT_SELECT_MODE_NONE);
+	elm_object_part_content_set(layout, "logger", list);
+	return 0;
+}
+
+int CMain::AppendLog(const char *str)
+{
+	Evas_Object *layout;
+	Evas_Object *list;
+	const Eina_List *items;
+	Elm_Object_Item *item;
+
+	DbgPrint("Log: %s\n", str);
+	
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
+	list = elm_object_part_content_get(layout, "logger");
+
+	items = elm_list_items_get(list);
+	if (eina_list_count(items) >= 10) {
+		item = elm_list_first_item_get(list);
+		elm_object_item_del(item);
+	}
+
+	item = elm_list_item_append(list, str, NULL, NULL, NULL, NULL);
+	if (item)
+		elm_list_item_bring_in(item);
+
+	elm_list_go(list);
+	return 0;
 }
 
 int CMain::OnCreate(void)
@@ -66,8 +201,12 @@ int CMain::OnCreate(void)
 			evas_object_resize(layout, w, h);
 			evas_object_show(layout);
 			CResourceMgr::GetInstance()->RegisterObject("layout", layout);
+
+			m_CreateController();
+			m_CreateLogger();
 		}
 	}
+
 	return 0;
 }
 
@@ -147,64 +286,124 @@ int CMain::OnReset(bundle *b)
 		box = new CLiveBox(pkgname, content, cluster, category, period);
 	} catch (...) {
 		ErrPrint("Failed to create a new box\n");
+		return -EFAULT;
 	}
 
 	return 0;
 }
 
+static void s_ResizeBox(void *data, Evas_Object *obj, void *event_info)
+{
+	CLiveBox *box = (CLiveBox *)data;
+	Elm_Object_Item *item;
+	const char *label;
+	int w;
+	int h;
+
+	item = elm_list_selected_item_get(obj);
+	if (!item)
+		return;
+
+	label = elm_object_item_part_text_get(item, NULL);
+	if (!label)
+		return;
+
+	sscanf(label, "%dx%d", &w, &h);
+	DbgPrint("Size %dx%d\n", w, h);
+
+	box->Resize(w, h);
+}
+
+int CMain::UpdateCtrl(CLiveBox *box)
+{
+	Evas_Object *layout;
+	Evas_Object *list;
+	int cnt = NR_OF_SIZE_LIST;
+	int w[NR_OF_SIZE_LIST];
+	int h[NR_OF_SIZE_LIST];
+	char size_str[] = "0000x0000";
+	register int i;
+	Elm_Object_Item *item;
+
+	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
+	if (!layout)
+		return -EFAULT;
+
+	list = elm_object_part_content_get(layout, "controller");
+	if (!list)
+		return -EFAULT;
+
+	if (box->GetSizeList(&cnt, w, h) < 0)
+		return 0;
+
+	elm_list_clear(list);
+	for (i = 0; i < cnt; i++) {
+		snprintf(size_str, sizeof(size_str), "%dx%d", w[i], h[i]);
+		DbgPrint("Size: %s\n", size_str);
+		item = elm_list_item_append(list, size_str, NULL, NULL, s_ResizeBox, box);
+		if (!item) {
+			ErrPrint("Failed to append a new size list\n");
+			return -EFAULT;
+		}
+	}
+	elm_list_go(list);
+
+	return 0;
+}
+
+CMain *CMain::GetInstance(void)
+{
+	if (!CMain::m_pInstance) {
+		try {
+			CMain::m_pInstance = new CMain();
+		} catch (...) {
+			return NULL;
+		}
+	}
+
+	return CMain::m_pInstance;
+}
+
 static int app_create(void *data)
 {
-	CMain *obj = (CMain *)data;
-	obj->OnCreate();
+	CMain::GetInstance()->OnCreate();
 	return 0;
 }
 
 static int app_terminate(void *data)
 {
-	CMain *obj = (CMain *)data;
-	obj->OnTerminate();
+	CMain::GetInstance()->OnTerminate();
 	return 0;
 }
 
 static int app_pause(void *data)
 {
-	CMain *obj = (CMain *)data;
-	obj->OnPause();
+	CMain::GetInstance()->OnPause();
 	return 0;
 }
 
 static int app_resume(void *data)
 {
-	CMain *obj = (CMain *)data;
-	obj->OnResume();
+	CMain::GetInstance()->OnResume();
 	return 0;
 }
 
 static int app_reset(bundle *b, void *data)
 {
-	CMain *obj = (CMain *)data;
-	obj->OnReset(b);
+	CMain::GetInstance()->OnReset(b);
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
 	struct appcore_ops ops;
-	CMain *obj;
-
-	try {
-		obj = new CMain();
-	} catch (...) {
-		ErrPrint("Failed to initiate the CMain\n");
-		return -EFAULT;
-	}
 
 	ops.create = app_create;
 	ops.terminate = app_terminate;
 	ops.pause = app_pause;
 	ops.resume = app_resume;
 	ops.reset = app_reset;
-	ops.data = obj;
+	ops.data = NULL;
 
 	return appcore_efl_main("live-viewer", &argc, &argv, &ops);
 }
