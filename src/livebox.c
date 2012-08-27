@@ -523,7 +523,7 @@ static int send_mouse_event(struct livebox *handler, const char *event, double x
 	return master_rpc_async_request(handler, packet, 0, mouse_event_cb, NULL);
 }
 
-EAPI int livebox_init(void)
+EAPI int livebox_init(void *disp)
 {
 #if defined(FLOG)
 	char filename[BUFSIZ];
@@ -532,6 +532,7 @@ EAPI int livebox_init(void)
 	if (!__file_log_fp)
 		__file_log_fp = fdopen(1, "w+t");
 #endif
+	fb_init(disp);
 	critical_log_init();
 
 	client_init();
@@ -541,6 +542,7 @@ EAPI int livebox_init(void)
 EAPI int livebox_fini(void)
 {
 	client_fini();
+	fb_fini();
 	return 0;
 }
 
@@ -1346,6 +1348,12 @@ EAPI enum livebox_lb_type livebox_lb_type(struct livebox *handler)
 		return LB_TYPE_IMAGE;
 	case _LB_TYPE_BUFFER:
 	case _LB_TYPE_SCRIPT:
+		{
+			const char *id;
+			id = fb_id(handler->lb.data.fb);
+			if (id && !strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+				return LB_TYPE_PIXMAP;
+		}
 		return LB_TYPE_BUFFER;
 	case _LB_TYPE_TEXT:
 		return LB_TYPE_TEXT;
@@ -1373,6 +1381,12 @@ EAPI enum livebox_pd_type livebox_pd_type(struct livebox *handler)
 		return PD_TYPE_TEXT;
 	case _PD_TYPE_BUFFER:
 	case _PD_TYPE_SCRIPT:
+		{
+			const char *id;
+			id = fb_id(handler->pd.data.fb);
+			if (id && !strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+				return PD_TYPE_PIXMAP;
+		}
 		return PD_TYPE_BUFFER;
 	default:
 		break;
@@ -1411,6 +1425,68 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 
 	memcpy(&handler->lb.data.ops, ops, sizeof(*ops));
 	return 0;
+}
+
+EAPI int livebox_lb_id(struct livebox *handler)
+{
+	const char *id;
+	int pixmap = 0;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return pixmap;
+	}
+
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Invalid handle\n");
+		return pixmap;
+	}
+
+	if (handler->lb.type != _LB_TYPE_SCRIPT && handler->lb.type != _LB_TYPE_BUFFER) {
+		ErrPrint("Handler is not valid type\n");
+		return pixmap;
+	}
+
+	id = fb_id(handler->lb.data.fb);
+	if (strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+		return pixmap;
+
+	if (sscanf(id, SCHEMA_PIXMAP "%d", &pixmap) != 1)
+		ErrPrint("Inavlid ID: %s\n", id);
+
+	DbgPrint("Pixmap: 0x%X\n", pixmap);
+	return pixmap;
+}
+
+EAPI int livebox_pd_id(struct livebox *handler)
+{
+	const char *id;
+	int pixmap = 0;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return pixmap;
+	}
+
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Invalid handle\n");
+		return pixmap;
+	}
+
+	if (handler->pd.type != _PD_TYPE_SCRIPT && handler->pd.type != _PD_TYPE_BUFFER) {
+		ErrPrint("Handler is not valid type\n");
+		return pixmap;
+	}
+
+	id = fb_id(handler->pd.data.fb);
+	if (strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+		return pixmap;
+
+	if (sscanf(id, SCHEMA_PIXMAP "%d", &pixmap) != 1)
+		ErrPrint("Inavlid ID: %s\n", id);
+
+	DbgPrint("Pixmap: 0x%X\n", pixmap);
+	return pixmap;
 }
 
 EAPI void *livebox_acquire_fb(struct livebox *handler)
@@ -1648,6 +1724,64 @@ EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission,
 	}
 
 	return master_rpc_async_request(handler, packet, 0, text_signal_cb, create_cb_info(cb, data));
+}
+
+EAPI int livebox_subscribe_group(const char *cluster, const char *category)
+{
+	struct packet *packet;
+
+	packet = packet_create("subscribe", "ss", cluster ? cluster : "", category ? category : "");
+	if (!packet) {
+		ErrPrint("Failed to create a packet\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
+}
+
+EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
+{
+	struct packet *packet;
+
+	packet = packet_create("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
+	if (!packet) {
+		ErrPrint("Failed to create a packet\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
+}
+
+EAPI int livebox_enumerate_cluster_list(void (*cb)(const char *cluster))
+{
+	DbgPrint("Not implemented\n");
+	/* Use the DB for this */
+	return -ENOSYS;
+}
+
+EAPI int livebox_enumerate_category_list(const char *cluster, void (*cb)(const char *category))
+{
+	DbgPrint("Not implemented\n");
+	/* Use the DB for this */
+	return -ENOSYS;
+}
+
+EAPI int livebox_refresh_group(const char *cluster, const char *category)
+{
+	struct packet *packet;
+
+	if (!cluster || !category) {
+		ErrPrint("Invalid argument\n");
+		return -EINVAL;
+	}
+
+	packet = packet_create("refresh_group", "ss", cluster, category);
+	if (!packet) {
+		ErrPrint("Failed to create a packet\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
 }
 
 int lb_set_group(struct livebox *handler, const char *cluster, const char *category)
@@ -2130,64 +2264,6 @@ int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 		cb = default_delete_cb;
 
 	return master_rpc_async_request(handler, packet, 0, del_ret_cb, create_cb_info(cb, data));
-}
-
-EAPI int livebox_subscribe_group(const char *cluster, const char *category)
-{
-	struct packet *packet;
-
-	packet = packet_create("subscribe", "ss", cluster ? cluster : "", category ? category : "");
-	if (!packet) {
-		ErrPrint("Failed to create a packet\n");
-		return -EFAULT;
-	}
-
-	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
-}
-
-EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
-{
-	struct packet *packet;
-
-	packet = packet_create("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
-	if (!packet) {
-		ErrPrint("Failed to create a packet\n");
-		return -EFAULT;
-	}
-
-	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
-}
-
-EAPI int livebox_enumerate_cluster_list(void (*cb)(const char *cluster))
-{
-	DbgPrint("Not implemented\n");
-	/* Use the DB for this */
-	return -ENOSYS;
-}
-
-EAPI int livebox_enumerate_category_list(const char *cluster, void (*cb)(const char *category))
-{
-	DbgPrint("Not implemented\n");
-	/* Use the DB for this */
-	return -ENOSYS;
-}
-
-EAPI int livebox_refresh_group(const char *cluster, const char *category)
-{
-	struct packet *packet;
-
-	if (!cluster || !category) {
-		ErrPrint("Invalid argument\n");
-		return -EINVAL;
-	}
-
-	packet = packet_create("refresh_group", "ss", cluster, category);
-	if (!packet) {
-		ErrPrint("Failed to create a packet\n");
-		return -EFAULT;
-	}
-
-	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
 }
 
 /* End of a file */

@@ -1,4 +1,5 @@
 #include <Elementary.h>
+#include <Ecore_X.h>
 #include <libgen.h>
 
 #include <livebox.h>
@@ -28,7 +29,7 @@ static int s_FaultHandler(const char *event, const char *pkgname, const char *fi
 
 CLiveBoxMgr::CLiveBoxMgr(void)
 {
-	livebox_init();
+	livebox_init(ecore_x_display_get());
 	livebox_event_handler_set(s_EventHandler, this);
 	livebox_fault_handler_set(s_FaultHandler, this);
 	CResourceMgr::GetInstance()->RegisterObject("LiveBoxMgr", this);

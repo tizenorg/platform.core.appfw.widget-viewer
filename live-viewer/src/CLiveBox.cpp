@@ -55,12 +55,14 @@ static void s_OnLBMouseDown(void *data, Evas *e, Evas_Object *obj, void *event_i
 	Evas_Event_Mouse_Down *down = (Evas_Event_Mouse_Down *)event_info;
 	CLiveBox *box = (CLiveBox *)data;
 	struct livebox *handler;
+	enum livebox_lb_type type;
 
 	handler = box->Handler();
 	if (!handler)
 		return;
 
-	if (livebox_lb_type(handler) == LB_TYPE_BUFFER) {
+	type = livebox_lb_type(handler);
+	if (type == LB_TYPE_BUFFER || type == LB_TYPE_PIXMAP) {
 		int ix, iy, iw, ih;
 		double rx, ry;
 		evas_object_geometry_get(obj, &ix, &iy, &iw, &ih);
@@ -77,12 +79,14 @@ static void s_OnLBMouseMove(void *data, Evas *e, Evas_Object *obj, void *event_i
 	Evas_Event_Mouse_Move *move = (Evas_Event_Mouse_Move *)event_info;
 	CLiveBox *box = (CLiveBox *)data;
 	struct livebox *handler;
+	enum livebox_lb_type type;
 
 	handler = box->Handler();
 	if (!handler)
 		return;
 
-	if (livebox_lb_type(handler) == LB_TYPE_BUFFER) {
+	type = livebox_lb_type(handler);
+	if (type == LB_TYPE_BUFFER || type == LB_TYPE_PIXMAP) {
 		int ix, iy, iw, ih;
 		double rx, ry;
 		evas_object_geometry_get(obj, &ix, &iy, &iw, &ih);
@@ -99,6 +103,7 @@ static void s_OnLBMouseUp(void *data, Evas *e, Evas_Object *obj, void *event_inf
 	Evas_Event_Mouse_Up *up = (Evas_Event_Mouse_Up *)event_info;
 	CLiveBox *box = (CLiveBox *)data;
 	struct livebox *handler;
+	enum livebox_lb_type type;
 
 	handler = box->Handler();
 	if (!handler)
@@ -111,7 +116,8 @@ static void s_OnLBMouseUp(void *data, Evas *e, Evas_Object *obj, void *event_inf
 	rx = (double)(up->canvas.x - ix) / (double)iw;
 	ry = (double)(up->canvas.y - iy) / (double)ih;
 
-	if (livebox_lb_type(handler) == LB_TYPE_BUFFER)
+	type = livebox_lb_type(handler);
+	if (type == LB_TYPE_BUFFER || type == LB_TYPE_PIXMAP)
 		livebox_content_event(handler, LB_MOUSE_UP, rx, ry);
 	else
 		livebox_click(handler, rx, ry);
@@ -339,6 +345,7 @@ void CLiveBox::OnUpdateLB(void)
 	int w, h;
 	int ow, oh;
 	char buffer[LOGSIZE];
+	enum livebox_lb_type type;
 
 	if (!m_pIconSlot || !m_pLBImage)
 		return;
@@ -358,7 +365,8 @@ void CLiveBox::OnUpdateLB(void)
 	if (w == 0 && h == 0)
 		return;
 
-	if (livebox_lb_type(m_pHandler) == LB_TYPE_BUFFER) {
+	type = livebox_lb_type(m_pHandler);
+	if (type == LB_TYPE_BUFFER || type == LB_TYPE_PIXMAP) {
 		void *data;
 
 		data = livebox_acquire_fb(m_pHandler);
@@ -445,6 +453,7 @@ void CLiveBox::OnUpdatePD(void)
 	int w;
 	int h;
 	char buffer[LOGSIZE];
+	enum livebox_pd_type type;
 
 	if (!m_pPDImage)
 		return;
@@ -452,7 +461,7 @@ void CLiveBox::OnUpdatePD(void)
 	if (livebox_get_pdsize(m_pHandler, &w, &h) < 0)
 		return;
 
-	snprintf(buffer, sizeof(buffer), "PD size %dx%d", w, h);
+	snprintf(buffer, sizeof(buffer), "PD Updated (%dx%d)", w, h);
 	CMain::GetInstance()->AppendLog(buffer);
 
 	if (w < 0 || h < 0)
@@ -464,7 +473,8 @@ void CLiveBox::OnUpdatePD(void)
 	if (w == 0 && h == 0)
 		return;
 
-	if (livebox_pd_type(m_pHandler) == PD_TYPE_BUFFER) {
+	type = livebox_pd_type(m_pHandler);
+	if (type == PD_TYPE_BUFFER || type == PD_TYPE_PIXMAP) {
 		void *data;
 
 		data = livebox_acquire_pdfb(m_pHandler);

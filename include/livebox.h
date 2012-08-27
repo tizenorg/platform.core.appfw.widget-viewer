@@ -50,6 +50,7 @@ enum livebox_lb_type {
 	LB_TYPE_IMAGE = 0x01,
 	LB_TYPE_BUFFER = 0x02,
 	LB_TYPE_TEXT = 0x04,
+	LB_TYPE_PIXMAP = 0x08,
 
 	LB_TYPE_INVALID = 0xFF,
 };
@@ -57,6 +58,7 @@ enum livebox_lb_type {
 enum livebox_pd_type {
 	PD_TYPE_BUFFER = 0x01,
 	PD_TYPE_TEXT = 0x02,
+	PD_TYPE_PIXMAP = 0x04,
 
 	PD_TYPE_INVALID = 0xFF,
 };
@@ -88,7 +90,7 @@ typedef void (*ret_cb_t)(struct livebox *handle, int ret, void *data);
  * \brief Initialize the livebox system
  * \return
  */
-extern int livebox_init(void);
+extern int livebox_init(void *disp);
 
 /*!
  * \brief Finalize the livebox system
@@ -542,6 +544,20 @@ extern int livebox_enumerate_category_list(const char *cluster, void (*cb)(const
  * \return int Success 0 or negative value
  */
 extern int livebox_refresh_group(const char *cluster, const char *category);
+
+/*!
+ * Get the PIXMAP ID of the livebox content
+ * \param[in] livebox handler
+ * \return int pixmap ID of a content
+ */
+extern int livebox_lb_pixmap(struct livebox *handler);
+
+/*!
+ * Get the PIXMAP ID of the PD content
+ * \param[in] livebox handler
+ * \return int pixmap ID of a content
+ */
+extern int livebox_pd_pixmap(struct livebox *handler);
 
 #ifdef __cplusplus
 }
