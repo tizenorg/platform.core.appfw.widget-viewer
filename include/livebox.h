@@ -63,6 +63,25 @@ enum livebox_pd_type {
 	PD_TYPE_INVALID = 0xFF,
 };
 
+enum livebox_event_type { /*!< livebox_event_handler_set Event list */
+	LB_EVENT_LB_UPDATED, /*!< Contents of the given livebox is updated */
+	LB_EVENT_PD_UPDATED, /*!< Contents of the given pd is updated */
+
+	LB_EVENT_CREATED, /*!< A new livebox is created */
+	LB_EVENT_DELETED, /*!< A livebox is deleted */
+
+	LB_EVENT_GROUP_CHANGED, /*!< Group (Cluster/Sub-cluster) information is changed */
+	LB_EVENT_PINUP_CHANGED, /*!< PINUP status is changed */
+	LB_EVENT_PERIOD_CHANGED, /*!< Update period is changed */
+
+	LB_EVENT_IGNORED, /*!< Request is ignored */
+};
+
+enum livebox_fault_type {
+	LB_FAULT_DEACTIVATED, /*!< Livebox is deactivated by its fault operation */
+	LB_FAULT_PROVIDER_DISCONNECTED, /*!< Provider is disconnected */
+};
+
 /*!
  * \note
  * TEXT type livebox contents handling opertators.
@@ -119,39 +138,25 @@ extern struct livebox *livebox_add(const char *pkgname, const char *content, con
 extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
 
 /*!
- * \note event list
- * 	"lb,updated" - Contents of the given livebox is updated.
- * 	"pd,updated" - Contents of the given pd is updated.
- *
- * 	"lb,created" - A new livebox is created
- * 	"lb,deleted" - Given livebox is deleted
- *
- * 	"group,changed" - Group(cluster/sub-cluster) information is changed
- * 	"pinup,changed" - Pinup status is changed
- * 	"period,changed" - Update period is changed
- *
  * \brief Set a livebox events callback
  * \param[in] cb
  * \param[in] data
  * \sa livebox_event_handler_unset
  */
-extern int livebox_event_handler_set(int (*cb)(struct livebox *handler, const char *event, void *data), void *data);
+
+extern int livebox_event_handler_set(int (*cb)(struct livebox *handler, enum livebox_event_type event, void *data), void *data);
 
 /*!
  * \brief Unset the livebox event handler
  * \return pointer of 'data' which is registered from the livebox_event_handler_set
  * \sa livebox_event_handler_set
  */
-extern void *livebox_event_handler_unset(int (*cb)(struct livebox *handler, const char *event, void *data));
+extern void *livebox_event_handler_unset(int (*cb)(struct livebox *handler, enum livebox_event_type event, void *data));
 
 /*!
  * \note
  *   argument list
  * 	event, pkgname, filename, funcname
- *
- *   event list
- * 	"deactivated" - Package is deactivated
- *	"provider,disconnected" - Provder is disconnected
  *
  * \brief
  *   Live box fault event handler registeration function
@@ -159,14 +164,14 @@ extern void *livebox_event_handler_unset(int (*cb)(struct livebox *handler, cons
  * \param[in] data
  * \return int
  */
-extern int livebox_fault_handler_set(int (*cb)(const char *, const char *, const char *, const char *, void *), void *data);
+extern int livebox_fault_handler_set(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data);
 
 /*!
  * \brief Unset the live box fault event handler
  * \param[in] cb
  * \return pointer of 'data'
  */
-extern void *livebox_fault_handler_unset(int (*cb)(const char *, const char *, const char *, const char *, void *));
+extern void *livebox_fault_handler_unset(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *));
 
 /*!
  * \brief Activate the faulted livebox.

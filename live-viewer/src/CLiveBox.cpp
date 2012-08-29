@@ -37,6 +37,8 @@ static void s_OnEdjeEvent(void *data, Evas_Object *obj, const char *emission, co
 {
 	CLiveBox *box = (CLiveBox *)data;
 
+	DbgPrint("emission: %p, source: %p\n", emission, source);
+
 	if (!strcmp(emission, "closed") && !strcmp(source, "pd")) {
 		livebox_destroy_pd(box->Handler(), s_DestroyPD, box);
 		return;
@@ -463,6 +465,7 @@ void CLiveBox::OnUpdatePD(void)
 
 	snprintf(buffer, sizeof(buffer), "PD Updated (%dx%d)", w, h);
 	CMain::GetInstance()->AppendLog(buffer);
+	DbgPrint("Buffer: [%s]\n", buffer);
 
 	if (w < 0 || h < 0)
 		return;
@@ -476,7 +479,6 @@ void CLiveBox::OnUpdatePD(void)
 	type = livebox_pd_type(m_pHandler);
 	if (type == PD_TYPE_BUFFER || type == PD_TYPE_PIXMAP) {
 		void *data;
-
 		data = livebox_acquire_pdfb(m_pHandler);
 		if (!data)
 			return;

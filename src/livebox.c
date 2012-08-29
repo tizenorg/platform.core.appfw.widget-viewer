@@ -42,12 +42,12 @@ struct cb_info {
 };
 
 struct event_info {
-	int (*handler)(struct livebox *handler, const char *event, void *data);
+	int (*handler)(struct livebox *handler, enum livebox_event_type event, void *data);
 	void *user_data;
 };
 
 struct fault_info {
-	int (*handler)(const char *event, const char *pkgname, const char *filename, const char *func, void *data);
+	int (*handler)(enum livebox_fault_type event, const char *pkgname, const char *filename, const char *func, void *data);
 	void *user_data;
 };
 
@@ -129,7 +129,7 @@ static void mouse_event_cb(struct livebox *handler, const struct packet *packet,
 	}
 
 	if (ret < 0)
-		lb_invoke_event_handler(handler, "event,ingored");
+		lb_invoke_event_handler(handler, LB_EVENT_IGNORED);
 }
 
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -714,7 +714,7 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 	return lb_send_delete(handler, cb, data);
 }
 
-EAPI int livebox_fault_handler_set(int (*cb)(const char *, const char *, const char *, const char *, void *), void *data)
+EAPI int livebox_fault_handler_set(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data)
 {
 	struct fault_info *info;
 
@@ -734,7 +734,7 @@ EAPI int livebox_fault_handler_set(int (*cb)(const char *, const char *, const c
 	return 0;
 }
 
-EAPI void *livebox_fault_handler_unset(int (*cb)(const char *, const char *, const char *, const char *, void *))
+EAPI void *livebox_fault_handler_unset(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *))
 {
 	struct fault_info *info;
 	struct dlist *l;
@@ -753,7 +753,7 @@ EAPI void *livebox_fault_handler_unset(int (*cb)(const char *, const char *, con
 	return NULL;
 }
 
-EAPI int livebox_event_handler_set(int (*cb)(struct livebox *, const char *, void *), void *data)
+EAPI int livebox_event_handler_set(int (*cb)(struct livebox *, enum livebox_event_type, void *), void *data)
 {
 	struct event_info *info;
 
@@ -775,7 +775,7 @@ EAPI int livebox_event_handler_set(int (*cb)(struct livebox *, const char *, voi
 	return 0;
 }
 
-EAPI void *livebox_event_handler_unset(int (*cb)(struct livebox *, const char *, void *))
+EAPI void *livebox_event_handler_unset(int (*cb)(struct livebox *, enum livebox_event_type, void *))
 {
 	struct event_info *info;
 	struct dlist *l;
@@ -1832,7 +1832,7 @@ void lb_set_pdsize(struct livebox *handler, int w, int h)
 	handler->pd.height = h;
 }
 
-void lb_invoke_fault_handler(const char *event, const char *pkgname, const char *file, const char *func)
+void lb_invoke_fault_handler(enum livebox_fault_type event, const char *pkgname, const char *file, const char *func)
 {
 	struct dlist *l;
 	struct dlist *n;
@@ -1878,13 +1878,13 @@ static inline void debug_dump(struct livebox *handler)
 	}
 }
 
-void lb_invoke_event_handler(struct livebox *handler, const char *event)
+void lb_invoke_event_handler(struct livebox *handler, enum livebox_event_type event)
 {
 	struct dlist *l;
 	struct dlist *n;
 	struct event_info *info;
 
-	DbgPrint("Inovke %s for %s\n", event, handler->pkgname);
+	DbgPrint("Inovke 0x%X for %s\n", event, handler->pkgname);
 	debug_dump(handler);
 
 	dlist_foreach_safe(s_info.event_list, l, n, info) {
@@ -2008,7 +2008,7 @@ int lb_delete_all(void)
 	struct livebox *handler;
 
 	dlist_foreach_safe(s_info.livebox_list, l, n, handler) {
-		lb_invoke_event_handler(handler, "lb,deleted");
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler);
 	}
 

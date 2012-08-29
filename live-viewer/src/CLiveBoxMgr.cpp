@@ -13,15 +13,15 @@
 
 struct dlist *CLiveBoxMgr::s_pBoxList = NULL;
 
-static int s_EventHandler(struct livebox *handler, const char *event, void *data)
+static int s_EventHandler(struct livebox *handler, enum livebox_event_type event, void *data)
 {
 	CLiveBoxMgr *mgr = (CLiveBoxMgr *)data;
 	return mgr ? mgr->OnEvent(handler, event) : 0;
 }
 
-static int s_FaultHandler(const char *event, const char *pkgname, const char *filename, const char *funcname, void *data)
+static int s_FaultHandler(enum livebox_fault_type event, const char *pkgname, const char *filename, const char *funcname, void *data)
 {
-	DbgPrint("Event: %s, package: %s\n", event, pkgname);
+	DbgPrint("Event: 0x%X, package: %s\n", event, pkgname);
 	DbgPrint("ID: %s\n", filename);
 	DbgPrint("Function: %s\n", funcname);
 	return 0;
@@ -53,58 +53,71 @@ CLiveBoxMgr::~CLiveBoxMgr(void)
 	livebox_fini();
 }
 
-int CLiveBoxMgr::OnEvent(struct livebox *handler, const char *event)
+int CLiveBoxMgr::OnEvent(struct livebox *handler, enum livebox_event_type event)
 {
 	CLiveBox *box;
 	int ret = 0;
 
-	DbgPrint("Event: %s\n", event);
-	if (!strcmp(event, "lb,created")) {
+	DbgPrint("Event: 0x%X\n", event);
+	if (event == LB_EVENT_CREATED) {
 		try {
 			box = new CLiveBox(handler);
 		} catch (...) {
 			return -EFAULT;
 		}
-	} else { 
+	} else {
 		box = (CLiveBox *)livebox_get_data(handler);
 		if (!box) {
 			ErrPrint("Failed to find a livebox\n");
 			return -EINVAL;
 		}
 
-		if (!strcmp(event, "lb,updated")) {
+		switch (event) {
+		case LB_EVENT_LB_UPDATED:
 			box->OnUpdateLB();
-		} else if (!strcmp(event, "lb,deleted")) {
+			break;
+		case LB_EVENT_DELETED:
 			box->SetHandler(NULL); /* To prevent to delete a livebox again */
 			delete box;
-		} else if (!strcmp(event, "pd,updated")) {
+			break;
+		case LB_EVENT_PD_UPDATED:
+			DbgPrint("PD Updated\n");
 			box->OnUpdatePD();
-		} else if (!strcmp(event, "group,changed")) {
+			break;
+		case LB_EVENT_GROUP_CHANGED:
 			box->OnGroupChanged();
-		} else if (!strcmp(event, "pinup,changed")) {
+			break;
+		case LB_EVENT_PINUP_CHANGED:
 			box->OnPinupChanged();
-		} else if (!strcmp(event, "period,changed")) {
+			break;
+		case LB_EVENT_PERIOD_CHANGED:
 			box->OnPeriodChanged();
-		} else {
+			break;
+		default:
 			DbgPrint("Unknown event: %s\n", event);
 			ret = -ENOSYS;
+			break;
 		}
 	}
 
 	return ret;
 }
 
-int CLiveBoxMgr::OnFaultEvent(const char *event, const char *pkgname, const char *id, const char *funcname, void *data)
+int CLiveBoxMgr::OnFaultEvent(enum livebox_fault_type event, const char *pkgname, const char *id, const char *funcname, void *data)
 {
-	ErrPrint("Fault event: %s (%s)\n", event, pkgname);
+	ErrPrint("Fault event: 0x%X (%s)\n", event, pkgname);
 
-	if (!strcmp(event, "deactivated")) {
+	switch (event) {
+	case LB_FAULT_DEACTIVATED:
 		DbgPrint("Instance: %s\n", id);
 		DbgPrint("Function: %s\n", funcname);
-	} else if (!strcmp(event, "provider,disconnected")) {
+		break;
+	case LB_FAULT_PROVIDER_DISCONNECTED:
 		DbgPrint("Provider is disconnected\n");
-	} else {
-		ErrPrint("Unknown event: %s\n", event);
+		break;
+	default:
+		ErrPrint("Unknown event: 0x%X\n", event);
+		break;
 	}
 
 	return 0;

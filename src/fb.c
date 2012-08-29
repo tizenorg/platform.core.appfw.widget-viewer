@@ -68,8 +68,9 @@ int fb_init(void *disp)
 
 		s_info.screen = DefaultScreen(s_info.disp);
 		s_info.visual = DefaultVisualOfScreen(screen);
-		s_info.depth = sizeof(int); //DefaultDepthOfScreen(screen);
 	}
+
+	s_info.depth = sizeof(int); //DefaultDepthOfScreen(screen);
 	return 0;
 }
 
@@ -138,7 +139,6 @@ static inline int sync_for_pixmap(struct fb_info *info)
 
 			s_info.screen = DefaultScreen(s_info.disp);
 			s_info.visual = DefaultVisualOfScreen(screen);
-			s_info.depth = sizeof(int); // DefaultDepthOfScreen(screen);
 		} else {
 			ErrPrint("Failed to open a display\n");
 			return -EFAULT;
@@ -200,8 +200,9 @@ static inline int sync_for_pixmap(struct fb_info *info)
 	XShmGetImage(s_info.disp, info->handle, xim, 0, 0, 0xFFFFFFFF);
 	XSync(s_info.disp, False);
 
+	DbgPrint("Buf size: %d(%d)\n", info->bufsz, info->w * info->h * s_info.depth);
 	memcpy(buffer->data, xim->data, info->bufsz);
-	DbgPrint("Buf size: %d\n", info->bufsz);
+	DbgPrint("Copy done\n");
 
 	XShmDetach(s_info.disp, &si);
 	XDestroyImage(xim);
@@ -295,6 +296,7 @@ int fb_create_buffer(struct fb_info *info)
 	}
 
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
+		DbgPrint("BufSZ: %d\n", info->bufsz);
 		buffer = calloc(1, sizeof(*buffer) + info->bufsz);
 		if (!buffer) {
 			CRITICAL_LOG("Heap: %s\n", strerror(errno));
@@ -326,7 +328,7 @@ int fb_create_buffer(struct fb_info *info)
 			return 0;
 		}
 
-		DbgPrint("PIXMAP-ID: 0x%X\n", info->handle);
+		DbgPrint("PIXMAP-ID: 0x%X (%d)\n", info->handle, info->bufsz);
 
 		buffer = calloc(1, sizeof(*buffer) + info->bufsz);
 		if (!buffer) {

@@ -1,8 +1,8 @@
 extern int lb_set_group(struct livebox *handler, const char *cluster, const char *category);
 extern void lb_set_size(struct livebox *handler, int w, int h);
 extern void lb_set_pdsize(struct livebox *handler, int w, int h);
-extern void lb_invoke_event_handler(struct livebox *handler, const char *event);
-extern void lb_invoke_fault_handler(const char *event, const char *pkgname, const char *filename, const char *function);
+extern void lb_invoke_event_handler(struct livebox *handler, enum livebox_event_type event);
+extern void lb_invoke_fault_handler(enum livebox_fault_type type, const char *pkgname, const char *filename, const char *function);
 extern int lb_set_content(struct livebox *handler, const char *content);
 extern void lb_set_auto_launch(struct livebox *handler, int auto_launch);
 extern struct livebox *lb_find_livebox(const char *pkgname, const char *filename);

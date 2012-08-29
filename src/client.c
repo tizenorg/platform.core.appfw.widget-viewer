@@ -47,7 +47,7 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 		return result;
 	}
 
-	lb_invoke_fault_handler("deactivated", pkgname, id, function);
+	lb_invoke_fault_handler(LB_FAULT_DEACTIVATED, pkgname, id, function);
 	DbgPrint("%s(%s) is deactivated\n", pkgname, id);
 
 	result = packet_create_reply(packet, "i", 0);
@@ -97,7 +97,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		handler->pinup_cb = NULL; /*!< Reset pinup cb */
 		handler->pinup_cbdata = NULL;
 	} else {
-		lb_invoke_event_handler(handler, "pinup,changed");
+		lb_invoke_event_handler(handler, LB_EVENT_PINUP_CHANGED);
 	}
 
 	ret = 0;
@@ -178,7 +178,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		handler->deleted_cbdata = NULL;
 	} else {
 		DbgPrint("Call the lb,deleted\n");
-		lb_invoke_event_handler(handler, "lb,deleted");
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 	}
 
 	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, id);
@@ -255,7 +255,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	}
 
 	if (ret == 0)
-		lb_invoke_event_handler(handler, "lb,updated");
+		lb_invoke_event_handler(handler, LB_EVENT_LB_UPDATED);
 
 out:
 	result = packet_create_reply(packet, "i", ret);
@@ -319,7 +319,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 			goto out;
 		}
 
-		lb_invoke_event_handler(handler, "pd,updated");
+		lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
 		ret = 0;
 	}
 
@@ -368,7 +368,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		handler->period_changed_cb = NULL;
 		handler->period_cbdata = NULL;
 	} else {
-		lb_invoke_event_handler(handler, "period,changed");
+		lb_invoke_event_handler(handler, LB_EVENT_PERIOD_CHANGED);
 	}
 
 	ret = 0;
@@ -424,7 +424,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		handler->group_changed_cb = NULL;
 		handler->group_cbdata = NULL;
 	} else {
-		lb_invoke_event_handler(handler, "group,changed");
+		lb_invoke_event_handler(handler, LB_EVENT_GROUP_CHANGED);
 	}
 
 	ret = 0;
@@ -612,7 +612,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			handler->created_cbdata = NULL;
 		} else {
 			DbgPrint("Invoke the lb,created\n");
-			lb_invoke_event_handler(handler, "lb,created");
+			lb_invoke_event_handler(handler, LB_EVENT_CREATED);
 		}
 	}
 
@@ -767,7 +767,7 @@ static int disconnected_cb(int handle, void *data)
 		make_connection();
 	}
 
-	lb_invoke_fault_handler("provider,disconnected", MASTER_PKGNAME, "default", "disconnected");
+	lb_invoke_fault_handler(LB_FAULT_PROVIDER_DISCONNECTED, MASTER_PKGNAME, "default", "disconnected");
 
 	lb_delete_all();
 	return 0;
