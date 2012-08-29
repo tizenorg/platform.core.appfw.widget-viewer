@@ -25,6 +25,10 @@ struct command {
 	struct livebox *handler;
 	void (*ret_cb)(struct livebox *handler, const struct packet *result, void *data);
 	void *data;
+	enum {
+		TYPE_ACK,
+		TYPE_NOACK,
+	} type;
 };
 
 int errno;
@@ -93,12 +97,18 @@ static gboolean cmd_consumer(gpointer user_data)
 	 * so to use it again from the done_cb function,
 	 * increate the reference counter of the item->param
 	 */
-	DbgPrint("Send packet to master [%s]\n", packet_command(command->packet));
-	if (com_core_packet_async_send(client_fd(), command->packet, 0u, done_cb, command) < 0) {
-		DbgPrint("Failed to send a packet to master\n");
-		if (command->ret_cb)
-			command->ret_cb(command->handler, NULL, command->data);
+	if (command->type == TYPE_NOACK) {
+		if (com_core_packet_send_only(client_fd(), command->packet) < 0)
+			ErrPrint("Failed to send a packet to master\n");
+
 		destroy_command(command);
+	} else {
+		if (com_core_packet_async_send(client_fd(), command->packet, 0u, done_cb, command) < 0) {
+			DbgPrint("Failed to send a packet to master\n");
+			if (command->ret_cb)
+				command->ret_cb(command->handler, NULL, command->data);
+			destroy_command(command);
+		}
 	}
 	return TRUE;
 }
@@ -114,7 +124,7 @@ void master_rpc_check_and_fire_consumer(void)
 	if (!s_info.cmd_list || s_info.cmd_timer || client_fd() < 0)
 		return;
 
-	s_info.cmd_timer = g_timeout_add(10, cmd_consumer, NULL);
+	s_info.cmd_timer = g_timeout_add(1, cmd_consumer, NULL);
 	if (!s_info.cmd_timer)
 		ErrPrint("Failed to add timer\n");
 }
@@ -178,12 +188,34 @@ int master_rpc_async_request(struct livebox *handler, struct packet *packet, int
 	command->ret_cb = ret_cb;
 	command->data = data;
 	command->ttl = DEFAULT_TTL;
+	command->type = TYPE_ACK;
 
 	if (urgent)
 		prepend_command(command);
 	else
 		push_command(command);
 
+	packet_unref(packet);
+	return 0;
+}
+
+int master_rpc_request_only(struct packet *packet)
+{
+	struct command *command;
+
+	command = create_command(NULL, packet);
+	if (!command) {
+		ErrPrint("Failed to create a command\n");
+		packet_unref(packet);
+		return -EFAULT;
+	}
+
+	command->ret_cb = NULL;
+	command->data = NULL;
+	command->ttl = 0;
+	command->type = TYPE_NOACK;
+
+	push_command(command);
 	packet_unref(packet);
 	return 0;
 }

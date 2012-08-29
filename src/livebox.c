@@ -116,22 +116,6 @@ static int update_event_timestamp(struct livebox *handler)
 	return 0;
 }
 
-static void mouse_event_cb(struct livebox *handler, const struct packet *packet, void *data)
-{
-	int ret;
-
-	if (!packet)
-		return;
-
-	if (packet_get(packet, "i", &ret) != 1) {
-		ErrPrint("Invalid argument\n");
-		return;
-	}
-
-	if (ret < 0)
-		lb_invoke_event_handler(handler, LB_EVENT_IGNORED);
-}
-
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
@@ -375,7 +359,8 @@ static void pd_created_cb(struct livebox *handler, const struct packet *result, 
 		return;
 	}
 
-	ret = fb_create_buffer(handler->pd.data.fb);
+	handler->is_pd_created = 1;
+
 	if (cb)
 		cb(handler, ret, cbdata);
 }
@@ -419,8 +404,6 @@ static void pd_destroy_cb(struct livebox *handler, const struct packet *result, 
 	cb = info->cb;
 	destroy_cb_info(info);
 
-	fb_destroy_buffer(handler->pd.data.fb);
-
 	if (!result) {
 		if (cb)
 			cb(handler, -EFAULT, cbdata);
@@ -432,6 +415,8 @@ static void pd_destroy_cb(struct livebox *handler, const struct packet *result, 
 			cb(handler, -EINVAL, cbdata);
 		return;
 	}
+
+	handler->is_pd_created = 0;
 
 	if (cb)
 		cb(handler, ret, cbdata);
@@ -513,14 +498,14 @@ static int send_mouse_event(struct livebox *handler, const char *event, double x
 	double timestamp;
 
 	timestamp = util_timestamp();
-	packet = packet_create(event, "ssiiddd", handler->pkgname, handler->id, w, h,
+	packet = packet_create_noack(event, "ssiiddd", handler->pkgname, handler->id, w, h,
 						timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, mouse_event_cb, NULL);
+	return master_rpc_request_only(packet);
 }
 
 EAPI int livebox_init(void *disp)
@@ -879,7 +864,7 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 		return -EINVAL;
 	}
 
-	return fb_is_created(handler->pd.data.fb);
+	return handler->is_pd_created;
 }
 
 EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
@@ -896,7 +881,7 @@ EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return -EINVAL;
 	}
 
-	if (fb_is_created(handler->pd.data.fb) == 1) {
+	if (handler->is_pd_created == 1) {
 		DbgPrint("PD already created\n");
 		return 0;
 	}
@@ -940,7 +925,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return -EINVAL;
 	}
 
-	if (fb_is_created(handler->pd.data.fb) != 1) {
+	if (!handler->is_pd_created) {
 		ErrPrint("PD is not created\n");
 		return -EINVAL;
 	}
@@ -1143,7 +1128,7 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 	switch (handler->pd.type) {
 	case _PD_TYPE_BUFFER:
 	case _PD_TYPE_SCRIPT:
-		if (!fb_is_created(handler->pd.data.fb)) {
+		if (!handler->is_pd_created) {
 			DbgPrint("Buffer is not created yet - reset size\n");
 			*w = 0;
 			*h = 0;
@@ -1427,7 +1412,7 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 	return 0;
 }
 
-EAPI int livebox_lb_id(struct livebox *handler)
+EAPI int livebox_lb_pixmap(struct livebox *handler)
 {
 	const char *id;
 	int pixmap = 0;
@@ -1458,7 +1443,7 @@ EAPI int livebox_lb_id(struct livebox *handler)
 	return pixmap;
 }
 
-EAPI int livebox_pd_id(struct livebox *handler)
+EAPI int livebox_pd_pixmap(struct livebox *handler)
 {
 	const char *id;
 	int pixmap = 0;
@@ -1696,6 +1681,19 @@ EAPI const char *livebox_content(struct livebox *handler)
 	return handler->content;
 }
 
+EAPI const char *livebox_category_title(struct livebox *handler)
+{
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return NULL;
+	}
+
+	if (handler->state != CREATE)
+		return NULL;
+
+	return handler->title;
+}
+
 EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
@@ -1820,14 +1818,12 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 
 void lb_set_size(struct livebox *handler, int w, int h)
 {
-	DbgPrint("LB[%s] Size: %dx%d\n", util_basename(fb_id(handler->lb.data.fb)), w, h);
 	handler->lb.width = w;
 	handler->lb.height = h;
 }
 
 void lb_set_pdsize(struct livebox *handler, int w, int h)
 {
-	DbgPrint("PD[%s] Size: %dx%d\n", util_basename(fb_id(handler->pd.data.fb)), w, h);
 	handler->pd.width = w;
 	handler->pd.height = h;
 }
@@ -1844,48 +1840,11 @@ void lb_invoke_fault_handler(enum livebox_fault_type event, const char *pkgname,
 	}
 }
 
-static inline void debug_dump(struct livebox *handler)
-{
-	switch (handler->lb.type) {
-	case _LB_TYPE_FILE:
-		DbgPrint("LB[FILE] = %s\n", util_basename(handler->id));
-		break;
-	case _LB_TYPE_SCRIPT:
-		DbgPrint("LB[SCRIPT] = %s\n", util_basename(fb_id(handler->lb.data.fb)));
-		break;
-	case _LB_TYPE_BUFFER:
-		DbgPrint("LB[BUFFER] = %s\n", util_basename(fb_id(handler->lb.data.fb)));
-		break;
-	case _LB_TYPE_TEXT:
-		DbgPrint("LB[TEXT] = %s\n", util_basename(util_uri_to_path(handler->id)));
-		break;
-	default:
-		break;
-	}
-
-	switch (handler->pd.type) {
-	case _PD_TYPE_SCRIPT:
-		DbgPrint("PD[SCRIPT] = %s\n", util_basename(fb_id(handler->pd.data.fb)));
-		break;
-	case _PD_TYPE_BUFFER:
-		DbgPrint("PD[BUFFER] = %s\n", util_basename(fb_id(handler->pd.data.fb)));
-		break;
-	case _PD_TYPE_TEXT:
-		DbgPrint("PD[TEXT] = %s\n", util_basename(util_uri_to_path(handler->id)));
-		break;
-	default:
-		break;
-	}
-}
-
 void lb_invoke_event_handler(struct livebox *handler, enum livebox_event_type event)
 {
 	struct dlist *l;
 	struct dlist *n;
 	struct event_info *info;
-
-	DbgPrint("Inovke 0x%X for %s\n", event, handler->pkgname);
-	debug_dump(handler);
 
 	dlist_foreach_safe(s_info.event_list, l, n, info) {
 		if (info->handler(handler, event, info->user_data) == EXIT_FAILURE)
@@ -2033,6 +1992,24 @@ int lb_set_content(struct livebox *handler, const char *content)
 	return 0;
 }
 
+int lb_set_title(struct livebox *handler, const char *title)
+{
+	if (handler->title) {
+		free(handler->title);
+		handler->title = NULL;
+	}
+
+	if (title) {
+		handler->title = strdup(title);
+		if (!handler->title) {
+			CRITICAL_LOG("Heap: %s (title: %s)\n", strerror(errno), title);
+			return -ENOMEM;
+		}
+	}
+
+	return 0;
+}
+
 void lb_set_size_list(struct livebox *handler, int size_list)
 {
 	handler->lb.size_list = size_list;
@@ -2076,15 +2053,10 @@ int lb_set_lb_fb(struct livebox *handler, const char *filename)
 		return -EINVAL;
 
 	fb = handler->lb.data.fb;
-	if (fb && !strcmp(fb_id(fb), filename)) {
-		/* BUFFER is not changed, just update the content */
-		DbgPrint("Update LB. buf-file same: %s\n", filename);
+	if (fb && !strcmp(fb_id(fb), filename)) /*!< BUFFER is not changed, */
 		return 0;
-	}
 
 	handler->lb.data.fb = NULL;
-
-	DbgPrint("Update to new FBFILE: %s\n", filename);
 
 	if (!filename || filename[0] == '\0') {
 		if (fb)
@@ -2100,18 +2072,9 @@ int lb_set_lb_fb(struct livebox *handler, const char *filename)
 		return -EFAULT;
 	}
 
-	if (fb_create_buffer(handler->lb.data.fb) < 0) {
-		fb_destroy(handler->lb.data.fb);
-		handler->lb.data.fb = NULL;
-		ErrPrint("Failed to create frame buffer\n");
-
-		if (fb)
-			fb_destroy(fb);
-		return -EFAULT;
-	}
-
 	if (fb)
 		fb_destroy(fb);
+
 	return 0;
 }
 
@@ -2124,13 +2087,10 @@ int lb_set_pd_fb(struct livebox *handler, const char *filename)
 
 	fb = handler->pd.data.fb;
 	if (fb && !strcmp(fb_id(fb), filename)) {
-		DbgPrint("Update PD. buf-file same: %s\n", filename);
 		/* BUFFER is not changed, just update the content */
 		return -EEXIST;
 	}
 	handler->pd.data.fb = NULL;
-
-	DbgPrint("Update to new FBFILE: %s\n", filename);
 
 	if (!filename || filename[0] == '\0') {
 		if (fb)

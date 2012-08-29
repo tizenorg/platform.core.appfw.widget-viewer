@@ -5,6 +5,9 @@
 #include <dlog.h>
 #include <bundle.h>
 
+#include <X11/Xlib.h>
+#include <Ecore_X.h>
+
 #include "dlist.h"
 #include "CUtil.h"
 #include "CResourceMgr.h"
@@ -37,19 +40,14 @@ static void s_OnEdjeEvent(void *data, Evas_Object *obj, const char *emission, co
 {
 	CLiveBox *box = (CLiveBox *)data;
 
-	DbgPrint("emission: %p, source: %p\n", emission, source);
-
 	if (!strcmp(emission, "closed") && !strcmp(source, "pd")) {
+		/*!
+		 * \note
+		 * PD Close animation is finished
+		 */
 		livebox_destroy_pd(box->Handler(), s_DestroyPD, box);
 		return;
 	}
-
-	DbgPrint("emission[%s] source[%s]\n", emission, source);
-/*
-	char buffer[LOGSIZE];
-	snprintf(buffer, sizeof(buffer), "%s - %s", emission, source);
-	CMain::GetInstance->AppendLog(buffer);
-*/
 }
 
 static void s_OnLBMouseDown(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -205,6 +203,11 @@ static void s_CreatePD(struct livebox *handle, int ret, void *data)
 	}
 }
 
+static void s_OnExit(void *data, Evas_Object *obj, void *event_info)
+{
+	elm_exit();
+}
+
 static void s_OnCreate(struct livebox *handle, int ret, void *data)
 {
 	CLiveBox *box;
@@ -217,7 +220,38 @@ static void s_OnCreate(struct livebox *handle, int ret, void *data)
 
 	DbgPrint("Live box CREATE returns %d\n", ret);
 	if (ret < 0) {
+		Evas_Object *win;
+		Evas_Object *popup;
+		Evas_Object *button;
+		char buffer[256];
+
 		delete box;
+
+		win = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("window");
+		if (!win)
+			return;
+
+		popup = elm_popup_add(win);
+		if (!popup)
+			return;
+
+		elm_popup_orient_set(popup, ELM_POPUP_ORIENT_CENTER);
+		elm_object_part_text_set(popup, "title,text", "Unable to load a livebox");
+
+		button = elm_button_add(popup);
+		if (!button) {
+			evas_object_del(popup);
+			return;
+		}
+
+		elm_object_text_set(button, "Exit");
+		elm_object_part_content_set(popup, "button2", button);
+		evas_object_smart_callback_add(button, "clicked", s_OnExit, popup);
+
+		snprintf(buffer, sizeof(buffer), "%s(%s): %d", livebox_pkgname(handle), livebox_content(handle), ret);
+		elm_object_part_text_set(popup, "default", buffer);
+
+		evas_object_show(popup);
 	} else {
 		box->OnCreate(handle);
 	}
@@ -250,6 +284,7 @@ CLiveBox::CLiveBox(const char *pkgname, const char *content, const char *cluster
 , m_pPDImage(NULL)
 {
 	struct livebox *handler;
+	livebox_activate(pkgname, NULL, NULL);
 	handler = livebox_add(pkgname, content, cluster, category, period, s_OnCreate, this);
 	if (!handler) /* Do not set this as a m_pHandler */
 		throw EFAULT;
@@ -348,6 +383,7 @@ void CLiveBox::OnUpdateLB(void)
 	int ow, oh;
 	char buffer[LOGSIZE];
 	enum livebox_lb_type type;
+	const char *tmp;
 
 	if (!m_pIconSlot || !m_pLBImage)
 		return;
@@ -356,6 +392,14 @@ void CLiveBox::OnUpdateLB(void)
 		return;
 
 	snprintf(buffer, sizeof(buffer), "LB Updated (%dx%d)", w, h);
+	CMain::GetInstance()->AppendLog(buffer);
+
+	tmp = livebox_category_title(m_pHandler);
+	snprintf(buffer, sizeof(buffer), "Title: %s", tmp ? tmp : "(nil)");
+	CMain::GetInstance()->AppendLog(buffer);
+
+	tmp = livebox_content(m_pHandler);
+	snprintf(buffer, sizeof(buffer), "Content: %s", tmp);
 	CMain::GetInstance()->AppendLog(buffer);
 
 	if (w < 0 || h < 0)

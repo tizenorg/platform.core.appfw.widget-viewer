@@ -4,6 +4,7 @@ extern void lb_set_pdsize(struct livebox *handler, int w, int h);
 extern void lb_invoke_event_handler(struct livebox *handler, enum livebox_event_type event);
 extern void lb_invoke_fault_handler(enum livebox_fault_type type, const char *pkgname, const char *filename, const char *function);
 extern int lb_set_content(struct livebox *handler, const char *content);
+extern int lb_set_title(struct livebox *handler, const char *title);
 extern void lb_set_auto_launch(struct livebox *handler, int auto_launch);
 extern struct livebox *lb_find_livebox(const char *pkgname, const char *filename);
 extern struct livebox *lb_new_livebox(const char *pkgname, const char *filename, double timestamp);
@@ -56,12 +57,14 @@ struct livebox {
 	char *pkgname;
 	char *id;
 	char *content;
+	char *title;
 	char *filename;
 
 	double timestamp;
 	double event_timestamp;
 
 	int is_user;
+	int is_pd_created;
 
 	struct {
 		enum lb_type type;

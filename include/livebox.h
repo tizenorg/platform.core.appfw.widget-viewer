@@ -281,6 +281,13 @@ extern int livebox_is_user(struct livebox *handler);
 extern const char *livebox_content(struct livebox *handler);
 
 /*!
+ * \brief Get the sub cluster title string of given livebox
+ * \param[in] handler
+ * \return sub cluster title
+ */
+extern const char *livebox_category_title(struct livebox *handler);
+
+/*!
  * \brief Get the filename of given livebox, if it is an IMAGE type livebox
  * \param[in] handler
  * \return filename

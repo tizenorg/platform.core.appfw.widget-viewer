@@ -143,8 +143,6 @@ int CMain::AppendLog(const char *str)
 	const Eina_List *items;
 	Elm_Object_Item *item;
 
-	DbgPrint("Log: %s\n", str);
-	
 	layout = (Evas_Object *)CResourceMgr::GetInstance()->GetObject("layout");
 	list = elm_object_part_content_get(layout, "logger");
 
@@ -308,9 +306,12 @@ static void s_ResizeBox(void *data, Evas_Object *obj, void *event_info)
 	if (!label)
 		return;
 
-	sscanf(label, "%dx%d", &w, &h);
-	DbgPrint("Size %dx%d\n", w, h);
+	if (sscanf(label, "%dx%d", &w, &h) != 2) {
+		ErrPrint("Failed to get the WxX\n");
+		return;
+	}
 
+	DbgPrint("Size %dx%d\n", w, h);
 	box->Resize(w, h);
 }
 

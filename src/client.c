@@ -199,6 +199,8 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	const char *pkgname;
 	const char *id;
 	const char *fbfile;
+	const char *content;
+	const char *title;
 	struct livebox *handler;
 	int lb_w;
 	int lb_h;
@@ -206,15 +208,15 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	struct packet *result;
 	int ret;
 
-	ret = packet_get(packet, "sssiid", &pkgname, &id, &fbfile, &lb_w, &lb_h, &priority);
-	if (ret != 6) {
+	ret = packet_get(packet, "sssiidss",
+				&pkgname, &id,
+				&fbfile, &lb_w, &lb_h,
+				&priority, &content, &title);
+	if (ret != 8) {
 		ErrPrint("Invalid argument\n");
 		ret = -EINVAL;
 		goto out;
 	}
-
-	DbgPrint("pkgname: %s, id: %s, fbfile: %s, lb_w: %d, lb_h: %d, priority: %lf\n",
-						pkgname, id, fbfile, lb_w, lb_h, priority);
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
@@ -234,6 +236,8 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	}
 
 	lb_set_priority(handler, priority);
+	lb_set_content(handler, content);
+	lb_set_title(handler, title);
 
 	if (lb_text_lb(handler)) {
 		lb_set_size(handler, lb_w, lb_h);
@@ -276,7 +280,10 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	int pd_h;
 	struct packet *result;
 
-	ret = packet_get(packet, "ssssii", &pkgname, &id, &descfile, &fbfile, &pd_w, &pd_h);
+	ret = packet_get(packet, "ssssii",
+				&pkgname, &id,
+				&descfile, &fbfile,
+				&pd_w, &pd_h);
 	if (ret != 6) {
 		ErrPrint("Invalid argument\n");
 		ret = -EINVAL;
@@ -305,17 +312,12 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	if (lb_text_pd(handler)) {
 		ret = parse_desc(handler, util_uri_to_path(id), 1);
 	} else {
-		if (lb_set_pd_fb(handler, fbfile) == 0) {
-			ret = fb_create_buffer(lb_get_pd_fb(handler));
-			if (ret < 0) {
-				ErrPrint("Error: %s\n", strerror(ret));
-				goto out;
-			}
-		}
+		(void)lb_set_pd_fb(handler, fbfile);
 
 		ret = fb_sync(lb_get_pd_fb(handler));
 		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+			ErrPrint("Failed to do sync FB (%s - %s)\n",
+					pkgname, util_basename(util_uri_to_path(id)));
 			goto out;
 		}
 
@@ -453,6 +455,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	const char *category;
 	const char *lb_fname;
 	const char *pd_fname;
+	const char *title;
 
 	double timestamp;
 	int auto_launch;
@@ -469,14 +472,14 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	int ret;
 
-	ret = packet_get(packet, "dsssiiiissssidiiiiid",
+	ret = packet_get(packet, "dsssiiiissssidiiiiids",
 			&timestamp,
 			&pkgname, &id, &content,
 			&lb_w, &lb_h, &pd_w, &pd_h,
 			&cluster, &category, &lb_fname, &pd_fname,
 			&auto_launch, &priority, &size_list, &user, &pinup_supported,
-			&lb_type, &pd_type, &period);
-	if (ret != 20) {
+			&lb_type, &pd_type, &period, &title);
+	if (ret != 21) {
 		ErrPrint("Invalid argument\n");
 		ret = -EINVAL;
 		goto out;
@@ -486,12 +489,12 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
 		"cluster: %s, category: %s, lb_fname: \"%s\", pd_fname: \"%s\", "
 		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d, "
-		"lb_type: %d, pd_type: %d, period: %lf\n",
+		"lb_type: %d, pd_type: %d, period: %lf, title: [%s]\n",
 		timestamp, pkgname, id, content,
 		pd_w, pd_h, lb_w, lb_h,
 		cluster, category, lb_fname, pd_fname,
 		auto_launch, priority, size_list, user, pinup_supported,
-		lb_type, pd_type, period);
+		lb_type, pd_type, period, title);
 
 	handler = lb_find_livebox_by_timestamp(timestamp);
 	if (!handler) {
@@ -587,6 +590,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	lb_set_group(handler, cluster, category);
 
 	lb_set_content(handler, content);
+	lb_set_title(handler, title);
 
 	lb_set_user(handler, user);
 
@@ -641,20 +645,20 @@ out:
 
 static struct method s_table[] = {
 	{
-		.cmd = "fault_packet", /* pkgname, id, function, ret */
-		.handler = master_fault_package,
-	},
-	{
-		.cmd = "deleted", /* pkgname, id, timestamp, ret */
-		.handler = master_deleted,
-	},
-	{
 		.cmd = "lb_updated", /* pkgname, id, lb_w, lb_h, priority, ret */
 		.handler = master_lb_updated,
 	},
 	{
 		.cmd = "pd_updated", /* pkgname, id, descfile, pd_w, pd_h, ret */
 		.handler = master_pd_updated,
+	},
+	{
+		.cmd = "fault_packet", /* pkgname, id, function, ret */
+		.handler = master_fault_package,
+	},
+	{
+		.cmd = "deleted", /* pkgname, id, timestamp, ret */
+		.handler = master_deleted,
 	},
 	{
 		.cmd = "created", /* timestamp, pkgname, id, content, lb_w, lb_h, pd_w, pd_h, cluster, category, lb_file, pd_file, auto_launch, priority, size_list, is_user, pinup_supported, text_lb, text_pd, period, ret */
