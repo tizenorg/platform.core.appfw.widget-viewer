@@ -37,23 +37,16 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 	const char *pkgname;
 	const char *id;
 	const char *function;
-	struct packet *result;
 
 	if (packet_get(packet, "sss", &pkgname, &id, &function) != 3) {
 		ErrPrint("Invalid arguments\n");
-		result = packet_create_reply(packet, "i", -EINVAL);
-		if (!result)
-			ErrPrint("Failed to create a reply packet\n");
-		return result;
+		return NULL;
 	}
 
+	master_rpc_clear_fault_package(pkgname);
 	lb_invoke_fault_handler(LB_FAULT_DEACTIVATED, pkgname, id, function);
 	DbgPrint("%s(%s) is deactivated\n", pkgname, id);
-
-	result = packet_create_reply(packet, "i", 0);
-	if (!result)
-		ErrPrint("Faield to create a reply packet\n");
-	return result;
+	return NULL;
 }
 
 static struct packet *master_pinup(pid_t pid, int handle, const struct packet *packet)
@@ -62,7 +55,6 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	const char *id;
 	const char *content;
 	struct livebox *handler;
-	struct packet *result;
 	char *new_content;
 	int ret;
 	int pinup;
@@ -102,11 +94,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 
 	ret = 0;
 out:
-	result = packet_create_reply(packet, "i", ret);
-	if (!result)
-		ErrPrint("Failed to create a reply packet\n");
-
-	return result;
+	return NULL;
 }
 
 static struct packet *master_deleted(pid_t pid, int handle, const struct packet *packet)
@@ -115,7 +103,6 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	const char *id;
 	double timestamp;
 	struct livebox *handler;
-	struct packet *result;
 	int ret;
 
 	if (packet_get(packet, "ssd", &pkgname, &id, &timestamp) != 3) {
@@ -187,11 +174,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	lb_unref(handler);
 
 out:
-	result = packet_create_reply(packet, "i", ret);
-	if (!result)
-		ErrPrint("Failed to create a reply packet\n");
-
-	return result;
+	return NULL;
 }
 
 static struct packet *master_lb_updated(pid_t pid, int handle, const struct packet *packet)
@@ -205,7 +188,6 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	int lb_w;
 	int lb_h;
 	double priority;
-	struct packet *result;
 	int ret;
 
 	ret = packet_get(packet, "sssiidss",
@@ -262,10 +244,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		lb_invoke_event_handler(handler, LB_EVENT_LB_UPDATED);
 
 out:
-	result = packet_create_reply(packet, "i", ret);
-	if (!result)
-		ErrPrint("Failed to create a reply packet\n");
-	return result;
+	return NULL;
 }
 
 static struct packet *master_pd_updated(pid_t pid, int handle, const struct packet *packet)
@@ -278,7 +257,6 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	struct livebox *handler;
 	int pd_w;
 	int pd_h;
-	struct packet *result;
 
 	ret = packet_get(packet, "ssssii",
 				&pkgname, &id,
@@ -326,10 +304,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	}
 
 out:
-	result = packet_create_reply(packet, "i", ret);
-	if (!result)
-		ErrPrint("Failed to create a reply packet\n");
-	return result;
+	return NULL;
 }
 
 static struct packet *master_period_changed(pid_t pid, int handle, const struct packet *packet)
@@ -340,7 +315,6 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 	int ret;
 	double period;
 	int status;
-	struct packet *result;
 
 	ret = packet_get(packet, "idss", &status, &period, &pkgname, &id);
 	if (ret != 4) {
@@ -376,11 +350,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 	ret = 0;
 
 out:
-	result = packet_create_reply(packet, "i", ret);
-	if (!result)
-		ErrPrint("Failed to create a reply packet\n");
-
-	return result;
+	return NULL;
 }
 
 static struct packet *master_group_changed(pid_t pid, int handle, const struct packet *packet)
@@ -392,7 +362,6 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 	const char *cluster;
 	const char *category;
 	int status;
-	struct packet *result;
 
 	ret = packet_get(packet, "ssiss", &pkgname, &id, &status, &cluster, &category);
 	if (ret != 5) {
@@ -432,11 +401,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 	ret = 0;
 
 out:
-	result = packet_create_reply(packet, "i", ret);
-	if (!result)
-		ErrPrint("Failed to create a reply packet\n");
-
-	return result;
+	return NULL;
 }
 
 static struct packet *master_created(pid_t pid, int handle, const struct packet *packet)
@@ -466,7 +431,6 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	enum lb_type lb_type;
 	enum pd_type pd_type;
 	double period;
-	struct packet *result;
 
 	int old_state = DESTROYED;
 
@@ -637,10 +601,7 @@ out:
 		 */
 	}
 
-	result = packet_create_reply(packet, "i", ret);
-	if (!result)
-		ErrPrint("Failed to create a reply packet\n");
-	return result;
+	return NULL;
 }
 
 static struct method s_table[] = {
@@ -653,7 +614,7 @@ static struct method s_table[] = {
 		.handler = master_pd_updated,
 	},
 	{
-		.cmd = "fault_packet", /* pkgname, id, function, ret */
+		.cmd = "fault_package", /* pkgname, id, function, ret */
 		.handler = master_fault_package,
 	},
 	{
@@ -720,7 +681,8 @@ static inline void make_connection(void)
 
 	s_info.fd = com_core_packet_client_init(SOCKET_FILE, 0, s_table);
 	if (s_info.fd < 0) {
-		s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL); /*!< After 10 secs later, try to connect again */
+		/*!< After 10 secs later, try to connect again */
+		s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL);
 		if (s_info.reconnector == 0)
 			ErrPrint("Failed to fire the reconnector\n");
 
@@ -771,6 +733,7 @@ static int disconnected_cb(int handle, void *data)
 		make_connection();
 	}
 
+	master_rpc_clear_all_request();
 	lb_invoke_fault_handler(LB_FAULT_PROVIDER_DISCONNECTED, MASTER_PKGNAME, "default", "disconnected");
 
 	lb_delete_all();

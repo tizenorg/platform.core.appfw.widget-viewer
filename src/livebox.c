@@ -505,7 +505,7 @@ static int send_mouse_event(struct livebox *handler, const char *event, double x
 		return -EFAULT;
 	}
 
-	return master_rpc_request_only(packet);
+	return master_rpc_request_only(handler, packet);
 }
 
 EAPI int livebox_init(void *disp)

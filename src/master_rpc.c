@@ -199,11 +199,11 @@ int master_rpc_async_request(struct livebox *handler, struct packet *packet, int
 	return 0;
 }
 
-int master_rpc_request_only(struct packet *packet)
+int master_rpc_request_only(struct livebox *handler, struct packet *packet)
 {
 	struct command *command;
 
-	command = create_command(NULL, packet);
+	command = create_command(handler, packet);
 	if (!command) {
 		ErrPrint("Failed to create a command\n");
 		packet_unref(packet);
@@ -217,6 +217,53 @@ int master_rpc_request_only(struct packet *packet)
 
 	push_command(command);
 	packet_unref(packet);
+	return 0;
+}
+
+int master_rpc_clear_fault_package(const char *pkgname)
+{
+	struct dlist *l;
+	struct dlist *n;
+	struct command *command;
+
+	if (!pkgname)
+		return -EINVAL;
+
+	DbgPrint("Clear requests of the fault package(%s)\n", pkgname);
+
+	dlist_foreach_safe(s_info.cmd_list, l, n, command) {
+		if (!command->handler)
+			continue;
+
+		if (!strcmp(command->handler->pkgname, pkgname)) {
+			s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
+			if (command->ret_cb)
+				command->ret_cb(command->handler, NULL, command->data);
+
+			destroy_command(command);
+		}
+	}
+
+	return 0;
+}
+
+int master_rpc_clear_all_request(void)
+{
+	struct command *command;
+	struct dlist *l;
+	struct dlist *n;
+
+	DbgPrint("Clear all pended requests\n");
+
+	dlist_foreach_safe(s_info.cmd_list, l, n, command) {
+		s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
+
+		if (command->ret_cb)
+			command->ret_cb(command->handler, NULL, command->data);
+
+		destroy_command(command);
+	}
+
 	return 0;
 }
 
