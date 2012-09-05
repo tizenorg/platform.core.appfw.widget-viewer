@@ -412,6 +412,29 @@ void CLiveBox::OnUpdateLB(void)
 		return;
 
 	type = livebox_lb_type(m_pHandler);
+#if 0
+	if (type == LB_TYPE_PIXMAP) {
+		if ((int)evas_object_data_get(m_pLBImage, "pixmap") != livebox_lb_pixmap(m_pHandler)) {
+			Evas_Native_Surface surf;
+
+			surf.version = EVAS_NATIVE_SURFACE_VERSION;
+			surf.type = EVAS_NATIVE_SURFACE_X11;
+			surf.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
+			surf.data.x11.pixmap = livebox_lb_pixmap(m_pHandler);
+			DbgPrint("Surface set to render canvas: 0x%X\n", surf.data.x11.pixmap);
+
+			evas_object_image_native_surface_set(m_pLBImage, &surf);
+			evas_object_data_set(m_pLBImage, "pixmap", (void *)livebox_lb_pixmap(m_pHandler));
+		}
+
+		DbgPrint("Pixmap: %X, Size: %dx%d\n", livebox_lb_pixmap(m_pHandler), w, h);
+		evas_object_image_size_set(m_pLBImage, w, h);
+		evas_object_image_pixels_dirty_set(m_pLBImage, 1);
+		evas_object_image_fill_set(m_pLBImage, 0, 0, w, h);
+		evas_object_image_data_update_add(m_pLBImage, 0, 0, w, h);
+		evas_object_resize(m_pLBImage, w, h);
+	} else
+#endif
 	if (type == LB_TYPE_BUFFER || type == LB_TYPE_PIXMAP) {
 		void *data;
 
@@ -521,7 +544,27 @@ void CLiveBox::OnUpdatePD(void)
 		return;
 
 	type = livebox_pd_type(m_pHandler);
-	if (type == PD_TYPE_BUFFER || type == PD_TYPE_PIXMAP) {
+	if (type == PD_TYPE_PIXMAP) {
+		if ((int)evas_object_data_get(m_pPDImage, "pixmap") != livebox_lb_pixmap(m_pHandler)) {
+			Evas_Native_Surface surf;
+
+			surf.version = EVAS_NATIVE_SURFACE_VERSION;
+			surf.type = EVAS_NATIVE_SURFACE_X11;
+			surf.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
+			surf.data.x11.pixmap = livebox_lb_pixmap(m_pHandler);
+			DbgPrint("Surface set to render canvas: 0x%X\n", surf.data.x11.pixmap);
+
+			evas_object_image_native_surface_set(m_pPDImage, &surf);
+			evas_object_data_set(m_pPDImage, "pixmap", (void *)livebox_lb_pixmap(m_pHandler));
+		}
+
+		DbgPrint("Pixmap: %X, Size: %dx%d\n", livebox_lb_pixmap(m_pHandler), w, h);
+		evas_object_image_size_set(m_pPDImage, w, h);
+		evas_object_image_pixels_dirty_set(m_pPDImage, 1);
+		evas_object_image_fill_set(m_pPDImage, 0, 0, w, h);
+		evas_object_image_data_update_add(m_pPDImage, 0, 0, w, h);
+		evas_object_resize(m_pPDImage, w, h);
+	} else if (type == PD_TYPE_BUFFER) {
 		void *data;
 		data = livebox_acquire_pdfb(m_pHandler);
 		if (!data)
