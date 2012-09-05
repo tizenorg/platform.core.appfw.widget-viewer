@@ -391,6 +391,7 @@ void CLiveBox::OnUpdateLB(void)
 	if (livebox_get_size(m_pHandler, &w, &h) < 0)
 		return;
 
+	/*
 	snprintf(buffer, sizeof(buffer), "LB Updated (%dx%d)", w, h);
 	CMain::GetInstance()->AppendLog(buffer);
 
@@ -401,6 +402,7 @@ void CLiveBox::OnUpdateLB(void)
 	tmp = livebox_content(m_pHandler);
 	snprintf(buffer, sizeof(buffer), "Content: %s", tmp);
 	CMain::GetInstance()->AppendLog(buffer);
+	*/
 
 	if (w < 0 || h < 0)
 		return;
@@ -412,8 +414,8 @@ void CLiveBox::OnUpdateLB(void)
 		return;
 
 	type = livebox_lb_type(m_pHandler);
-#if 0
-	if (type == LB_TYPE_PIXMAP) {
+
+	if (!!getenv("UPDATE_USING_PIXMAP") && type == LB_TYPE_PIXMAP) {
 		if ((int)evas_object_data_get(m_pLBImage, "pixmap") != livebox_lb_pixmap(m_pHandler)) {
 			Evas_Native_Surface surf;
 
@@ -432,10 +434,8 @@ void CLiveBox::OnUpdateLB(void)
 		evas_object_image_pixels_dirty_set(m_pLBImage, 1);
 		evas_object_image_fill_set(m_pLBImage, 0, 0, w, h);
 		evas_object_image_data_update_add(m_pLBImage, 0, 0, w, h);
-		evas_object_resize(m_pLBImage, w, h);
-	} else
-#endif
-	if (type == LB_TYPE_BUFFER || type == LB_TYPE_PIXMAP) {
+		// evas_object_resize(m_pLBImage, w, h);
+	} else if (type == LB_TYPE_BUFFER || type == LB_TYPE_PIXMAP) {
 		void *data;
 
 		data = livebox_acquire_fb(m_pHandler);
@@ -456,10 +456,8 @@ void CLiveBox::OnUpdateLB(void)
 	}
 
 	if (sscanf(m_sSize, "resize,to,%dx%d", &ow, &oh) == 2) {
-		if (ow == w && oh == h) {
-			DbgPrint("No changes\n");
+		if (ow == w && oh == h)
 			return;
-		}
 	}
 
 	snprintf(m_sSize, sizeof(m_sSize), "resize,to,%dx%d", w, h);
@@ -530,9 +528,10 @@ void CLiveBox::OnUpdatePD(void)
 	if (livebox_get_pdsize(m_pHandler, &w, &h) < 0)
 		return;
 
+	/*
 	snprintf(buffer, sizeof(buffer), "PD Updated (%dx%d)", w, h);
 	CMain::GetInstance()->AppendLog(buffer);
-	DbgPrint("Buffer: [%s]\n", buffer);
+	*/
 
 	if (w < 0 || h < 0)
 		return;
@@ -544,7 +543,7 @@ void CLiveBox::OnUpdatePD(void)
 		return;
 
 	type = livebox_pd_type(m_pHandler);
-	if (type == PD_TYPE_PIXMAP) {
+	if (!!getenv("UPDATE_USING_PIXMAP") && type == PD_TYPE_PIXMAP) {
 		if ((int)evas_object_data_get(m_pPDImage, "pixmap") != livebox_lb_pixmap(m_pHandler)) {
 			Evas_Native_Surface surf;
 
@@ -564,7 +563,7 @@ void CLiveBox::OnUpdatePD(void)
 		evas_object_image_fill_set(m_pPDImage, 0, 0, w, h);
 		evas_object_image_data_update_add(m_pPDImage, 0, 0, w, h);
 		evas_object_resize(m_pPDImage, w, h);
-	} else if (type == PD_TYPE_BUFFER) {
+	} else if (type == PD_TYPE_BUFFER || type == PD_TYPE_PIXMAP) {
 		void *data;
 		data = livebox_acquire_pdfb(m_pHandler);
 		if (!data)

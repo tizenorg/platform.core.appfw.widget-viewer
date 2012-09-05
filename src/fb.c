@@ -189,8 +189,12 @@ static inline int sync_for_pixmap(struct fb_info *info)
 		return -EFAULT;
 	}
 
+	/*!
+	 * \NOTE
+	 * Use the 24 bits Pixmap for Video player
+	 */
 	xim = XShmCreateImage(s_info.disp, s_info.visual,
-				(s_info.depth << 3), ZPixmap, NULL,
+				24 /* (s_info.depth << 3) */, ZPixmap, NULL,
 				&si,
 				info->w, info->h);
 	if (xim == NULL) {

@@ -58,7 +58,6 @@ int CLiveBoxMgr::OnEvent(struct livebox *handler, enum livebox_event_type event)
 	CLiveBox *box;
 	int ret = 0;
 
-	DbgPrint("Event: 0x%X\n", event);
 	if (event == LB_EVENT_CREATED) {
 		try {
 			box = new CLiveBox(handler);
