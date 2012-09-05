@@ -179,6 +179,8 @@ int CMain::OnCreate(void)
 	evas_object_resize(win, w, h);
 	evas_object_show(win);
 
+	elm_win_indicator_mode_set(win, ELM_WIN_INDICATOR_SHOW);
+
 	try {
 		m_pLiveBoxMgr = new CLiveBoxMgr();
 	} catch (...) {
