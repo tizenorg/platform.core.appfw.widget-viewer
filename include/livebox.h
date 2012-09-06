@@ -566,18 +566,23 @@ extern int livebox_enumerate_category_list(const char *cluster, void (*cb)(const
 extern int livebox_refresh_group(const char *cluster, const char *category);
 
 /*!
- * \brief Get the PIXMAP ID of the livebox content
- * \param[in] livebox handler
- * \return int pixmap ID of a content
  */
-extern int livebox_lb_pixmap(struct livebox *handler);
+extern int livebox_release_pd_pixmap(struct livebox *handler, int pixmap);
+
+extern int livebox_lb_pixmap(const struct livebox *handler);
+
+extern int livebox_pd_pixmap(const struct livebox *handler);
+/*!
+ */
+extern int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *data);
 
 /*!
- * \brief Get the PIXMAP ID of the PD content
- * \param[in] livebox handler
- * \return int pixmap ID of a content
  */
-extern int livebox_pd_pixmap(struct livebox *handler);
+extern int livebox_release_lb_pixmap(struct livebox *handler, int pixmap);
+
+/*!
+ */
+extern int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *data);
 
 /*!
  * \brief Update the visible state of a livebox

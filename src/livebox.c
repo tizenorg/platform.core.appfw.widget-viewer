@@ -20,7 +20,6 @@
 #include "critical_log.h"
 
 #define EAPI __attribute__((visibility("default")))
-#define EVENT_INTERVAL	0.05f
 
 #if defined(FLOG)
 FILE *__file_log_fp;
@@ -30,10 +29,12 @@ static struct info {
 	struct dlist *livebox_list;
 	struct dlist *event_list;
 	struct dlist *fault_list;
+	double event_interval;
 } s_info = {
 	.livebox_list = NULL,
 	.event_list = NULL,
 	.fault_list = NULL,
+	.event_interval = 0.5f,
 };
 
 struct cb_info {
@@ -106,10 +107,13 @@ static int update_event_timestamp(struct livebox *handler)
 	double now;
 	double interval;
 
+	if (s_info.event_interval == 0.0f)
+		return 0;
+
 	now = util_timestamp();
 	interval = now - handler->event_timestamp;
 
-	if (interval < EVENT_INTERVAL)
+	if (interval < s_info.event_interval)
 		return -EBUSY;
 
 	handler->event_timestamp = now;
@@ -455,6 +459,26 @@ static void delete_category_cb(struct livebox *handler, const struct packet *res
 		cb(handler, ret, cbdata);
 }
 
+static void pixmap_acquired_cb(struct livebox *handler, const struct packet *result, void *data)
+{
+	int ret;
+	ret_cb_t cb;
+	void *cbdata;
+	struct cb_info *info = data;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
+
+	if (!result)
+		ret = 0; /* PIXMAP 0 means error */
+	else if (packet_get(result, "i", &ret) != 1)
+		ret = 0;
+
+	if (cb)
+		cb(handler, ret, cbdata);
+}
+
 static void pinup_done_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
@@ -497,6 +521,11 @@ static int send_mouse_event(struct livebox *handler, const char *event, double x
 
 EAPI int livebox_init(void *disp)
 {
+	const char *env;
+	env = getenv("LIVE_EVENT_INTERVAL");
+	if (env && sscanf(env, "%lf", &s_info.event_interval) == 1)
+		ErrPrint("Allowed event interval is updated to %lf\n", s_info.event_interval);
+
 #if defined(FLOG)
 	char filename[BUFSIZ];
 	snprintf(filename, sizeof(filename), "/tmp/%d.box.log", getpid());
@@ -1400,66 +1429,184 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 	return 0;
 }
 
-EAPI int livebox_lb_pixmap(struct livebox *handler)
+EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *data)
 {
+	struct packet *packet;
 	const char *id;
-	int pixmap = 0;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return pixmap;
+		return -EINVAL;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid handle\n");
-		return pixmap;
+		return -EINVAL;
 	}
 
 	if (handler->lb.type != _LB_TYPE_SCRIPT && handler->lb.type != _LB_TYPE_BUFFER) {
 		ErrPrint("Handler is not valid type\n");
-		return pixmap;
+		return -EINVAL;
 	}
 
 	id = fb_id(handler->lb.data.fb);
-	if (strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
-		return pixmap;
+	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+		return -EINVAL;
 
-	if (sscanf(id, SCHEMA_PIXMAP "%d", &pixmap) != 1)
-		ErrPrint("Inavlid ID: %s\n", id);
+	packet = packet_create("lb_acquire_pixmap", "ss", handler->pkgname, handler->id);
+	if (!packet) {
+		ErrPrint("Failed to build a param\n");
+		return -EFAULT;
+	}
 
-	DbgPrint("Pixmap: 0x%X\n", pixmap);
-	return pixmap;
+	return master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, create_cb_info(cb, data));
 }
 
-EAPI int livebox_pd_pixmap(struct livebox *handler)
+EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
+{
+	struct packet *packet;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Invalid handle\n");
+		return -EINVAL;
+	}
+
+	if (handler->lb.type != _LB_TYPE_SCRIPT && handler->lb.type != _LB_TYPE_BUFFER) {
+		ErrPrint("Handler is not valid type\n");
+		return -EINVAL;
+	}
+
+	packet = packet_create_noack("lb_release_pixmap", "ssi", handler->pkgname, handler->id, pixmap);
+	if (!packet) {
+		ErrPrint("Failed to build a param\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_request_only(handler, packet);
+}
+
+EAPI int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *data)
+{
+	struct packet *packet;
+	const char *id;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Invalid handle\n");
+		return -EINVAL;
+	}
+
+	if (handler->pd.type != _PD_TYPE_SCRIPT && handler->pd.type != _PD_TYPE_BUFFER) {
+		ErrPrint("Handler is not valid type\n");
+		return -EINVAL;
+	}
+
+	id = fb_id(handler->pd.data.fb);
+	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+		return -EINVAL;
+
+	packet = packet_create("pd_acquire_pixmap", "ss", handler->pkgname, handler->id);
+	if (!packet) {
+		ErrPrint("Failed to build a param\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, create_cb_info(cb, data));
+}
+
+EAPI int livebox_pd_pixmap(const struct livebox *handler)
 {
 	const char *id;
 	int pixmap = 0;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return pixmap;
+		return 0;
+	}
+
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Invalid handler\n");
+		return 0;
+	}
+
+	if (handler->pd.type != _PD_TYPE_SCRIPT && handler->pd.type != _PD_TYPE_BUFFER) {
+		ErrPrint("Invalid handler\n");
+		return 0;
+	}
+
+	id = fb_id(handler->pd.data.fb);
+	if (id && sscanf(id, SCHEMA_PIXMAP "%d", &pixmap) != 1) {
+		ErrPrint("PIXMAP Id is not valid\n");
+		return 0;
+	}
+
+	return pixmap;
+}
+
+EAPI int livebox_lb_pixmap(const struct livebox *handler)
+{
+	const char *id;
+	int pixmap = 0;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return 0;
+	}
+
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Invalid handler\n");
+		return 0;
+	}
+
+	if (handler->lb.type != _LB_TYPE_SCRIPT && handler->lb.type != _LB_TYPE_BUFFER) {
+		ErrPrint("Invalid handler\n");
+		return 0;
+	}
+
+	id = fb_id(handler->lb.data.fb);
+	if (id && sscanf(id, SCHEMA_PIXMAP "%d", &pixmap) != 1) {
+		ErrPrint("PIXMAP Id is not valid\n");
+		return 0;
+	}
+
+	return pixmap;
+}
+
+EAPI int livebox_release_pd_pixmap(struct livebox *handler, int pixmap)
+{
+	struct packet *packet;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid handle\n");
-		return pixmap;
+		return -EINVAL;
 	}
 
 	if (handler->pd.type != _PD_TYPE_SCRIPT && handler->pd.type != _PD_TYPE_BUFFER) {
 		ErrPrint("Handler is not valid type\n");
-		return pixmap;
+		return -EINVAL;
 	}
 
-	id = fb_id(handler->pd.data.fb);
-	if (strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
-		return pixmap;
+	packet = packet_create_noack("pd_release_pixmap", "ssi", handler->pkgname, handler->id, pixmap);
+	if (!packet) {
+		ErrPrint("Failed to build a param\n");
+		return -EFAULT;
+	}
 
-	if (sscanf(id, SCHEMA_PIXMAP "%d", &pixmap) != 1)
-		ErrPrint("Inavlid ID: %s\n", id);
-
-	DbgPrint("Pixmap: 0x%X\n", pixmap);
-	return pixmap;
+	return master_rpc_request_only(handler, packet);
 }
 
 EAPI void *livebox_acquire_fb(struct livebox *handler)
