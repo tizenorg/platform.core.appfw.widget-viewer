@@ -63,6 +63,8 @@ struct livebox {
 	double timestamp;
 	double event_timestamp;
 
+	enum livebox_visible_state visible;
+
 	int is_user;
 	int is_pd_created;
 

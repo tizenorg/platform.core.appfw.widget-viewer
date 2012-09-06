@@ -82,6 +82,15 @@ enum livebox_fault_type {
 	LB_FAULT_PROVIDER_DISCONNECTED, /*!< Provider is disconnected */
 };
 
+enum livebox_visible_state { /*!< Must be sync'd with the provider */
+	LB_SHOW = 0x00, /*!< Livebox is showed. Default state */
+	LB_HIDE = 0x01, /*!< Livebox is hide, with no update event, but keep update timer */
+
+	LB_HIDE_WITH_PAUSE = 0x02, /*!< Livebix is hide, it needs to be paused (with freezed update timer) */
+
+	LB_VISIBLE_ERROR = 0xFFFFFFFF, /* To enlarge the size of this enumeration type */
+};
+
 /*!
  * \note
  * TEXT type livebox contents handling opertators.
@@ -257,7 +266,6 @@ extern int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data);
  * \return int
  */
 extern int livebox_delete_category(const char *cluster, const char *category, ret_cb_t cb, void *data);
-
 
 /*!
  * \brief Is this an text type livebox?
@@ -558,18 +566,33 @@ extern int livebox_enumerate_category_list(const char *cluster, void (*cb)(const
 extern int livebox_refresh_group(const char *cluster, const char *category);
 
 /*!
- * Get the PIXMAP ID of the livebox content
+ * \brief Get the PIXMAP ID of the livebox content
  * \param[in] livebox handler
  * \return int pixmap ID of a content
  */
 extern int livebox_lb_pixmap(struct livebox *handler);
 
 /*!
- * Get the PIXMAP ID of the PD content
+ * \brief Get the PIXMAP ID of the PD content
  * \param[in] livebox handler
  * \return int pixmap ID of a content
  */
 extern int livebox_pd_pixmap(struct livebox *handler);
+
+/*!
+ * \brief Update the visible state of a livebox
+ * \param[in] handler Handler of a livebox
+ * \param[in] state Configure the current visible state of a livebox
+ * \return int
+ */
+extern int livebox_visible_state_set(struct livebox *handler, enum livebox_visible_state state);
+
+/*!
+ * \brief Current visible state of a livebox
+ * \param[in] handler Handler of a livebox
+ * \return enum visible state
+ */
+extern enum livebox_visible_state livebox_visible_state(struct livebox *handler);
 
 #ifdef __cplusplus
 }

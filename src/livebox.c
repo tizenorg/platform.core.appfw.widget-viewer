@@ -148,19 +148,6 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 		cb(handler, ret, cbdata);
 }
 
-static void clicked_cb(struct livebox *handler, const struct packet *result, void *data)
-{
-	int ret;
-
-	if (!result)
-		return;
-
-	if (packet_get(result, "i", &ret) != 1)
-		return;
-
-	DbgPrint("clicked returns %d\n", ret);
-}
-
 static void text_signal_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
@@ -598,6 +585,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 
 	handler->timestamp = util_timestamp();
 	handler->is_user = 1;
+	handler->visible = LB_SHOW;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
@@ -828,13 +816,13 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 			ErrPrint("Failed to launch app %s\n", handler->pkgname);
 
 	timestamp = util_timestamp();
-	packet = packet_create("clicked", "sssddd", handler->pkgname, handler->id, "clicked", timestamp, x, y);
+	packet = packet_create_noack("clicked", "sssddd", handler->pkgname, handler->id, "clicked", timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, clicked_cb, NULL);
+	return master_rpc_request_only(handler, packet);
 }
 
 EAPI int livebox_has_pd(struct livebox *handler)
@@ -1728,26 +1716,26 @@ EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
 
-	packet = packet_create("subscribe", "ss", cluster ? cluster : "", category ? category : "");
+	packet = packet_create_noack("subscribe", "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
+	return master_rpc_request_only(NULL, packet);
 }
 
 EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
 
-	packet = packet_create("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
+	packet = packet_create_noack("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
+	return master_rpc_request_only(NULL, packet);
 }
 
 EAPI int livebox_enumerate_cluster_list(void (*cb)(const char *cluster))
@@ -1773,13 +1761,60 @@ EAPI int livebox_refresh_group(const char *cluster, const char *category)
 		return -EINVAL;
 	}
 
-	packet = packet_create("refresh_group", "ss", cluster, category);
+	packet = packet_create_noack("refresh_group", "ss", cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(NULL, packet, 0, NULL, NULL);
+	return master_rpc_request_only(NULL, packet);
+}
+
+EAPI int livebox_visible_state_set(struct livebox *handler, enum livebox_visible_state state)
+{
+	struct packet *packet;
+	int ret;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->state != CREATE)
+		return -EINVAL;
+
+	if (!handler->is_user) {
+		/* System cluster livebox cannot be changed its visible states */
+		return -EINVAL;
+	}
+
+	if (handler->visible == state)
+		return 0;
+
+	packet = packet_create_noack("change,visibility", "ssi", handler->pkgname, handler->id, (int)state);
+	if (!packet) {
+		ErrPrint("Failed to create a packet\n");
+		return -EFAULT;
+	}
+
+	ret = master_rpc_request_only(handler, packet);
+	if (ret == 0)
+		handler->visible = state;
+
+	return ret;
+}
+
+EAPI enum livebox_visible_state livebox_visible_state(struct livebox *handler)
+{
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_VISIBLE_ERROR;
+	}
+
+	if (handler->state != CREATE)
+		return LB_VISIBLE_ERROR;
+
+	return handler->visible;
 }
 
 int lb_set_group(struct livebox *handler, const char *cluster, const char *category)
@@ -1954,6 +1989,7 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *id, double times
 	handler->lb.type = _LB_TYPE_FILE;
 	handler->pd.type = _PD_TYPE_SCRIPT;
 	handler->state = CREATE;
+	handler->visible = LB_SHOW;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 	lb_ref(handler);
