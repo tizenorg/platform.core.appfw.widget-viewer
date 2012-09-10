@@ -13,6 +13,8 @@ struct livebox;
  * 348x172
  * 348x348
  * 700x348
+ * 700x172
+ * 700x700
  */
 #define NR_OF_SIZE_LIST 6
 #define DEFAULT_PERIOD -1.0f
@@ -30,35 +32,35 @@ static const struct supported_size_list {
 };
 
 enum content_event_type {
-	LB_MOUSE_DOWN = 0x0001, /*!< Mouse down event for livebox */
-	LB_MOUSE_UP = 0x0002, /*!< Mouse up event for livebox */
-	LB_MOUSE_MOVE = 0x0004, /*!< Mouse move event for livebox */
-	LB_MOUSE_ENTER = 0x0008,
-	LB_MOUSE_LEAVE = 0x0010,
+	LB_MOUSE_DOWN = 0x0001, /*!< LB mouse down event for livebox */
+	LB_MOUSE_UP = 0x0002, /*!< LB mouse up event for livebox */
+	LB_MOUSE_MOVE = 0x0004, /*!< LB mouse move event for livebox */
+	LB_MOUSE_ENTER = 0x0008, /*!< LB mouse enter event for livebox */
+	LB_MOUSE_LEAVE = 0x0010, /*!< LB mouse leave event for livebox */
 
-	PD_MOUSE_DOWN = 0x0100, /*!< PD down event for livebox */
-	PD_MOUSE_UP = 0x0200, /*!< PD up event for livebox */
-	PD_MOUSE_MOVE = 0x0400, /*!< PD move event for livebox */
-	PD_MOUSE_ENTER = 0x0800,
-	PD_MOUSE_LEAVE = 0x1000,
+	PD_MOUSE_DOWN = 0x0100, /*!< PD mouse down event for livebox */
+	PD_MOUSE_UP = 0x0200, /*!< PD mouse up event for livebox */
+	PD_MOUSE_MOVE = 0x0400, /*!< PD mouse move event for livebox */
+	PD_MOUSE_ENTER = 0x0800, /*!< PD mouse enter event for livebox */
+	PD_MOUSE_LEAVE = 0x1000, /*!< PD mouse leave event for livebox */
 
 	PD_EVENT_MAX = 0xFFFFFFFF,
 };
 
 /* Exported to user app */
 enum livebox_lb_type {
-	LB_TYPE_IMAGE = 0x01,
-	LB_TYPE_BUFFER = 0x02,
-	LB_TYPE_TEXT = 0x04,
-	LB_TYPE_PIXMAP = 0x08,
+	LB_TYPE_IMAGE = 0x01, /*!< Contents of a livebox is based on the image file */
+	LB_TYPE_BUFFER = 0x02, /*!< Contents of a livebox is based on canvas buffer(shared) */
+	LB_TYPE_TEXT = 0x04, /*!< Contents of a livebox is based on formatted text file */
+	LB_TYPE_PIXMAP = 0x08, /*!< Contens of a livebox is shared by the pixmap(depends on X) */
 
 	LB_TYPE_INVALID = 0xFF,
 };
 
 enum livebox_pd_type {
-	PD_TYPE_BUFFER = 0x01,
-	PD_TYPE_TEXT = 0x02,
-	PD_TYPE_PIXMAP = 0x04,
+	PD_TYPE_BUFFER = 0x01, /*!< Contents of a PD is based on canvas buffer(shared) */
+	PD_TYPE_TEXT = 0x02, /*!< Contents of a PD is based on formatted text file */
+	PD_TYPE_PIXMAP = 0x04, /*!< Contents of a livebox is shared by the pixmap(depends on X) */
 
 	PD_TYPE_INVALID = 0xFF,
 };
@@ -112,17 +114,25 @@ struct livebox_script_operators {
 	int (*update_info_category)(struct livebox *handle, const char *id, const char *category); /*!< Update content category info */
 };
 
+/*!
+ * \brief Prototype of the return callback of every async functions.
+ * \param[in] handle
+ * \param[in] ret
+ * \param[in] data
+ * \return void
+ */
 typedef void (*ret_cb_t)(struct livebox *handle, int ret, void *data);
 
 /*!
  * \brief Initialize the livebox system
- * \return
+ * \param[in] disp
+ * \return int
  */
 extern int livebox_init(void *disp);
 
 /*!
  * \brief Finalize the livebox system
- * \return
+ * \return int
  */
 extern int livebox_fini(void);
 
@@ -142,45 +152,50 @@ extern struct livebox *livebox_add(const char *pkgname, const char *content, con
 /*!
  * \brief Delete a livebox
  * \param[in] handle
- * \return
+ * \param[in] ret_cb_t return callback
+ * \param[in] data user data for return callback
+ * \return int
  */
 extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
 
 /*!
  * \brief Set a livebox events callback
- * \param[in] cb
- * \param[in] data
- * \sa livebox_event_handler_unset
+ * \param[in] cb Event handler
+ * \param[in] data User data for the event handler
+ * \return int
+ * \sa livebox_unset_event_handler
  */
 
-extern int livebox_event_handler_set(int (*cb)(struct livebox *handler, enum livebox_event_type event, void *data), void *data);
+extern int livebox_set_event_handler(int (*cb)(struct livebox *handler, enum livebox_event_type event, void *data), void *data);
 
 /*!
  * \brief Unset the livebox event handler
- * \return pointer of 'data' which is registered from the livebox_event_handler_set
- * \sa livebox_event_handler_set
+ * \param[in] cb
+ * \return void * pointer of 'data' which is registered from the livebox_event_handler_set
+ * \sa livebox_set_event_handler
  */
-extern void *livebox_event_handler_unset(int (*cb)(struct livebox *handler, enum livebox_event_type event, void *data));
+extern void *livebox_unset_event_handler(int (*cb)(struct livebox *handler, enum livebox_event_type event, void *data));
 
 /*!
  * \note
  *   argument list
  * 	event, pkgname, filename, funcname
  *
- * \brief
- *   Live box fault event handler registeration function
+ * \brief Live box fault event handler registeration function
  * \param[in] cb
  * \param[in] data
  * \return int
+ * \sa livebox_unset_fault_handler
  */
-extern int livebox_fault_handler_set(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data);
+extern int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data);
 
 /*!
  * \brief Unset the live box fault event handler
  * \param[in] cb
  * \return pointer of 'data'
+ * \sa livebox_set_fault_handler
  */
-extern void *livebox_fault_handler_unset(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *));
+extern void *livebox_unset_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *));
 
 /*!
  * \brief Activate the faulted livebox.
@@ -193,79 +208,60 @@ extern int livebox_activate(const char *pkgname, ret_cb_t cb, void *data);
 
 /*!
  * \brief Resize the livebox
- * \param[in] handler
- * \param[in] w
- * \param[in] h
- * \param[in] cb
- * \param[in] data
+ * \param[in] handler Handler of a livebox
+ * \param[in] w Width of a livebox
+ * \param[in] h Height of a livebox
+ * \param[in] cb Result callback of the resize operation.
+ * \param[in] data User data for return callback
  * \return int
  */
 extern int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void *data);
 
 /*!
  * \brief Send the click event for a livebox.
- * \param[in] handler
- * \param[in] x
- * \param[in] y
+ * \param[in] handler Handler of a livebox
+ * \param[in] x Rational X of the content width.
+ * \param[in] y Rational Y of the content height.
  * \return int
  */
 extern int livebox_click(struct livebox *handler, double x, double y);
 
 /*!
  * \brief Change the cluster/sub-cluster name of given livebox handler
- * \param[in] handler
- * \param[in] cluster
- * \param[in] category
- * \param[in] cb
- * \param[in] data
+ * \param[in] handler Handler of a livebox
+ * \param[in] cluster New cluster of a livebox
+ * \param[in] category New category of a livebox
+ * \param[in] cb Result callback for changing the cluster/category of a livebox
+ * \param[in] data User data for the result callback
  * \return int
  */
 extern int livebox_set_group(struct livebox *handler, const char *cluster, const char *category, ret_cb_t cb, void *data);
 
 /*!
  * \brief Get the cluster and category(sub-cluster) name of given livebox (It is not I18N format, only english)
- * \param[in] handler
- * \param[in] cluster
- * \param[in] category
+ * \param[in] handler Handler of a livebox
+ * \param[out] cluster Storage(memory) for containing the cluster name
+ * \param[out] category Storage(memory) for containing the category name
  * \return int
  */
 extern int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category);
 
 /*!
  * \brief Get the period of this livebox handler
- * \param[in] handler
- * \return int
+ * \param[in] handler Handler of a livebox
+ * \return double Current update period of a livebox
  */
 extern double livebox_period(struct livebox *handler);
 
 /*!
  * \brief Change the update period
- * \param[in] handler
- * \param[in] period
- * \param[in] cb
- * \param[in] data
+ * \param[in] handler Handler of a livebox
+ * \param[in] period New update period of a livebox
+ * \param[in] cb Result callback of changing the update period of this livebox
+ * \param[in] data User data for the result callback
  * \return int
  */
 extern int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb, void *data);
-
-/*!
- * \brief Delete the cluster
- * \param[in] cluster
- * \param[in] cb
- * \param[in] data
- * \return int
- */
-extern int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data);
-
-/*!
- * \brief Delete the category(sub-cluster)
- * \param[in] cluster
- * \param[in] category
- * \param[in] cb
- * \param[in] data
- * \return int
- */
-extern int livebox_delete_category(const char *cluster, const char *category, ret_cb_t cb, void *data);
 
 /*!
  * \brief Is this an text type livebox?
@@ -493,7 +489,7 @@ extern int livebox_set_text_handler(struct livebox *handler, struct livebox_scri
  * \param[in] ops
  * \return int
  */
-extern int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
+extern int livebox_set_pd_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
 
 /*!
  * \brief Emit a text signal to given livebox only if it is a text type.
@@ -507,7 +503,7 @@ extern int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_s
  * \param[in] cb
  * \param[in] data
  */
-extern int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data);
+extern int livebox_emit_text_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data);
 
 /*!
  * \brief Set a private data pointer to carry it using given handler
@@ -528,7 +524,7 @@ extern void *livebox_get_data(struct livebox *handler);
  * \brief Subscribe the event for liveboxes only in given cluster and sub-cluster
  * \param[in] cluster   "*" can be used for subscribe all cluster's liveboxes event.
  *                      If you use the "*", value in the category will be ignored.
- * \param[in] category  "*" can be used for subscribe all sub-cluster's liveboxes event in given "cluster"
+ * \param[in] category  "*" can be used for subscribe liveboxes events of all category(sub-cluster) in given "cluster"
  * \return int Success 0, fails error code
  */
 extern int livebox_subscribe_group(const char *cluster, const char *category);
@@ -544,7 +540,7 @@ extern int livebox_unsubscribe_group(const char *cluster, const char *category);
 
 /*!
  * \brief Get the list of cluster (SYNC Callback)
- * \param[in] cb Callback for getting the name(id) list of the cluster
+ * \param[in] cb Callback for getting the name(id) list of the cluster, the callback will be called before return from this function.
  * \return int Number of listed items, or negative value(errno) for error
  */
 extern int livebox_enumerate_cluster_list(void (*cb)(const char *cluster));
@@ -552,7 +548,7 @@ extern int livebox_enumerate_cluster_list(void (*cb)(const char *cluster));
 /*!
  * \brief Get the list of sub-cluster of the "cluster" (SYNC Callback)
  * \param[in] cluster Cluster ID for getting the sub-cluster list
- * \param[in] cb Callback for getting the name(id) list of the category of the "cluster"
+ * \param[in] cb Callback for getting the name(id) list of the category of the "cluster", the callback will be called before return from this function
  * \return int Number of listed items, or negative value(errno) for error
  */
 extern int livebox_enumerate_category_list(const char *cluster, void (*cb)(const char *category));
@@ -566,23 +562,62 @@ extern int livebox_enumerate_category_list(const char *cluster, void (*cb)(const
 extern int livebox_refresh_group(const char *cluster, const char *category);
 
 /*!
+ * \brief Pixmap Id of a livebox content
+ * \param[in] handler
+ * \return int
+ * \sa livebox_pd_pixmap
  */
-extern int livebox_release_pd_pixmap(struct livebox *handler, int pixmap);
-
 extern int livebox_lb_pixmap(const struct livebox *handler);
 
-extern int livebox_pd_pixmap(const struct livebox *handler);
 /*!
+ * \brief Pixmap Id of a PD content
+ * \param[in] handler
+ * \return int
+ * \sa livebox_lb_pixmap
+ */
+extern int livebox_pd_pixmap(const struct livebox *handler);
+
+/*!
+ * \brief
+ * \param[in] handler
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ * \sa livebox_release_pd_pixmap
+ * \sa livebox_acquire_lb_pixmap
  */
 extern int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *data);
 
 /*!
+ * \brief Release the acquired pixmap ID
+ * \param[in] handler
+ * \param[in] pixmap
+ * \return int
+ * \sa livebox_acquire_pd_pixmap
+ * \sa livebox_release_lb_pixmap
  */
-extern int livebox_release_lb_pixmap(struct livebox *handler, int pixmap);
+extern int livebox_release_pd_pixmap(struct livebox *handler, int pixmap);
 
 /*!
+ * \brief
+ * \param[in] handler
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ * \sa livebox_release_lb_pixmap
+ * \sa livebox_acquire_pd_pixmap
  */
 extern int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *data);
+
+/*!
+ * \brief
+ * \param[in] handler
+ * \param[in] pixmap
+ * \return int
+ * \sa livebox_acquire_lb_pixmap
+ * \sa livebox_release_pd_pixmap
+ */
+extern int livebox_release_lb_pixmap(struct livebox *handler, int pixmap);
 
 /*!
  * \brief Update the visible state of a livebox
@@ -590,14 +625,14 @@ extern int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void 
  * \param[in] state Configure the current visible state of a livebox
  * \return int
  */
-extern int livebox_visible_state_set(struct livebox *handler, enum livebox_visible_state state);
+extern int livebox_set_visibility(struct livebox *handler, enum livebox_visible_state state);
 
 /*!
  * \brief Current visible state of a livebox
  * \param[in] handler Handler of a livebox
  * \return enum visible state
  */
-extern enum livebox_visible_state livebox_visible_state(struct livebox *handler);
+extern enum livebox_visible_state livebox_visibility(struct livebox *handler);
 
 #ifdef __cplusplus
 }

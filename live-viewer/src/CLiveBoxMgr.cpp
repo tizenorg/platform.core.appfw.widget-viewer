@@ -30,8 +30,8 @@ static int s_FaultHandler(enum livebox_fault_type event, const char *pkgname, co
 CLiveBoxMgr::CLiveBoxMgr(void)
 {
 	livebox_init(ecore_x_display_get());
-	livebox_event_handler_set(s_EventHandler, this);
-	livebox_fault_handler_set(s_FaultHandler, this);
+	livebox_set_event_handler(s_EventHandler, this);
+	livebox_set_fault_handler(s_FaultHandler, this);
 	CResourceMgr::GetInstance()->RegisterObject("LiveBoxMgr", this);
 }
 

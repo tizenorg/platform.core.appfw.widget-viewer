@@ -716,7 +716,7 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 	return lb_send_delete(handler, cb, data);
 }
 
-EAPI int livebox_fault_handler_set(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data)
+EAPI int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data)
 {
 	struct fault_info *info;
 
@@ -736,7 +736,7 @@ EAPI int livebox_fault_handler_set(int (*cb)(enum livebox_fault_type, const char
 	return 0;
 }
 
-EAPI void *livebox_fault_handler_unset(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *))
+EAPI void *livebox_unset_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *))
 {
 	struct fault_info *info;
 	struct dlist *l;
@@ -755,7 +755,7 @@ EAPI void *livebox_fault_handler_unset(int (*cb)(enum livebox_fault_type, const 
 	return NULL;
 }
 
-EAPI int livebox_event_handler_set(int (*cb)(struct livebox *, enum livebox_event_type, void *), void *data)
+EAPI int livebox_set_event_handler(int (*cb)(struct livebox *, enum livebox_event_type, void *), void *data)
 {
 	struct event_info *info;
 
@@ -777,7 +777,7 @@ EAPI int livebox_event_handler_set(int (*cb)(struct livebox *, enum livebox_even
 	return 0;
 }
 
-EAPI void *livebox_event_handler_unset(int (*cb)(struct livebox *, enum livebox_event_type, void *))
+EAPI void *livebox_unset_event_handler(int (*cb)(struct livebox *, enum livebox_event_type, void *))
 {
 	struct event_info *info;
 	struct dlist *l;
@@ -1397,7 +1397,7 @@ EAPI enum livebox_pd_type livebox_pd_type(struct livebox *handler)
 	return PD_TYPE_INVALID;
 }
 
-EAPI int livebox_pd_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops)
+EAPI int livebox_set_pd_text_handler(struct livebox *handler, struct livebox_script_operators *ops)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1829,7 +1829,7 @@ EAPI const char *livebox_category_title(struct livebox *handler)
 	return handler->title;
 }
 
-EAPI int livebox_text_emit_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data)
+EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 
@@ -1917,7 +1917,7 @@ EAPI int livebox_refresh_group(const char *cluster, const char *category)
 	return master_rpc_request_only(NULL, packet);
 }
 
-EAPI int livebox_visible_state_set(struct livebox *handler, enum livebox_visible_state state)
+EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_state state)
 {
 	struct packet *packet;
 	int ret;
@@ -1951,7 +1951,7 @@ EAPI int livebox_visible_state_set(struct livebox *handler, enum livebox_visible
 	return ret;
 }
 
-EAPI enum livebox_visible_state livebox_visible_state(struct livebox *handler)
+EAPI enum livebox_visible_state livebox_visibility(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
