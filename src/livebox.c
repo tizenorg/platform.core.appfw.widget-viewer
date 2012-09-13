@@ -34,7 +34,7 @@ static struct info {
 	.livebox_list = NULL,
 	.event_list = NULL,
 	.fault_list = NULL,
-	.event_interval = 0.5f,
+	.event_interval = 0.01f,
 };
 
 struct cb_info {
@@ -75,6 +75,16 @@ static inline void default_group_changed_cb(struct livebox *handler, int ret, vo
 static inline void default_period_changed_cb(struct livebox *handler, int ret, void *data)
 {
 	DbgPrint("Default period changed event handler: %d\n", ret);
+}
+
+static inline void default_pd_created_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default PD created event handler: %d\n", ret);
+}
+
+static inline void default_pd_destroyed_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default PD destroyed event handler: %d\n", ret);
 }
 
 static inline struct cb_info *create_cb_info(ret_cb_t cb, void *data)
@@ -279,41 +289,35 @@ static void new_ret_cb(struct livebox *handler, const struct packet *result, voi
 	destroy_cb_info(info);
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-
-		lb_unref(handler);
-		return;
-	}
-
-	if (packet_get(result, "i", &ret) != 1) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-
-		lb_unref(handler);
-		return;
+		ret = -EFAULT;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ret = -EINVAL;
 	}
 
 	if (ret >= 0) {
 		DbgPrint("new request is sent, just waiting the created event\n");
 		handler->created_cb = cb;
 		handler->created_cbdata = cbdata;
-		return;
-	}
 
-	/*!
-	 * \note
-	 * It means the current instance is not created,
-	 * so user has to know about this.
-	 * notice it to user using "deleted" event.
-	 */
-	if (cb)
+		/*!
+		 * \note
+		 * Don't go anymore ;)
+		 */
+		return;
+	} else if (cb) {
+		/*!
+		 * \note
+		 * It means the current instance is not created,
+		 * so user has to know about this.
+		 * notice it to user using "deleted" event.
+		 */
 		cb(handler, ret, cbdata);
+	}
 
 	lb_unref(handler);
 }
 
-static void pd_created_cb(struct livebox *handler, const struct packet *result, void *data)
+static void pd_create_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	struct cb_info *info = data;
 	void *cbdata;
@@ -325,35 +329,19 @@ static void pd_created_cb(struct livebox *handler, const struct packet *result, 
 	destroy_cb_info(data);
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
+		ret = -EFAULT;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ret = -EINVAL;
 	}
 
-	if (packet_get(result, "i", &ret) != 1) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-		return;
-	}
-
-	if (ret < 0) {
-		DbgPrint("Livebox returns %d\n", ret);
-		if (cb)
-			cb(handler, ret, cbdata);
-		return;
-	}
-
-	if (!handler->pd.data.fb) {
-		DbgPrint("Failed to create a PD (FB is not valid)\n");
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
-	}
-
-	handler->is_pd_created = 1;
-
-	if (cb)
+	if (ret == 0) {
+		DbgPrint("PD Created event handler prepared\n");
+		handler->pd_created_cb = cb;
+		handler->pd_created_cbdata = cbdata;
+	} else if (cb) {
+		DbgPrint("Failed to create a PD\n");
 		cb(handler, ret, cbdata);
+	}
 }
 
 static void activated_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -369,15 +357,9 @@ static void activated_cb(struct livebox *handler, const struct packet *result, v
 	destroy_cb_info(info);
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
-	}
-
-	if (packet_get(result, "is", &ret, &pkgname) != 2) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-		return;
+		ret = -EFAULT;
+	} else if (packet_get(result, "is", &ret, &pkgname) != 2) {
+		ret = -EINVAL;
 	}
 
 	if (cb)
@@ -396,21 +378,22 @@ static void pd_destroy_cb(struct livebox *handler, const struct packet *result, 
 	destroy_cb_info(info);
 
 	if (!result) {
-		if (cb)
-			cb(handler, -EFAULT, cbdata);
-		return;
+		DbgPrint("Result is NIL (may connection lost)\n");
+		ret = -EFAULT;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		DbgPrint("Invalid parameter\n");
+		ret = -EINVAL;
 	}
 
-	if (packet_get(result, "i", &ret) != 1) {
-		if (cb)
-			cb(handler, -EINVAL, cbdata);
-		return;
-	}
-
-	handler->is_pd_created = 0;
-
-	if (cb)
+	if (ret == 0) {
+		DbgPrint("PD Destroyed callback prepared\n");
+		handler->pd_destroyed_cb = cb;
+		handler->pd_destroyed_cbdata = cbdata;
+	} else if (cb) {
+		DbgPrint("PD is not desroyed (forcely reset, pd flag)\n");
+		handler->is_pd_created = 0;
 		cb(handler, ret, cbdata);
+	}
 }
 
 static void delete_cluster_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -426,9 +409,8 @@ static void delete_cluster_cb(struct livebox *handler, const struct packet *resu
 
 	if (!result) {
 		ret = -EFAULT;
-	} else {
-		if (packet_get(result, "i", &ret) != 1)
-			ret = -EINVAL;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ret = -EINVAL;
 	}
 
 	DbgPrint("Delete category returns: %d\n", ret);
@@ -909,7 +891,10 @@ EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return -EFAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, pd_created_cb, create_cb_info(cb, data));
+	if (!cb)
+		handler->pd_created_cb = default_pd_created_cb;
+
+	return master_rpc_async_request(handler, packet, 0, pd_create_cb, create_cb_info(cb, data));
 }
 
 EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
@@ -952,6 +937,9 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		ErrPrint("Failed to build a param\n");
 		return -EFAULT;
 	}
+
+	if (!cb)
+		cb = default_pd_destroyed_cb;
 
 	return master_rpc_async_request(handler, packet, 0, pd_destroy_cb, create_cb_info(cb, data));
 }
@@ -1249,6 +1237,11 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 {
 	register int i;
 	register int j;
+
+	/*!
+	 * \TODO:
+	 * Replace this with DB Manipulate function
+	 */
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -2080,7 +2073,11 @@ static inline char *get_file_kept_in_safe(const char *id)
 	 * \TODO: REMOVE ME
 	 */
 	if (getenv("DISABLE_PREVENT_OVERWRITE")) {
-		return strdup(path);
+		new_path = strdup(path);
+		if (!new_path)
+			ErrPrint("Heap: %s\n", strerror(errno));
+
+		return new_path;
 	}
 
 	len = strlen(path);

@@ -59,7 +59,8 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	int ret;
 	int pinup;
 
-	if (packet_get(packet, "iisss", &ret, &pinup, &pkgname, &id, &content) != 5) {
+	ret = packet_get(packet, "iisss", &ret, &pinup, &pkgname, &id, &content);
+	if (ret != 5) {
 		ErrPrint("Invalid argument\n");
 		ret = -EINVAL;
 		goto out;
@@ -247,6 +248,108 @@ out:
 	return NULL;
 }
 
+static struct packet *master_pd_created(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	const char *buf_id;
+	int width;
+	int height;
+	int ret;
+	int status;
+
+	ret = packet_get(packet, "sssiii", &pkgname, &id, &buf_id, &width, &height, &status);
+	if (ret != 6) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ret = -ENOENT;
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		ret = -EPERM;
+		goto out;
+	}
+
+	lb_set_pdsize(handler, width, height);
+	if (lb_text_pd(handler)) {
+		DbgPrint("Text TYPE does not need to handle this\n");
+	} else {
+		(void)lb_set_pd_fb(handler, buf_id);
+		ret = fb_sync(lb_get_pd_fb(handler));
+		if (ret < 0) {
+			ErrPrint("Failed to do sync FB (%s - %s)\n",
+					pkgname,
+					util_basename(util_uri_to_path(id)));
+		}
+	}
+
+	handler->is_pd_created = (status == 0);
+
+	if (handler->pd_created_cb) {
+		DbgPrint("pd_created_cb (%s) - %d\n", buf_id, status);
+		handler->pd_created_cb(handler, status, handler->pd_created_cbdata);
+
+		handler->pd_created_cb = NULL;
+		handler->pd_created_cbdata = NULL;
+	} else if (status == 0) {
+		DbgPrint("LB_EVENT_PD_CREATED (%s) - %d\n", buf_id, status);
+		lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);
+	}
+
+	ret = 0;
+out:
+	return NULL;
+}
+
+static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int ret;
+	int status;
+
+	ret = packet_get(packet, "ssi", &pkgname, &id, &status);
+	if (ret != 3) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ret = -ENOENT;
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		ret = -EPERM;
+		goto out;
+	}
+
+	handler->is_pd_created = 0;
+
+	if (handler->pd_destroyed_cb) {
+		DbgPrint("Invoke the PD Destroyed CB\n");
+		handler->pd_destroyed_cb(handler, status, handler->pd_destroyed_cbdata);
+
+		handler->pd_destroyed_cb = NULL;
+		handler->pd_destroyed_cbdata = NULL;
+	} else if (status == 0) {
+		DbgPrint("Invoke the LB_EVENT_PD_DESTROYED event\n");
+		lb_invoke_event_handler(handler, LB_EVENT_PD_DESTROYED);
+	}
+
+	ret = 0;
+out:
+	return NULL;
+}
+
 static struct packet *master_pd_updated(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
@@ -288,14 +391,15 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	lb_set_pdsize(handler, pd_w, pd_h);
 
 	if (lb_text_pd(handler)) {
-		ret = parse_desc(handler, util_uri_to_path(id), 1);
+		ret = parse_desc(handler, descfile, 1);
 	} else {
 		(void)lb_set_pd_fb(handler, fbfile);
 
 		ret = fb_sync(lb_get_pd_fb(handler));
 		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n",
-					pkgname, util_basename(util_uri_to_path(id)));
+					pkgname,
+					util_basename(util_uri_to_path(id)));
 			goto out;
 		}
 
@@ -612,6 +716,14 @@ static struct method s_table[] = {
 	{
 		.cmd = "pd_updated", /* pkgname, id, descfile, pd_w, pd_h, ret */
 		.handler = master_pd_updated,
+	},
+	{
+		.cmd = "pd_created",
+		.handler = master_pd_created,
+	},
+	{
+		.cmd = "pd_destroyed",
+		.handler = master_pd_destroyed,
 	},
 	{
 		.cmd = "fault_package", /* pkgname, id, function, ret */
