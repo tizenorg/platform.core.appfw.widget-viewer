@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for the development of a livebox viewer
-Version: 0.6.0
+Version: 0.6.1
 Release: 1
 Group: main/app
 License: Samsung Proprietary License
@@ -38,7 +38,8 @@ rm -rf %{buildroot}
 
 %post
 
-%files
+%files -n liblivebox-viewer
+%manifest liblivebox-viewer.manifest
 %defattr(-,root,root,-)
 /usr/lib/*.so*
 
