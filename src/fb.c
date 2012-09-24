@@ -113,13 +113,29 @@ static inline int sync_for_file(struct fb_info *info)
 	if (fd < 0) {
 		ErrPrint("Failed to open a file (%s) because of (%s)\n",
 					util_uri_to_path(info->id), strerror(errno));
-		return -EIO;
+
+		/*!
+		 * \note
+		 * But return ZERO, even if we couldn't get a buffer file,
+		 * the viewer can draw empty screen.
+		 *
+		 * and then update it after it gots update events
+		 */
+		return 0;
 	}
 
 	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
 		ErrPrint("read: %s\n", strerror(errno));
 		close(fd);
-		return -EIO;
+
+		/*!
+		 * \note
+		 * But return ZERO, even if we couldn't get a buffer file,
+		 * the viewer can draw empty screen.
+		 *
+		 * and then update it after it gots update events
+		 */
+		return 0;
 	}
 
 	close(fd);
