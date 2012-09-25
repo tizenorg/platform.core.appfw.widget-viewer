@@ -150,7 +150,11 @@ static int done_cb(pid_t pid, int handle, const struct packet *packet, void *dat
 		goto out;
 	}
 
-	packet_get(packet, "i", &ret);
+	if (packet_get(packet, "i", &ret) != 1) {
+		ErrPrint("Invalid result packet\n");
+		ret = -EINVAL;
+	}
+
 	DbgPrint("[%s] Returns: %d\n", packet_command(packet), ret);
 
 out:
@@ -274,7 +278,11 @@ int master_rpc_sync_request(struct packet *packet)
 
 	result = com_core_packet_oneshot_send(client_addr(), packet, 0.0f);
 	if (result) {
-		packet_get(result, "i", &ret);
+		if (packet_get(result, "i", &ret) != 1) {
+			ErrPrint("Invalid result packet\n");
+			ret = -EINVAL;
+		}
+
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to send a sync request\n");
