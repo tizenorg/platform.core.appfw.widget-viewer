@@ -422,24 +422,6 @@ void *fb_acquire_buffer(struct fb_info *info)
 		break;
 	}
 
-/* DEBUG */
-	static int i = 0;
-	static char filename[256];
-	int fd;
-
-	snprintf(filename, sizeof(filename), "/opt/file%d.dat", i++);
-	fd = open(filename, O_WRONLY|O_CREAT, 0644);
-	if (fd >= 0) {
-		int ret;
-		ret = write(fd, buffer->data, info->bufsz);
-		if (ret < 0)
-			ErrPrint("Failed to write data %s\n", strerror(errno));
-		close(fd);
-	} else {
-		ErrPrint("========================> Failed to create a dump file(%s)\n", strerror(errno));
-	}
-/* END OF DEBUG */
-
 	return buffer->data;
 }
 
