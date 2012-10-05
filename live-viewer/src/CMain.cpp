@@ -369,30 +369,35 @@ CMain *CMain::GetInstance(void)
 
 static int app_create(void *data)
 {
+	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnCreate();
 	return 0;
 }
 
 static int app_terminate(void *data)
 {
+	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnTerminate();
 	return 0;
 }
 
 static int app_pause(void *data)
 {
+	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnPause();
 	return 0;
 }
 
 static int app_resume(void *data)
 {
+	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnResume();
 	return 0;
 }
 
 static int app_reset(bundle *b, void *data)
 {
+	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnReset(b);
 	return 0;
 }

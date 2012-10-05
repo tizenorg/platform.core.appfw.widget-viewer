@@ -646,6 +646,11 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 		return -EINVAL;
 	}
 
+	if (!handler->is_user) {
+		ErrPrint("CA Livebox is not able to change the period\n");
+		return -EPERM;
+	}
+
 	if (handler->lb.period == period) {
 		DbgPrint("No changes\n");
 		return -EALREADY;
@@ -791,6 +796,11 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
+	}
+
+	if (!handler->is_user) {
+		ErrPrint("CA Livebox is not able to be resized\n");
+		return -EPERM;
 	}
 
 	if (handler->lb.width == w && handler->lb.height == h) {
@@ -1197,6 +1207,11 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 	if (!cluster || !category || handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid argument\n");
 		return -EINVAL;
+	}
+
+	if (!handler->is_user) {
+		ErrPrint("CA Livebox is not able to change the group\n");
+		return -EPERM;
 	}
 
 	if (!strcmp(handler->cluster, cluster) && !strcmp(handler->category, category)) {
@@ -1721,7 +1736,7 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 		return -EINVAL;
 	}
 
-	if (handler->lb.is_pinned_up == flag) {
+	if (handler->is_pinned_up == flag) {
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
@@ -1748,7 +1763,7 @@ EAPI int livebox_is_pinned_up(struct livebox *handler)
 	if (handler->state != CREATE || !handler->id)
 		return -EINVAL;
 
-	return handler->lb.is_pinned_up;
+	return handler->is_pinned_up;
 }
 
 EAPI int livebox_has_pinup(struct livebox *handler)
@@ -1925,7 +1940,8 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 
 	if (!handler->is_user) {
 		/* System cluster livebox cannot be changed its visible states */
-		return -EINVAL;
+		ErrPrint("CA Livebox is not able to change the visibility\n");
+		return -EPERM;
 	}
 
 	if (handler->visible == state)

@@ -77,7 +77,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		if (new_content) {
 			free(handler->content);
 			handler->content = new_content;
-			handler->lb.is_pinned_up = pinup;
+			handler->is_pinned_up = pinup;
 		} else {
 			ErrPrint("Heap: %s\n", strerror(errno));
 			ret = -ENOMEM;
@@ -535,19 +535,20 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	enum lb_type lb_type;
 	enum pd_type pd_type;
 	double period;
+	int is_pinned_up;
 
 	int old_state = DESTROYED;
 
 	int ret;
 
-	ret = packet_get(packet, "dsssiiiissssidiiiiids",
+	ret = packet_get(packet, "dsssiiiissssidiiiiidsi",
 			&timestamp,
 			&pkgname, &id, &content,
 			&lb_w, &lb_h, &pd_w, &pd_h,
 			&cluster, &category, &lb_fname, &pd_fname,
 			&auto_launch, &priority, &size_list, &user, &pinup_supported,
-			&lb_type, &pd_type, &period, &title);
-	if (ret != 21) {
+			&lb_type, &pd_type, &period, &title, &is_pinned_up);
+	if (ret != 22) {
 		ErrPrint("Invalid argument\n");
 		ret = -EINVAL;
 		goto out;
@@ -557,12 +558,12 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
 		"cluster: %s, category: %s, lb_fname: \"%s\", pd_fname: \"%s\", "
 		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d, "
-		"lb_type: %d, pd_type: %d, period: %lf, title: [%s]\n",
+		"lb_type: %d, pd_type: %d, period: %lf, title: [%s], is_pinned_up: %d\n",
 		timestamp, pkgname, id, content,
 		pd_w, pd_h, lb_w, lb_h,
 		cluster, category, lb_fname, pd_fname,
 		auto_launch, priority, size_list, user, pinup_supported,
-		lb_type, pd_type, period, title);
+		lb_type, pd_type, period, title, is_pinned_up);
 
 	handler = lb_find_livebox_by_timestamp(timestamp);
 	if (!handler) {
@@ -612,6 +613,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	lb_set_size(handler, lb_w, lb_h);
 	handler->lb.type = lb_type;
+	handler->is_pinned_up = is_pinned_up;
 
 	switch (lb_type) {
 	case _LB_TYPE_FILE:

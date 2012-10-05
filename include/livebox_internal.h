@@ -67,6 +67,7 @@ struct livebox {
 
 	int is_user;
 	int is_pd_created;
+	int is_pinned_up;
 
 	struct {
 		enum lb_type type;
@@ -83,7 +84,6 @@ struct livebox {
 
 		int auto_launch;
 		double period;
-		int is_pinned_up;
 		int pinup_supported;
 	} lb;
 
