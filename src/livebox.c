@@ -18,6 +18,7 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "critical_log.h"
+#include "io.h"
 
 #define EAPI __attribute__((visibility("default")))
 
@@ -504,6 +505,7 @@ static int send_mouse_event(struct livebox *handler, const char *event, double x
 EAPI int livebox_init(void *disp)
 {
 	const char *env;
+
 	env = getenv("LIVE_EVENT_INTERVAL");
 	if (env && sscanf(env, "%lf", &s_info.event_interval) == 1)
 		ErrPrint("Allowed event interval is updated to %lf\n", s_info.event_interval);
@@ -515,8 +517,9 @@ EAPI int livebox_init(void *disp)
 	if (!__file_log_fp)
 		__file_log_fp = fdopen(1, "w+t");
 #endif
-	fb_init(disp);
 	critical_log_init();
+	io_init();
+	fb_init(disp);
 
 	client_init();
 	return 0;
@@ -526,7 +529,35 @@ EAPI int livebox_fini(void)
 {
 	client_fini();
 	fb_fini();
+	io_fini();
+	critical_log_fini();
 	return 0;
+}
+
+static inline char *lb_pkgname(const char *pkgname)
+{
+	char *lb;
+
+	lb = io_lb_pkgname(pkgname);
+	if (!lb) {
+		if (util_validate_livebox_package(pkgname) == 0)
+			return strdup(pkgname);
+	}
+
+	return lb;
+}
+
+static inline char *app_pkgname(const char *pkgname)
+{
+	char *app;
+
+	app = io_app_pkgname(pkgname);
+	if (!app) {
+		if (util_validate_livebox_package(pkgname) == 0)
+			return strdup(app);
+	}
+
+	return app;
 }
 
 EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data)
@@ -547,7 +578,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 		return NULL;
 	}
 
-	handler->pkgname = strdup(pkgname);
+	handler->pkgname = lb_pkgname(pkgname);
 	if (!handler->pkgname) {
 		ErrPrint("Error: %s\n", strerror(errno));
 		free(handler);
@@ -1808,7 +1839,30 @@ EAPI void *livebox_get_data(struct livebox *handler)
 
 EAPI int livebox_is_exists(const char *pkgname)
 {
-	return util_validate_livebox_package(pkgname) == 0;
+	char *lb;
+
+	lb = io_lb_pkgname(pkgname);
+	if (!lb)
+		return util_validate_livebox_package(pkgname) == 0;
+
+	free(lb);
+	return 1;
+}
+
+EAPI char *livebox_lb_pkgname(const char *pkgname)
+{
+	if (!pkgname)
+		return NULL;
+
+	return lb_pkgname(pkgname);
+}
+
+EAPI char *livebox_app_pkgname(const char *pkgname)
+{
+	if (!pkgname)
+		return NULL;
+
+	return app_pkgname(pkgname);
 }
 
 EAPI const char *livebox_content(struct livebox *handler)
@@ -1871,6 +1925,12 @@ EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
 
+	/*!
+	 * \TODO
+	 * Validate the group info using DB
+	 * If the group info is not valid, do not send this request
+	 */
+
 	packet = packet_create_noack("subscribe", "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
@@ -1884,6 +1944,13 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
 
+	/*!
+	 * \TODO
+	 * Validate the group info using DB
+	 * If the group info is not valid, do not send this request
+	 * AND Check the subscribed or not too
+	 */
+
 	packet = packet_create_noack("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
@@ -1893,18 +1960,20 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 	return master_rpc_request_only(NULL, packet);
 }
 
-EAPI int livebox_enumerate_cluster_list(void (*cb)(const char *cluster))
+EAPI int livebox_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data)
 {
-	DbgPrint("Not implemented\n");
-	/* Use the DB for this */
-	return -ENOSYS;
+	if (!cb)
+		return -EINVAL;
+
+	return io_enumerate_cluster_list(cb, data);
 }
 
-EAPI int livebox_enumerate_category_list(const char *cluster, void (*cb)(const char *category))
+EAPI int livebox_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data)
 {
-	DbgPrint("Not implemented\n");
-	/* Use the DB for this */
-	return -ENOSYS;
+	if (!cluster || !cb)
+		return -EINVAL;
+
+	return io_enumerate_category_list(cluster, cb, data);
 }
 
 EAPI int livebox_refresh_group(const char *cluster, const char *category)

@@ -546,7 +546,7 @@ extern int livebox_unsubscribe_group(const char *cluster, const char *category);
  * \param[in] cb Callback for getting the name(id) list of the cluster, the callback will be called before return from this function.
  * \return int Number of listed items, or negative value(errno) for error
  */
-extern int livebox_enumerate_cluster_list(void (*cb)(const char *cluster));
+extern int livebox_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data);
 
 /*!
  * \brief Get the list of sub-cluster of the "cluster" (SYNC Callback)
@@ -554,7 +554,7 @@ extern int livebox_enumerate_cluster_list(void (*cb)(const char *cluster));
  * \param[in] cb Callback for getting the name(id) list of the category of the "cluster", the callback will be called before return from this function
  * \return int Number of listed items, or negative value(errno) for error
  */
-extern int livebox_enumerate_category_list(const char *cluster, void (*cb)(const char *category));
+extern int livebox_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data);
 
 /*!
  * \brief Refresh the group(cluster/sub-cluser(aka. category))
@@ -637,6 +637,19 @@ extern int livebox_set_visibility(struct livebox *handler, enum livebox_visible_
  */
 extern enum livebox_visible_state livebox_visibility(struct livebox *handler);
 
+/*!
+ * \brief Get the package name of a livebox.
+ * \param[in] pkgname Application package name or the livebox package name
+ * \return pkgname livebox package name or NULL
+ */
+extern char *livebox_lb_pkgname(const char *pkgname);
+
+/*!
+ * \brief Get the application package name of given package name
+ * \param[in] pkgname Livebox package name
+ * \return pkgname Application package name which including the given livebox package.
+ */
+extern char *livebox_app_pkgname(const char *pkgname);
 #ifdef __cplusplus
 }
 #endif

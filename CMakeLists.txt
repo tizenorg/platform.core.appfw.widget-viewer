@@ -22,6 +22,8 @@ pkg_check_modules(pkgs REQUIRED
 	com-core
 	x11
 	xext
+	sqlite3
+	db-util
 )
 
 FOREACH(flag ${pkgs_CFLAGS})
@@ -48,6 +50,7 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/master_rpc.c
 	src/client.c
 	src/critical_log.c
+	src/io.c
 )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${VERSION_MAJOR})
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})
