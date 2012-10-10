@@ -13,6 +13,7 @@
 #include "util.h"
 #include "debug.h"
 #include "io.h"
+#include "livebox.h"
 
 static struct {
 	sqlite3 *handle;
@@ -212,6 +213,77 @@ int io_enumerate_category_list(const char *cluster, int (*cb)(const char *cluste
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
 	return cnt;
+}
+
+int io_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h)
+{
+	sqlite3_stmt *stmt;
+	int size;
+	int ret;
+	int idx;
+
+	if (!s_info.handle) {
+		ErrPrint("IO is not initialized\n");
+		return -EINVAL;
+	}
+
+	ret = sqlite3_prepare_v2(s_info.handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(s_info.handle));
+		ret = -EIO;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(s_info.handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = -EIO;
+		goto out;
+	}
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
+		size = sqlite3_column_int(stmt, 0);
+		switch (size) {
+		case 0x01:
+			idx = 0;
+			break;
+		case 0x02:
+			idx = 1;
+			break;
+		case 0x04:
+			idx = 2;
+			break;
+		case 0x08:
+			idx = 3;
+			break;
+		case 0x10:
+			idx = 4;
+			break;
+		case 0x20:
+			idx = 5;
+			break;
+		default:
+			ErrPrint("Invalid size type: %d\n", size);
+			continue;
+		}
+
+		if (w)
+			w[ret] = SIZE_LIST[idx].w;
+		if (h)
+			h[ret] = SIZE_LIST[idx].h;
+
+		ret++;
+	}
+
+	*cnt = ret;
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	ret = 0;
+out:
+	return ret;
 }
 
 /* End of a file */

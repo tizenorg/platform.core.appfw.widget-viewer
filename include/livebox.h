@@ -151,6 +151,7 @@ extern int livebox_fini(void);
  * \return handle
  */
 extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data);
+extern struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int width, int height, ret_cb_t cb, void *data);
 
 /*!
  * \brief Delete a livebox
@@ -384,6 +385,7 @@ extern int livebox_get_pdsize(struct livebox *handler, int *w, int *h);
  * \return int
  */
 extern int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, int *h);
+extern int livebox_get_supported_sizes_by_pkgname(const char *pkgname, int *cnt, int *w, int *h);
 
 /*!
  * \brief BUFFER SIZE of the livebox if it is a buffer type

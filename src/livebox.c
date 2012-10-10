@@ -1316,6 +1316,27 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 	return 0;
 }
 
+EAPI int livebox_get_supported_sizes_by_pkgname(const char *pkgname, int *cnt, int *w, int *h)
+{
+	char *lb;
+	int ret;
+
+	if (!pkgname || !cnt)
+		return -EINVAL;
+
+	lb = lb_pkgname(pkgname);
+	if (!lb)
+		return -EINVAL;
+
+	if (*cnt > NR_OF_SIZE_LIST)
+		*cnt = NR_OF_SIZE_LIST;
+
+	ret = io_get_supported_sizes(lb, cnt, w, h);
+	free(lb);
+
+	return ret;
+}
+
 EAPI const char *livebox_pkgname(struct livebox *handler)
 {
 	if (!handler) {
