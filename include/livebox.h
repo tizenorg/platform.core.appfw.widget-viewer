@@ -385,7 +385,6 @@ extern int livebox_get_pdsize(struct livebox *handler, int *w, int *h);
  * \return int
  */
 extern int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, int *h);
-extern int livebox_get_supported_sizes_by_pkgname(const char *pkgname, int *cnt, int *w, int *h);
 
 /*!
  * \brief BUFFER SIZE of the livebox if it is a buffer type
@@ -544,21 +543,6 @@ extern int livebox_subscribe_group(const char *cluster, const char *category);
 extern int livebox_unsubscribe_group(const char *cluster, const char *category);
 
 /*!
- * \brief Get the list of cluster (SYNC Callback)
- * \param[in] cb Callback for getting the name(id) list of the cluster, the callback will be called before return from this function.
- * \return int Number of listed items, or negative value(errno) for error
- */
-extern int livebox_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data);
-
-/*!
- * \brief Get the list of sub-cluster of the "cluster" (SYNC Callback)
- * \param[in] cluster Cluster ID for getting the sub-cluster list
- * \param[in] cb Callback for getting the name(id) list of the category of the "cluster", the callback will be called before return from this function
- * \return int Number of listed items, or negative value(errno) for error
- */
-extern int livebox_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data);
-
-/*!
  * \brief Refresh the group(cluster/sub-cluser(aka. category))
  * \param[in] cluster Cluster ID
  * \param[in] category Sub-cluster ID
@@ -639,19 +623,6 @@ extern int livebox_set_visibility(struct livebox *handler, enum livebox_visible_
  */
 extern enum livebox_visible_state livebox_visibility(struct livebox *handler);
 
-/*!
- * \brief Get the package name of a livebox.
- * \param[in] pkgname Application package name or the livebox package name
- * \return pkgname livebox package name or NULL
- */
-extern char *livebox_lb_pkgname(const char *pkgname);
-
-/*!
- * \brief Get the application package name of given package name
- * \param[in] pkgname Livebox package name
- * \return pkgname Application package name which including the given livebox package.
- */
-extern char *livebox_app_pkgname(const char *pkgname);
 #ifdef __cplusplus
 }
 #endif

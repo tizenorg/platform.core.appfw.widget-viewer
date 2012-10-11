@@ -8,6 +8,7 @@
 
 #include <com-core_packet.h>
 #include <packet.h>
+#include <livebox-service.h>
 
 #include "debug.h"
 #include "fb.h"
@@ -18,7 +19,6 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "critical_log.h"
-#include "io.h"
 
 #define EAPI __attribute__((visibility("default")))
 
@@ -31,11 +31,13 @@ static struct info {
 	struct dlist *event_list;
 	struct dlist *fault_list;
 	double event_interval;
+	int init_count;
 } s_info = {
 	.livebox_list = NULL,
 	.event_list = NULL,
 	.fault_list = NULL,
 	.event_interval = 0.01f,
+	.init_count = 0,
 };
 
 struct cb_info {
@@ -506,6 +508,11 @@ EAPI int livebox_init(void *disp)
 {
 	const char *env;
 
+	if (s_info.init_count > 0) {
+		s_info.init_count++;
+		return 0;
+	}
+
 	env = getenv("LIVE_EVENT_INTERVAL");
 	if (env && sscanf(env, "%lf", &s_info.event_interval) == 1)
 		ErrPrint("Allowed event interval is updated to %lf\n", s_info.event_interval);
@@ -518,18 +525,31 @@ EAPI int livebox_init(void *disp)
 		__file_log_fp = fdopen(1, "w+t");
 #endif
 	critical_log_init();
-	io_init();
+	livebox_service_init();
 	fb_init(disp);
 
 	client_init();
+
+	s_info.init_count++;
 	return 0;
 }
 
 EAPI int livebox_fini(void)
 {
+	if (s_info.init_count <= 0) {
+		DbgPrint("Didn't initialized\n");
+		return -EINVAL;
+	}
+
+	s_info.init_count--;
+	if (s_info.init_count > 0) {
+		DbgPrint("init count : %d\n", s_info.init_count);
+		return 0;
+	}
+
 	client_fini();
 	fb_fini();
-	io_fini();
+	livebox_service_fini();
 	critical_log_fini();
 	return 0;
 }
@@ -538,26 +558,13 @@ static inline char *lb_pkgname(const char *pkgname)
 {
 	char *lb;
 
-	lb = io_lb_pkgname(pkgname);
+	lb = livebox_service_pkgname(pkgname);
 	if (!lb) {
 		if (util_validate_livebox_package(pkgname) == 0)
 			return strdup(pkgname);
 	}
 
 	return lb;
-}
-
-static inline char *app_pkgname(const char *pkgname)
-{
-	char *app;
-
-	app = io_app_pkgname(pkgname);
-	if (!app) {
-		if (util_validate_livebox_package(pkgname) == 0)
-			return strdup(app);
-	}
-
-	return app;
 }
 
 /*!
@@ -1292,11 +1299,6 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 	register int i;
 	register int j;
 
-	/*!
-	 * \TODO:
-	 * Replace this with DB Manipulate function
-	 */
-
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
 		return -EINVAL;
@@ -1322,27 +1324,6 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 
 	*cnt = j;
 	return 0;
-}
-
-EAPI int livebox_get_supported_sizes_by_pkgname(const char *pkgname, int *cnt, int *w, int *h)
-{
-	char *lb;
-	int ret;
-
-	if (!pkgname || !cnt)
-		return -EINVAL;
-
-	lb = lb_pkgname(pkgname);
-	if (!lb)
-		return -EINVAL;
-
-	if (*cnt > NR_OF_SIZE_LIST)
-		*cnt = NR_OF_SIZE_LIST;
-
-	ret = io_get_supported_sizes(lb, cnt, w, h);
-	free(lb);
-
-	return ret;
 }
 
 EAPI const char *livebox_pkgname(struct livebox *handler)
@@ -1870,28 +1851,12 @@ EAPI int livebox_is_exists(const char *pkgname)
 {
 	char *lb;
 
-	lb = io_lb_pkgname(pkgname);
+	lb = livebox_service_pkgname(pkgname);
 	if (!lb)
 		return util_validate_livebox_package(pkgname) == 0;
 
 	free(lb);
 	return 1;
-}
-
-EAPI char *livebox_lb_pkgname(const char *pkgname)
-{
-	if (!pkgname)
-		return NULL;
-
-	return lb_pkgname(pkgname);
-}
-
-EAPI char *livebox_app_pkgname(const char *pkgname)
-{
-	if (!pkgname)
-		return NULL;
-
-	return app_pkgname(pkgname);
 }
 
 EAPI const char *livebox_content(struct livebox *handler)
@@ -1987,22 +1952,6 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 	}
 
 	return master_rpc_request_only(NULL, packet);
-}
-
-EAPI int livebox_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data)
-{
-	if (!cb)
-		return -EINVAL;
-
-	return io_enumerate_cluster_list(cb, data);
-}
-
-EAPI int livebox_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data)
-{
-	if (!cluster || !cb)
-		return -EINVAL;
-
-	return io_enumerate_category_list(cluster, cb, data);
 }
 
 EAPI int livebox_refresh_group(const char *cluster, const char *category)

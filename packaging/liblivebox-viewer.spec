@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for the development of a livebox viewer
-Version: 0.6.6
+Version: 0.6.7
 Release: 1
 Group: main/app
 License: Samsung Proprietary License
@@ -15,6 +15,7 @@ BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(xext)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
+BuildRequires: pkgconfig(livebox-service)
 
 %description
 Livebox viewer development library
