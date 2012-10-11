@@ -560,13 +560,21 @@ static inline char *app_pkgname(const char *pkgname)
 	return app;
 }
 
+/*!
+ * Just wrapping the livebox_add_with_size function.
+ */
 EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data)
+{
+	return livebox_add_with_size(pkgname, content, cluster, category, period, 0, 0, cb, data);
+}
+
+EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int width, int height, ret_cb_t cb, void *data)
 {
 	struct livebox *handler;
 	struct packet *packet;
 	int ret;
 
-	if (!pkgname || !cluster || !category) {
+	if (!pkgname || !cluster || !category || width < 0 || height < 0) {
 		ErrPrint("Invalid arguments: pkgname[%p], cluster[%p], category[%p]\n",
 								pkgname, cluster, category);
 		return NULL;
@@ -631,7 +639,7 @@ EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
-	packet = packet_create("new", "dssssd", handler->timestamp, pkgname, content, cluster, category, period);
+	packet = packet_create("new", "dssssdii", handler->timestamp, pkgname, content, cluster, category, period, width, height);
 	if (!packet) {
 		ErrPrint("Failed to create a new packet\n");
 		free(handler->category);
