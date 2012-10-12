@@ -1987,8 +1987,10 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 
 	if (!handler->is_user) {
 		/* System cluster livebox cannot be changed its visible states */
-		ErrPrint("CA Livebox is not able to change the visibility\n");
-		return -EPERM;
+		if (state == LB_HIDE_WITH_PAUSE) {
+			ErrPrint("CA Livebox is not able to change the visibility\n");
+			return -EPERM;
+		}
 	}
 
 	if (handler->visible == state)

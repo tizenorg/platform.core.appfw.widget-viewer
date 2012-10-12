@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for the development of a livebox viewer
-Version: 0.6.7
+Version: 0.6.8
 Release: 1
 Group: main/app
 License: Samsung Proprietary License
@@ -38,6 +38,7 @@ make %{?jobs:-j%jobs}
 %install
 rm -rf %{buildroot}
 %make_install
+mkdir -p %{buildroot}/usr/share/license
 
 %post
 
@@ -51,3 +52,4 @@ rm -rf %{buildroot}
 /usr/include/livebox-viewer/livebox.h
 /usr/share/doc/livebox-viewer/livebox-viewer_PG.h
 /usr/lib/pkgconfig/*.pc
+/usr/share/license/*
