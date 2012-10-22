@@ -75,7 +75,7 @@ static inline int check_native_livebox(const char *pkgname)
 	char *path;
 
 	len = strlen(pkgname) * 2;
-	len += strlen("/opt/live/%s/libexec/liblive-%s.so");
+	len += strlen("/opt/usr/live/%s/libexec/liblive-%s.so");
 
 	path = malloc(len + 1);
 	if (!path) {
@@ -83,7 +83,7 @@ static inline int check_native_livebox(const char *pkgname)
 		return -ENOMEM;
 	}
 
-	snprintf(path, len, "/opt/live/%s/libexec/liblive-%s.so", pkgname, pkgname);
+	snprintf(path, len, "/opt/usr/live/%s/libexec/liblive-%s.so", pkgname, pkgname);
 	if (access(path, F_OK | R_OK) != 0) {
 		ErrPrint("%s is not a valid package\n", pkgname);
 		free(path);
@@ -100,7 +100,7 @@ static inline int check_web_livebox(const char *pkgname)
 	char *path;
 
 	len = strlen(pkgname) * 2;
-	len += strlen("/opts/apps/%s/res/wgt/livebox/index.html");
+	len += strlen("/opt/usr/apps/%s/res/wgt/livebox/index.html");
 
 	path = malloc(len + 1);
 	if (!path) {
@@ -108,7 +108,7 @@ static inline int check_web_livebox(const char *pkgname)
 		return -ENOMEM;
 	}
 
-	snprintf(path, len, "/opt/apps/%s/res/wgt/livebox/index.html", pkgname);
+	snprintf(path, len, "/opt/usr/apps/%s/res/wgt/livebox/index.html", pkgname);
 	if (access(path, F_OK | R_OK) != 0) {
 		ErrPrint("%s is not a valid package\n", pkgname);
 		free(path);

@@ -524,7 +524,7 @@ EAPI int livebox_init(void *disp)
 	if (!__file_log_fp)
 		__file_log_fp = fdopen(1, "w+t");
 #endif
-	critical_log_init();
+	critical_log_init("viewer");
 	livebox_service_init();
 	fb_init(disp);
 
@@ -1851,12 +1851,13 @@ EAPI int livebox_is_exists(const char *pkgname)
 {
 	char *lb;
 
-	lb = livebox_service_pkgname(pkgname);
-	if (!lb)
-		return util_validate_livebox_package(pkgname) == 0;
+	lb = lb_pkgname(pkgname);
+	if (lb) {
+		free(lb);
+		return 1;
+	}
 
-	free(lb);
-	return 1;
+	return 0;
 }
 
 EAPI const char *livebox_content(struct livebox *handler)
