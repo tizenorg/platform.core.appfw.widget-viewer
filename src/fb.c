@@ -422,6 +422,20 @@ void *fb_acquire_buffer(struct fb_info *info)
 		break;
 	}
 
+	{
+		FILE *fp;
+		static int idx = 0;
+		char filename[256];
+
+		DbgPrint("Flush %s\n", info->id);
+		snprintf(filename, sizeof(filename), "/opt/%d.raw", idx++);
+		fp = fopen(filename, "w+");
+		if (fp) {
+			fwrite(buffer->data, 1, info->bufsz, fp);
+			fclose(fp);
+		}
+	}
+
 	return buffer->data;
 }
 
