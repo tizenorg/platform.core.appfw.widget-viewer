@@ -13,6 +13,10 @@ BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(appcore-efl)
 BuildRequires: pkgconfig(livebox-viewer)
 BuildRequires: pkgconfig(ecore-x)
+BuildRequires: pkgconfig(livebox-service)
+BuildRequires: pkgconfig(bundle)
+BuildRequires: pkgconfig(capi-appfw-application)
+BuildRequires: pkgconfig(capi-appfw-app-manager)
 BuildRequires: edje-bin
 
 %description

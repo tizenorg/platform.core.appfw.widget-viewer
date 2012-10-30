@@ -3,12 +3,16 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 INCLUDE(FindPkgConfig)
 pkg_check_modules(pkgs REQUIRED
-	dlog
+	capi-appfw-application
+	capi-appfw-app-manager
 	ail
+	bundle
+	dlog
 	elementary
 	ecore-x
 	appcore-efl
 	livebox-viewer
+	livebox-service
 )
 
 FOREACH(flag ${pkgs_CFLAGS})

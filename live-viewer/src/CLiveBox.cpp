@@ -4,9 +4,12 @@
 #include <livebox.h>
 #include <dlog.h>
 #include <bundle.h>
+#include <app.h>
 
 #include <X11/Xlib.h>
 #include <Ecore_X.h>
+
+#include <livebox-service.h>
 
 #include "dlist.h"
 #include "CUtil.h"
@@ -381,9 +384,7 @@ void CLiveBox::OnUpdateLB(void)
 {
 	int w, h;
 	int ow, oh;
-	char buffer[LOGSIZE];
 	enum livebox_lb_type type;
-	const char *tmp;
 
 	if (!m_pIconSlot || !m_pLBImage)
 		return;
@@ -392,6 +393,8 @@ void CLiveBox::OnUpdateLB(void)
 		return;
 
 	/*
+	char buffer[LOGSIZE];
+	const char *tmp;
 	snprintf(buffer, sizeof(buffer), "LB Updated (%dx%d)", w, h);
 	CMain::GetInstance()->AppendLog(buffer);
 
@@ -519,7 +522,6 @@ void CLiveBox::OnUpdatePD(void)
 {
 	int w;
 	int h;
-	char buffer[LOGSIZE];
 	enum livebox_pd_type type;
 
 	if (!m_pPDImage)
@@ -529,6 +531,7 @@ void CLiveBox::OnUpdatePD(void)
 		return;
 
 	/*
+	char buffer[LOGSIZE];
 	snprintf(buffer, sizeof(buffer), "PD Updated (%dx%d)", w, h);
 	CMain::GetInstance()->AppendLog(buffer);
 	*/
@@ -662,7 +665,14 @@ int CLiveBox::m_OnCreate(void)
 
 int CLiveBox::Resize(int w, int h)
 {
-	livebox_resize(m_pHandler, w, h, s_ResizeCB, this);
+	enum livebox_size_type type;
+	type = livebox_service_size_type(w, h);
+	if (type == LB_SIZE_TYPE_UNKNOWN) {
+		ErrPrint("Unsupported size type %dx%d\n", w, h);
+		return -1;
+	}
+
+	livebox_resize(m_pHandler, type, s_ResizeCB, this);
 	return 0;
 }
 

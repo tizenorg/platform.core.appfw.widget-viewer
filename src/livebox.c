@@ -572,20 +572,25 @@ static inline char *lb_pkgname(const char *pkgname)
  */
 EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data)
 {
-	return livebox_add_with_size(pkgname, content, cluster, category, period, 0, 0, cb, data);
+	return livebox_add_with_size(pkgname, content, cluster, category, period, LB_SIZE_TYPE_UNKNOWN, cb, data);
 }
 
-EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int width, int height, ret_cb_t cb, void *data)
+EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data)
 {
 	struct livebox *handler;
 	struct packet *packet;
 	int ret;
+	int width = 0;
+	int height = 0;
 
 	if (!pkgname || !cluster || !category || width < 0 || height < 0) {
 		ErrPrint("Invalid arguments: pkgname[%p], cluster[%p], category[%p]\n",
 								pkgname, cluster, category);
 		return NULL;
 	}
+
+	if (type != LB_SIZE_TYPE_UNKNOWN)
+		livebox_service_get_size(type, &width, &height);
 
 	handler = calloc(1, sizeof(*handler));
 	if (!handler) {
@@ -830,9 +835,11 @@ EAPI void *livebox_unset_event_handler(int (*cb)(struct livebox *, enum livebox_
 	return NULL;
 }
 
-EAPI int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void *data)
+EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	int w;
+	int h;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -847,6 +854,11 @@ EAPI int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void
 	if (!handler->is_user) {
 		ErrPrint("CA Livebox is not able to be resized\n");
 		return -EPERM;
+	}
+
+	if (livebox_service_get_size(type, &w, &h) != 0) {
+		ErrPrint("Invalid size type\n");
+		return -EINVAL;
 	}
 
 	if (handler->lb.width == w && handler->lb.height == h) {
@@ -1202,10 +1214,10 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 	return 0;
 }
 
-EAPI int livebox_get_size(struct livebox *handler, int *w, int *h)
+EAPI int livebox_size(struct livebox *handler)
 {
-	int _w;
-	int _h;
+	int w;
+	int h;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1217,28 +1229,23 @@ EAPI int livebox_get_size(struct livebox *handler, int *w, int *h)
 		return -EINVAL;
 	}
 
-	if (!w)
-		w = &_w;
-	if (!h)
-		h = &_h;
-
-	*w = handler->lb.width;
-	*h = handler->lb.height;
+	w = handler->lb.width;
+	h = handler->lb.height;
 
 	switch (handler->lb.type) {
 	case _LB_TYPE_BUFFER:
 	case _LB_TYPE_SCRIPT:
 		if (!fb_is_created(handler->lb.data.fb)) {
 			DbgPrint("Buffer is not created yet - reset size\n");
-			*w = 0;
-			*h = 0;
+			w = 0;
+			h = 0;
 		}
 		break;
 	default:
 		break;
 	}
 
-	return 0;
+	return livebox_service_size_type(w, h);
 }
 
 EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const char *category, ret_cb_t cb, void *data)
@@ -1294,13 +1301,13 @@ EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char 
 	return 0;
 }
 
-EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, int *h)
+EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *size_list)
 {
 	register int i;
 	register int j;
 
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
+	if (!handler || !size_list) {
+		ErrPrint("Invalid argument, handler(%p), size_list(%p)\n", handler, size_list);
 		return -EINVAL;
 	}
 
@@ -1314,11 +1321,7 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, 
 			if (j == *cnt)
 				break;
 
-			if (w)
-				w[j] = SIZE_LIST[i].w;
-			if (h)
-				h[j] = SIZE_LIST[i].h;
-			j++;
+			size_list[j++] = (0x01 << i);
 		}
 	}
 
