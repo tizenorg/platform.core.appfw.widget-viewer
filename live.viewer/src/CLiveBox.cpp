@@ -385,11 +385,13 @@ void CLiveBox::OnUpdateLB(void)
 	int w, h;
 	int ow, oh;
 	enum livebox_lb_type type;
+	int size_type;
 
 	if (!m_pIconSlot || !m_pLBImage)
 		return;
 
-	if (livebox_get_size(m_pHandler, &w, &h) < 0)
+	size_type = livebox_size(m_pHandler);
+	if (livebox_service_get_size(size_type, &w, &h) < 0)
 		return;
 
 	/*
@@ -620,7 +622,7 @@ int CLiveBox::m_OnCreate(void)
 		return -EFAULT;
 	}
 
-	if (elm_layout_file_set(m_pIconSlot, "/usr/share/live-viewer/res/edje/live-viewer.edj", "icon,slot") == EINA_FALSE) {
+	if (elm_layout_file_set(m_pIconSlot, PKGROOT "/res/edje/live-viewer.edj", "icon,slot") == EINA_FALSE) {
 		ErrPrint("Failed to load an icon slot EDJE\n");
 		evas_object_del(m_pIconSlot);
 		m_pIconSlot = NULL;
@@ -663,25 +665,21 @@ int CLiveBox::m_OnCreate(void)
 	return 0;
 }
 
-int CLiveBox::Resize(int w, int h)
+int CLiveBox::Resize(int size_type)
 {
-	enum livebox_size_type type;
-	type = livebox_service_size_type(w, h);
-	if (type == LB_SIZE_TYPE_UNKNOWN) {
-		ErrPrint("Unsupported size type %dx%d\n", w, h);
+	if (size_type == LB_SIZE_TYPE_UNKNOWN)
 		return -1;
-	}
 
-	livebox_resize(m_pHandler, type, s_ResizeCB, this);
+	livebox_resize(m_pHandler, size_type, s_ResizeCB, this);
 	return 0;
 }
 
-int CLiveBox::GetSizeList(int *cnt, int *w, int *h)
+int CLiveBox::GetSizeList(int *cnt, int *list)
 {
-	if (!m_pHandler || !cnt || !w || !h)
+	if (!m_pHandler || !cnt || !list)
 		return -EINVAL;
 
-	return livebox_get_supported_sizes(m_pHandler, cnt, w, h);
+	return livebox_get_supported_sizes(m_pHandler, cnt, list);
 }
 
 /* End of a file */

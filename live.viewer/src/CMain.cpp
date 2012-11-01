@@ -196,7 +196,7 @@ int CMain::OnCreate(void)
 
 	layout = elm_layout_add(win);
 	if (layout) {
-		if (elm_layout_file_set(layout, "/usr/share/live-viewer/res/edje/live-viewer.edj", "layout") == EINA_FALSE) {
+		if (elm_layout_file_set(layout, PKGROOT "/res/edje/live-viewer.edj", "layout") == EINA_FALSE) {
 			evas_object_del(layout);
 			ErrPrint("Failed to load a layout edje\n");
 		} else {
@@ -301,8 +301,7 @@ static void s_ResizeBox(void *data, Evas_Object *obj, void *event_info)
 	CLiveBox *box = (CLiveBox *)data;
 	Elm_Object_Item *item;
 	const char *label;
-	int w;
-	int h;
+	int size_type;
 
 	item = elm_list_selected_item_get(obj);
 	if (!item)
@@ -312,13 +311,23 @@ static void s_ResizeBox(void *data, Evas_Object *obj, void *event_info)
 	if (!label)
 		return;
 
-	if (sscanf(label, "%dx%d", &w, &h) != 2) {
-		ErrPrint("Failed to get the WxX\n");
+	if (!strcmp(label, "1x1")) {
+		size_type = LB_SIZE_TYPE_1x1;
+	} else if (!strcmp(label, "2x1")) {
+		size_type = LB_SIZE_TYPE_2x1;
+	} else if (!strcmp(label, "2x2")) {
+		size_type = LB_SIZE_TYPE_2x2;
+	} else if (!strcmp(label, "4x1")) {
+		size_type = LB_SIZE_TYPE_4x1;
+	} else if (!strcmp(label, "4x2")) {
+		size_type = LB_SIZE_TYPE_4x2;
+	} else if (!strcmp(label, "4x4")) {
+		size_type = LB_SIZE_TYPE_4x4;
+	} else {
 		return;
 	}
 
-	DbgPrint("Size %dx%d\n", w, h);
-	box->Resize(w, h);
+	box->Resize(size_type);
 }
 
 int CMain::UpdateCtrl(CLiveBox *box)
@@ -326,9 +335,8 @@ int CMain::UpdateCtrl(CLiveBox *box)
 	Evas_Object *layout;
 	Evas_Object *list;
 	int cnt = NR_OF_SIZE_LIST;
-	int w[NR_OF_SIZE_LIST];
-	int h[NR_OF_SIZE_LIST];
-	char size_str[] = "0000x0000";
+	int size_list[NR_OF_SIZE_LIST];
+	const char *str_size_type;
 	register int i;
 	Elm_Object_Item *item;
 
@@ -340,14 +348,34 @@ int CMain::UpdateCtrl(CLiveBox *box)
 	if (!list)
 		return -EFAULT;
 
-	if (box->GetSizeList(&cnt, w, h) < 0)
+	if (box->GetSizeList(&cnt, size_list) < 0)
 		return 0;
 
 	elm_list_clear(list);
 	for (i = 0; i < cnt; i++) {
-		snprintf(size_str, sizeof(size_str), "%dx%d", w[i], h[i]);
-		DbgPrint("Size: %s\n", size_str);
-		item = elm_list_item_append(list, size_str, NULL, NULL, s_ResizeBox, box);
+		switch (size_list[i]) {
+		case LB_SIZE_TYPE_1x1:
+			str_size_type = "1x1";
+			break;
+		case LB_SIZE_TYPE_2x1:
+			str_size_type = "2x1";
+			break;
+		case LB_SIZE_TYPE_2x2:
+			str_size_type = "2x2";
+			break;
+		case LB_SIZE_TYPE_4x1:
+			str_size_type = "4x1";
+			break;
+		case LB_SIZE_TYPE_4x2:
+			str_size_type = "4x2";
+			break;
+		case LB_SIZE_TYPE_4x4:
+			str_size_type = "4x4";
+			break;
+		default:
+			continue;
+		}
+		item = elm_list_item_append(list, str_size_type, NULL, NULL, s_ResizeBox, box);
 		if (!item) {
 			ErrPrint("Failed to append a new size list\n");
 			return -EFAULT;

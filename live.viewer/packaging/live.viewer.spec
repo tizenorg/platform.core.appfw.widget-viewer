@@ -1,4 +1,4 @@
-Name: live-viewer
+Name: live.viewer
 Summary: viewer
 Version: 0.0.1
 Release: 1
@@ -37,5 +37,5 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-/usr/bin/*
-/usr/share/*
+/opt/usr/apps/live.viewer/*
+/opt/share/*
