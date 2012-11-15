@@ -32,12 +32,14 @@ static struct info {
 	struct dlist *fault_list;
 	double event_interval;
 	int init_count;
+	int prevent_overwrite;
 } s_info = {
 	.livebox_list = NULL,
 	.event_list = NULL,
 	.fault_list = NULL,
 	.event_interval = 0.01f,
 	.init_count = 0,
+	.prevent_overwrite = 0,
 };
 
 struct cb_info {
@@ -512,6 +514,9 @@ EAPI int livebox_init(void *disp)
 		s_info.init_count++;
 		return 0;
 	}
+	env = getenv("PROVIDER_DISABLE_PREVENT_OVERWRITE");
+	if (env && !strcasecmp(env, "true"))
+		s_info.prevent_overwrite = 1;
 
 	env = getenv("LIVE_EVENT_INTERVAL");
 	if (env && sscanf(env, "%lf", &s_info.event_interval) == 1)
@@ -651,7 +656,7 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
-	packet = packet_create("new", "dssssdii", handler->timestamp, pkgname, content, cluster, category, period, width, height);
+	packet = packet_create("new", "dssssdii", handler->timestamp, handler->pkgname, content, cluster, category, period, width, height);
 	if (!packet) {
 		ErrPrint("Failed to create a new packet\n");
 		free(handler->category);
@@ -673,7 +678,7 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 		return NULL;
 	}
 
-	DbgPrint("Successfully sent a new request ([%lf] %s)\n", handler->timestamp, pkgname);
+	DbgPrint("Successfully sent a new request ([%lf] %s)\n", handler->timestamp, handler->pkgname);
 	handler->state = CREATE;
 	return lb_ref(handler);
 }
@@ -2141,13 +2146,14 @@ static inline char *get_file_kept_in_safe(const char *id)
 	/*!
 	 * \TODO: REMOVE ME
 	 */
-	if (getenv("DISABLE_PREVENT_OVERWRITE")) {
+	if (s_info.prevent_overwrite) {
 		new_path = strdup(path);
 		if (!new_path)
 			ErrPrint("Heap: %s\n", strerror(errno));
 
 		return new_path;
 	}
+
 
 	len = strlen(path);
 	base_idx = len - 1;

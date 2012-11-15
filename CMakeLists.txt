@@ -40,7 +40,10 @@ ADD_DEFINITIONS("-DLOG_TAG=\"${PROJECT_NAME}\"")
 ADD_DEFINITIONS("-DNDEBUG")
 #ADD_DEFINITIONS("-DFLOG")
 ADD_DEFINITIONS("-DMASTER_PKGNAME=\"com.samsung.data-provider-master\"")
-ADD_DEFINITIONS("-DSOCKET_FILE=\"/opt/usr/share/live_magazine/.live.socket\"")
+ADD_DEFINITIONS("-DINFO_SOCKET=\"/opt/usr/share/live_magazine/.live.socket\"")
+ADD_DEFINITIONS("-DCLIENT_SOCKET=\"/opt/usr/share/live_magazine/.client.socket\"")
+ADD_DEFINITIONS("-DSLAVE_SOCKET=\"/opt/usr/share/live_magazine/.slave.socket\"")
+ADD_DEFINITIONS("-DSERVICE_SOCKET=\"/opt/usr/share/live_magazine/.service.socket\"")
 ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/dlist.c
 	src/livebox.c

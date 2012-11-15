@@ -794,7 +794,7 @@ static inline void make_connection(void)
 
 	DbgPrint("Let's making connection!\n");
 
-	s_info.fd = com_core_packet_client_init(SOCKET_FILE, 0, s_table);
+	s_info.fd = com_core_packet_client_init(CLIENT_SOCKET, 0, s_table);
 	if (s_info.fd < 0) {
 		/*!< After 10 secs later, try to connect again */
 		s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL);
@@ -870,7 +870,7 @@ int client_fd(void)
 
 const char *client_addr(void)
 {
-	return SOCKET_FILE;
+	return CLIENT_SOCKET;
 }
 
 int client_fini(void)
