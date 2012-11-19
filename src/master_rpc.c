@@ -18,6 +18,7 @@
 #include "util.h"
 
 #define DEFAULT_TTL 10
+#define REQUEST_DELAY 10
 
 struct command {
 	int ttl;
@@ -124,7 +125,7 @@ void master_rpc_check_and_fire_consumer(void)
 	if (!s_info.cmd_list || s_info.cmd_timer || client_fd() < 0)
 		return;
 
-	s_info.cmd_timer = g_timeout_add(1, cmd_consumer, NULL);
+	s_info.cmd_timer = g_timeout_add(REQUEST_DELAY, cmd_consumer, NULL);
 	if (!s_info.cmd_timer)
 		ErrPrint("Failed to add timer\n");
 }
