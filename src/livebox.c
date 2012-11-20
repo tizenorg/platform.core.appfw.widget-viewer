@@ -941,6 +941,11 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 
 EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
 {
+	return livebox_create_pd_with_position(handler, -1.0, -1.0, cb, data);
+}
+
+EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, double y, ret_cb_t cb, void *data)
+{
 	struct packet *packet;
 
 	if (!handler) {
@@ -958,7 +963,7 @@ EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return 0;
 	}
 
-	packet = packet_create("create_pd", "ss", handler->pkgname, handler->id);
+	packet = packet_create("create_pd", "ssdd", handler->pkgname, handler->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;

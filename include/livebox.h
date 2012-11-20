@@ -436,6 +436,17 @@ extern int livebox_has_pd(struct livebox *handler);
 extern int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data);
 
 /*!
+ * \brief Create the PD of given handler with the relative position from livebox
+ * \param[in] handler
+ * \param[in] x 0.0 ~ 1.0
+ * \param[in] y 0.0 ~ 1.0
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_create_pd_with_position(struct livebox *handler, double x, double y, ret_cb_t cb, void *data);
+
+/*!
  * \brief Destroy the PD of given handler if it is created.
  * \param[in] handler
  * \param[in] cb
