@@ -4,9 +4,12 @@
 #include <livebox.h>
 #include <dlog.h>
 #include <bundle.h>
+#include <app.h>
 
 #include <X11/Xlib.h>
 #include <Ecore_X.h>
+
+#include <livebox-service.h>
 
 #include "dlist.h"
 #include "CUtil.h"
@@ -381,17 +384,19 @@ void CLiveBox::OnUpdateLB(void)
 {
 	int w, h;
 	int ow, oh;
-	char buffer[LOGSIZE];
 	enum livebox_lb_type type;
-	const char *tmp;
+	int size_type;
 
 	if (!m_pIconSlot || !m_pLBImage)
 		return;
 
-	if (livebox_get_size(m_pHandler, &w, &h) < 0)
+	size_type = livebox_size(m_pHandler);
+	if (livebox_service_get_size(size_type, &w, &h) < 0)
 		return;
 
 	/*
+	char buffer[LOGSIZE];
+	const char *tmp;
 	snprintf(buffer, sizeof(buffer), "LB Updated (%dx%d)", w, h);
 	CMain::GetInstance()->AppendLog(buffer);
 
@@ -519,7 +524,6 @@ void CLiveBox::OnUpdatePD(void)
 {
 	int w;
 	int h;
-	char buffer[LOGSIZE];
 	enum livebox_pd_type type;
 
 	if (!m_pPDImage)
@@ -529,6 +533,7 @@ void CLiveBox::OnUpdatePD(void)
 		return;
 
 	/*
+	char buffer[LOGSIZE];
 	snprintf(buffer, sizeof(buffer), "PD Updated (%dx%d)", w, h);
 	CMain::GetInstance()->AppendLog(buffer);
 	*/
@@ -617,7 +622,7 @@ int CLiveBox::m_OnCreate(void)
 		return -EFAULT;
 	}
 
-	if (elm_layout_file_set(m_pIconSlot, "/usr/share/live-viewer/res/edje/live-viewer.edj", "icon,slot") == EINA_FALSE) {
+	if (elm_layout_file_set(m_pIconSlot, PKGROOT "/res/edje/live-viewer.edj", "icon,slot") == EINA_FALSE) {
 		ErrPrint("Failed to load an icon slot EDJE\n");
 		evas_object_del(m_pIconSlot);
 		m_pIconSlot = NULL;
@@ -660,18 +665,21 @@ int CLiveBox::m_OnCreate(void)
 	return 0;
 }
 
-int CLiveBox::Resize(int w, int h)
+int CLiveBox::Resize(int size_type)
 {
-	livebox_resize(m_pHandler, w, h, s_ResizeCB, this);
+	if (size_type == LB_SIZE_TYPE_UNKNOWN)
+		return -1;
+
+	livebox_resize(m_pHandler, size_type, s_ResizeCB, this);
 	return 0;
 }
 
-int CLiveBox::GetSizeList(int *cnt, int *w, int *h)
+int CLiveBox::GetSizeList(int *cnt, int *list)
 {
-	if (!m_pHandler || !cnt || !w || !h)
+	if (!m_pHandler || !cnt || !list)
 		return -EINVAL;
 
-	return livebox_get_supported_sizes(m_pHandler, cnt, w, h);
+	return livebox_get_supported_sizes(m_pHandler, cnt, list);
 }
 
 /* End of a file */

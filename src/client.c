@@ -104,11 +104,9 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	const char *id;
 	double timestamp;
 	struct livebox *handler;
-	int ret;
 
 	if (packet_get(packet, "ssd", &pkgname, &id, &timestamp) != 3) {
 		ErrPrint("Invalid arguemnt\n");
-		ret = -EINVAL;
 		goto out;
 	}
 
@@ -119,7 +117,6 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		 * This can be happens only if the user delete a livebox
 		 * right after create it before receive created event.
 		 */
-		ret = -ENOENT;
 		goto out;
 	}
 
@@ -135,38 +132,42 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		}
 	}
 
-	if (!handler->id) {
+	if (handler->created_cb) {
 		/*!
 		 * \note
-		 * This is not possible,
-		 * master_deleted can only be called after creating an instance.
+		 *
+		 * "if (handler->id == NULL)"
+		 *
+		 * The instance is not created yet.
+		 * But the master forcely destroy it and send destroyed event to this
+		 * without the created event.
+		 *
+		 * It could be destroyed when a slave has critical error(fault)
+		 * before creating an instance successfully.
 		 */
-		CRITICAL_LOG("Livebox is not created yet (%s - %s)\n", pkgname, id);
-		return NULL;
-	}
+		if (handler->created_cb == handler->deleted_cb) {
+			if (handler->created_cbdata != handler->deleted_cbdata)
+				DbgPrint("cb is same but cbdata is different (%s - %s)\n", pkgname, id);
 
-	ret = 0;
-
-	if (handler->created_cb && handler->created_cb == handler->deleted_cb) {
-		if (handler->created_cbdata != handler->deleted_cbdata)
-			CRITICAL_LOG("cb is same but cbdata is different (%s - %s)\n", pkgname, id);
+			handler->deleted_cb = NULL;
+			handler->deleted_cbdata = NULL;
+		}
 
 		DbgPrint("Call the created cb with -ECANCELED\n");
 		handler->created_cb(handler, -ECANCELED, handler->created_cbdata);
-
 		handler->created_cb = NULL;
 		handler->created_cbdata = NULL;
-		handler->deleted_cb = NULL;
-		handler->deleted_cbdata = NULL;
-	} else if (handler->deleted_cb) {
-		DbgPrint("Call the deleted cb\n");
-		handler->deleted_cb(handler, ret, handler->deleted_cbdata);
+	} else if (handler->id) {
+		if (handler->deleted_cb) {
+			DbgPrint("Call the deleted cb\n");
+			handler->deleted_cb(handler, 0, handler->deleted_cbdata);
 
-		handler->deleted_cb = NULL;
-		handler->deleted_cbdata = NULL;
-	} else {
-		DbgPrint("Call the lb,deleted\n");
-		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+			handler->deleted_cb = NULL;
+			handler->deleted_cbdata = NULL;
+		} else {
+			DbgPrint("Call the lb,deleted\n");
+			lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		}
 	}
 
 	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, id);
@@ -793,7 +794,7 @@ static inline void make_connection(void)
 
 	DbgPrint("Let's making connection!\n");
 
-	s_info.fd = com_core_packet_client_init(SOCKET_FILE, 0, s_table);
+	s_info.fd = com_core_packet_client_init(CLIENT_SOCKET, 0, s_table);
 	if (s_info.fd < 0) {
 		/*!< After 10 secs later, try to connect again */
 		s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL);
@@ -869,7 +870,7 @@ int client_fd(void)
 
 const char *client_addr(void)
 {
-	return SOCKET_FILE;
+	return CLIENT_SOCKET;
 }
 
 int client_fini(void)

@@ -21,9 +21,9 @@ public:
 	int CreatePD(void);
 	int DestroyPD(void);
 
-	int GetSizeList(int *cnt, int *w, int *h);
+	int GetSizeList(int *cnt, int *list);
 
-	int Resize(int w, int h);
+	int Resize(int size_type);
 
 private:
 	int m_OnCreate(void);

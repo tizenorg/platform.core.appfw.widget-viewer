@@ -1,4 +1,4 @@
-Name: live-viewer
+Name: live.viewer
 Summary: viewer
 Version: 0.0.1
 Release: 1
@@ -13,6 +13,10 @@ BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(appcore-efl)
 BuildRequires: pkgconfig(livebox-viewer)
 BuildRequires: pkgconfig(ecore-x)
+BuildRequires: pkgconfig(livebox-service)
+BuildRequires: pkgconfig(bundle)
+BuildRequires: pkgconfig(capi-appfw-application)
+BuildRequires: pkgconfig(capi-appfw-app-manager)
 BuildRequires: edje-bin
 
 %description
@@ -33,5 +37,5 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-/usr/bin/*
-/usr/share/*
+/opt/usr/apps/live.viewer/*
+/opt/share/*

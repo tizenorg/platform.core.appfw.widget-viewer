@@ -7,7 +7,7 @@ public:
 	int OnTerminate(void);
 	int OnPause(void);
 	int OnResume(void);
-	int OnReset(bundle *b);
+	int OnReset(service_h b);
 
 	int UpdateCtrl(CLiveBox *box);
 	int AppendLog(const char *str);

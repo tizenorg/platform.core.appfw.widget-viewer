@@ -16,20 +16,7 @@ struct livebox;
  * 700x172
  * 700x700
  */
-#define NR_OF_SIZE_LIST 6
 #define DEFAULT_PERIOD -1.0f
-
-static const struct supported_size_list {
-	int w;
-	int h;
-} SIZE_LIST[NR_OF_SIZE_LIST] = {
-	{ 172, 172 }, /*!< 1x1 */
-	{ 348, 172 }, /*!< 2x1 */
-	{ 348, 348 }, /*!< 2x2 */
-	{ 700, 348 }, /*!< 4x2 */
-	{ 700, 172 }, /*!< 4x1 */
-	{ 700, 700 }, /*!< 4x4 */
-};
 
 enum content_event_type {
 	LB_MOUSE_DOWN = 0x0001, /*!< LB mouse down event for livebox */
@@ -151,7 +138,7 @@ extern int livebox_fini(void);
  * \return handle
  */
 extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data);
-extern struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int width, int height, ret_cb_t cb, void *data);
+extern struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data);
 
 /*!
  * \brief Delete a livebox
@@ -213,13 +200,12 @@ extern int livebox_activate(const char *pkgname, ret_cb_t cb, void *data);
 /*!
  * \brief Resize the livebox
  * \param[in] handler Handler of a livebox
- * \param[in] w Width of a livebox
- * \param[in] h Height of a livebox
+ * \param[in] type Type of a livebox size, LB_SIZE_TYPE_1x1, ...
  * \param[in] cb Result callback of the resize operation.
  * \param[in] data User data for return callback
  * \return int
  */
-extern int livebox_resize(struct livebox *handler, int w, int h, ret_cb_t cb, void *data);
+extern int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *data);
 
 /*!
  * \brief Send the click event for a livebox.
@@ -365,7 +351,7 @@ extern int livebox_pdfb_refcnt(void *buffer);
  * \param[out] h
  * \return int
  */
-extern int livebox_get_size(struct livebox *handler, int *w, int *h);
+extern int livebox_size(struct livebox *handler);
 
 /*!
  * \brief Get the size of the Progressive Disclosure
@@ -384,7 +370,7 @@ extern int livebox_get_pdsize(struct livebox *handler, int *w, int *h);
  * \param[out] h
  * \return int
  */
-extern int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *w, int *h);
+extern int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *size_list);
 
 /*!
  * \brief BUFFER SIZE of the livebox if it is a buffer type
@@ -448,6 +434,17 @@ extern int livebox_has_pd(struct livebox *handler);
  * \return int
  */
 extern int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Create the PD of given handler with the relative position from livebox
+ * \param[in] handler
+ * \param[in] x 0.0 ~ 1.0
+ * \param[in] y 0.0 ~ 1.0
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ */
+extern int livebox_create_pd_with_position(struct livebox *handler, double x, double y, ret_cb_t cb, void *data);
 
 /*!
  * \brief Destroy the PD of given handler if it is created.

@@ -5,8 +5,11 @@
 
 #include <dlog.h>
 #include <ail.h>
+#include <app.h>
+#include <bundle.h>
 
 #include <livebox.h>
+#include <livebox-service.h>
 
 #include "dlist.h"
 #include "CUtil.h"
@@ -193,7 +196,7 @@ int CMain::OnCreate(void)
 
 	layout = elm_layout_add(win);
 	if (layout) {
-		if (elm_layout_file_set(layout, "/usr/share/live-viewer/res/edje/live-viewer.edj", "layout") == EINA_FALSE) {
+		if (elm_layout_file_set(layout, PKGROOT "/res/edje/live-viewer.edj", "layout") == EINA_FALSE) {
 			evas_object_del(layout);
 			ErrPrint("Failed to load a layout edje\n");
 		} else {
@@ -238,40 +241,41 @@ int CMain::OnResume(void)
 	return 0;
 }
 
-int CMain::OnReset(bundle *b)
+int CMain::OnReset(service_h service)
 {
-	const char *tmp;
-	const char *pkgname;
-	const char *cluster;
-	const char *category;
-	const char *content;
+	char *tmp;
+	char *pkgname;
+	char *cluster;
+	char *category;
+	char *content;
 	double period;
 	CLiveBox *box;
+	int ret;
 
-	pkgname = bundle_get_val(b, "pkgname");
-	if (!pkgname) {
+	ret = service_get_extra_data(service, "pkgname", &pkgname);
+	if (ret != SERVICE_ERROR_NONE) {
 		DbgPrint("reset ignored\n");
 		return 0;
 	}
 
-	cluster = bundle_get_val(b, "cluster");
-	if (!cluster)
+	ret = service_get_extra_data(service, "cluster", &cluster);
+	if (ret != SERVICE_ERROR_NONE)
 		cluster = "user,created";
 
-	category = bundle_get_val(b, "category");
-	if (!category)
+	ret = service_get_extra_data(service, "category", &category);
+	if (ret != SERVICE_ERROR_NONE)
 		category = "default";
 
-	content = bundle_get_val(b, "content");
-	if (!content)
+	ret = service_get_extra_data(service, "content", &content);
+	if (ret != SERVICE_ERROR_NONE)
 		content = NULL;
 
-	tmp = bundle_get_val(b, "verbose");
-	if (!tmp || sscanf(tmp, "%d", &m_fVerbose) != 1)
+	ret = service_get_extra_data(service, "verbose", &tmp);
+	if (ret != SERVICE_ERROR_NONE || !tmp || sscanf(tmp, "%d", &m_fVerbose) != 1)
 		m_fVerbose = 0;
 
-	tmp = bundle_get_val(b, "period");
-	if (!tmp || sscanf(tmp, "%lf", &period) != 1)
+	ret = service_get_extra_data(service, "period", &tmp);
+	if (ret != SERVICE_ERROR_NONE || !tmp || sscanf(tmp, "%lf", &period) != 1)
 		period = DEFAULT_PERIOD;
 
 	DbgPrint("App reset (dump info)\n");
@@ -297,8 +301,7 @@ static void s_ResizeBox(void *data, Evas_Object *obj, void *event_info)
 	CLiveBox *box = (CLiveBox *)data;
 	Elm_Object_Item *item;
 	const char *label;
-	int w;
-	int h;
+	int size_type;
 
 	item = elm_list_selected_item_get(obj);
 	if (!item)
@@ -308,13 +311,23 @@ static void s_ResizeBox(void *data, Evas_Object *obj, void *event_info)
 	if (!label)
 		return;
 
-	if (sscanf(label, "%dx%d", &w, &h) != 2) {
-		ErrPrint("Failed to get the WxX\n");
+	if (!strcmp(label, "1x1")) {
+		size_type = LB_SIZE_TYPE_1x1;
+	} else if (!strcmp(label, "2x1")) {
+		size_type = LB_SIZE_TYPE_2x1;
+	} else if (!strcmp(label, "2x2")) {
+		size_type = LB_SIZE_TYPE_2x2;
+	} else if (!strcmp(label, "4x1")) {
+		size_type = LB_SIZE_TYPE_4x1;
+	} else if (!strcmp(label, "4x2")) {
+		size_type = LB_SIZE_TYPE_4x2;
+	} else if (!strcmp(label, "4x4")) {
+		size_type = LB_SIZE_TYPE_4x4;
+	} else {
 		return;
 	}
 
-	DbgPrint("Size %dx%d\n", w, h);
-	box->Resize(w, h);
+	box->Resize(size_type);
 }
 
 int CMain::UpdateCtrl(CLiveBox *box)
@@ -322,9 +335,8 @@ int CMain::UpdateCtrl(CLiveBox *box)
 	Evas_Object *layout;
 	Evas_Object *list;
 	int cnt = NR_OF_SIZE_LIST;
-	int w[NR_OF_SIZE_LIST];
-	int h[NR_OF_SIZE_LIST];
-	char size_str[] = "0000x0000";
+	int size_list[NR_OF_SIZE_LIST];
+	const char *str_size_type;
 	register int i;
 	Elm_Object_Item *item;
 
@@ -336,14 +348,34 @@ int CMain::UpdateCtrl(CLiveBox *box)
 	if (!list)
 		return -EFAULT;
 
-	if (box->GetSizeList(&cnt, w, h) < 0)
+	if (box->GetSizeList(&cnt, size_list) < 0)
 		return 0;
 
 	elm_list_clear(list);
 	for (i = 0; i < cnt; i++) {
-		snprintf(size_str, sizeof(size_str), "%dx%d", w[i], h[i]);
-		DbgPrint("Size: %s\n", size_str);
-		item = elm_list_item_append(list, size_str, NULL, NULL, s_ResizeBox, box);
+		switch (size_list[i]) {
+		case LB_SIZE_TYPE_1x1:
+			str_size_type = "1x1";
+			break;
+		case LB_SIZE_TYPE_2x1:
+			str_size_type = "2x1";
+			break;
+		case LB_SIZE_TYPE_2x2:
+			str_size_type = "2x2";
+			break;
+		case LB_SIZE_TYPE_4x1:
+			str_size_type = "4x1";
+			break;
+		case LB_SIZE_TYPE_4x2:
+			str_size_type = "4x2";
+			break;
+		case LB_SIZE_TYPE_4x4:
+			str_size_type = "4x4";
+			break;
+		default:
+			continue;
+		}
+		item = elm_list_item_append(list, str_size_type, NULL, NULL, s_ResizeBox, box);
 		if (!item) {
 			ErrPrint("Failed to append a new size list\n");
 			return -EFAULT;
@@ -367,53 +399,54 @@ CMain *CMain::GetInstance(void)
 	return CMain::m_pInstance;
 }
 
-static int app_create(void *data)
+static bool app_create(void *data)
 {
 	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnCreate();
-	return 0;
+	return true;
 }
 
-static int app_terminate(void *data)
+static void app_terminate(void *data)
 {
 	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnTerminate();
-	return 0;
 }
 
-static int app_pause(void *data)
+static void app_pause(void *data)
 {
 	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnPause();
-	return 0;
 }
 
-static int app_resume(void *data)
+static void app_resume(void *data)
 {
 	DbgPrint("[%s:%d]\n", __func__, __LINE__);
 	CMain::GetInstance()->OnResume();
-	return 0;
 }
 
-static int app_reset(bundle *b, void *data)
+static void app_reset(service_h service, void *data)
 {
 	DbgPrint("[%s:%d]\n", __func__, __LINE__);
-	CMain::GetInstance()->OnReset(b);
-	return 0;
+	CMain::GetInstance()->OnReset(service);
 }
 
 int main(int argc, char *argv[])
 {
-	struct appcore_ops ops;
+	int ret;
+	app_event_callback_s event_callback;
 
-	ops.create = app_create;
-	ops.terminate = app_terminate;
-	ops.pause = app_pause;
-	ops.resume = app_resume;
-	ops.reset = app_reset;
-	ops.data = NULL;
+	event_callback.create = app_create;
+	event_callback.terminate = app_terminate;
+	event_callback.pause = app_pause;
+	event_callback.resume = app_resume;
+	event_callback.service = app_reset;
+	event_callback.low_memory = NULL;
+	event_callback.low_battery = NULL;
+	event_callback.device_orientation = NULL;
+	event_callback.language_changed = NULL;
 
-	return appcore_efl_main("live-viewer", &argc, &argv, &ops);
+	ret = app_efl_main(&argc, &argv, &event_callback, NULL);
+	return ret;
 }
 
 /* End of a file */
