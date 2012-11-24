@@ -697,7 +697,7 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 {
 	struct packet *packet;
 
-	if (!handler || !handler->id || handler->state != CREATE) {
+	if (!handler || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return -EINVAL;
 	}
@@ -1173,7 +1173,7 @@ EAPI const char *livebox_filename(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state != CREATE) {
+	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -1996,7 +1996,7 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 		return -EINVAL;
 	}
 
-	if (handler->state != CREATE)
+	if (handler->state != CREATE || !handler->id)
 		return -EINVAL;
 
 	if (!handler->is_user) {
