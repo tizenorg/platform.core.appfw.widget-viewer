@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <stdlib.h> /* malloc */
 #include <string.h> /* strdup */
+#include <math.h>
 
 #include <aul.h>
 #include <dlog.h>
@@ -21,6 +22,7 @@
 #include "critical_log.h"
 
 #define EAPI __attribute__((visibility("default")))
+#define MINIMUM_EVENT	0.02f
 
 #if defined(FLOG)
 FILE *__file_log_fp;
@@ -117,7 +119,7 @@ static inline void destroy_cb_info(struct cb_info *info)
  * If the event occurs too fast to handle them correctly,
  * just ignore them.
  */
-static int update_event_timestamp(struct livebox *handler)
+static inline int update_event_timestamp(struct livebox *handler)
 {
 	double now;
 	double interval;
@@ -133,6 +135,32 @@ static int update_event_timestamp(struct livebox *handler)
 
 	handler->event_timestamp = now;
 	return 0;
+}
+
+static inline int update_event_changes_pd(struct livebox *handler, double x, double y)
+{
+	int ret = 0;
+
+	if (fabs(handler->pd.x - x) <= MINIMUM_EVENT && fabs(handler->pd.y - y) <= MINIMUM_EVENT)
+		ret = -EBUSY;
+
+	DbgPrint("%lfx%lf\n", x, y);
+	handler->pd.x = x;
+	handler->pd.y = y;
+	return ret;
+}
+
+static inline int update_event_changes_lb(struct livebox *handler, double x, double y)
+{
+	int ret = 0;
+
+	if (fabs(handler->lb.x - x) <= MINIMUM_EVENT && fabs(handler->pd.y - y) <= MINIMUM_EVENT)
+		ret = -EBUSY;
+
+	DbgPrint("%lfx%lf\n", x, y);
+	handler->lb.x = x;
+	handler->lb.y = y;
+	return ret;
 }
 
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -1049,6 +1077,9 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		cmd = "lb_mouse_down";
 		w = handler->lb.width;
 		h = handler->lb.height;
+
+		handler->lb.x = 0.0f;
+		handler->lb.y = 0.0f;
 		break;
 
 	case LB_MOUSE_UP:
@@ -1069,6 +1100,10 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		}
 
 		ret = update_event_timestamp(handler);
+		if (ret < 0)
+			return ret;
+
+		ret = update_event_changes_lb(handler, x, y);
 		if (ret < 0)
 			return ret;
 
@@ -1130,6 +1165,9 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		cmd = "pd_mouse_down";
 		w = handler->pd.width;
 		h = handler->pd.height;
+
+		handler->pd.x = 0.0f;
+		handler->pd.y = 0.0f;
 		break;
 
 	case PD_MOUSE_MOVE:
@@ -1139,6 +1177,10 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		}
 
 		ret = update_event_timestamp(handler);
+		if (ret < 0)
+			return ret;
+
+		ret = update_event_changes_pd(handler, x, y);
 		if (ret < 0)
 			return ret;
 

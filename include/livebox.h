@@ -76,9 +76,9 @@ enum livebox_fault_type {
 
 enum livebox_visible_state { /*!< Must be sync'd with the provider */
 	LB_SHOW = 0x00, /*!< Livebox is showed. Default state */
-	LB_HIDE = 0x01, /*!< Livebox is hide, with no update event, but keep update timer */
+	LB_HIDE = 0x01, /*!< Livebox is hide, Update timer is not be freezed. but you cannot receive any updates events. you should refresh(reload) the content of a livebox when you make this show again */
 
-	LB_HIDE_WITH_PAUSE = 0x02, /*!< Livebix is hide, it needs to be paused (with freezed update timer) */
+	LB_HIDE_WITH_PAUSE = 0x02, /*!< Livebix is hide, it will paused the update timer, but if a livebox update its contents, update event will come to you */
 
 	LB_VISIBLE_ERROR = 0xFFFFFFFF, /* To enlarge the size of this enumeration type */
 };
