@@ -59,9 +59,7 @@ Evas_Object *CUtil::CreateCanvasImage(Evas_Object *parent, int w, int h)
 
 	evas_object_image_colorspace_set(pCanvasImage, EVAS_COLORSPACE_ARGB8888);
 	evas_object_image_alpha_set(pCanvasImage, EINA_TRUE);
-
 	evas_object_move(pCanvasImage, 0, 0);
-	evas_object_resize(pCanvasImage, w, h);
 
 	return pCanvasImage;
 }

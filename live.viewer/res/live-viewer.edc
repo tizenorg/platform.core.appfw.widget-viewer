@@ -19,35 +19,24 @@ collections {
 			}
 
 			part {
-				name: "viewer";
+				name: "delete,btn";
 				type: SWALLOW;
 				mouse_events: 1;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 10/720 1.0; to, "indicator"; }
-					rel2 { relative: 710/720 800/1280; }
+					rel1 { relative: 4/720 1.0; to_y, "viewer"; }
+					rel2 { relative: 716/720 850/1280; }
 				}
 			}
 
 			part {
-				name: "controller";
+				name: "controller"; /* size list */
 				type: SWALLOW;
 				mouse_events: 1;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 0.0 1.0; to_y, "viewer"; }
-					rel2 { relative: 0.3 1230/1280; }
-				}
-			}
-
-			part {
-				name: "pd"; /* button ctrl */
-				type: SWALLOW;
-				mouse_events: 1;
-				description {
-					state: "default" 0.0;
-					rel1 { relative: 0.0 1.0; to_y, "controller"; }
-					rel2 { relative: 1.0 1.0; to_x, "controller"; }
+					rel1 { relative: 0.0 1.0; to_y, "delete,btn"; }
+					rel2 { relative: 0.3 1.0; }
 				}
 			}
 
@@ -57,25 +46,39 @@ collections {
 				mouse_events: 1;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 1.0 1.0; to_x: "controller"; to_y: "viewer"; }
+					rel1 { relative: 1.0 1.0; to_x: "controller"; to_y: "delete,btn"; }
 					rel2 { relative: 1.0 1.0; }
 				}
 			}
-		}
-	}
 
-	group {
-		name: "icon,slot";
-		parts {
 			part {
-				name: "bg";
+				name: "viewer";
+				type: RECT;
+				mouse_events: 1;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 4/720 1.0; to, "indicator"; }
+					rel2 { relative: 716/720 800/1280; }
+					color: 255 255 255 255;
+				}
+			}
+
+			part {
+				name: "event,blocker";
 				type: RECT;
 				mouse_events: 1;
 				description {
 					state: "default" 0.0;
 					rel1 { relative: 0.0 0.0; }
 					rel2 { relative: 1.0 1.0; }
-					color: 0 0 0 255;
+					color: 0 0 0 0;
+					visible: 0;
+				}
+				description {
+					state: "show" 0.0;
+					inherit: "default" 0.0;
+					color: 50 50 50 50;
+					visible: 1;
 				}
 			}
 
@@ -85,51 +88,8 @@ collections {
 				mouse_events: 1;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 0.0 0.0; }
-					rel2 { relative: 1.0 1.0; }
-					align: 0.5 1.0;
-				}
-
-				description {
-					state: "size_172x172" 0.0;
-					inherit: "default" 0.0;
-					rel1 { relative: ((700-172)/2.0)/700 ((700-172)/2.0)/700; }
-					rel2 { relative: ((700+172)/2.0)/700 ((700+172)/2.0)/700; }
-				}
-
-				description {
-					state: "size_348x172" 0.0;
-					inherit: "default" 0.0;
-					rel1 { relative: ((700-348)/2.0)/700 ((700-172)/2.0)/700; }
-					rel2 { relative: ((700+348)/2.0)/700 ((700+172)/2.0)/700; }
-				}
-
-				description {
-					state: "size_348x348" 0.0;
-					inherit: "default" 0.0;
-					rel1 { relative: ((700-348)/2.0)/700 ((700-348)/2.0)/700; }
-					rel2 { relative: ((700+348)/2.0)/700 ((700+348)/2.0)/700; }
-				}
-
-				description {
-					state: "size_700x172" 0.0;
-					inherit: "default" 0.0;
-					rel1 { relative: 0.0 ((700-172)/2.0)/700; }
-					rel2 { relative: 1.0 ((700+172)/2.0)/700; }
-				}
-
-				description {
-					state: "size_700x348" 0.0;
-					inherit: "default" 0.0;
-					rel1 { relative: 0.0 ((700-348)/2.0)/700; }
-					rel2 { relative: 1.0 ((700+348)/2.0)/700; }
-				}
-
-				description {
-					state: "size_700x700" 0.0;
-					inherit: "default" 0.0;
-					rel1 { relative: 0.0 0.0; }
-					rel2 { relative: 1.0 1.0; }
+					rel1 { relative: 0.4 0.4; to, "viewer"; }
+					rel2 { relative: 0.6 0.6; to, "viewer"; }
 				}
 			}
 
@@ -139,91 +99,60 @@ collections {
 				mouse_events: 1;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 0.0 -1.0; }
-					rel2 { relative: 1.0 0.0; }
-					align: 0.5 1.0;
+					rel1 { relative: 0.0 0.95; to_y, "livebox"; }
+					rel2 { relative: 1.0 1.0; to_y, "livebox"; }
+					visible: 0;
+					align: 0.0 0.0;
 				}
 
 				description {
-					state: "open" 0.0;
-					rel1 { relative: 0.0 0.0; }
+					state: "show" 0.0;
+					rel1 { relative: 0.0 1.0; to_y, "livebox"; }
 					rel2 { relative: 1.0 1.0; }
-					align: 0.5 0.0;
+					visible: 1;
+					align: 0.0 0.0;
 				}
 			}
-
 		}
 
 		programs {
 			program {
-				name: "pd,open";
-				signal: "open";
+				name: "open,pd";
 				source: "pd";
-				action: STATE_SET "open" 0.0;
+				signal: "open";
+				action: STATE_SET "show" 0.0;
 				target: "pd";
-				transition: LINEAR 0.3;
+				target: "event,blocker";
+				transition: LINEAR 0.2;
 			}
 			program {
-				name: "pd,close";
-				signal: "close";
+				name: "hide,pd";
 				source: "pd";
+				signal: "close";
 				action: STATE_SET "default" 0.0;
 				target: "pd";
-				transition: LINEAR 0.3;
-				after: "pd,closed";
-			}
-			program {
-				name: "pd,closed";
-				action: SIGNAL_EMIT "closed" "pd";
+				target: "event,blocker";
+				transition: LINEAR 0.1;
+				after: "hide,pd,done";
 			}
 
 			program {
-				name: "lb,172x172";
-				signal: "resize,to,172x172";
-				source: "livebox";
-				action: STATE_SET "size_172x172" 0.0;
-				target: "livebox";
-				transition: LINEAR 0.5;
+				name: "hide,pd,done";
+				action: SIGNAL_EMIT "hide,done" "pd";
 			}
+
 			program {
-				name: "lb,348x172";
-				signal: "resize,to,348x172";
-				source: "livebox";
-				action: STATE_SET "size_348x172" 0.0;
-				target: "livebox";
-				transition: LINEAR 0.5;
+				name: "event,blocker";
+				source: "event,blocker";
+				signal: "mouse,clicked,1";
+				action: SIGNAL_EMIT "close" "pd";
 			}
+
 			program {
-				name: "lb,348x348";
-				signal: "resize,to,348x348";
-				source: "livebox";
-				action: STATE_SET "size_348x348" 0.0;
-				target: "livebox";
-				transition: LINEAR 0.5;
-			}
-			program {
-				name: "lb,700x172";
-				signal: "resize,to,700x172";
-				source: "livebox";
-				action: STATE_SET "size_700x172" 0.0;
-				target: "livebox";
-				transition: LINEAR 0.5;
-			}
-			program {
-				name: "lb,700x348";
-				signal: "resize,to,700x348";
-				source: "livebox";
-				action: STATE_SET "size_700x348" 0.0;
-				target: "livebox";
-				transition: LINEAR 0.5;
-			}
-			program {
-				name: "lb,700x700";
-				signal: "resize,to,700x700";
-				source: "livebox";
-				action: STATE_SET "size_700x700" 0.0;
-				target: "livebox";
-				transition: LINEAR 0.5;
+				name: "pd,close,pd";
+				source: "viewer";
+				signal: "mouse,clicked,1";
+				action: SIGNAL_EMIT "close" "pd";
 			}
 		}
 	}
