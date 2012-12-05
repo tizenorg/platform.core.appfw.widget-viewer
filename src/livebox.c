@@ -646,6 +646,8 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 			free(handler);
 			return NULL;
 		}
+	} else {
+		handler->content = livebox_service_content(handler->pkgname);
 	}
 
 	handler->cluster = strdup(cluster);
@@ -684,7 +686,7 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
-	packet = packet_create("new", "dssssdii", handler->timestamp, handler->pkgname, content, cluster, category, period, width, height);
+	packet = packet_create("new", "dssssdii", handler->timestamp, handler->pkgname, handler->content, cluster, category, period, width, height);
 	if (!packet) {
 		ErrPrint("Failed to create a new packet\n");
 		free(handler->category);

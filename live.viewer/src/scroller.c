@@ -126,8 +126,8 @@ static Eina_Bool bg_change_cb(void *data)
 	if (scinfo)
 		scinfo->bg_changer = NULL;
 
-	/*
-	 * NOTE:
+	/*!
+	 * \note:
 	 *  Here,
 	 *  Filename of background image handling code is only
 	 *  used to demonstrates UX concept and estimates its perfomance.
@@ -146,7 +146,8 @@ static void sc_anim_start(void *data, Evas_Object *obj, void *event_info)
 	if (!scinfo)
 		return;
 
-	/* \note
+	/*!
+	 * \note
 	 * without drag,start
 	 * anim start can be invoked by the scroller_anim_to
 	 */
