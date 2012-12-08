@@ -32,8 +32,10 @@ void scroller_lock(Evas_Object *sc)
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(sc, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return;
+	}
 
 	if (!scinfo->locked)
 		live_scroller_freeze(sc);
@@ -46,8 +48,10 @@ void scroller_unlock(Evas_Object *sc)
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(sc, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return;
+	}
 
 	if (scinfo->locked == 0)
 		return;
@@ -66,8 +70,10 @@ static void sc_anim_stop(void *data, Evas_Object *obj, void *event_info)
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(obj, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return;
+	}
 	/*!
 	 * \TODO
 	 * Do what you want at here when the scroller is stopped
@@ -89,8 +95,10 @@ static inline void sc_drag_start(void *data, Evas_Object *obj, void *event_info)
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(obj, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return;
+	}
 
 	scinfo->scrolling = EINA_TRUE;
 }
@@ -143,8 +151,10 @@ static void sc_anim_start(void *data, Evas_Object *obj, void *event_info)
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(obj, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return;
+	}
 
 	/*!
 	 * \note
@@ -242,8 +252,10 @@ int scroller_add_stop_cb(Evas_Object *scroller,
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(scroller, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return -EINVAL;
+	}
 
 	item = calloc(1, sizeof(*item));
 	if (!item) {
@@ -303,6 +315,7 @@ Evas_Object *scroller_create(Evas_Object *ctrl)
 
 	scinfo->map = evas_map_new(4);
 	if (!scinfo->map) {
+		ErrPrint("Failed to create a map object\n");
 		evas_object_del(sc);
 		free(scinfo);
 		return NULL;
@@ -311,8 +324,7 @@ Evas_Object *scroller_create(Evas_Object *ctrl)
 	evas_map_smooth_set(scinfo->map, EINA_TRUE);
 	evas_map_alpha_set(scinfo->map, EINA_TRUE);
 
-	evas_object_size_hint_weight_set(sc,
-					EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_weight_set(sc, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	evas_object_smart_callback_add(sc, "drag,start", sc_drag_start, NULL);
 	evas_object_smart_callback_add(sc, "drag,stop", sc_drag_stop, NULL);
 	evas_object_smart_callback_add(sc, "anim,stop", sc_anim_stop, NULL);
@@ -360,8 +372,10 @@ int scroller_is_scrolling(Evas_Object *sc)
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(sc, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return -EINVAL;
+	}
 
 	return scinfo->scrolling;
 }
@@ -381,8 +395,10 @@ int scroller_scroll_to(Evas_Object *sc, int idx)
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(sc, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return -EINVAL;
+	}
 
 	if (scinfo->scrolling) {
 		DbgPrint("Scroller is scrolling\n");
@@ -394,7 +410,7 @@ int scroller_scroll_to(Evas_Object *sc, int idx)
 
 	i = curidx;
 	next_offset = 0;
-	while (i != idx/* && i >= 0 && i < cnt*/) {
+	while (i != idx && i >= 0 && i < cnt) {
 		i++;
 		if (i >= cnt)
 			i = 0;
@@ -404,7 +420,7 @@ int scroller_scroll_to(Evas_Object *sc, int idx)
 
 	i = curidx;
 	prev_offset = 0;
-	while (i != idx/* && i >= 0 && i < cnt*/) {
+	while (i != idx && i >= 0 && i < cnt) {
 		i--;
 		if (i < 0)
 			i = cnt - 1;
@@ -455,8 +471,10 @@ int scroller_update(Evas_Object *sc, void *data)
 	struct scroll_info *scinfo;
 
 	scinfo = evas_object_data_get(sc, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return -EFAULT;
+	}
 
 	scinfo->focal = (int)data;
 	live_scroller_update(sc);
@@ -479,8 +497,10 @@ void scroller_quick_navi(Evas_Object *sc, Eina_Bool val)
 {
 	struct scroll_info *scinfo;
 	scinfo = evas_object_data_get(sc, "scinfo");
-	if (!scinfo)
+	if (!scinfo) {
+		ErrPrint("scinfo is not valid\n");
 		return;
+	}
 
 	scinfo->quick = val;
 }

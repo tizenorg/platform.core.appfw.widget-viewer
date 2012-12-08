@@ -180,17 +180,21 @@ static inline struct item_list_entry *list_item_remove(struct item_list_entry *l
 {
 	struct item_list_entry *item;
 
-	if (!list)
+	if (!list) {
+		ErrPrint("List is not valid\n");
 		return NULL;
+	}
 
+	DbgPrint("Start\n");
 	item = list;
 	do {
 		if (LIST_DATA(item) == data) {
+			DbgPrint("ITEM is removed\n");
 			if (item == list) {
-				if (list == list->next)
+				if (list == LIST_NEXT(list))
 					list = NULL;
 				else
-					list = list->next;
+					list = LIST_NEXT(list);
 			}
 
 			item->prev->next = item->next;
@@ -198,7 +202,10 @@ static inline struct item_list_entry *list_item_remove(struct item_list_entry *l
 			free(item);
 			break;
 		}
+
+		item = LIST_NEXT(item);
 	} while (item != list);
+	DbgPrint("End\n");
 
 	return list;
 }
@@ -241,6 +248,7 @@ static inline int list_item_idx(struct widget_data *sc_data, struct item_list_en
 {
 	int idx;
 	idx = 0;
+
 	while (ilist != sc_data->item_list) {
 		idx++;
 		ilist = LIST_PREV(ilist);
@@ -334,13 +342,14 @@ static inline int calc_anim_dx_with_dir(struct widget_data *sc_data, int *dir)
 	sc_data->sc_anim_dx = 0;
 
 	if (*dir < 0) {
-		/* MOVE to LEFT */
+		DbgPrint("MOVE to LEFT\n");
 		if (x < sc_data->clip_bx) {
 			(*dir)++;
 
 			if (sc_data->tolist == sc_data->item_list) {
 				if (!sc_data->is_loop) {
 					*dir = 0;
+					DbgPrint("Looping is disabled\n");
 					return -EINVAL;
 				}
 			}
@@ -351,7 +360,7 @@ static inline int calc_anim_dx_with_dir(struct widget_data *sc_data, int *dir)
 			sc_data->sc_anim_dx = sc_data->clip_bx - x;
 		}
 	} else if (*dir > 0) {
-		/* MOVE to RIGHT */
+		DbgPrint("MOVE to RIGHT\n");
 		if (x < sc_data->clip_bx) {
 			sc_data->sc_anim_dx = sc_data->clip_bx - x;
 		} else if (x > sc_data->clip_bx) {
@@ -362,6 +371,7 @@ static inline int calc_anim_dx_with_dir(struct widget_data *sc_data, int *dir)
 			if (newlist == sc_data->item_list) {
 				if (!sc_data->is_loop) {
 					*dir = 0;
+					DbgPrint("Looping is disabled\n");
 					return -EINVAL;
 				}
 			}
@@ -501,8 +511,7 @@ static Eina_Bool emulate_evt(void *data)
 		int idx;
 
 		idx = list_item_idx(sc_data, newlist);
-		evas_object_smart_callback_call(
-				sc_data->scroller, "page,changed", (void *)idx);
+		evas_object_smart_callback_call(sc_data->scroller, "page,changed", (void *)idx);
 	}
 	PROFILE_END();
 	return ECORE_CALLBACK_RENEW;
@@ -682,8 +691,10 @@ static void live_del(Evas_Object *scroller)
 	struct item_list_entry *next;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return;
+	}
 
 	ilist = sc_data->item_list;
 	if (ilist) {
@@ -714,8 +725,10 @@ static void live_move(Evas_Object *scroller, Evas_Coord bx, Evas_Coord by)
 	struct item_list_entry *n;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return;
+	}
 
 	evas_object_geometry_get(sc_data->clip, &x, &y, &bw, NULL);
 
@@ -746,8 +759,10 @@ static void live_resize(Evas_Object *scroller, Evas_Coord w, Evas_Coord h)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return;
+	}
 
 	evas_object_resize(sc_data->clip, w, h);
 	evas_object_resize(sc_data->evt_layer, w, h);
@@ -760,8 +775,10 @@ static void live_show(Evas_Object *scroller)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return;
+	}
 
 	evas_object_show(sc_data->clip);
 }
@@ -771,8 +788,10 @@ static void live_hide(Evas_Object *scroller)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return;
+	}
 
 	evas_object_hide(sc_data->clip);
 }
@@ -782,8 +801,10 @@ static void live_set_color(Evas_Object *scroller, int r, int g, int b, int a)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return;
+	}
 
 	evas_object_color_set(sc_data->clip, r, g, b, a);
 }
@@ -793,8 +814,10 @@ static void live_set_clip(Evas_Object *scroller, Evas_Object *clip)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return;
+	}
 
 	evas_object_clip_set(sc_data->clip, clip);
 }
@@ -804,8 +827,10 @@ static void live_unset_clip(Evas_Object *scroller)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return;
+	}
 
 	evas_object_clip_unset(sc_data->clip);
 }
@@ -865,7 +890,9 @@ static Eina_Bool sc_anim_cb(void *data)
 
 	LIST_ITEM_GEO_GET(ilist, &sx, &y, &sw, NULL);
 	if (ilist == sc_data->tolist) {
+		DbgPrint("next list == tolist\n");
 		dx = abs(sx - sc_data->clip_bx);
+		DbgPrint("sx: %d, clip_bx: %d --> %d\n", sx, sc_data->clip_bx, dx);
 		if (dx < abs(sc_data->sc_anim_dx)) {
 			if (sc_data->sc_anim_dx < 0)
 				dx = -dx;
@@ -874,6 +901,7 @@ static Eina_Bool sc_anim_cb(void *data)
 		}
 	} else {
 		dx = sc_data->sc_anim_dx;
+		DbgPrint("dx: %d\n", dx);
 	}
 
 	if (!dx) {
@@ -886,8 +914,7 @@ static Eina_Bool sc_anim_cb(void *data)
 		int idx;
 
 		idx = list_item_idx(sc_data, ilist);
-		evas_object_smart_callback_call(sc_data->scroller,
-						"page,changed", (void *)idx);
+		evas_object_smart_callback_call(sc_data->scroller,"page,changed", (void *)idx);
 	}
 	PROFILE_END();
 	return ECORE_CALLBACK_RENEW;
@@ -938,17 +965,28 @@ int live_scroller_append(Evas_Object *scroller, Evas_Object *item)
 	Evas_Coord bx, by, bw, bh;
 	struct widget_data *sc_data;
 	struct item_list_entry *tmplist;
+	Evas_Coord start_x = 0;
+	Evas_Coord start_w = 0;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
 
 	evas_object_geometry_get(sc_data->clip, &bx, &by, &bw, &bh);
+
+	if (sc_data->item_list)
+		LIST_ITEM_GEO_GET(sc_data->item_list, &start_x, NULL, &start_w, NULL);
 
 	tmplist = list_item_last_list(sc_data->item_list);
 	if (tmplist) {
 		LIST_ITEM_GEO_GET(tmplist, &x, NULL, &w, NULL);
-		x += w;
+		if (x + w == start_x) {
+			x = start_x - w;
+		} else {
+			x += w;
+		}
 	} else {
 		x = bx;
 	}
@@ -982,19 +1020,40 @@ int live_scroller_remove_by_obj(Evas_Object *scroller, Evas_Object *obj)
 	Evas_Object *item;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
+
+	if (sc_data->curlist) {
+		if (LIST_DATA(sc_data->curlist) == obj) {
+			sc_data->curlist = sc_data->item_list;
+			DbgPrint("Reset curlist\n");
+		}
+	}
+
+	if (sc_data->tolist) {
+		if (LIST_DATA(sc_data->tolist) == obj) {
+			sc_data->tolist = sc_data->item_list;
+			DbgPrint("Reset tolist\n");
+		}
+	}
 
 	tmplist = list_item_remove(sc_data->item_list, obj);
-	if (sc_data->item_list == sc_data->curlist)
+	if (sc_data->item_list == sc_data->curlist) {
 		sc_data->curlist = tmplist;
-	if (sc_data->item_list == sc_data->tolist)
+		DbgPrint("Update curlist\n");
+	}
+	if (sc_data->item_list == sc_data->tolist) {
 		sc_data->tolist = tmplist;
+		DbgPrint("Update tolist\n");
+	}
 	sc_data->item_list = tmplist;
 
 	sc_data->item_cnt--;
 	evas_object_clip_unset(obj);
 	evas_object_smart_member_del(obj);
+	DbgPrint("Count of items: %d\n", sc_data->item_cnt);
 
 	item = LIST_DATA(sc_data->curlist);
 	if (item) {
@@ -1002,12 +1061,14 @@ int live_scroller_remove_by_obj(Evas_Object *scroller, Evas_Object *obj)
 		int idx;
 
 		LIST_ITEM_GEO_GET(sc_data->curlist, NULL, &y, &w, &h);
+		DbgPrint("Current GEO: %d, %dx%d\n", y, w, h);
 		LIST_ITEM_GEO_SET(sc_data->curlist, sc_data->clip_bx, y, w, h);
+		DbgPrint("sc_data->curlist : %p\n", sc_data->curlist);
 		update_items_geo(sc_data, 0);
+		DbgPrint("sc_data->curlist : %p\n", sc_data->curlist);
 
 		idx = list_item_idx(sc_data, sc_data->curlist);
-		evas_object_smart_callback_call(sc_data->scroller,
-						"page,changed", (void *)idx);
+		evas_object_smart_callback_call(sc_data->scroller, "page,changed", (void *)idx);
 	}
 
 	return 0;
@@ -1021,8 +1082,10 @@ Evas_Object *live_scroller_remove(Evas_Object *scroller, int idx)
 	Evas_Object *item;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return NULL;
+	}
 
 	if (idx < 0 || idx >= sc_data->item_cnt)
 		return NULL;
@@ -1030,6 +1093,16 @@ Evas_Object *live_scroller_remove(Evas_Object *scroller, int idx)
 	ret = list_item_nth(sc_data->item_list, idx);
 	if (!ret)
 		return NULL;
+
+	if (list_item_nth_list(sc_data->item_list, idx) == sc_data->curlist) {
+		DbgPrint("Reset curlist\n");
+		sc_data->curlist = sc_data->item_list;
+	}
+
+	if (list_item_nth_list(sc_data->item_list, idx) == sc_data->tolist) {
+		DbgPrint("Reset tolist\n");
+		sc_data->tolist = sc_data->item_list;
+	}
 
 	tmplist = list_item_remove(sc_data->item_list, ret);
 	if (sc_data->item_list == sc_data->curlist)
@@ -1050,8 +1123,7 @@ Evas_Object *live_scroller_remove(Evas_Object *scroller, int idx)
 		LIST_ITEM_GEO_SET(sc_data->curlist, sc_data->clip_bx, y, w, h);
 		update_items_geo(sc_data, 0);
 		idx = list_item_idx(sc_data, sc_data->curlist);
-		evas_object_smart_callback_call(
-				sc_data->scroller, "page,changed", (void *)idx);
+		evas_object_smart_callback_call(sc_data->scroller, "page,changed", (void *)idx);
 	}
 	return ret;
 }
@@ -1061,8 +1133,10 @@ Evas_Object *live_scroller_get_item(Evas_Object *scroller, int idx)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return NULL;
+	}
 
 	if (idx < 0 || idx >= sc_data->item_cnt)
 		return NULL;
@@ -1077,8 +1151,10 @@ int live_scroller_get_current(Evas_Object *scroller)
 	int idx;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
 
 	ilist = sc_data->curlist;
 	idx = 0;
@@ -1097,8 +1173,10 @@ int live_scroller_loop_set(Evas_Object *scroller, int is_loop)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
 
 	if (is_loop == EINA_FALSE && sc_data->is_loop == EINA_TRUE)
 		rearrange_items(sc_data);
@@ -1112,8 +1190,10 @@ int live_scroller_freeze(Evas_Object *scroller)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
 
 	sc_data->is_freezed = EINA_TRUE;
 	return 0;
@@ -1124,8 +1204,10 @@ int live_scroller_thaw(Evas_Object *scroller)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
 
 	sc_data->is_freezed = EINA_FALSE;
 	return 0;
@@ -1144,11 +1226,13 @@ int live_scroller_anim_to(Evas_Object *scroller, double sec, int offset)
 
 	sc_data = evas_object_smart_data_get(scroller);
 	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		ret = -EINVAL;
 		goto out;
 	}
 	
 	if (sc_data->is_freezed) {
+		ErrPrint("Scroller is freezed\n");
 		ret = -EBUSY;
 		goto out;
 	}
@@ -1157,6 +1241,7 @@ int live_scroller_anim_to(Evas_Object *scroller, double sec, int offset)
 		sc_data->curlist = sc_data->item_list;
 
 	if (!sc_data->curlist) {
+		ErrPrint("List is empty\n");
 		ret = -ENOENT;
 		goto out;
 	}
@@ -1173,26 +1258,33 @@ int live_scroller_anim_to(Evas_Object *scroller, double sec, int offset)
 
 	if (!offset) {
 		sc_data->sc_anim_dx = sc_data->clip_bx - sx;
+		DbgPrint("offset==0, dx: %d\n", sc_data->sc_anim_dx);
 	} else {
 		Evas_Coord tw;
 		struct item_list_entry *tmplist;
 
 		calc_anim_dx_with_dir(sc_data, &offset);
+		DbgPrint("Offset: %d\n", offset);
 
 		ilist = sc_data->curlist;
 		while (offset < 0) {
-			if (!sc_data->is_loop && ilist == sc_data->item_list)
+			if (!sc_data->is_loop && ilist == sc_data->item_list) {
+				DbgPrint("Loop is disabled\n");
 				break;
+			}
 
 			LIST_ITEM_GEO_GET(ilist, NULL, NULL, &tw, NULL);
 			ilist = LIST_PREV(ilist);
 
 			sc_data->sc_anim_dx += tw;
+			DbgPrint("tw: %d (%d)\n", tw, sc_data->sc_anim_dx);
 
 			offset++;
 			if (sc_data->tolist == sc_data->item_list) {
-				if (!sc_data->is_loop)
+				if (!sc_data->is_loop) {
+					DbgPrint("Looping disabled\n");
 					break;
+				}
 			}
 			sc_data->tolist = LIST_PREV(sc_data->tolist);
 		}
@@ -1202,36 +1294,45 @@ int live_scroller_anim_to(Evas_Object *scroller, double sec, int offset)
 			ilist = LIST_NEXT(ilist);
 
 			sc_data->sc_anim_dx -= tw;
+			DbgPrint("tw: %d (%d)\n", tw, sc_data->sc_anim_dx);
 
 			offset--;
 			tmplist = LIST_NEXT(sc_data->tolist);
 			if (tmplist == sc_data->item_list) {
-				if (!sc_data->is_loop)
+				if (!sc_data->is_loop) {
+					DbgPrint("Looping disabled\n");
 					break;
+				}
 			}
 			sc_data->tolist = tmplist;
 
-			if (!sc_data->is_loop && ilist == sc_data->item_list)
+			if (!sc_data->is_loop && ilist == sc_data->item_list) {
+				DbgPrint("Destination arrived or loop is disabled");
 				break;
+			}
 		}
 	}
 
 	if (abs(sc_data->sc_anim_dx) > ANIM_MIN) {
 		ftmp = (double)sc_data->sc_anim_dx / ANIM_UNIT;
+		DbgPrint("ftmp: %lf\n", ftmp);
 		if (fabs(ftmp) < ANIM_MIN || fabs(ftmp) > abs(sc_data->sc_anim_dx))
 			sc_data->sc_anim_dx = ftmp < 0 ? -ANIM_MIN : ANIM_MIN;
 		else
-			sc_data->sc_anim_dx = ftmp;
+			sc_data->sc_anim_dx = (int)ftmp;
+		DbgPrint("Result: %d\n", sc_data->sc_anim_dx);
 	}
 
 	sc_data->sc_anim_timer = ecore_timer_add(sec, sc_anim_cb, sc_data);
 	if (!sc_data->sc_anim_timer) {
+		ErrPrint("Failed to add a animator\n");
 		ret = -EFAULT;
 		goto out;
 	}
 
 	info.curidx = list_item_idx(sc_data, sc_data->curlist);
 	info.toidx = list_item_idx(sc_data, sc_data->tolist);
+	DbgPrint("Current index: %d, To index: %d\n", info.curidx, info.toidx);
 
 	evas_object_smart_callback_call(sc_data->scroller, "anim,start", &info);
 	ret = 0;
@@ -1246,8 +1347,10 @@ int live_scroller_go_to(Evas_Object *scroller, int idx)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
 
 	if (sc_data->is_freezed)
 		return -EBUSY;
@@ -1260,8 +1363,7 @@ int live_scroller_go_to(Evas_Object *scroller, int idx)
 		return -EFAULT;
 
 	rearrange_items(sc_data);
-	evas_object_smart_callback_call(sc_data->scroller,
-					"page,changed", (void *)idx);
+	evas_object_smart_callback_call(sc_data->scroller, "page,changed", (void *)idx);
 
 	return 0;
 }
@@ -1274,8 +1376,10 @@ int live_scroller_update(Evas_Object *scroller)
 	Evas_Coord x, y, w, h;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
 
 	if (sc_data->item_list) {
 		n = sc_data->item_list;
@@ -1295,8 +1399,10 @@ int live_scroller_get_item_count(Evas_Object *scroller)
 	struct widget_data *sc_data;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return 0;
+	}
 
 	return list_item_count(sc_data->item_list);
 }
@@ -1309,8 +1415,10 @@ int live_scroller_get_item_index(Evas_Object *scroller, Evas_Object *item)
 	int idx;
 
 	sc_data = evas_object_smart_data_get(scroller);
-	if (!sc_data)
+	if (!sc_data) {
+		ErrPrint("sc_data is not valid\n");
 		return -EINVAL;
+	}
 
 	if (!sc_data->item_list)
 		return -ENOENT;

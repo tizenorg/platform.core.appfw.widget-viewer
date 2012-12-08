@@ -191,14 +191,8 @@ static int lb_fault_cb(enum livebox_fault_type event,
 
 static void del_cb(struct livebox *handle, int ret, void *data)
 {
-	Evas_Object *layout;
+	Evas_Object *layout = data;
 	Evas_Object *sc;
-
-	layout = livebox_get_data(handle);
-	if (!layout) {
-		ErrPrint("Failed to get layout\n");
-		return;
-	}
 
 	sc = evas_object_data_del(layout, "sc");
 	if (sc) {
@@ -213,7 +207,10 @@ static void del_cb(struct livebox *handle, int ret, void *data)
 static void delete_btn_cb(void *handle, Evas_Object *obj, void *event_info)
 {
 	int ret;
-	ret = livebox_del(handle, del_cb, NULL);
+	Evas_Object *layout;
+	layout = livebox_get_data(handle);
+	DbgPrint("Livebox Get Data %p - %p\n", handle, layout);
+	ret = livebox_del(handle, del_cb, layout);
 	if (ret < 0) {
 		char buffer[256];
 		snprintf(buffer, sizeof(buffer), "Delete returns: %d\n", ret);
@@ -620,6 +617,7 @@ static void livebox_added_cb(struct livebox *handle, int ret, void *data)
 	create_logger(handle, layout);
 
 	livebox_set_data(handle, layout);
+	DbgPrint("Livebox Set Data: %p - %p\n", handle, layout);
 	evas_object_data_set(layout, "sc", data);
 
 	scroller_append(data, layout);

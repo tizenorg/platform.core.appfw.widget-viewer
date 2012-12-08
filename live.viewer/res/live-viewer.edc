@@ -25,7 +25,7 @@ collections {
 				description {
 					state: "default" 0.0;
 					rel1 { relative: 4/720 1.0; to_y, "viewer"; }
-					rel2 { relative: 716/720 850/1280; }
+					rel2 { relative: 716/720 900/1280; }
 				}
 			}
 
