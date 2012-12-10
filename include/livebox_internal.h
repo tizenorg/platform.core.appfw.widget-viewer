@@ -85,6 +85,12 @@ struct livebox {
 		int auto_launch;
 		double period;
 		int pinup_supported;
+
+		/*!
+		 * Used to filter the move event
+		 */
+		double x;
+		double y;
 	} lb;
 
 	struct {
@@ -96,6 +102,12 @@ struct livebox {
 
 		int width;
 		int height;
+
+		/*!
+		 * Used to filter the move event
+		 */
+		double x;
+		double y;
 	} pd;
 
 	int nr_of_sizes;

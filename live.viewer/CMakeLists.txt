@@ -1,4 +1,4 @@
-PROJECT(live-viewer CXX)
+PROJECT(live-viewer C)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 INCLUDE(FindPkgConfig)
@@ -26,18 +26,19 @@ SET(PKGROOT "/opt/usr/apps/live.viewer")
 ADD_DEFINITIONS("-DNDEBUG")
 ADD_DEFINITIONS("-DPKGROOT=\"${PKGROOT}\"")
 #ADD_DEFINITIONS("-DFLOG")
+ADD_DEFINITIONS("-DLOG_TAG=\"${PROJECT_NAME}\"")
 ADD_DEFINITIONS(${pkgs_CFLAGS})
 ADD_DEFINITIONS(${pkgs_LDFLAGS})
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
 ADD_EXECUTABLE(${PROJECT_NAME}
-	src/CLiveBox.cpp
-	src/CLiveBoxMgr.cpp
-	src/CMain.cpp
-	src/CResourceMgr.cpp
-	src/CUtil.cpp
-	src/dlist.cpp
+	src/main.c
+	src/dlist.c
+	src/live_scroller.c
+	src/util.c
+	src/scroller.c
+	src/lb.c
 )
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pkgs_LDFLAGS})
