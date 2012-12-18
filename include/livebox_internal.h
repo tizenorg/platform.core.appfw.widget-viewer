@@ -61,7 +61,6 @@ struct livebox {
 	char *filename;
 
 	double timestamp;
-	double event_timestamp;
 
 	enum livebox_visible_state visible;
 
@@ -86,9 +85,7 @@ struct livebox {
 		double period;
 		int pinup_supported;
 
-		/*!
-		 * Used to filter the move event
-		 */
+		/* For the filtering event */
 		double x;
 		double y;
 	} lb;
@@ -103,9 +100,7 @@ struct livebox {
 		int width;
 		int height;
 
-		/*!
-		 * Used to filter the move event
-		 */
+		/* For the filtering event */
 		double x;
 		double y;
 	} pd;
