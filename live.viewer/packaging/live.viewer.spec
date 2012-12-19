@@ -3,7 +3,7 @@ Summary: viewer
 Version: 0.0.1
 Release: 1
 Group: main/app
-License: Samsung Proprietary License
+License: Flora License
 Source0: %{name}-%{version}.tar.gz
 BuildRequires: cmake, gettext-tools
 BuildRequires: pkgconfig(dlog)
