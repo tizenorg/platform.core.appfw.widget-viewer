@@ -1,3 +1,19 @@
+/*
+ * Copyright 2012  Samsung Electronics Co., Ltd
+ *
+ * Licensed under the Flora License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.tizenopensource.org/license
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 extern int lb_set_group(struct livebox *handler, const char *cluster, const char *category);
 extern void lb_set_size(struct livebox *handler, int w, int h);
 extern void lb_set_pdsize(struct livebox *handler, int w, int h);
@@ -61,7 +77,6 @@ struct livebox {
 	char *filename;
 
 	double timestamp;
-	double event_timestamp;
 
 	enum livebox_visible_state visible;
 
@@ -86,9 +101,7 @@ struct livebox {
 		double period;
 		int pinup_supported;
 
-		/*!
-		 * Used to filter the move event
-		 */
+		/* For the filtering event */
 		double x;
 		double y;
 	} lb;
@@ -103,9 +116,7 @@ struct livebox {
 		int width;
 		int height;
 
-		/*!
-		 * Used to filter the move event
-		 */
+		/* For the filtering event */
 		double x;
 		double y;
 	} pd;
