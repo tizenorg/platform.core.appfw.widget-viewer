@@ -158,7 +158,7 @@ static inline int sync_for_file(struct fb_info *info)
 	return 0;
 }
 
-static inline int sync_for_pixmap(struct fb_info *info)
+static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info *info)
 {
 	struct buffer *buffer;
 	XShmSegmentInfo si;
