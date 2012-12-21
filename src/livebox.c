@@ -110,7 +110,7 @@ static inline void default_pd_destroyed_cb(struct livebox *handler, int ret, voi
 	DbgPrint("Default PD destroyed event handler: %d\n", ret);
 }
 
-static inline struct cb_info *create_cb_info(ret_cb_t cb, void *data)
+static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_cb_t cb, void *data)
 {
 	struct cb_info *info;
 
