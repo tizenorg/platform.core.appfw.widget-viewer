@@ -21,7 +21,7 @@ extern void lb_invoke_event_handler(struct livebox *handler, enum livebox_event_
 extern void lb_invoke_fault_handler(enum livebox_fault_type type, const char *pkgname, const char *filename, const char *function);
 extern int lb_set_content(struct livebox *handler, const char *content);
 extern int lb_set_title(struct livebox *handler, const char *title);
-extern void lb_set_auto_launch(struct livebox *handler, int auto_launch);
+extern void lb_set_auto_launch(struct livebox *handler, const char *auto_launch);
 extern struct livebox *lb_find_livebox(const char *pkgname, const char *filename);
 extern struct livebox *lb_new_livebox(const char *pkgname, const char *filename, double timestamp);
 extern struct livebox *lb_find_livebox_by_timestamp(double timestamp);
@@ -97,7 +97,7 @@ struct livebox {
 		int height;
 		double priority;
 
-		int auto_launch;
+		char *auto_launch;
 		double period;
 		int pinup_supported;
 
