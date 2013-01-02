@@ -566,10 +566,246 @@ static void lb_mouse_move_cb(void *handle, Evas *e, Evas_Object *obj, void *even
 	}
 }
 
+static int lb_update_begin(struct livebox *handle)
+{
+	DbgPrint("%p\n", handle);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "begin");
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+
+	return 0;
+}
+
+static int lb_update_end(struct livebox *handle)
+{
+	DbgPrint("%p\n", handle);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "end");
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+
+	return 0;
+}
+
+static int lb_update_text(struct livebox *handle, const char *id, const char *part, const char *data)
+{
+	DbgPrint("%p\n", handle);
+	DbgPrint("id: [%s], part[%s], data[%s]\n", id, part, data);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "%s=%s", part, data);
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+
+	return 0;
+}
+
+static int lb_update_image(struct livebox *handle, const char *id, const char *part, const char *data)
+{
+	DbgPrint("%p\n", handle);
+	DbgPrint("id: [%s], part[%s], data[%s]\n", id, part, data);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "%s=%s", part, data);
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+
+	return 0;
+}
+
+static int lb_update_script(struct livebox *handle, const char *id, const char *part, const char *file, const char *group)
+{
+	DbgPrint("%p\n", handle);
+	DbgPrint("id: [%s], part[%s], file[%s], group[%s]\n", id, part, file, group);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "%s=%s, %s", part, file, group);
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+
+	return 0;
+}
+
+static int lb_update_signal(struct livebox *handle, const char *id, const char *emission, const char *signal)
+{
+	DbgPrint("%p\n", handle);
+	DbgPrint("id: [%s], emission[%s], signal[%s]\n", id, emission, signal);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "%s,%s", emission, signal);
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+	return 0;
+}
+
+static int lb_update_drag(struct livebox *handle, const char *id, const char *part, double dx, double dy)
+{
+	DbgPrint("%p\n", handle);
+	DbgPrint("id: [%s], part[%s], pos[%lfx%lf]\n", id, part, dx, dy);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "%s=%lfx%lf", part, dx, dy);
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+	return 0;
+}
+
+static int lb_update_info_size(struct livebox *handle, const char *id, int w, int h)
+{
+	DbgPrint("%p\n", handle);
+	DbgPrint("id: [%s], size[%dx%d]\n", id, w, h);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "%dx%d", w, h);
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+	return 0;
+}
+
+static int lb_update_info_category(struct livebox *handle, const char *id, const char *category)
+{
+	DbgPrint("%p\n", handle);
+	DbgPrint("id: [%s], category: [%s]\n", id, category);
+
+	Evas_Object *layout;
+	Evas_Object *list;
+	char buffer[80];
+
+	layout = (Evas_Object *)livebox_get_data(handle);
+	if (!layout) {
+		ErrPrint("Failed to get layout object\n");
+		return 0;
+	}
+
+	list = elm_object_part_content_get(layout, "livebox");
+	if (!list) {
+		ErrPrint("Failed to get list\n");
+		return 0;
+	}
+
+	snprintf(buffer, sizeof(buffer), "%s=%s", id, category);
+	elm_list_item_prepend(list, buffer, NULL, NULL, NULL, NULL);
+	return 0;
+}
+
 static void livebox_added_cb(struct livebox *handle, int ret, void *data)
 {
 	Evas_Object *layout;
-	Evas_Object *lb_image;
 	Evas_Object *btn;
 	int w;
 	int h;
@@ -595,37 +831,63 @@ static void livebox_added_cb(struct livebox *handle, int ret, void *data)
 		return;
 	}
 
-	lb_image = create_canvas(layout);
-	if (!lb_image) {
-		ErrPrint("Failed to create a canvas\n");
-		evas_object_del(layout);
-		return;
+	if (livebox_lb_type(handle) == LB_TYPE_TEXT) {
+		Evas_Object *list;
+		static struct livebox_script_operators ops = {
+			.update_begin = lb_update_begin,
+			.update_end = lb_update_end,
+			.update_text = lb_update_text,
+			.update_image = lb_update_image,
+			.update_script = lb_update_script,
+			.update_signal = lb_update_signal,
+			.update_drag = lb_update_drag,
+			.update_info_size = lb_update_info_size,
+			.update_info_category = lb_update_info_category,
+		};
+
+		list = elm_list_add(layout);
+		if (!list) {
+			evas_object_del(layout);
+			return;
+		}
+
+		(void)livebox_set_text_handler(handle, &ops);
+		elm_object_part_content_set(layout, "livebox", list);
+		elm_list_go(list);
+	} else {
+		Evas_Object *lb_image;
+		lb_image = create_canvas(layout);
+		if (!lb_image) {
+			ErrPrint("Failed to create a canvas\n");
+			evas_object_del(layout);
+			return;
+		}
+
+		evas_object_event_callback_add(lb_image, EVAS_CALLBACK_MOUSE_UP, lb_mouse_up_cb, handle);
+		evas_object_event_callback_add(lb_image, EVAS_CALLBACK_MOUSE_DOWN, lb_mouse_down_cb, handle);
+		evas_object_event_callback_add(lb_image, EVAS_CALLBACK_MOUSE_MOVE, lb_mouse_move_cb, handle);
+
+		w = 0;
+		h = 0;
+		type = livebox_size(handle);
+		if (type != LB_SIZE_TYPE_UNKNOWN) {
+			livebox_service_get_size(type, &w, &h);
+			DbgPrint("%dx%d\n", w, h);
+		}
+		evas_object_resize(lb_image, w, h);
+		evas_object_show(lb_image);
+
+		update_canvas(handle, lb_image);
+
+		btn = elm_button_add(main_get_window());
+		if (btn) {
+			elm_object_text_set(btn, "Delete");
+			evas_object_smart_callback_add(btn, "clicked", delete_btn_cb, handle);
+			elm_object_part_content_set(layout, "delete,btn", btn);
+		}
+
+		elm_object_part_content_set(layout, "livebox", lb_image);
 	}
-
-	evas_object_event_callback_add(lb_image, EVAS_CALLBACK_MOUSE_UP, lb_mouse_up_cb, handle);
-	evas_object_event_callback_add(lb_image, EVAS_CALLBACK_MOUSE_DOWN, lb_mouse_down_cb, handle);
-	evas_object_event_callback_add(lb_image, EVAS_CALLBACK_MOUSE_MOVE, lb_mouse_move_cb, handle);
-
-	w = 0;
-	h = 0;
-	type = livebox_size(handle);
-	if (type != LB_SIZE_TYPE_UNKNOWN) {
-		livebox_service_get_size(type, &w, &h);
-		DbgPrint("%dx%d\n", w, h);
-	}
-	evas_object_resize(lb_image, w, h);
-	evas_object_show(lb_image);
-
-	update_canvas(handle, lb_image);
-
-	btn = elm_button_add(main_get_window());
-	if (btn) {
-		elm_object_text_set(btn, "Delete");
-		evas_object_smart_callback_add(btn, "clicked", delete_btn_cb, handle);
-		elm_object_part_content_set(layout, "delete,btn", btn);
-	}
-
-	elm_object_part_content_set(layout, "livebox", lb_image);
 	evas_object_resize(layout, 720, 1280);
 	evas_object_show(layout);
 

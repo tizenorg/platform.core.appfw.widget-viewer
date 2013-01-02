@@ -893,8 +893,8 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	}
 
 	if (handler->lb.auto_launch)
-		if (aul_launch_app(handler->pkgname, NULL) < 0)
-			ErrPrint("Failed to launch app %s\n", handler->pkgname);
+		if (aul_launch_app(handler->lb.auto_launch, NULL) < 0)
+			ErrPrint("Failed to launch app %s\n", handler->lb.auto_launch);
 
 	timestamp = util_timestamp();
 	packet = packet_create_noack("clicked", "sssddd", handler->pkgname, handler->id, "clicked", timestamp, x, y);
@@ -2281,9 +2281,14 @@ void lb_set_size_list(struct livebox *handler, int size_list)
 	handler->lb.size_list = size_list;
 }
 
-void lb_set_auto_launch(struct livebox *handler, int auto_launch)
+void lb_set_auto_launch(struct livebox *handler, const char *auto_launch)
 {
-	handler->lb.auto_launch = auto_launch;
+	if (!strlen(auto_launch))
+		return;
+
+	handler->lb.auto_launch = strdup(auto_launch);
+	if (!handler->lb.auto_launch)
+		ErrPrint("Heap: %s\n", strerror(errno));
 }
 
 void lb_set_priority(struct livebox *handler, double priority)
@@ -2448,6 +2453,7 @@ struct livebox *lb_unref(struct livebox *handler)
 	free(handler->id);
 	free(handler->pkgname);
 	free(handler->filename);
+	free(handler->lb.auto_launch);
 
 	if (handler->lb.data.fb) {
 		fb_destroy(handler->lb.data.fb);

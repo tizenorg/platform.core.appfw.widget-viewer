@@ -87,20 +87,24 @@ static inline void livebox_list_create(void)
 	Evas_Object *list;
 
 	list = elm_list_add(s_info.window);
-	evas_object_resize(list, 720, 1000);
+	if (!list) {
+		ErrPrint("Failed to create a list\n");
+		return;
+	}
+
+	evas_object_resize(list, 720, 1280);
 	evas_object_show(list);
 
 	DbgPrint("Get Package list\n");
 	livebox_service_get_pkglist(append_livebox_cb, list);
-	scroller_append(s_info.scroller, list);
 	elm_list_go(list);
+
+	scroller_append(s_info.scroller, list);
 }
 
 static bool app_create(void *data)
 {
 	Evas_Object *bg;
-	Evas_Object *conformant;
-	Evas_Object *box;
 	DbgPrint("create");
 	lb_init();
 
@@ -111,20 +115,14 @@ static bool app_create(void *data)
 	}
 	elm_win_autodel_set(s_info.window, EINA_TRUE);
 
-	bg = elm_bg_add(s_info.window);
-	evas_object_size_hint_weight_set(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	elm_win_resize_object_add(s_info.window, bg);
-	evas_object_show(bg);
-
 	evas_object_resize(s_info.window, 720, 1280);
 	evas_object_show(s_info.window);
 
-	conformant = elm_conformant_add(s_info.window);
-	evas_object_size_hint_weight_set(conformant, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	elm_win_resize_object_add(s_info.window, conformant);
-	evas_object_show(conformant);
+	bg = elm_bg_add(s_info.window);
+	elm_win_resize_object_add(s_info.window, bg);
+	elm_bg_color_set(bg, 0, 0, 255);
+	evas_object_show(bg);
 
-	box = elm_box_add(s_info.window);
 	s_info.scroller = scroller_create(s_info.window);
 	if (!s_info.scroller) {
 		evas_object_del(s_info.window);
@@ -132,18 +130,11 @@ static bool app_create(void *data)
 		ErrPrint("Failed to create a scroller\n");
 		return false;
 	}
-	livebox_list_create();
-	evas_object_size_hint_min_set(s_info.scroller, 720, 1000);
-	evas_object_resize(s_info.scroller, 720, 1000);
+
+	evas_object_resize(s_info.scroller, 720, 1280);
 	evas_object_show(s_info.scroller);
 
-	elm_box_pack_end(box, s_info.scroller);
-	evas_object_size_hint_min_set(box, 720, 1000);
-	evas_object_resize(box, 720, 1000);
-	evas_object_show(box);
-
-	elm_object_content_set(conformant, box);
-	elm_win_indicator_mode_set(s_info.window, ELM_WIN_INDICATOR_SHOW);
+	livebox_list_create();
 
 	return true;
 }

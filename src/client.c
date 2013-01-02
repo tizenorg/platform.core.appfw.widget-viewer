@@ -544,7 +544,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	const char *title;
 
 	double timestamp;
-	int auto_launch;
+	const char *auto_launch;
 	double priority;
 	int size_list;
 	int user;
@@ -558,7 +558,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	int ret;
 
-	ret = packet_get(packet, "dsssiiiissssidiiiiidsi",
+	ret = packet_get(packet, "dsssiiiisssssdiiiiidsi",
 			&timestamp,
 			&pkgname, &id, &content,
 			&lb_w, &lb_h, &pd_w, &pd_h,
@@ -574,7 +574,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	ErrPrint("[%lf] pkgname: %s, id: %s, content: %s, "
 		"pd_w: %d, pd_h: %d, lb_w: %d, lb_h: %d, "
 		"cluster: %s, category: %s, lb_fname: \"%s\", pd_fname: \"%s\", "
-		"auto_launch: %d, priority: %lf, size_list: %d, user: %d, pinup: %d, "
+		"auto_launch: %s, priority: %lf, size_list: %d, user: %d, pinup: %d, "
 		"lb_type: %d, pd_type: %d, period: %lf, title: [%s], is_pinned_up: %d\n",
 		timestamp, pkgname, id, content,
 		pd_w, pd_h, lb_w, lb_h,
