@@ -644,6 +644,9 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 	handler->pd.type = _PD_TYPE_SCRIPT;
 	handler->lb.period = period;
 
+	/* Used for handling the mouse event on a box */
+	handler->lb.mouse_event = livebox_service_mouse_event(handler->pkgname);
+
 	/* Cluster infomration is not determined yet */
 	handler->nr_of_sizes = 0x01;
 
@@ -881,6 +884,7 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 {
 	struct packet *packet;
 	double timestamp;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -903,7 +907,24 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 		return -EFAULT;
 	}
 
-	return master_rpc_request_only(handler, packet);
+	ret = master_rpc_request_only(handler, packet);
+
+	if (!handler->lb.mouse_event && (handler->lb.type == _LB_TYPE_BUFFER || handler->lb.type == _LB_TYPE_SCRIPT)) {
+		int ret; /* Shadow variable */
+		ret = send_mouse_event(handler, "lb_mouse_down", x, y, handler->lb.width, handler->lb.height);
+		if (ret < 0)
+			DbgPrint("Failed to send Down: %d\n", ret);
+
+		ret = send_mouse_event(handler, "lb_mouse_move", x, y, handler->lb.width, handler->lb.height);
+		if (ret < 0)
+			DbgPrint("Failed to send Move: %d\n", ret);
+
+		ret = send_mouse_event(handler, "lb_mouse_up", x, y, handler->lb.width, handler->lb.height);
+		if (ret < 0)
+			DbgPrint("Failed to send Up: %d\n", ret);
+	}
+
+	return ret;
 }
 
 EAPI int livebox_has_pd(struct livebox *handler)
@@ -1037,6 +1058,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 
 	switch (type) {
 	case LB_MOUSE_DOWN:
+		if (!handler->lb.mouse_event) {
+			ErrPrint("Box is not support the mouse event\n");
+			return -EINVAL;
+		}
+
 		if (!handler->lb.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1051,6 +1077,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case LB_MOUSE_UP:
+		if (!handler->lb.mouse_event) {
+			ErrPrint("Box is not support the mouse event\n");
+			return -EINVAL;
+		}
+
 		if (!handler->lb.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1062,6 +1093,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case LB_MOUSE_MOVE:
+		if (!handler->lb.mouse_event) {
+			ErrPrint("Box is not support the mouse event\n");
+			return -EINVAL;
+		}
+
 		if (!handler->lb.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1079,6 +1115,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case LB_MOUSE_ENTER:
+		if (!handler->lb.mouse_event) {
+			ErrPrint("Box is not support the mouse event\n");
+			return -EINVAL;
+		}
+
 		if (!handler->lb.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1090,6 +1131,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case LB_MOUSE_LEAVE:
+		if (!handler->lb.mouse_event) {
+			ErrPrint("Box is not support the mouse event\n");
+			return -EINVAL;
+		}
+
 		if (!handler->lb.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1101,6 +1147,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case PD_MOUSE_ENTER:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
 		if (!handler->pd.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1112,6 +1163,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case PD_MOUSE_LEAVE:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
 		if (!handler->pd.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1123,6 +1179,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case PD_MOUSE_DOWN:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
 		if (!handler->pd.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1137,6 +1198,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case PD_MOUSE_MOVE:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
 		if (!handler->pd.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
@@ -1154,6 +1220,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 
 	case PD_MOUSE_UP:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
 		if (!handler->pd.data.fb) {
 			ErrPrint("Handler is not valid\n");
 			return -EINVAL;
