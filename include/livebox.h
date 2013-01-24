@@ -35,19 +35,33 @@ struct livebox;
 #define DEFAULT_PERIOD -1.0f
 
 enum content_event_type {
-	LB_MOUSE_DOWN = 0x0001, /*!< LB mouse down event for livebox */
-	LB_MOUSE_UP = 0x0002, /*!< LB mouse up event for livebox */
-	LB_MOUSE_MOVE = 0x0004, /*!< LB mouse move event for livebox */
-	LB_MOUSE_ENTER = 0x0008, /*!< LB mouse enter event for livebox */
-	LB_MOUSE_LEAVE = 0x0010, /*!< LB mouse leave event for livebox */
+	LB_MOUSE_DOWN		= 0x0001, /*!< LB mouse down event for livebox */
+	LB_MOUSE_UP		= 0x0002, /*!< LB mouse up event for livebox */
+	LB_MOUSE_MOVE		= 0x0004, /*!< LB mouse move event for livebox */
+	LB_MOUSE_ENTER		= 0x0008, /*!< LB mouse enter event for livebox */
+	LB_MOUSE_LEAVE		= 0x0010, /*!< LB mouse leave event for livebox */
 
-	PD_MOUSE_DOWN = 0x0100, /*!< PD mouse down event for livebox */
-	PD_MOUSE_UP = 0x0200, /*!< PD mouse up event for livebox */
-	PD_MOUSE_MOVE = 0x0400, /*!< PD mouse move event for livebox */
-	PD_MOUSE_ENTER = 0x0800, /*!< PD mouse enter event for livebox */
-	PD_MOUSE_LEAVE = 0x1000, /*!< PD mouse leave event for livebox */
+	PD_MOUSE_DOWN		= 0x0100, /*!< PD mouse down event for livebox */
+	PD_MOUSE_UP		= 0x0200, /*!< PD mouse up event for livebox */
+	PD_MOUSE_MOVE		= 0x0400, /*!< PD mouse move event for livebox */
+	PD_MOUSE_ENTER		= 0x0800, /*!< PD mouse enter event for livebox */
+	PD_MOUSE_LEAVE		= 0x1000, /*!< PD mouse leave event for livebox */
 
-	PD_EVENT_MAX = 0xFFFFFFFF,
+	LB_ACCESS_READ		= 0x010000, /*!< ECORE_X_ATOM_E_ILLUME_ACCESS_ACTION_READ */
+	LB_ACCESS_READ_NEXT	= 0x020000, /*!< ECORE_X_ATOM_E_ILLUME_ACCESS_ACTION_READ_NEXT */
+	LB_ACCESS_READ_PREV	= 0x040000, /*!< ECORE_X_ATOM_E_ILLUME_ACCESS_ACTION_READ_PREV */
+	LB_ACCESS_ACTIVATE	= 0x080000, /*!< ECORE_X_ATOM_E_ILLUME_ACCESS_ACTION_ACTIVATE */
+	LB_ACCESS_UP		= 0x100000, /*!< ECORE_X_ATOM_E_ILLUME_ACCESS_ACTION_UP */
+	LB_ACCESS_DOWN		= 0x200000, /*!< ECORE_X_ATOM_E_ILLUME_ACCESS_ACTION_DOWN */
+
+	PD_ACCESS_READ		= 0x01000000,
+	PD_ACCESS_READ_NEXT	= 0x02000000,
+	PD_ACCESS_READ_PREV	= 0x04000000,
+	PD_ACCESS_ACTIVATE	= 0x08000000,
+	PD_ACCESS_UP		= 0x10000000,
+	PD_ACCESS_DOWN		= 0x20000000,
+
+	CONTENT_EVENT_MAX	= 0xFFFFFFFF,
 };
 
 /* Exported to user app */

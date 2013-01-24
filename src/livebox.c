@@ -1057,6 +1057,42 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 	}
 
 	switch (type) {
+	case LB_ACCESS_READ:
+		cmd = "lb_access_read";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case LB_ACCESS_READ_PREV:
+		cmd = "lb_access_read_prev";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case LB_ACCESS_READ_NEXT:
+		cmd = "lb_access_read_next";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case LB_ACCESS_ACTIVATE:
+		cmd = "lb_access_activate";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case LB_ACCESS_UP:
+		cmd = "lb_access_up";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
+	case LB_ACCESS_DOWN:
+		cmd = "lb_access_down";
+		w = handler->lb.width;
+		h = handler->lb.height;
+		break;
+
 	case LB_MOUSE_DOWN:
 		if (!handler->lb.mouse_event) {
 			ErrPrint("Box is not support the mouse event\n");
@@ -1144,6 +1180,72 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		cmd = "lb_mouse_leave";
 		w = handler->lb.width;
 		h = handler->lb.height;
+		break;
+
+	case PD_ACCESS_READ:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_access_read";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	case PD_ACCESS_READ_PREV:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_access_read_prev";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	case PD_ACCESS_READ_NEXT:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_access_read_next";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	case PD_ACCESS_ACTIVATE:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_access_activate";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	case PD_ACCESS_UP:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_access_up";
+		w = handler->pd.width;
+		h = handler->pd.height;
+		break;
+
+	case PD_ACCESS_DOWN:
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return -EINVAL;
+		}
+
+		cmd = "pd_access_down";
+		w = handler->pd.width;
+		h = handler->pd.height;
 		break;
 
 	case PD_MOUSE_ENTER:
