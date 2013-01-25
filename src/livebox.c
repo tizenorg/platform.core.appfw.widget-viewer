@@ -1044,7 +1044,8 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 {
 	int w;
 	int h;
-	const char *cmd;
+	char cmd[20] = { '\0', };
+	char *ptr = cmd;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1056,287 +1057,96 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		return -EINVAL;
 	}
 
-	switch (type) {
-	case LB_ACCESS_READ:
-		cmd = "lb_access_read";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case LB_ACCESS_READ_PREV:
-		cmd = "lb_access_read_prev";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case LB_ACCESS_READ_NEXT:
-		cmd = "lb_access_read_next";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case LB_ACCESS_ACTIVATE:
-		cmd = "lb_access_activate";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case LB_ACCESS_UP:
-		cmd = "lb_access_up";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case LB_ACCESS_DOWN:
-		cmd = "lb_access_down";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case LB_MOUSE_DOWN:
-		if (!handler->lb.mouse_event) {
-			ErrPrint("Box is not support the mouse event\n");
-			return -EINVAL;
-		}
-
-		if (!handler->lb.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		cmd = "lb_mouse_down";
-		w = handler->lb.width;
-		h = handler->lb.height;
-
-		handler->lb.x = x;
-		handler->lb.y = y;
-		break;
-
-	case LB_MOUSE_UP:
-		if (!handler->lb.mouse_event) {
-			ErrPrint("Box is not support the mouse event\n");
-			return -EINVAL;
-		}
-
-		if (!handler->lb.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		cmd = "lb_mouse_up";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case LB_MOUSE_MOVE:
-		if (!handler->lb.mouse_event) {
-			ErrPrint("Box is not support the mouse event\n");
-			return -EINVAL;
-		}
-
-		if (!handler->lb.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		if (fabs(x - handler->lb.x) < MINIMUM_EVENT && fabs(y - handler->lb.y) < MINIMUM_EVENT)
-			return -EBUSY;
-
-		cmd = "lb_mouse_move";
-		w = handler->lb.width;
-		h = handler->lb.height;
-
-		handler->lb.x = x;
-		handler->lb.y = y;
-		break;
-
-	case LB_MOUSE_ENTER:
-		if (!handler->lb.mouse_event) {
-			ErrPrint("Box is not support the mouse event\n");
-			return -EINVAL;
-		}
-
-		if (!handler->lb.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		cmd = "lb_mouse_enter";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case LB_MOUSE_LEAVE:
-		if (!handler->lb.mouse_event) {
-			ErrPrint("Box is not support the mouse event\n");
-			return -EINVAL;
-		}
-
-		if (!handler->lb.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		cmd = "lb_mouse_leave";
-		w = handler->lb.width;
-		h = handler->lb.height;
-		break;
-
-	case PD_ACCESS_READ:
+	if (type & CONTENT_EVENT_PD_MASK) {
 		if (!handler->is_pd_created) {
 			ErrPrint("PD is not created\n");
 			return -EINVAL;
 		}
 
-		cmd = "pd_access_read";
+		if (type & CONTENT_EVENT_MOUSE_MASK) {
+			if (!handler->pd.data.fb) {
+				ErrPrint("Handler is not valid\n");
+				return -EINVAL;
+			}
+
+			if (type & CONTENT_EVENT_MOUSE_MOVE) {
+				if (fabs(x - handler->pd.x) < MINIMUM_EVENT && fabs(y - handler->pd.y) < MINIMUM_EVENT)
+					return -EBUSY;
+			}
+		}
+
 		w = handler->pd.width;
 		h = handler->pd.height;
-		break;
-
-	case PD_ACCESS_READ_PREV:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_access_read_prev";
-		w = handler->pd.width;
-		h = handler->pd.height;
-		break;
-
-	case PD_ACCESS_READ_NEXT:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_access_read_next";
-		w = handler->pd.width;
-		h = handler->pd.height;
-		break;
-
-	case PD_ACCESS_ACTIVATE:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_access_activate";
-		w = handler->pd.width;
-		h = handler->pd.height;
-		break;
-
-	case PD_ACCESS_UP:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_access_up";
-		w = handler->pd.width;
-		h = handler->pd.height;
-		break;
-
-	case PD_ACCESS_DOWN:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_access_down";
-		w = handler->pd.width;
-		h = handler->pd.height;
-		break;
-
-	case PD_MOUSE_ENTER:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		if (!handler->pd.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_mouse_enter";
-		w = handler->pd.width;
-		h = handler->pd.height;
-		break;
-
-	case PD_MOUSE_LEAVE:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		if (!handler->pd.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_mouse_leave";
-		w = handler->pd.width;
-		h = handler->pd.height;
-		break;
-
-	case PD_MOUSE_DOWN:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		if (!handler->pd.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_mouse_down";
-		w = handler->pd.width;
-		h = handler->pd.height;
-
 		handler->pd.x = x;
 		handler->pd.y = y;
+		*ptr++ = 'p';
+		*ptr++ = 'd';
+	} else {
+		if (type & CONTENT_EVENT_MOUSE_MASK) {
+			if (!handler->lb.mouse_event) {
+				ErrPrint("Box is not support the mouse event\n");
+				return -EINVAL;
+			}
+
+			if (!handler->lb.data.fb) {
+				ErrPrint("Handler is not valid\n");
+				return -EINVAL;
+			}
+
+			if (type & CONTENT_EVENT_MOUSE_MOVE) {
+				if (fabs(x - handler->lb.x) < MINIMUM_EVENT && fabs(y - handler->lb.y) < MINIMUM_EVENT)
+					return -EBUSY;
+			}
+		}
+
+		w = handler->lb.width;
+		h = handler->lb.height;
+		handler->lb.x = x;
+		handler->lb.y = y;
+		*ptr++ = 'l';
+		*ptr++ = 'b';
+	}
+
+	switch ((type & ~CONTENT_EVENT_PD_MASK)) {
+	case CONTENT_EVENT_ACCESS_READ | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_read");
 		break;
-
-	case PD_MOUSE_MOVE:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		if (!handler->pd.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		if (fabs(x - handler->pd.x) < MINIMUM_EVENT && fabs(y - handler->pd.y) < MINIMUM_EVENT)
-			return -EBUSY;
-
-		cmd = "pd_mouse_move";
-		w = handler->pd.width;
-		h = handler->pd.height;
-
-		handler->pd.x = x;
-		handler->pd.y = y;
+	case CONTENT_EVENT_ACCESS_READ_PREV | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_read_prev");
 		break;
-
-	case PD_MOUSE_UP:
-		if (!handler->is_pd_created) {
-			ErrPrint("PD is not created\n");
-			return -EINVAL;
-		}
-
-		if (!handler->pd.data.fb) {
-			ErrPrint("Handler is not valid\n");
-			return -EINVAL;
-		}
-
-		cmd = "pd_mouse_up";
-		w = handler->pd.width;
-		h = handler->pd.height;
+	case CONTENT_EVENT_ACCESS_READ_NEXT | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_read_next");
 		break;
-
+	case CONTENT_EVENT_ACCESS_ACTIVATE | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_activate");
+		break;
+	case CONTENT_EVENT_ACCESS_UP | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_up");
+		break;
+	case CONTENT_EVENT_ACCESS_DOWN | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_down");
+		break;
+	case CONTENT_EVENT_MOUSE_ENTER | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_enter");
+		break;
+	case CONTENT_EVENT_MOUSE_LEAVE | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_leave");
+		break;
+	case CONTENT_EVENT_MOUSE_UP | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_up");
+		break;
+	case CONTENT_EVENT_MOUSE_DOWN | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_down");
+		break;
+	case CONTENT_EVENT_MOUSE_MOVE | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_move");
+		break;
+	case CONTENT_EVENT_KEY_DOWN | CONTENT_EVENT_KEY_MASK:
+		strcpy(ptr, "_key_down");
+		break;
+	case CONTENT_EVENT_KEY_UP | CONTENT_EVENT_KEY_MASK:
+		strcpy(ptr, "_key_up");
+		break;
 	default:
 		ErrPrint("Invalid event type\n");
 		return -EINVAL;
