@@ -1,11 +1,11 @@
 Name: liblivebox-viewer
-Summary: Library for the development of a livebox viewer
-Version: 0.8.9
+Summary: Library for developing the application.
+Version: 0.8.13
 Release: 1
-Group: main/app
+Group: framework/livebox
 License: Flora License
 Source0: %{name}-%{version}.tar.gz
-BuildRequires: cmake, gettext-tools
+BuildRequires: cmake, gettext-tools, coreutils
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
@@ -18,10 +18,10 @@ BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(livebox-service)
 
 %description
-Livebox viewer development library
+This library supports the API for creating a new instance of the livebox and managing its life-cycle.
 
 %package devel
-Summary: Files for livebox viewer development.
+Summary: Header and package configuration files for the livebox viewer development.
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
@@ -38,18 +38,20 @@ make %{?jobs:-j%jobs}
 %install
 rm -rf %{buildroot}
 %make_install
-mkdir -p %{buildroot}/usr/share/license
+mkdir -p %{buildroot}/%{_datarootdir}/license
 
 %post
 
 %files -n liblivebox-viewer
 %manifest liblivebox-viewer.manifest
 %defattr(-,root,root,-)
-/usr/lib/*.so*
-/usr/share/license/*
+%{_libdir}/*.so*
+%{_datarootdir}/license/*
 
 %files devel
 %defattr(-,root,root,-)
-/usr/include/livebox-viewer/livebox.h
-/usr/share/doc/livebox-viewer/livebox-viewer_PG.h
-/usr/lib/pkgconfig/*.pc
+%{_includedir}/livebox-viewer/livebox.h
+%{_datarootdir}/doc/livebox-viewer/livebox-viewer_PG.h
+%{_libdir}/pkgconfig/*.pc
+
+# End of a file

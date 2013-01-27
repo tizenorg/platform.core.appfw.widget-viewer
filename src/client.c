@@ -241,7 +241,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 
 	if (lb_text_lb(handler)) {
 		lb_set_size(handler, lb_w, lb_h);
-		ret = parse_desc(handler, util_uri_to_path(id), 0);
+		ret = parse_desc(handler, livebox_filename(handler), 0);
 		/*!
 		 * \note
 		 * DESC parser will call the "text event callback".
