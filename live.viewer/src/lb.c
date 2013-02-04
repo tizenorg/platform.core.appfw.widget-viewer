@@ -314,14 +314,14 @@ static void create_resize_controller(struct livebox *handle, Evas_Object *layout
 {
 	Evas_Object *size_list;
 	char buffer[256];
-	int sizes[7];
+	int sizes[NR_OF_SIZE_LIST];
 	int cnt;
 	int i;
 	int w;
 	int h;
 
 	size_list = elm_list_add(layout);
-	cnt = 7;
+	cnt = sizeof(sizes) / sizeof(sizes[0]);
 	livebox_get_supported_sizes(handle, &cnt, sizes);
 	for (i = 0; i < cnt; i++) {
 		livebox_service_get_size(sizes[i], &w, &h);
