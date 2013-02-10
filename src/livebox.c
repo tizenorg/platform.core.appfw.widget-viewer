@@ -589,6 +589,11 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 		return NULL;
 	}
 
+	if (livebox_service_is_enabled(pkgname) == 0) {
+		DbgPrint("Livebox [%s] is disabled package\n", pkgname);
+		return NULL;
+	}
+
 	if (type != LB_SIZE_TYPE_UNKNOWN)
 		livebox_service_get_size(type, &width, &height);
 
