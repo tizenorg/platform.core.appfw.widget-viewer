@@ -38,8 +38,9 @@ static Evas_Object *create_canvas(Evas_Object *parent)
 	if (!canvas)
 		return NULL;
 
-	evas_object_image_colorspace_set(canvas, EVAS_COLORSPACE_ARGB8888);
-	evas_object_image_alpha_set(canvas, EINA_TRUE);
+	evas_object_image_content_hint_set(canvas, EVAS_IMAGE_CONTENT_HINT_DYNAMIC);
+//	evas_object_image_colorspace_set(canvas, EVAS_COLORSPACE_ARGB8888);
+//	evas_object_image_alpha_set(canvas, EINA_TRUE);
 	evas_object_move(canvas, 0, 0);
 	return canvas;
 }
@@ -48,10 +49,10 @@ static int update_pd_canvas(struct livebox *handle, Evas_Object *image)
 {
 	int w;
 	int h;
+	Evas_Native_Surface surface;
 
 	switch (livebox_pd_type(handle)) {
 	case PD_TYPE_BUFFER:
-	case PD_TYPE_PIXMAP:
 		evas_object_image_colorspace_set(image, EVAS_COLORSPACE_ARGB8888);
 		evas_object_image_alpha_set(image, EINA_TRUE);
 
@@ -69,6 +70,24 @@ static int update_pd_canvas(struct livebox *handle, Evas_Object *image)
 			evas_object_size_hint_max_set(image, w, h);
 		}
 		break;
+	case PD_TYPE_PIXMAP:
+		h = w = 0;
+		livebox_get_pdsize(handle, &w, &h);
+		if (w <= 0 || h <= 0)
+			break;
+
+		DbgPrint("Update: %dx%d\n", w, h);
+		surface.version = EVAS_NATIVE_SURFACE_VERSION;
+		surface.type = EVAS_NATIVE_SURFACE_X11;
+		surface.data.x11.pixmap = livebox_pd_pixmap(handle);
+		surface.data.x11.visual = NULL; //ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
+		evas_object_image_native_surface_set(image, &surface);
+
+		evas_object_image_size_set(image, w, h);
+		evas_object_resize(image, w, h);
+		evas_object_size_hint_max_set(image, w, h);
+		evas_object_show(image);
+		break;
 	case PD_TYPE_TEXT:
 	default:
 		break;
@@ -79,14 +98,35 @@ static int update_pd_canvas(struct livebox *handle, Evas_Object *image)
 
 static int update_canvas(struct livebox *handle, Evas_Object *image)
 {
+	Evas_Native_Surface surface;
 	const char *filename;
 	int w;
 	int h;
 	int type;
 
 	switch (livebox_lb_type(handle)) {
-	case LB_TYPE_BUFFER:
 	case LB_TYPE_PIXMAP:
+		w = h = 0;
+		type = livebox_size(handle);
+		livebox_service_get_size(type, &w, &h);
+		if (w <= 0 || h <= 0)
+			break;
+
+		DbgPrint("Update: %dx%d\n", w, h);
+
+		surface.version = EVAS_NATIVE_SURFACE_VERSION;
+		surface.type = EVAS_NATIVE_SURFACE_X11;
+		surface.data.x11.pixmap = livebox_lb_pixmap(handle);
+		surface.data.x11.visual = NULL; //ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
+		evas_object_image_native_surface_set(image, &surface);
+
+		evas_object_image_size_set(image, w, h);
+		evas_object_resize(image, w, h);
+		evas_object_size_hint_min_set(image, w, h);
+		evas_object_size_hint_max_set(image, w, h);
+		evas_object_show(image);
+		break;
+	case LB_TYPE_BUFFER:
 		evas_object_image_colorspace_set(image, EVAS_COLORSPACE_ARGB8888);
 		evas_object_image_alpha_set(image, EINA_TRUE);
 
@@ -234,39 +274,9 @@ static void delete_btn_cb(void *handle, Evas_Object *obj, void *event_info)
 	}
 }
 
-static void exit_cb(void *data, Evas_Object *obj, void *event_info)
-{
-	evas_object_del(obj);
-}
-
 static void error_popup(Evas_Object *parent, struct livebox *handle, int ret)
 {
-	Evas_Object *popup;
-	Evas_Object *button;
-	char buffer[256];
-
-	popup = elm_popup_add(parent);
-	if (!popup)
-		return;
-
-	button = elm_button_add(parent);
-	if (!button) {
-		evas_object_del(popup);
-		return;
-	}
-
-	elm_popup_orient_set(popup, ELM_POPUP_ORIENT_CENTER);
-	elm_object_part_text_set(popup, "title,text", "Unable to load a livebox");
-
-	elm_object_text_set(button, "Okay");
-	elm_object_part_content_set(popup, "button2", button);
-	evas_object_smart_callback_add(button, "clicked", exit_cb, popup);
-
-	snprintf(buffer, sizeof(buffer) - 1,
-			"%s(%s): %d", livebox_pkgname(handle), livebox_content(handle), ret);
-	elm_object_part_text_set(popup, "default", buffer);
-	evas_object_show(popup);
-
+	ErrPrint("Failed to add a box: %d\n", ret);
 	return;
 }
 
@@ -392,6 +402,7 @@ static void pd_mouse_up_cb(void *handle, Evas *e, Evas_Object *obj, void *event_
 
 	rx = (double)(up->canvas.x - x) / (double)w;
 	ry = (double)(up->canvas.y - y) / (double)h;
+	DbgPrint("%dx%d - %dx%d, %lfx%lf\n", x, y, w, h, rx, ry);
 	livebox_content_event(handle, PD_MOUSE_UP, rx, ry);
 }
 
@@ -404,6 +415,7 @@ static void pd_mouse_down_cb(void *handle, Evas *e, Evas_Object *obj, void *even
 	evas_object_geometry_get(obj, &x, &y, &w, &h);
 	rx = (double)(down->canvas.x - x) / (double)w;
 	ry = (double)(down->canvas.y - y) / (double)h;
+	DbgPrint("%dx%d - %dx%d, %lfx%lf\n", x, y, w, h, rx, ry);
 	livebox_content_event(handle, PD_MOUSE_DOWN, rx, ry);
 }
 
@@ -416,6 +428,7 @@ static void pd_mouse_move_cb(void *handle, Evas *e, Evas_Object *obj, void *even
 	evas_object_geometry_get(obj, &x, &y, &w, &h);
 	rx = (double)(move->cur.canvas.x - x) / (double)w;
 	ry = (double)(move->cur.canvas.y - y) / (double)h;
+	DbgPrint("%dx%d - %dx%d, %lfx%lf\n", x, y, w, h, rx, ry);
 	livebox_content_event(handle, PD_MOUSE_MOVE, rx, ry);
 }
 
@@ -450,28 +463,25 @@ static void pd_created_cb(struct livebox *handle, int ret, void *data)
 static void lb_mouse_up_cb(void *handle, Evas *e, Evas_Object *obj, void *event_info)
 {
 	Evas_Event_Mouse_Up *up = event_info;
+	Evas_Coord x, y, w, h;
 	struct event_data *evt;
 
 	evt = evas_object_data_del(obj, "evt");
 	if (!evt)
 		return;
 
-	if (livebox_lb_type(handle) == LB_TYPE_PIXMAP || livebox_lb_type(handle) == LB_TYPE_BUFFER) {
-		Evas_Coord x, y, w, h;
-		double rx, ry;
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
 
-		evas_object_geometry_get(obj, &x, &y, &w, &h);
+	if (livebox_lb_type(handle) == LB_TYPE_PIXMAP || livebox_lb_type(handle) == LB_TYPE_BUFFER) {
+		double rx, ry;
 		rx = (double)(up->canvas.x - x) / (double)w;
 		ry = (double)(up->canvas.y - y) / (double)h;
 		livebox_content_event(handle, LB_MOUSE_UP, rx, ry);
-	} else {
-		Evas_Coord x, y, w, h;
-		evas_object_geometry_get(obj, &x, &y, &w, &h);
+	}
 
-		if (x < up->canvas.x && up->canvas.x < x + w) {
-			if (y < up->canvas.y && up->canvas.y < y + h) {
-				livebox_click(handle, (double)x / (double)w, (double)y / (double)h);
-			}
+	if (x < up->canvas.x && up->canvas.x < x + w) {
+		if (y < up->canvas.y && up->canvas.y < y + h) {
+			livebox_click(handle, (double)x / (double)w, (double)y / (double)h);
 		}
 	}
 
@@ -815,7 +825,7 @@ static void livebox_added_cb(struct livebox *handle, int ret, void *data)
 	DbgPrint("%s - %d\n", livebox_pkgname(handle), ret);
 
 	if (ret != 0) {
-		error_popup(data, handle, ret);
+		error_popup(main_get_window(), handle, ret);
 		return;
 	}
 
