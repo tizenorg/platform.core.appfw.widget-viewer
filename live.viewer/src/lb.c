@@ -34,59 +34,66 @@ static Evas_Object *create_canvas(Evas_Object *parent)
 {
 	Evas_Object *canvas;
 
-	canvas = evas_object_image_filled_add(evas_object_evas_get(parent));
+	canvas = evas_object_image_add(evas_object_evas_get(parent));
 	if (!canvas)
 		return NULL;
 
 	evas_object_image_content_hint_set(canvas, EVAS_IMAGE_CONTENT_HINT_DYNAMIC);
-//	evas_object_image_colorspace_set(canvas, EVAS_COLORSPACE_ARGB8888);
-//	evas_object_image_alpha_set(canvas, EINA_TRUE);
+	evas_object_image_colorspace_set(canvas, EVAS_COLORSPACE_ARGB8888);
+	evas_object_image_alpha_set(canvas, EINA_TRUE);
 	evas_object_move(canvas, 0, 0);
 	return canvas;
 }
 
 static int update_pd_canvas(struct livebox *handle, Evas_Object *image)
 {
+	Evas_Native_Surface surface;
 	int w;
 	int h;
-	Evas_Native_Surface surface;
+
+	DbgPrint("Updated\n");
 
 	switch (livebox_pd_type(handle)) {
-	case PD_TYPE_BUFFER:
-		evas_object_image_colorspace_set(image, EVAS_COLORSPACE_ARGB8888);
-		evas_object_image_alpha_set(image, EINA_TRUE);
-
-		livebox_get_pdsize(handle, &w, &h);
-		if (w > 0 && h > 0) {
-			void *data;
-			data = livebox_acquire_pdfb(handle);
-			if (data) {
-				evas_object_image_size_set(image, w, h);
-				evas_object_image_data_copy_set(image, data);
-				livebox_release_pdfb(data);
-			}
-			evas_object_resize(image, w, h);
-			//evas_object_size_hint_min_set(image, w, h);
-			evas_object_size_hint_max_set(image, w, h);
-		}
-		break;
 	case PD_TYPE_PIXMAP:
 		h = w = 0;
 		livebox_get_pdsize(handle, &w, &h);
 		if (w <= 0 || h <= 0)
 			break;
 
+		//evas_object_image_size_set(image, w, h);
+
 		DbgPrint("Update: %dx%d\n", w, h);
 		surface.version = EVAS_NATIVE_SURFACE_VERSION;
 		surface.type = EVAS_NATIVE_SURFACE_X11;
 		surface.data.x11.pixmap = livebox_pd_pixmap(handle);
-		surface.data.x11.visual = NULL; //ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
+		surface.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
 		evas_object_image_native_surface_set(image, &surface);
 
-		evas_object_image_size_set(image, w, h);
-		evas_object_resize(image, w, h);
+		evas_object_image_data_update_add(image, 0, 0, w, h);
 		evas_object_size_hint_max_set(image, w, h);
+		evas_object_resize(image, w, h);
 		evas_object_show(image);
+		break;
+	case PD_TYPE_BUFFER:
+		livebox_get_pdsize(handle, &w, &h);
+		if (w > 0 && h > 0) {
+			void *data;
+
+			data = livebox_acquire_pdfb(handle);
+			if (data) {
+				evas_object_image_data_set(image, NULL);
+				evas_object_image_colorspace_set(canvas, EVAS_COLORSPACE_ARGB8888);
+				evas_object_image_alpha_set(image, EINA_TRUE);
+				evas_object_image_size_set(image, w, h);
+				evas_object_image_smooth_scale_set(image, EINA_TRUE);
+				evas_object_image_data_copy_set(image, data);
+				evas_object_image_data_update_add(image, 0, 0, w, h);
+				livebox_release_pdfb(data);
+			}
+			evas_object_resize(image, w, h);
+			//evas_object_size_hint_min_set(image, w, h);
+			evas_object_size_hint_max_set(image, w, h);
+		}
 		break;
 	case PD_TYPE_TEXT:
 	default:
@@ -104,6 +111,8 @@ static int update_canvas(struct livebox *handle, Evas_Object *image)
 	int h;
 	int type;
 
+	DbgPrint("Updated\n");
+
 	switch (livebox_lb_type(handle)) {
 	case LB_TYPE_PIXMAP:
 		w = h = 0;
@@ -114,22 +123,22 @@ static int update_canvas(struct livebox *handle, Evas_Object *image)
 
 		DbgPrint("Update: %dx%d\n", w, h);
 
+		//evas_object_image_size_set(image, w, h);
+
 		surface.version = EVAS_NATIVE_SURFACE_VERSION;
 		surface.type = EVAS_NATIVE_SURFACE_X11;
 		surface.data.x11.pixmap = livebox_lb_pixmap(handle);
-		surface.data.x11.visual = NULL; //ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
+		surface.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
 		evas_object_image_native_surface_set(image, &surface);
 
-		evas_object_image_size_set(image, w, h);
+		evas_object_image_data_update_add(image, 0, 0, w, h);
+
 		evas_object_resize(image, w, h);
 		evas_object_size_hint_min_set(image, w, h);
 		evas_object_size_hint_max_set(image, w, h);
 		evas_object_show(image);
 		break;
 	case LB_TYPE_BUFFER:
-		evas_object_image_colorspace_set(image, EVAS_COLORSPACE_ARGB8888);
-		evas_object_image_alpha_set(image, EINA_TRUE);
-
 		w = h = 0;
 		type = livebox_size(handle);
 		livebox_service_get_size(type, &w, &h);
@@ -137,8 +146,13 @@ static int update_canvas(struct livebox *handle, Evas_Object *image)
 			void *data;
 			data = livebox_acquire_fb(handle);
 			if (data) {
+				evas_object_image_data_set(image, NULL);
+				evas_object_image_colorspace_set(image, EVAS_COLORSPACE_ARGB8888);
+				evas_object_image_alpha_set(image, EINA_TRUE);
 				evas_object_image_size_set(image, w, h);
+        			evas_object_image_smooth_scale_set(image, EINA_TRUE);
 				evas_object_image_data_copy_set(image, data);
+        			evas_object_image_data_update_add(image, 0, 0, w, h);
 				livebox_release_fb(data);
 			}
 			evas_object_resize(image, w, h);

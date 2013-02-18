@@ -589,11 +589,6 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 		return NULL;
 	}
 
-	if (livebox_service_is_enabled(pkgname) == 0) {
-		DbgPrint("Livebox [%s] is disabled package\n", pkgname);
-		return NULL;
-	}
-
 	if (type != LB_SIZE_TYPE_UNKNOWN)
 		livebox_service_get_size(type, &width, &height);
 
@@ -606,6 +601,13 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 	handler->pkgname = lb_pkgname(pkgname);
 	if (!handler->pkgname) {
 		ErrPrint("Error: %s\n", strerror(errno));
+		free(handler);
+		return NULL;
+	}
+
+	if (livebox_service_is_enabled(handler->pkgname) == 0) {
+		DbgPrint("Livebox [%s](%s) is disabled package\n", handler->pkgname, pkgname);
+		free(handler->pkgname);
 		free(handler);
 		return NULL;
 	}
