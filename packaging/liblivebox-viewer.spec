@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for developing the application.
-Version: 0.8.13
+Version: 0.9.2
 Release: 1
 Group: framework/livebox
 License: Flora License
@@ -18,7 +18,7 @@ BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(livebox-service)
 
 %description
-This library supports the API for creating a new instance of the livebox and managing its life-cycle.
+API for creating a new instance of the livebox and managing its life-cycle.
 
 %package devel
 Summary: Header and package configuration files for the livebox viewer development.

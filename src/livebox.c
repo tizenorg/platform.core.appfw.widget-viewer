@@ -605,6 +605,13 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 		return NULL;
 	}
 
+	if (livebox_service_is_enabled(handler->pkgname) == 0) {
+		DbgPrint("Livebox [%s](%s) is disabled package\n", handler->pkgname, pkgname);
+		free(handler->pkgname);
+		free(handler);
+		return NULL;
+	}
+
 	if (content) {
 		handler->content = strdup(content);
 		if (!handler->content) {
@@ -1955,6 +1962,27 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 	}
 
 	return master_rpc_request_only(NULL, packet);
+}
+
+EAPI int livebox_refresh(struct livebox *handler)
+{
+	struct packet *packet;
+
+	if (!handler) {
+		ErrPrint("Hnalder is NIL\n");
+		return -EINVAL;
+	}
+
+	if (handler->state != CREATE || !handler->id)
+		return -EINVAL;
+
+	packet = packet_create_noack("update", "ss", handler->pkgname, handler->id);
+	if (!packet) {
+		ErrPrint("Failed to create a packet\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_request_only(handler, packet);
 }
 
 EAPI int livebox_refresh_group(const char *cluster, const char *category)

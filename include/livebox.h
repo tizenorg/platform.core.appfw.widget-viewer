@@ -89,7 +89,6 @@ enum content_event_type {
 	PD_KEY_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN,
 	PD_KEY_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP,
 
-
 	CONTENT_EVENT_MAX	= 0xFFFFFFFF,
 };
 
@@ -605,6 +604,13 @@ extern int livebox_unsubscribe_group(const char *cluster, const char *category);
  * \return int Success 0 or negative value
  */
 extern int livebox_refresh_group(const char *cluster, const char *category);
+
+/*!
+ * \brief Refresh a livebox
+ * \param[in] handler
+ * \return int Success 0 or negative value
+ */
+extern int livebox_refresh(struct livebox *handler);
 
 /*!
  * \brief Pixmap Id of a livebox content
