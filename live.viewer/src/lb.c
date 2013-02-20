@@ -150,9 +150,9 @@ static int update_canvas(struct livebox *handle, Evas_Object *image)
 				evas_object_image_colorspace_set(image, EVAS_COLORSPACE_ARGB8888);
 				evas_object_image_alpha_set(image, EINA_TRUE);
 				evas_object_image_size_set(image, w, h);
-        			evas_object_image_smooth_scale_set(image, EINA_TRUE);
+				evas_object_image_smooth_scale_set(image, EINA_TRUE);
 				evas_object_image_data_copy_set(image, data);
-        			evas_object_image_data_update_add(image, 0, 0, w, h);
+				evas_object_image_data_update_add(image, 0, 0, w, h);
 				livebox_release_fb(data);
 			}
 			evas_object_resize(image, w, h);
