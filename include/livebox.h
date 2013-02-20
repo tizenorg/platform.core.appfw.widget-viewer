@@ -185,6 +185,18 @@ extern int livebox_init(void *disp);
 extern int livebox_fini(void);
 
 /*!
+ * \brief Client is paused.
+ * \return int
+ */
+extern int livebox_client_paused(void);
+
+/*!
+ * \brief Client is rfesumed.
+ * \return int
+ */
+extern int livebox_client_resumed(void);
+
+/*!
  * \brief Add a new livebox
  * \param[in] pkgname
  * \param[in] content

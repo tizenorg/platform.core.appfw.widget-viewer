@@ -2509,4 +2509,30 @@ int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 	return master_rpc_async_request(handler, packet, 0, del_ret_cb, create_cb_info(cb, data));
 }
 
+int livebox_client_paused(void)
+{
+	struct packet *packet;
+
+	packet = packet_create_noack("client_paused", "d", util_timestamp());
+	if (!packet) {
+		ErrPrint("Failed to create a pause packet\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_request_only(NULL, packet);
+}
+
+int livebox_client_resumed(void)
+{
+	struct packet *packet;
+
+	packet = packet_create_noack("client_resumed", "d", util_timestamp());
+	if (!packet) {
+		ErrPrint("Failed to create a resume packet\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_request_only(NULL, packet);
+}
+
 /* End of a file */
