@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for developing the application.
-Version: 0.9.3
+Version: 0.9.4
 Release: 1
 Group: framework/livebox
 License: Flora License

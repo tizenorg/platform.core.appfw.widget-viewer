@@ -2509,7 +2509,7 @@ int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 	return master_rpc_async_request(handler, packet, 0, del_ret_cb, create_cb_info(cb, data));
 }
 
-int livebox_client_paused(void)
+EAPI int livebox_client_paused(void)
 {
 	struct packet *packet;
 
@@ -2522,7 +2522,7 @@ int livebox_client_paused(void)
 	return master_rpc_request_only(NULL, packet);
 }
 
-int livebox_client_resumed(void)
+EAPI int livebox_client_resumed(void)
 {
 	struct packet *packet;
 
