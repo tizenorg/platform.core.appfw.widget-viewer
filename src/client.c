@@ -470,15 +470,21 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		if (status != 0)
 			ErrPrint("This is not possible. PD Size is changed but the return value is not ZERO\n");
 	} else {
-		if (status == 0)
+		if (status == 0) {
+			DbgPrint("Livebox size is updated (%dx%d)\n", w, h);
 			lb_set_size(handler, w, h);
+		} else {
+			DbgPrint("Livebox size is not changed: %dx%d, %d\n", w, h, status);
+		}
 
 		if (handler->size_changed_cb) {
+			DbgPrint("Call the size changed callback\n");
 			handler->size_changed_cb(handler, status, handler->size_cbdata);
 
 			handler->size_changed_cb = NULL;
 			handler->size_cbdata = NULL;
 		} else {
+			DbgPrint("Call the global size changed callback\n");
 			lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
 		}
 	}

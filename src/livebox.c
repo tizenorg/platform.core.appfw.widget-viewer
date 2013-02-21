@@ -163,9 +163,11 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 	 * after this request.
 	 */
 	if (ret == 0) {
+		DbgPrint("Resize request is done, prepare the size changed event\n");
 		handler->size_changed_cb = cb;
 		handler->size_cbdata = cbdata;
 	} else {
+		DbgPrint("Resize request is failed: %d\n", ret);
 		cb(handler, ret, cbdata);
 	}
 }
@@ -727,6 +729,9 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 		return -EALREADY;
 	}
 
+	if (handler->period_changed_cb)
+		DbgPrint("Already requested\n");
+
 	packet = packet_create("set_period", "ssd", handler->pkgname, handler->id, period);
 	if (!packet) {
 		ErrPrint("Failed to build a packet %s\n", handler->pkgname);
@@ -885,6 +890,9 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
+
+	if (handler->size_changed_cb)
+		DbgPrint("Already pended\n");
 
 	packet = packet_create("resize", "ssii", handler->pkgname, handler->id, w, h);
 	if (!packet) {
@@ -1288,6 +1296,9 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
+
+	if (handler->group_changed_cb)
+		DbgPrint("Already sent\n");
 
 	packet = packet_create("change_group", "ssss", handler->pkgname, handler->id, cluster, category);
 	if (!packet) {
@@ -1801,6 +1812,9 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
+
+	if (handler->pinup_cb)
+		DbgPrint("Already sent\n");
 
 	packet = packet_create("pinup_changed", "ssi", handler->pkgname, handler->id, flag);
 	if (!packet) {
