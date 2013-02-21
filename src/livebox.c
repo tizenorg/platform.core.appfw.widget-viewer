@@ -110,6 +110,11 @@ static inline void default_pd_destroyed_cb(struct livebox *handler, int ret, voi
 	DbgPrint("Default PD destroyed event handler: %d\n", ret);
 }
 
+static inline void default_lb_size_changed_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default LB size changed event handler: %d\n", ret);
+}
+
 static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_cb_t cb, void *data)
 {
 	struct cb_info *info;
@@ -157,9 +162,12 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 	 * So the user can only get the resized value(result) from the first update event
 	 * after this request.
 	 */
-
-	if (cb)
+	if (ret == 0) {
+		handler->size_changed_cb = cb;
+		handler->size_cbdata = cbdata;
+	} else {
 		cb(handler, ret, cbdata);
+	}
 }
 
 static void text_signal_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -883,6 +891,9 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
+
+	if (!cb)
+		cb = default_lb_size_changed_cb;
 
 	return master_rpc_async_request(handler, packet, 0, resize_cb, create_cb_info(cb, data));
 }

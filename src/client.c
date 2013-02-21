@@ -428,6 +428,65 @@ out:
 	return NULL;
 }
 
+static struct packet *master_size_changed(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int status;
+	int ret;
+	int w;
+	int h;
+	int is_pd;
+
+	ret = packet_get(packet, "ssiiii", &pkgname, &id, &is_pd, &w, &h, &status);
+	if (ret != 6) {
+		ErrPrint("Invalid argument\n");
+		ret = EINVAL;
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Livebox(%s - %s) is not found\n", pkgname, id);
+		ret = -ENOENT;
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		ret = -EPERM;
+		goto out;
+	}
+
+	if (is_pd) {
+		/*!
+		 * \NOTE
+		 * PD is not able to resized by the client.
+		 * PD is only can be managed by the provider.
+		 * So the PD has no private resized event handler.
+		 * Notify it via global event handler.
+		 */
+		lb_invoke_event_handler(handler, LB_EVENT_PD_SIZE_CHANGED);
+		if (status != 0)
+			ErrPrint("This is not possible. PD Size is changed but the return value is not ZERO\n");
+	} else {
+		if (status == 0)
+			lb_set_size(handler, w, h);
+
+		if (handler->size_changed_cb) {
+			handler->size_changed_cb(handler, status, handler->size_cbdata);
+
+			handler->size_changed_cb = NULL;
+			handler->size_cbdata = NULL;
+		} else {
+			lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
+		}
+	}
+
+out:
+	return NULL;
+}
+
 static struct packet *master_period_changed(pid_t pid, int handle, const struct packet *packet)
 {
 	struct livebox *handler;
@@ -763,6 +822,10 @@ static struct method s_table[] = {
 	{
 		.cmd = "period_changed",
 		.handler = master_period_changed,
+	},
+	{
+		.cmd = "size_changed",
+		.handler = master_size_changed,
 	},
 	{
 		.cmd = "pinup",

@@ -121,6 +121,9 @@ enum livebox_event_type { /*!< livebox_event_handler_set Event list */
 	LB_EVENT_PINUP_CHANGED, /*!< PINUP status is changed */
 	LB_EVENT_PERIOD_CHANGED, /*!< Update period is changed */
 
+	LB_EVENT_LB_SIZE_CHANGED, /*!< Livebox size is changed */
+	LB_EVENT_PD_SIZE_CHANGED, /*!< PD size is changed */
+
 	LB_EVENT_PD_CREATED, /*!< If a PD is created even if you didn't call the livebox_create_pd API */
 	LB_EVENT_PD_DESTROYED, /*!< If a PD is destroyed even if you didn't call the livebox_destroy_pd API */
 
