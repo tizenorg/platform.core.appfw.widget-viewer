@@ -141,6 +141,9 @@ struct livebox {
 	ret_cb_t period_changed_cb;
 	void *period_cbdata;
 
+	ret_cb_t size_changed_cb;
+	void *size_cbdata;
+
 	ret_cb_t pd_created_cb;
 	void *pd_created_cbdata;
 

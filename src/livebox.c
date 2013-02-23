@@ -110,6 +110,11 @@ static inline void default_pd_destroyed_cb(struct livebox *handler, int ret, voi
 	DbgPrint("Default PD destroyed event handler: %d\n", ret);
 }
 
+static inline void default_lb_size_changed_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default LB size changed event handler: %d\n", ret);
+}
+
 static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_cb_t cb, void *data)
 {
 	struct cb_info *info;
@@ -157,9 +162,14 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 	 * So the user can only get the resized value(result) from the first update event
 	 * after this request.
 	 */
-
-	if (cb)
+	if (ret == 0) {
+		DbgPrint("Resize request is done, prepare the size changed event\n");
+		handler->size_changed_cb = cb;
+		handler->size_cbdata = cbdata;
+	} else {
+		DbgPrint("Resize request is failed: %d\n", ret);
 		cb(handler, ret, cbdata);
+	}
 }
 
 static void text_signal_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -719,6 +729,9 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 		return -EALREADY;
 	}
 
+	if (handler->period_changed_cb)
+		DbgPrint("Already requested\n");
+
 	packet = packet_create("set_period", "ssd", handler->pkgname, handler->id, period);
 	if (!packet) {
 		ErrPrint("Failed to build a packet %s\n", handler->pkgname);
@@ -878,11 +891,17 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 		return -EALREADY;
 	}
 
+	if (handler->size_changed_cb)
+		DbgPrint("Already pended\n");
+
 	packet = packet_create("resize", "ssii", handler->pkgname, handler->id, w, h);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
+
+	if (!cb)
+		cb = default_lb_size_changed_cb;
 
 	return master_rpc_async_request(handler, packet, 0, resize_cb, create_cb_info(cb, data));
 }
@@ -1277,6 +1296,9 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
+
+	if (handler->group_changed_cb)
+		DbgPrint("Already sent\n");
 
 	packet = packet_create("change_group", "ssss", handler->pkgname, handler->id, cluster, category);
 	if (!packet) {
@@ -1790,6 +1812,9 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
+
+	if (handler->pinup_cb)
+		DbgPrint("Already sent\n");
 
 	packet = packet_create("pinup_changed", "ssi", handler->pkgname, handler->id, flag);
 	if (!packet) {
