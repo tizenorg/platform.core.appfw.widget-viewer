@@ -439,12 +439,20 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 	int h;
 	int is_pd;
 
+	if (!packet) {
+		ErrPrint("Invalid packet\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
 	ret = packet_get(packet, "ssiiii", &pkgname, &id, &is_pd, &w, &h, &status);
 	if (ret != 6) {
 		ErrPrint("Invalid argument\n");
-		ret = EINVAL;
+		ret = -EINVAL;
 		goto out;
 	}
+
+	DbgPrint("Size is changed: %dx%d (%s)\n", w, h, id);
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
@@ -454,11 +462,13 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 	}
 
 	if (handler->state != CREATE) {
+		ErrPrint("Hander is not created yet\n");
 		ret = -EPERM;
 		goto out;
 	}
 
 	if (is_pd) {
+		DbgPrint("PD is resized\n");
 		/*!
 		 * \NOTE
 		 * PD is not able to resized by the client.
@@ -466,26 +476,31 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		 * So the PD has no private resized event handler.
 		 * Notify it via global event handler.
 		 */
-		lb_invoke_event_handler(handler, LB_EVENT_PD_SIZE_CHANGED);
-		if (status != 0)
+		if (status == 0) {
+			lb_set_pdsize(handler, w, h);
+			lb_invoke_event_handler(handler, LB_EVENT_PD_SIZE_CHANGED);
+		} else {
 			ErrPrint("This is not possible. PD Size is changed but the return value is not ZERO\n");
+		}
 	} else {
+		DbgPrint("LB is resized\n");
 		if (status == 0) {
 			DbgPrint("Livebox size is updated (%dx%d)\n", w, h);
 			lb_set_size(handler, w, h);
+
+			if (handler->size_changed_cb) {
+				DbgPrint("Call the size changed callback\n");
+				handler->size_changed_cb(handler, status, handler->size_cbdata);
+
+				handler->size_changed_cb = NULL;
+				handler->size_cbdata = NULL;
+			} else {
+				DbgPrint("Call the global size changed callback\n");
+				lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
+				DbgPrint("Size changed callback done\n");
+			}
 		} else {
 			DbgPrint("Livebox size is not changed: %dx%d, %d\n", w, h, status);
-		}
-
-		if (handler->size_changed_cb) {
-			DbgPrint("Call the size changed callback\n");
-			handler->size_changed_cb(handler, status, handler->size_cbdata);
-
-			handler->size_changed_cb = NULL;
-			handler->size_cbdata = NULL;
-		} else {
-			DbgPrint("Call the global size changed callback\n");
-			lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
 		}
 	}
 
