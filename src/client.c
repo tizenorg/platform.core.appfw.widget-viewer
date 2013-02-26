@@ -488,6 +488,13 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			DbgPrint("Livebox size is updated (%dx%d)\n", w, h);
 			lb_set_size(handler, w, h);
 
+			/*!
+			 * If there is a created LB FB, 
+			 * Update it too
+			 */
+			if (lb_get_lb_fb(handler))
+				lb_set_lb_fb(handler, id);
+
 			if (handler->size_changed_cb) {
 				DbgPrint("Call the size changed callback\n");
 				handler->size_changed_cb(handler, status, handler->size_cbdata);
