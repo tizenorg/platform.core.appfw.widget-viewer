@@ -520,6 +520,15 @@ extern int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data);
 extern int livebox_create_pd_with_position(struct livebox *handler, double x, double y, ret_cb_t cb, void *data);
 
 /*!
+ * \brief PD position is updated.
+ * \param[in] handler
+ * \param[in] x 0.0 ~ 1.0
+ * \param[in] y 0.0 ~ 1.0
+ * \return int 0 if succeed to send request for updating position of the PD.
+ */
+extern int livebox_move_pd(struct livebox *handler, double x, double y);
+
+/*!
  * \brief Destroy the PD of given handler if it is created.
  * \param[in] handler
  * \param[in] cb
