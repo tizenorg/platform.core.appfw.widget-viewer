@@ -1254,11 +1254,8 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 	switch (handler->pd.type) {
 	case _PD_TYPE_BUFFER:
 	case _PD_TYPE_SCRIPT:
-		if (!handler->is_pd_created) {
-			DbgPrint("Buffer is not created yet - reset size\n");
-			*w = 0;
-			*h = 0;
-		}
+		if (!handler->is_pd_created)
+			DbgPrint("Buffer is not created yet [%dx%d]\n", *w, *h);
 		break;
 	default:
 		break;
