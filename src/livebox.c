@@ -1019,6 +1019,34 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 	return master_rpc_async_request(handler, packet, 0, pd_create_cb, create_cb_info(cb, data));
 }
 
+EAPI int livebox_move_pd(struct livebox *handler, double x, double y)
+{
+	struct packet *packet;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return -EINVAL;
+	}
+
+	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
+		ErrPrint("Handler is not valid\n");
+		return -EINVAL;
+	}
+
+	if (!handler->is_pd_created) {
+		DbgPrint("PD is not created\n");
+		return -EINVAL;
+	}
+
+	packet = packet_create_noack("pd_move", "ssdd", handler->pkgname, handler->id, x, y);
+	if (!packet) {
+		ErrPrint("Failed to build param\n");
+		return -EFAULT;
+	}
+
+	return master_rpc_request_only(handler, packet);
+}
+
 EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
