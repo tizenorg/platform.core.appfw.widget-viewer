@@ -1248,17 +1248,13 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 	if (!h)
 		h = &_h;
 
-	*w = handler->pd.width;
-	*h = handler->pd.height;
-
-	switch (handler->pd.type) {
-	case _PD_TYPE_BUFFER:
-	case _PD_TYPE_SCRIPT:
-		if (!handler->is_pd_created)
-			DbgPrint("Buffer is not created yet [%dx%d]\n", *w, *h);
-		break;
-	default:
-		break;
+	if (!handler->is_pd_created) {
+		DbgPrint("Buffer is not created yet [%dx%d]\n", *w, *h);
+		*w = handler->pd.default_width;
+		*h = handler->pd.default_height;
+	} else {
+		*w = handler->pd.width;
+		*h = handler->pd.height;
 	}
 
 	return 0;
@@ -2147,6 +2143,12 @@ void lb_set_pdsize(struct livebox *handler, int w, int h)
 {
 	handler->pd.width = w;
 	handler->pd.height = h;
+}
+
+void lb_set_default_pdsize(struct livebox *handler, int w, int h)
+{
+	handler->pd.default_width = w;
+	handler->pd.default_height = h;
 }
 
 void lb_invoke_fault_handler(enum livebox_fault_type event, const char *pkgname, const char *file, const char *func)
