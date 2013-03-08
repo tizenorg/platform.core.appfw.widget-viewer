@@ -740,6 +740,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	handler->pd.type = pd_type;
 	lb_set_pdsize(handler, pd_w, pd_h);
+	lb_set_default_pdsize(handler, pd_w, pd_h);
 	switch (pd_type) {
 	case _PD_TYPE_SCRIPT:
 	case _PD_TYPE_BUFFER:
