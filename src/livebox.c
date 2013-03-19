@@ -924,7 +924,7 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	}
 
 	if (handler->lb.auto_launch)
-		if (aul_launch_app(handler->lb.auto_launch, NULL) < 0)
+		if (aul_open_app(handler->lb.auto_launch) < 0)
 			ErrPrint("Failed to launch app %s\n", handler->lb.auto_launch);
 
 	timestamp = util_timestamp();
@@ -2088,6 +2088,8 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 			return -EPERM;
 		}
 	}
+
+	DbgPrint("Change the visibility %d <> %d, %s\n", handler->visible, state, handler->id);
 
 	if (handler->visible == state)
 		return 0;
