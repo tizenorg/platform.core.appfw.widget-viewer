@@ -991,5 +991,3 @@ int client_fini(void)
 }
 
 /* End of a file */
-
-

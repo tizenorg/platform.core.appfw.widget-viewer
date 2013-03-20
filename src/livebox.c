@@ -495,18 +495,19 @@ static void pinup_done_cb(struct livebox *handler, const struct packet *result, 
 	}
 }
 
-static int send_mouse_event(struct livebox *handler, const char *event, double x, double y, int w, int h)
+static int send_mouse_event(struct livebox *handler, const char *event, int x, int y)
 {
 	struct packet *packet;
 	double timestamp;
 
 	timestamp = util_timestamp();
-	packet = packet_create_noack(event, "ssiiddd", handler->pkgname, handler->id, w, h,
-						timestamp, x, y);
+	packet = packet_create_noack(event, "ssdii", handler->pkgname, handler->id, timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return -EFAULT;
 	}
+
+	DbgPrint("Send: %dx%d\n", x, y);
 
 	return master_rpc_request_only(handler, packet);
 }
@@ -923,7 +924,7 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	}
 
 	if (handler->lb.auto_launch)
-		if (aul_launch_app(handler->lb.auto_launch, NULL) < 0)
+		if (aul_open_app(handler->lb.auto_launch) < 0)
 			ErrPrint("Failed to launch app %s\n", handler->lb.auto_launch);
 
 	timestamp = util_timestamp();
@@ -937,15 +938,15 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 
 	if (!handler->lb.mouse_event && (handler->lb.type == _LB_TYPE_BUFFER || handler->lb.type == _LB_TYPE_SCRIPT)) {
 		int ret; /* Shadow variable */
-		ret = send_mouse_event(handler, "lb_mouse_down", x, y, handler->lb.width, handler->lb.height);
+		ret = send_mouse_event(handler, "lb_mouse_down", x * handler->lb.width, y * handler->lb.height);
 		if (ret < 0)
 			DbgPrint("Failed to send Down: %d\n", ret);
 
-		ret = send_mouse_event(handler, "lb_mouse_move", x, y, handler->lb.width, handler->lb.height);
+		ret = send_mouse_event(handler, "lb_mouse_move", x * handler->lb.width, y * handler->lb.height);
 		if (ret < 0)
 			DbgPrint("Failed to send Move: %d\n", ret);
 
-		ret = send_mouse_event(handler, "lb_mouse_up", x, y, handler->lb.width, handler->lb.height);
+		ret = send_mouse_event(handler, "lb_mouse_up", x * handler->lb.width, y * handler->lb.height);
 		if (ret < 0)
 			DbgPrint("Failed to send Up: %d\n", ret);
 	}
@@ -1096,8 +1097,8 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 
 EAPI int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y)
 {
-	int w;
-	int h;
+	int w = 1;
+	int h = 1;
 	char cmd[20] = { '\0', };
 	char *ptr = cmd;
 
@@ -1112,6 +1113,8 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 	}
 
 	if (type & CONTENT_EVENT_PD_MASK) {
+		int flag = 1;
+
 		if (!handler->is_pd_created) {
 			ErrPrint("PD is not created\n");
 			return -EINVAL;
@@ -1126,16 +1129,22 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 			if (type & CONTENT_EVENT_MOUSE_MOVE) {
 				if (fabs(x - handler->pd.x) < MINIMUM_EVENT && fabs(y - handler->pd.y) < MINIMUM_EVENT)
 					return -EBUSY;
+			} else if (type & CONTENT_EVENT_MOUSE_SET) {
+				flag = 0;
 			}
 		}
 
-		w = handler->pd.width;
-		h = handler->pd.height;
-		handler->pd.x = x;
-		handler->pd.y = y;
+		if (flag) {
+			w = handler->pd.width;
+			h = handler->pd.height;
+			handler->pd.x = x;
+			handler->pd.y = y;
+		}
 		*ptr++ = 'p';
 		*ptr++ = 'd';
 	} else {
+		int flag = 1;
+
 		if (type & CONTENT_EVENT_MOUSE_MASK) {
 			if (!handler->lb.mouse_event) {
 				ErrPrint("Box is not support the mouse event\n");
@@ -1150,13 +1159,17 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 			if (type & CONTENT_EVENT_MOUSE_MOVE) {
 				if (fabs(x - handler->lb.x) < MINIMUM_EVENT && fabs(y - handler->lb.y) < MINIMUM_EVENT)
 					return -EBUSY;
+			} else if (type & CONTENT_EVENT_MOUSE_SET) {
+				flag = 0;
 			}
 		}
 
-		w = handler->lb.width;
-		h = handler->lb.height;
-		handler->lb.x = x;
-		handler->lb.y = y;
+		if (flag) {
+			w = handler->lb.width;
+			h = handler->lb.height;
+			handler->lb.x = x;
+			handler->lb.y = y;
+		}
 		*ptr++ = 'l';
 		*ptr++ = 'b';
 	}
@@ -1195,6 +1208,12 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 	case CONTENT_EVENT_MOUSE_MOVE | CONTENT_EVENT_MOUSE_MASK:
 		strcpy(ptr, "_mouse_move");
 		break;
+	case CONTENT_EVENT_MOUSE_SET | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_set");
+		break;
+	case CONTENT_EVENT_MOUSE_UNSET | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_unset");
+		break;
 	case CONTENT_EVENT_KEY_DOWN | CONTENT_EVENT_KEY_MASK:
 		strcpy(ptr, "_key_down");
 		break;
@@ -1206,7 +1225,7 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		return -EINVAL;
 	}
 
-	return send_mouse_event(handler, cmd, x, y, w, h);
+	return send_mouse_event(handler, cmd, x * w, y * h);
 }
 
 EAPI const char *livebox_filename(struct livebox *handler)
@@ -2069,6 +2088,8 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 			return -EPERM;
 		}
 	}
+
+	DbgPrint("Change the visibility %d <> %d, %s\n", handler->visible, state, handler->id);
 
 	if (handler->visible == state)
 		return 0;
