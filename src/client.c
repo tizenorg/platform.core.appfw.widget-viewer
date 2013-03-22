@@ -474,7 +474,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		 * PD is not able to resized by the client.
 		 * PD is only can be managed by the provider.
 		 * So the PD has no private resized event handler.
-		 * Notify it via global event handler.
+		 * Notify it via global event handler only.
 		 */
 		if (status == 0) {
 			lb_set_pdsize(handler, w, h);
@@ -483,31 +483,39 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			ErrPrint("This is not possible. PD Size is changed but the return value is not ZERO\n");
 		}
 	} else {
-		DbgPrint("LB is resized\n");
 		if (status == 0) {
-			DbgPrint("Livebox size is updated (%dx%d)\n", w, h);
+			DbgPrint("LB is successfully resized (%dx%d)\n", w, h);
 			lb_set_size(handler, w, h);
 
 			/*!
+			 * \NOTE
 			 * If there is a created LB FB, 
-			 * Update it too
+			 * Update it too.
 			 */
 			if (lb_get_lb_fb(handler))
 				lb_set_lb_fb(handler, id);
 
+			/*!
+			 * \NOTE
+			 * I cannot believe client.
+			 * So I added some log before & after call the user callback.
+			 */
 			if (handler->size_changed_cb) {
-				DbgPrint("Call the size changed callback\n");
 				handler->size_changed_cb(handler, status, handler->size_cbdata);
 
 				handler->size_changed_cb = NULL;
 				handler->size_cbdata = NULL;
 			} else {
-				DbgPrint("Call the global size changed callback\n");
 				lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
-				DbgPrint("Size changed callback done\n");
 			}
 		} else {
-			DbgPrint("Livebox size is not changed: %dx%d, %d\n", w, h, status);
+			DbgPrint("LB is not resized: %dx%d (%d)\n", w, h, status);
+			if (handler->size_changed_cb) {
+				handler->size_changed_cb(handler, status, handler->size_cbdata);
+
+				handler->size_changed_cb = NULL;
+				handler->size_cbdata = NULL;
+			}
 		}
 	}
 
@@ -543,6 +551,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
+	DbgPrint("Update period is changed? %lf (%d)\n", period, status);
 	if (status == 0)
 		lb_set_period(handler, period);
 
@@ -594,6 +603,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
+	DbgPrint("Group is changed? [%s] / [%s] (%d)\n", cluster, category, status);
 	if (status == 0)
 		lb_set_group(handler, cluster, category);
 
@@ -909,7 +919,7 @@ static inline void make_connection(void)
 		if (s_info.reconnector == 0)
 			ErrPrint("Failed to fire the reconnector\n");
 
-		ErrPrint("Try this again 10 secs later\n");
+		ErrPrint("Try this again A sec later\n");
 		return;
 	}
 

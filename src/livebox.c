@@ -720,6 +720,11 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 		return -EINVAL;
 	}
 
+	if (handler->period_changed_cb) {
+		ErrPrint("Previous request for changing period is not finished\n");
+		return -EBUSY;
+	}
+
 	if (!handler->is_user) {
 		ErrPrint("CA Livebox is not able to change the period\n");
 		return -EPERM;
@@ -729,9 +734,6 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
-
-	if (handler->period_changed_cb)
-		DbgPrint("Already requested\n");
 
 	packet = packet_create("set_period", "ssd", handler->pkgname, handler->id, period);
 	if (!packet) {
@@ -877,6 +879,11 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 		return -EINVAL;
 	}
 
+	if (handler->size_changed_cb) {
+		ErrPrint("Previous resize request is not finished yet\n");
+		return -EBUSY;
+	}
+
 	if (!handler->is_user) {
 		ErrPrint("CA Livebox is not able to be resized\n");
 		return -EPERM;
@@ -891,9 +898,6 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
-
-	if (handler->size_changed_cb)
-		DbgPrint("Already pended\n");
 
 	packet = packet_create("resize", "ssii", handler->pkgname, handler->id, w, h);
 	if (!packet) {
@@ -1327,6 +1331,11 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return -EINVAL;
 	}
 
+	if (handler->group_changed_cb) {
+		ErrPrint("Previous group changing request is not finished yet\n");
+		return -EBUSY;
+	}
+
 	if (!handler->is_user) {
 		ErrPrint("CA Livebox is not able to change the group\n");
 		return -EPERM;
@@ -1336,9 +1345,6 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
-
-	if (handler->group_changed_cb)
-		DbgPrint("Already sent\n");
 
 	packet = packet_create("change_group", "ssss", handler->pkgname, handler->id, cluster, category);
 	if (!packet) {
@@ -1848,13 +1854,15 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 		return -EINVAL;
 	}
 
+	if (handler->pinup_cb) {
+		ErrPrint("Previous pinup request is not finished\n");
+		return -EBUSY;
+	}
+
 	if (handler->is_pinned_up == flag) {
 		DbgPrint("No changes\n");
 		return -EALREADY;
 	}
-
-	if (handler->pinup_cb)
-		DbgPrint("Already sent\n");
 
 	packet = packet_create("pinup_changed", "ssi", handler->pkgname, handler->id, flag);
 	if (!packet) {
@@ -2114,7 +2122,7 @@ EAPI enum livebox_visible_state livebox_visibility(struct livebox *handler)
 		return LB_VISIBLE_ERROR;
 	}
 
-	if (handler->state != CREATE)
+	if (handler->state != CREATE || !handler->id)
 		return LB_VISIBLE_ERROR;
 
 	return handler->visible;
