@@ -182,37 +182,42 @@ typedef void (*ret_cb_t)(struct livebox *handle, int ret, void *data);
 
 /*!
  * \brief Initialize the livebox system
- * \param[in] disp
- * \return int
+ * \param[in] disp If you have X Display connection object, you can re-use it. but you should care its life cycle.
+ *                 It must be alive before call the livebox_fini
+ * \return int 0 if success or < 0 (errno)
+ * \sa livebox_fini
  */
 extern int livebox_init(void *disp);
 
 /*!
  * \brief Finalize the livebox system
- * \return int
+ * \return int 0 if success, -EINVAL if livebox_init is not called.
+ * \sa livebox_init
  */
 extern int livebox_fini(void);
 
 /*!
  * \brief Client is paused.
- * \return int
+ * \return int 0 if success, -EFAULT if it failed to send state(paused) info
+ * \sa livebox_client_resumed
  */
 extern int livebox_client_paused(void);
 
 /*!
  * \brief Client is rfesumed.
- * \return int
+ * \return int 0 if success, -EFAULT if it failed to send state(resumed) info
+ * \sa livebox_client_paused
  */
 extern int livebox_client_resumed(void);
 
 /*!
  * \brief Add a new livebox
- * \param[in] pkgname
- * \param[in] content
+ * \param[in] pkgname Livebox Id
+ * \param[in] content Will be passed to the livebox.
  * \param[in] cluster
  * \param[in] category
- * \param[in] period
- * \param[in] cb
+ * \param[in] period Update period. if you set DEFAULT_PERIOD, the provider will use the default period which is described in the manifest.
+ * \param[in] cb After send the request to the provider, its result will be passed
  * \param[in] data
  * \return handle
  */
