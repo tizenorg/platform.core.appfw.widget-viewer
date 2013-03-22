@@ -37,6 +37,7 @@
 #include "master_rpc.h"
 #include "conf.h"
 #include "critical_log.h"
+#include "livebox-errno.h"
 
 static inline void make_connection(void);
 
@@ -78,13 +79,12 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	ret = packet_get(packet, "iisss", &ret, &pinup, &pkgname, &id, &content);
 	if (ret != 5) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
 		goto out;
 	}
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
-		ret = -ENOENT;
+		ErrPrint("Instance (%s) is not exists\n", id);
 		goto out;
 	}
 
@@ -96,7 +96,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			handler->is_pinned_up = pinup;
 		} else {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			ret = -ENOMEM;
+			ret = LB_STATUS_ERROR_MEMORY;
 		}
 	}
 
@@ -105,11 +105,10 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 
 		handler->pinup_cb = NULL; /*!< Reset pinup cb */
 		handler->pinup_cbdata = NULL;
-	} else {
+	} else if (ret == 0) {
 		lb_invoke_event_handler(handler, LB_EVENT_PINUP_CHANGED);
 	}
 
-	ret = 0;
 out:
 	return NULL;
 }
@@ -169,14 +168,14 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			handler->deleted_cbdata = NULL;
 		}
 
-		DbgPrint("Call the created cb with -ECANCELED\n");
-		handler->created_cb(handler, -ECANCELED, handler->created_cbdata);
+		DbgPrint("Call the created cb with LB_STATUS_ERROR_CANCEL\n");
+		handler->created_cb(handler, LB_STATUS_ERROR_CANCEL, handler->created_cbdata);
 		handler->created_cb = NULL;
 		handler->created_cbdata = NULL;
 	} else if (handler->id) {
 		if (handler->deleted_cb) {
 			DbgPrint("Call the deleted cb\n");
-			handler->deleted_cb(handler, 0, handler->deleted_cbdata);
+			handler->deleted_cb(handler, LB_STATUS_SUCCESS, handler->deleted_cbdata);
 
 			handler->deleted_cb = NULL;
 			handler->deleted_cbdata = NULL;
@@ -214,13 +213,12 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 				&priority, &content, &title);
 	if (ret != 8) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
 		goto out;
 	}
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
-		ret = -ENOENT;
+		ErrPrint("instance(%s) is not exists\n", id);
 		goto out;
 	}
 
@@ -231,7 +229,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		 * Don't try to notice anything with this, Just ignore all events
 		 * Beacuse the user doesn't wants know about this anymore
 		 */
-		ret = -EPERM;
+		DbgPrint("(%s) is not exists, but updated\n", id);
 		goto out;
 	}
 
@@ -241,10 +239,11 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 
 	if (lb_text_lb(handler)) {
 		lb_set_size(handler, lb_w, lb_h);
-		ret = parse_desc(handler, livebox_filename(handler), 0);
+		(void)parse_desc(handler, livebox_filename(handler), 0);
 		/*!
 		 * \note
 		 * DESC parser will call the "text event callback".
+		 * Don't need to call global event callback in this case.
 		 */
 		goto out;
 	} else if (lb_get_lb_fb(handler)) {
@@ -252,7 +251,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		lb_set_lb_fb(handler, fbfile);
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret < 0)
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 	} else {
 		lb_set_size(handler, lb_w, lb_h);
 		ret = 0;
@@ -284,12 +283,12 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
-		ret = -ENOENT;
+		ErrPrint("Instance(%s) is not exists\n", id);
 		goto out;
 	}
 
 	if (handler->state != CREATE) {
-		ret = -EPERM;
+		ErrPrint("Instance(%s) is not created\n", id);
 		goto out;
 	}
 
@@ -299,11 +298,8 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 	} else {
 		(void)lb_set_pd_fb(handler, buf_id);
 		ret = fb_sync(lb_get_pd_fb(handler));
-		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s)\n",
-					pkgname,
-					util_basename(util_uri_to_path(id)));
-		}
+		if (ret < 0)
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 	}
 
 	handler->is_pd_created = (status == 0);
@@ -319,7 +315,6 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);
 	}
 
-	ret = 0;
 out:
 	return NULL;
 }
@@ -340,12 +335,12 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
-		ret = -ENOENT;
+		ErrPrint("Instance(%s) is not exists\n", id);
 		goto out;
 	}
 
 	if (handler->state != CREATE) {
-		ret = -EPERM;
+		ErrPrint("Instance(%s) is not created\n", id);
 		goto out;
 	}
 
@@ -362,7 +357,6 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 		lb_invoke_event_handler(handler, LB_EVENT_PD_DESTROYED);
 	}
 
-	ret = 0;
 out:
 	return NULL;
 }
@@ -384,13 +378,12 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 				&pd_w, &pd_h);
 	if (ret != 6) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
 		goto out;
 	}
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
-		ret = -ENOENT;
+		ErrPrint("Instance(%s) is not exists\n", id);
 		goto out;
 	}
 
@@ -401,27 +394,22 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 		 * So don't try to notice anything about this anymore.
 		 * Just ignore all events.
 		 */
-		ret = -EPERM;
+		ErrPrint("Instance(%s) is not created\n", id);
 		goto out;
 	}
 
 	lb_set_pdsize(handler, pd_w, pd_h);
 
 	if (lb_text_pd(handler)) {
-		ret = parse_desc(handler, descfile, 1);
+		(void)parse_desc(handler, descfile, 1);
 	} else {
 		(void)lb_set_pd_fb(handler, fbfile);
 
 		ret = fb_sync(lb_get_pd_fb(handler));
-		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s)\n",
-					pkgname,
-					util_basename(util_uri_to_path(id)));
-			goto out;
-		}
-
-		lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
-		ret = 0;
+		if (ret < 0)
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+		else
+			lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
 	}
 
 out:
@@ -441,14 +429,12 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 
 	if (!packet) {
 		ErrPrint("Invalid packet\n");
-		ret = -EINVAL;
 		goto out;
 	}
 
 	ret = packet_get(packet, "ssiiii", &pkgname, &id, &is_pd, &w, &h, &status);
 	if (ret != 6) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
 		goto out;
 	}
 
@@ -456,14 +442,12 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
-		ErrPrint("Livebox(%s - %s) is not found\n", pkgname, id);
-		ret = -ENOENT;
+		ErrPrint("Livebox(%s) is not found\n", id);
 		goto out;
 	}
 
 	if (handler->state != CREATE) {
-		ErrPrint("Hander is not created yet\n");
-		ret = -EPERM;
+		ErrPrint("Livebox(%s) is not created yet\n", id);
 		goto out;
 	}
 
@@ -480,7 +464,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			lb_set_pdsize(handler, w, h);
 			lb_invoke_event_handler(handler, LB_EVENT_PD_SIZE_CHANGED);
 		} else {
-			ErrPrint("This is not possible. PD Size is changed but the return value is not ZERO\n");
+			ErrPrint("This is not possible. PD Size is changed but the return value is not ZERO (%d)\n", status);
 		}
 	} else {
 		if (status == 0) {
@@ -493,7 +477,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			 * Update it too.
 			 */
 			if (lb_get_lb_fb(handler))
-				lb_set_lb_fb(handler, id);
+				(void)lb_set_lb_fb(handler, id);
 
 			/*!
 			 * \NOTE
@@ -535,19 +519,17 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 	ret = packet_get(packet, "idss", &status, &period, &pkgname, &id);
 	if (ret != 4) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
 		goto out;
 	}
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
-		ErrPrint("Livebox(%s - %s) is not found\n", pkgname, id);
-		ret = -ENOENT;
+		ErrPrint("Livebox(%s) is not found\n", id);
 		goto out;
 	}
 
 	if (handler->state != CREATE) {
-		ret = -EPERM;
+		ErrPrint("Livebox(%s) is not created\n", id);
 		goto out;
 	}
 
@@ -560,11 +542,9 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 
 		handler->period_changed_cb = NULL;
 		handler->period_cbdata = NULL;
-	} else {
+	} else if (status == 0) {
 		lb_invoke_event_handler(handler, LB_EVENT_PERIOD_CHANGED);
 	}
-
-	ret = 0;
 
 out:
 	return NULL;
@@ -583,13 +563,12 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 	ret = packet_get(packet, "ssiss", &pkgname, &id, &status, &cluster, &category);
 	if (ret != 5) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
 		goto out;
 	}
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
-		ret = -ENOENT;
+		ErrPrint("Livebox(%s) is not exists\n", id);
 		goto out;
 	}
 
@@ -599,24 +578,22 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		 * Do no access this handler,
 		 * You cannot believe this handler anymore.
 		 */
-		ret = -EPERM;
+		ErrPrint("Livebox(%s) is not created\n", id);
 		goto out;
 	}
 
 	DbgPrint("Group is changed? [%s] / [%s] (%d)\n", cluster, category, status);
 	if (status == 0)
-		lb_set_group(handler, cluster, category);
+		(void)lb_set_group(handler, cluster, category);
 
 	if (handler->group_changed_cb) {
 		handler->group_changed_cb(handler, status, handler->group_cbdata);
 
 		handler->group_changed_cb = NULL;
 		handler->group_cbdata = NULL;
-	} else {
+	} else if (status == 0) {
 		lb_invoke_event_handler(handler, LB_EVENT_GROUP_CHANGED);
 	}
-
-	ret = 0;
 
 out:
 	return NULL;
@@ -664,7 +641,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			&lb_type, &pd_type, &period, &title, &is_pinned_up);
 	if (ret != 22) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 		goto out;
 	}
 
@@ -684,7 +661,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		handler = lb_new_livebox(pkgname, id, timestamp);
 		if (!handler) {
 			ErrPrint("Failed to create a new livebox\n");
-			ret = -EFAULT;
+			ret = LB_STATUS_ERROR_FAULT;
 			goto out;
 		}
 
@@ -697,7 +674,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 				 * This is not possible!!!
 				 */
 				ErrPrint("Invalid handler\n");
-				ret = -EINVAL;
+				ret = LB_STATUS_ERROR_INVALID;
 				goto out;
 			}
 
@@ -718,7 +695,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 					content, cluster, category,
 					lb_fname, pd_fname);
 
-			ret = -EALREADY;
+			ret = LB_STATUS_ERROR_ALREADY;
 			goto out;
 		}
 
@@ -818,7 +795,7 @@ out:
 		 * Do not clear this to use this from the deleted event callback.
 		 * if this value is not cleared when the deleted event callback check it,
 		 * it means that the created function is not called yet.
-		 * Then the call the deleted event callback with -ECANCELED errno.
+		 * Then the call the deleted event callback with LB_STATUS_ERROR_CANCEL errno.
 		 */
 	}
 

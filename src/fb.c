@@ -37,6 +37,7 @@
 #include "util.h"
 #include "fb.h"
 #include "critical_log.h"
+#include "livebox-errno.h" /* For error code */
 
 int errno;
 
@@ -113,16 +114,16 @@ static inline int sync_for_file(struct fb_info *info)
 	buffer = info->buffer;
 
 	if (!buffer) /* Ignore this sync request */
-		return 0;
+		return LB_STATUS_SUCCESS;
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid state of a FB\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (buffer->type != BUFFER_TYPE_FILE) {
 		DbgPrint("Invalid buffer\n");
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	fd = open(util_uri_to_path(info->id), O_RDONLY);
@@ -137,7 +138,7 @@ static inline int sync_for_file(struct fb_info *info)
 		 *
 		 * and then update it after it gots update events
 		 */
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
@@ -151,11 +152,11 @@ static inline int sync_for_file(struct fb_info *info)
 		 *
 		 * and then update it after it gots update events
 		 */
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	close(fd);
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info *info)
@@ -166,16 +167,16 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 
 	buffer = info->buffer;
 	if (!buffer) /*!< Ignore this sync request */
-		return 0;
+		return LB_STATUS_SUCCESS;
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid state of a FB\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (buffer->type != BUFFER_TYPE_PIXMAP) {
 		DbgPrint("Invalid buffer\n");
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	if (!s_info.disp) {
@@ -191,24 +192,24 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 			s_info.visual = DefaultVisualOfScreen(screen);
 		} else {
 			ErrPrint("Failed to open a display\n");
-			return -EFAULT;
+			return LB_STATUS_ERROR_FAULT;
 		}
 	}
 
 	if (info->handle == 0) {
 		DbgPrint("Pixmap ID is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (info->bufsz == 0) {
 		DbgPrint("Nothing can be sync\n");
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	si.shmid = shmget(IPC_PRIVATE, info->bufsz, IPC_CREAT | 0666);
 	if (si.shmid < 0) {
 		ErrPrint("shmget: %s\n", strerror(errno));
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	si.readOnly = False;
@@ -218,7 +219,7 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 		if (shmctl(si.shmid, IPC_RMID, 0) < 0)
 			ErrPrint("shmctl: %s\n", strerror(errno));
 
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	/*!
@@ -236,7 +237,7 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 		if (shmctl(si.shmid, IPC_RMID, 0) < 0)
 			ErrPrint("shmctl: %s\n", strerror(errno));
 
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	xim->data = si.shmaddr;
@@ -256,19 +257,19 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 	if (shmctl(si.shmid, IPC_RMID, 0) < 0)
 		ErrPrint("shmctl: %s\n", strerror(errno));
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int fb_sync(struct fb_info *info)
 {
 	if (!info) {
 		ErrPrint("FB Handle is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!info->id || info->id[0] == '\0') {
 		DbgPrint("Ingore sync\n");
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
@@ -277,10 +278,10 @@ int fb_sync(struct fb_info *info)
 		return sync_for_pixmap(info);
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		/* No need to do sync */ 
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
-	return -EINVAL;
+	return LB_STATUS_ERROR_INVALID;
 }
 
 struct fb_info *fb_create(const char *id, int w, int h)
@@ -310,7 +311,7 @@ struct fb_info *fb_create(const char *id, int w, int h)
 	} else if (sscanf(info->id, SCHEMA_PIXMAP "%d", &info->handle) == 1) {
 		DbgPrint("PIXMAP-SHMID: %d is gotten\n", info->handle);
 	} else {
-		info->handle = -EINVAL;
+		info->handle = LB_STATUS_ERROR_INVALID;
 	}
 
 	info->bufsz = 0;
@@ -325,7 +326,7 @@ int fb_destroy(struct fb_info *info)
 {
 	if (!info) {
 		ErrPrint("Handle is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (info->buffer) {
@@ -337,7 +338,7 @@ int fb_destroy(struct fb_info *info)
 
 	free(info->id);
 	free(info);
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int fb_is_created(struct fb_info *info)
@@ -454,7 +455,7 @@ int fb_release_buffer(void *data)
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid handle\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	switch (buffer->type) {
@@ -503,20 +504,20 @@ int fb_refcnt(void *data)
 	int ret;
 
 	if (!data)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	buffer = container_of(data, struct buffer, data);
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid handle\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	switch (buffer->type) {
 	case BUFFER_TYPE_SHM:
 		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
 			ErrPrint("Error: %s\n", strerror(errno));
-			return -EFAULT;
+			return LB_STATUS_ERROR_FAULT;
 		}
 
 		ret = buf.shm_nattch;
@@ -528,7 +529,7 @@ int fb_refcnt(void *data)
 		ret = buffer->refcnt;
 		break;
 	default:
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 		break;
 	}
 
@@ -544,12 +545,12 @@ int fb_get_size(struct fb_info *info, int *w, int *h)
 {
 	if (!info) {
 		ErrPrint("Handle is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	*w = info->w;
 	*h = info->h;
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int fb_size(struct fb_info *info)

@@ -32,6 +32,7 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "util.h"
+#include "livebox-errno.h"
 
 #define DEFAULT_TTL 10
 #define REQUEST_DELAY 10
@@ -169,7 +170,7 @@ static int done_cb(pid_t pid, int handle, const struct packet *packet, void *dat
 
 	if (packet_get(packet, "i", &ret) != 1) {
 		ErrPrint("Invalid result packet\n");
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	DbgPrint("[%s] Returns: %d\n", packet_command(packet), ret);
@@ -203,7 +204,7 @@ int master_rpc_async_request(struct livebox *handler, struct packet *packet, int
 			ret_cb(handler, NULL, data);
 
 		packet_unref(packet);
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	command->ret_cb = ret_cb;
@@ -217,7 +218,7 @@ int master_rpc_async_request(struct livebox *handler, struct packet *packet, int
 		push_command(command);
 
 	packet_unref(packet);
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int master_rpc_request_only(struct livebox *handler, struct packet *packet)
@@ -228,7 +229,7 @@ int master_rpc_request_only(struct livebox *handler, struct packet *packet)
 	if (!command) {
 		ErrPrint("Failed to create a command\n");
 		packet_unref(packet);
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	command->ret_cb = NULL;
@@ -238,7 +239,7 @@ int master_rpc_request_only(struct livebox *handler, struct packet *packet)
 
 	push_command(command);
 	packet_unref(packet);
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int master_rpc_clear_fault_package(const char *pkgname)
@@ -248,7 +249,7 @@ int master_rpc_clear_fault_package(const char *pkgname)
 	struct command *command;
 
 	if (!pkgname)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	DbgPrint("Clear requests of the fault package(%s)\n", pkgname);
 
@@ -297,13 +298,13 @@ int master_rpc_sync_request(struct packet *packet)
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Invalid result packet\n");
-			ret = -EINVAL;
+			ret = LB_STATUS_ERROR_INVALID;
 		}
 
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to send a sync request\n");
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	}
 
 	packet_unref(packet);

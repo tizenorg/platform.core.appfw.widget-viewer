@@ -30,6 +30,7 @@
 #include "debug.h"
 #include "util.h"
 #include "critical_log.h"
+#include "livebox-errno.h" /* For error code */
 
 static struct {
 	FILE *fp;
@@ -52,7 +53,7 @@ int critical_log(const char *func, int line, const char *fmt, ...)
 	struct timeval tv;
 
 	if (!s_info.fp)
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 
 	gettimeofday(&tv, NULL);
 	fprintf(s_info.fp, "%d %lu.%lu [%s:%d] ", getpid(), tv.tv_sec, tv.tv_usec, util_basename((char *)func), line);
@@ -101,7 +102,7 @@ int critical_log_init(const char *name)
 	s_info.filename = strdup(name);
 	if (!s_info.filename) {
 		ErrPrint("Failed to create a log file\n");
-		return -ENOMEM;
+		return LB_STATUS_ERROR_MEMORY;
 	}
 
 	namelen = strlen(name) + strlen(SLAVE_LOG_PATH) + 20;
@@ -111,7 +112,7 @@ int critical_log_init(const char *name)
 		ErrPrint("Failed to create a log file\n");
 		free(s_info.filename);
 		s_info.filename = NULL;
-		return -ENOMEM;
+		return LB_STATUS_ERROR_MEMORY;
 	}
 
 	snprintf(filename, namelen, "%s/%d_%s", SLAVE_LOG_PATH, s_info.file_id, name);
@@ -122,7 +123,7 @@ int critical_log_init(const char *name)
 		free(s_info.filename);
 		s_info.filename = NULL;
 		free(filename);
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 	}
 
 	free(filename);

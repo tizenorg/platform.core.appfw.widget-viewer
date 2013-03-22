@@ -163,7 +163,7 @@ struct livebox_script_operators {
 	 * Listed functions will be called when parser meets each typed component
 	 */
 	int (*update_text)(struct livebox *handle, const char *id, const char *part, const char *data); /*!< Update text content */
-	int (*update_image)(struct livebox *handle, const char *id, const char *part, const char *data); /*!< Update image content */
+	int (*update_image)(struct livebox *handle, const char *id, const char *part, const char *data, const char *option); /*!< Update image content */
 	int (*update_script)(struct livebox *handle, const char *id, const char *part, const char *file, const char *group); /*!< Update script content */
 	int (*update_signal)(struct livebox *handle, const char *id, const char *emission, const char *signal); /*!< Update signal */
 	int (*update_drag)(struct livebox *handle, const char *id, const char *part, double dx, double dy); /*!< Update drag info */
