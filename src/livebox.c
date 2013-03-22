@@ -26,6 +26,7 @@
 #include <com-core_packet.h>
 #include <packet.h>
 #include <livebox-service.h>
+#include <livebox-errno.h>
 
 #include "debug.h"
 #include "fb.h"
@@ -36,7 +37,6 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "critical_log.h"
-#include "livebox-errno.h"
 
 #define EAPI __attribute__((visibility("default")))
 #define MINIMUM_EVENT	s_info.event_filter
@@ -612,7 +612,6 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 
 	handler->pkgname = lb_pkgname(pkgname);
 	if (!handler->pkgname) {
-		ErrPrint("Error: %s\n", strerror(errno));
 		free(handler);
 		return NULL;
 	}

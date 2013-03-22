@@ -32,12 +32,12 @@
 #include <X11/Xutil.h>
 
 #include <dlog.h>
+#include <livebox-errno.h> /* For error code */
 
 #include "debug.h"
 #include "util.h"
 #include "fb.h"
 #include "critical_log.h"
-#include "livebox-errno.h" /* For error code */
 
 int errno;
 

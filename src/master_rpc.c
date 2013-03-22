@@ -24,6 +24,7 @@
 
 #include <packet.h>
 #include <com-core_packet.h>
+#include <livebox-errno.h>
 
 #include "debug.h"
 #include "dlist.h"
@@ -32,7 +33,6 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "util.h"
-#include "livebox-errno.h"
 
 #define DEFAULT_TTL 10
 #define REQUEST_DELAY 10

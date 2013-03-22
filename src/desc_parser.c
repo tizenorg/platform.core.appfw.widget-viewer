@@ -21,6 +21,7 @@
 #include <ctype.h>
 
 #include <dlog.h>
+#include <livebox-errno.h>
 
 #include "debug.h"
 #include "livebox.h"
@@ -29,7 +30,6 @@
 #include "dlist.h"
 #include "util.h"
 #include "critical_log.h"
-#include "livebox-errno.h"
 
 #define TYPE_TEXT "text"
 #define TYPE_IMAGE "image"

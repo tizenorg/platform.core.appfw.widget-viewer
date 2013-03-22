@@ -22,10 +22,10 @@
 #include <stdlib.h>
 
 #include <dlog.h>
+#include <livebox-errno.h> /* For error code */
 
 #include "debug.h"
 #include "util.h"
-#include "livebox-errno.h" /* For error code */
 
 int errno;
 
