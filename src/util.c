@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include <dlog.h>
+#include <livebox-errno.h> /* For error code */
 
 #include "debug.h"
 #include "util.h"
@@ -35,7 +36,7 @@ int util_check_extension(const char *filename, const char *check_ptr)
 	name_len = strlen(filename);
 	while (--name_len >= 0 && *check_ptr) {
 		if (filename[name_len] != *check_ptr)
-			return -EINVAL;
+			return LB_STATUS_ERROR_INVALID;
 
 		check_ptr ++;
 	}
@@ -75,14 +76,14 @@ static inline int check_native_livebox(const char *pkgname)
 	path = malloc(len + 1);
 	if (!path) {
 		ErrPrint("Heap: %s\n", strerror(errno));
-		return -ENOMEM;
+		return LB_STATUS_ERROR_MEMORY;
 	}
 
 	snprintf(path, len, "/opt/usr/live/%s/libexec/liblive-%s.so", pkgname, pkgname);
 	if (access(path, F_OK | R_OK) != 0) {
 		ErrPrint("%s is not a valid package\n", pkgname);
 		free(path);
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	free(path);
@@ -100,14 +101,14 @@ static inline int check_web_livebox(const char *pkgname)
 	path = malloc(len + 1);
 	if (!path) {
 		ErrPrint("Heap: %s\n", strerror(errno));
-		return -ENOMEM;
+		return LB_STATUS_ERROR_MEMORY;
 	}
 
 	snprintf(path, len, "/opt/usr/apps/%s/res/wgt/livebox/index.html", pkgname);
 	if (access(path, F_OK | R_OK) != 0) {
 		ErrPrint("%s is not a valid package\n", pkgname);
 		free(path);
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	free(path);
@@ -118,13 +119,13 @@ int util_validate_livebox_package(const char *pkgname)
 {
 	if (!pkgname) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!check_native_livebox(pkgname) || !check_web_livebox(pkgname))
 		return 0;
 
-	return -EINVAL;
+	return LB_STATUS_ERROR_INVALID;
 }
 
 const char *util_uri_to_path(const char *uri)

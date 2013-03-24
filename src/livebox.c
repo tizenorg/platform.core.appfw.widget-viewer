@@ -26,6 +26,7 @@
 #include <com-core_packet.h>
 #include <packet.h>
 #include <livebox-service.h>
+#include <livebox-errno.h>
 
 #include "debug.h"
 #include "fb.h"
@@ -147,10 +148,10 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 	destroy_cb_info(info);
 
 	if (!result) {
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	/*!
@@ -184,10 +185,10 @@ static void text_signal_cb(struct livebox *handler, const struct packet *result,
 	destroy_cb_info(info);
 
 	if (!result) {
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	if (cb)
@@ -207,10 +208,10 @@ static void set_group_ret_cb(struct livebox *handler, const struct packet *resul
 	destroy_cb_info(info);
 
 	if (!result) {
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	if (ret == 0) { /*!< Group information is successfully changed */
@@ -235,10 +236,10 @@ static void period_ret_cb(struct livebox *handler, const struct packet *result, 
 	destroy_cb_info(info);
 
 	if (!result) {
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	if (ret == 0) {
@@ -262,10 +263,10 @@ static void del_ret_cb(struct livebox *handler, const struct packet *result, voi
 
 	if (!result) {
 		ErrPrint("Connection lost?\n");
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	if (ret == 0) {
@@ -299,9 +300,9 @@ static void new_ret_cb(struct livebox *handler, const struct packet *result, voi
 	destroy_cb_info(info);
 
 	if (!result) {
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	if (ret >= 0) {
@@ -339,9 +340,9 @@ static void pd_create_cb(struct livebox *handler, const struct packet *result, v
 	destroy_cb_info(data);
 
 	if (!result) {
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	if (ret == 0) {
@@ -367,9 +368,9 @@ static void activated_cb(struct livebox *handler, const struct packet *result, v
 	destroy_cb_info(info);
 
 	if (!result) {
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "is", &ret, &pkgname) != 2) {
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	if (cb)
@@ -389,10 +390,10 @@ static void pd_destroy_cb(struct livebox *handler, const struct packet *result, 
 
 	if (!result) {
 		DbgPrint("Result is NIL (may connection lost)\n");
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		DbgPrint("Invalid parameter\n");
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	if (ret == 0) {
@@ -418,9 +419,9 @@ static void delete_cluster_cb(struct livebox *handler, const struct packet *resu
 	destroy_cb_info(info);
 
 	if (!result) {
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 	}
 
 	DbgPrint("Delete category returns: %d\n", ret);
@@ -441,9 +442,9 @@ static void delete_category_cb(struct livebox *handler, const struct packet *res
 	destroy_cb_info(info);
 
 	if (!result)
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	else if (packet_get(result, "i", &ret) != 1)
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 
 	DbgPrint("Delete category returns: %d\n", ret);
 
@@ -483,9 +484,9 @@ static void pinup_done_cb(struct livebox *handler, const struct packet *result, 
 	destroy_cb_info(info);
 
 	if (!result)
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	else if (packet_get(result, "i", &ret) != 1)
-		ret = -EINVAL;
+		ret = LB_STATUS_ERROR_INVALID;
 
 	if (ret == 0) {
 		handler->pinup_cb = cb;
@@ -504,7 +505,7 @@ static int send_mouse_event(struct livebox *handler, const char *event, int x, i
 	packet = packet_create_noack(event, "ssdii", handler->pkgname, handler->id, timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	DbgPrint("Send: %dx%d\n", x, y);
@@ -518,7 +519,7 @@ EAPI int livebox_init(void *disp)
 
 	if (s_info.init_count > 0) {
 		s_info.init_count++;
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 	env = getenv("PROVIDER_DISABLE_PREVENT_OVERWRITE");
 	if (env && !strcasecmp(env, "true"))
@@ -542,27 +543,27 @@ EAPI int livebox_init(void *disp)
 	client_init();
 
 	s_info.init_count++;
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI int livebox_fini(void)
 {
 	if (s_info.init_count <= 0) {
 		DbgPrint("Didn't initialized\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	s_info.init_count--;
 	if (s_info.init_count > 0) {
 		DbgPrint("init count : %d\n", s_info.init_count);
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	client_fini();
 	fb_fini();
 	livebox_service_fini();
 	critical_log_fini();
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 static inline char *lb_pkgname(const char *pkgname)
@@ -611,7 +612,6 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 
 	handler->pkgname = lb_pkgname(pkgname);
 	if (!handler->pkgname) {
-		ErrPrint("Error: %s\n", strerror(errno));
 		free(handler);
 		return NULL;
 	}
@@ -717,28 +717,28 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 
 	if (!handler || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->period_changed_cb) {
 		ErrPrint("Previous request for changing period is not finished\n");
-		return -EBUSY;
+		return LB_STATUS_ERROR_BUSY;
 	}
 
 	if (!handler->is_user) {
 		ErrPrint("CA Livebox is not able to change the period\n");
-		return -EPERM;
+		return LB_STATUS_ERROR_PERMISSION;
 	}
 
 	if (handler->lb.period == period) {
 		DbgPrint("No changes\n");
-		return -EALREADY;
+		return LB_STATUS_ERROR_ALREADY;
 	}
 
 	packet = packet_create("set_period", "ssd", handler->pkgname, handler->id, period);
 	if (!packet) {
 		ErrPrint("Failed to build a packet %s\n", handler->pkgname);
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (!cb)
@@ -751,12 +751,12 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE) {
 		ErrPrint("Handler is already deleted\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	handler->state = DELETE;
@@ -773,7 +773,7 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 		 */
 		if (cb)
 			cb(handler, 0, data);
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	if (!cb)
@@ -787,19 +787,19 @@ EAPI int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char
 	struct fault_info *info;
 
 	if (!cb)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	info = malloc(sizeof(*info));
 	if (!info) {
 		CRITICAL_LOG("Heap: %s\n", strerror(errno));
-		return -ENOMEM;
+		return LB_STATUS_ERROR_MEMORY;
 	}
 
 	info->handler = cb;
 	info->user_data = data;
 
 	s_info.fault_list = dlist_append(s_info.fault_list, info);
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI void *livebox_unset_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *))
@@ -827,20 +827,20 @@ EAPI int livebox_set_event_handler(int (*cb)(struct livebox *, enum livebox_even
 
 	if (!cb) {
 		ErrPrint("Invalid argument cb is nil\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	info = malloc(sizeof(*info));
 	if (!info) {
 		CRITICAL_LOG("Heap: %s\n", strerror(errno));
-		return -ENOMEM;
+		return LB_STATUS_ERROR_MEMORY;
 	}
 
 	info->handler = cb;
 	info->user_data = data;
 
 	s_info.event_list = dlist_append(s_info.event_list, info);
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI void *livebox_unset_event_handler(int (*cb)(struct livebox *, enum livebox_event_type, void *))
@@ -871,38 +871,38 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->size_changed_cb) {
 		ErrPrint("Previous resize request is not finished yet\n");
-		return -EBUSY;
+		return LB_STATUS_ERROR_BUSY;
 	}
 
 	if (!handler->is_user) {
 		ErrPrint("CA Livebox is not able to be resized\n");
-		return -EPERM;
+		return LB_STATUS_ERROR_PERMISSION;
 	}
 
 	if (livebox_service_get_size(type, &w, &h) != 0) {
 		ErrPrint("Invalid size type\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->lb.width == w && handler->lb.height == h) {
 		DbgPrint("No changes\n");
-		return -EALREADY;
+		return LB_STATUS_ERROR_ALREADY;;
 	}
 
 	packet = packet_create("resize", "ssii", handler->pkgname, handler->id, w, h);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (!cb)
@@ -919,12 +919,12 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->lb.auto_launch)
@@ -935,10 +935,11 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	packet = packet_create_noack("clicked", "sssddd", handler->pkgname, handler->id, "clicked", timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	ret = master_rpc_request_only(handler, packet);
+	DbgPrint("Click request: %d\n", ret);
 
 	if (!handler->lb.mouse_event && (handler->lb.type == _LB_TYPE_BUFFER || handler->lb.type == _LB_TYPE_SCRIPT)) {
 		int ret; /* Shadow variable */
@@ -962,12 +963,12 @@ EAPI int livebox_has_pd(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	return !!handler->pd.data.fb;
@@ -977,12 +978,12 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	return handler->is_pd_created;
@@ -999,23 +1000,23 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->is_pd_created == 1) {
 		DbgPrint("PD already created\n");
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	packet = packet_create("create_pd", "ssdd", handler->pkgname, handler->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (!cb)
@@ -1030,23 +1031,23 @@ EAPI int livebox_move_pd(struct livebox *handler, double x, double y)
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!handler->is_pd_created) {
 		DbgPrint("PD is not created\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	packet = packet_create_noack("pd_move", "ssdd", handler->pkgname, handler->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(handler, packet);
@@ -1057,12 +1058,12 @@ EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 	struct packet *packet;
 
 	if (!pkgname)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	packet = packet_create("activate_package", "s", pkgname);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_async_request(NULL, packet, 0, activated_cb, create_cb_info(cb, data));
@@ -1074,23 +1075,23 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!handler->is_pd_created) {
 		ErrPrint("PD is not created\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	packet = packet_create("destroy_pd", "ss", handler->pkgname, handler->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (!cb)
@@ -1108,12 +1109,12 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (type & CONTENT_EVENT_PD_MASK) {
@@ -1121,18 +1122,18 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 
 		if (!handler->is_pd_created) {
 			ErrPrint("PD is not created\n");
-			return -EINVAL;
+			return LB_STATUS_ERROR_INVALID;
 		}
 
 		if (type & CONTENT_EVENT_MOUSE_MASK) {
 			if (!handler->pd.data.fb) {
 				ErrPrint("Handler is not valid\n");
-				return -EINVAL;
+				return LB_STATUS_ERROR_INVALID;
 			}
 
 			if (type & CONTENT_EVENT_MOUSE_MOVE) {
 				if (fabs(x - handler->pd.x) < MINIMUM_EVENT && fabs(y - handler->pd.y) < MINIMUM_EVENT)
-					return -EBUSY;
+					return LB_STATUS_ERROR_BUSY;
 			} else if (type & CONTENT_EVENT_MOUSE_SET) {
 				flag = 0;
 			}
@@ -1152,17 +1153,17 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		if (type & CONTENT_EVENT_MOUSE_MASK) {
 			if (!handler->lb.mouse_event) {
 				ErrPrint("Box is not support the mouse event\n");
-				return -EINVAL;
+				return LB_STATUS_ERROR_INVALID;
 			}
 
 			if (!handler->lb.data.fb) {
 				ErrPrint("Handler is not valid\n");
-				return -EINVAL;
+				return LB_STATUS_ERROR_INVALID;
 			}
 
 			if (type & CONTENT_EVENT_MOUSE_MOVE) {
 				if (fabs(x - handler->lb.x) < MINIMUM_EVENT && fabs(y - handler->lb.y) < MINIMUM_EVENT)
-					return -EBUSY;
+					return LB_STATUS_ERROR_BUSY;
 			} else if (type & CONTENT_EVENT_MOUSE_SET) {
 				flag = 0;
 			}
@@ -1226,7 +1227,7 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		break;
 	default:
 		ErrPrint("Invalid event type\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	return send_mouse_event(handler, cmd, x * w, y * h);
@@ -1258,12 +1259,12 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!w)
@@ -1280,7 +1281,7 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 		*h = handler->pd.height;
 	}
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI int livebox_size(struct livebox *handler)
@@ -1290,12 +1291,12 @@ EAPI int livebox_size(struct livebox *handler)
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	w = handler->lb.width;
@@ -1323,33 +1324,33 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!cluster || !category || handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->group_changed_cb) {
 		ErrPrint("Previous group changing request is not finished yet\n");
-		return -EBUSY;
+		return LB_STATUS_ERROR_BUSY;
 	}
 
 	if (!handler->is_user) {
 		ErrPrint("CA Livebox is not able to change the group\n");
-		return -EPERM;
+		return LB_STATUS_ERROR_PERMISSION;
 	}
 
 	if (!strcmp(handler->cluster, cluster) && !strcmp(handler->category, category)) {
 		DbgPrint("No changes\n");
-		return -EALREADY;
+		return LB_STATUS_ERROR_ALREADY;
 	}
 
 	packet = packet_create("change_group", "ssss", handler->pkgname, handler->id, cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (!cb)
@@ -1362,17 +1363,17 @@ EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char 
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!cluster || !category || handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	*cluster = handler->cluster;
 	*category = handler->category;
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *size_list)
@@ -1382,12 +1383,12 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *siz
 
 	if (!handler || !size_list) {
 		ErrPrint("Invalid argument, handler(%p), size_list(%p)\n", handler, size_list);
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!cnt || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	for (j = i = 0; i < NR_OF_SIZE_LIST; i++) {
@@ -1400,7 +1401,7 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *siz
 	}
 
 	*cnt = j;
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI const char *livebox_pkgname(struct livebox *handler)
@@ -1440,7 +1441,7 @@ EAPI int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data)
 	packet = packet_create("delete_cluster", "s", cluster);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_async_request(NULL, packet, 0, delete_cluster_cb, create_cb_info(cb, data));
@@ -1453,7 +1454,7 @@ EAPI int livebox_delete_category(const char *cluster, const char *category, ret_
 	packet = packet_create("delete_category", "ss", cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_async_request(NULL, packet, 0, delete_category_cb, create_cb_info(cb, data));
@@ -1527,32 +1528,32 @@ EAPI int livebox_set_pd_text_handler(struct livebox *handler, struct livebox_scr
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	memcpy(&handler->pd.data.ops, ops, sizeof(*ops));
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	memcpy(&handler->lb.data.ops, ops, sizeof(*ops));
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *data)
@@ -1562,27 +1563,27 @@ EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid handle\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->lb.type != _LB_TYPE_SCRIPT && handler->lb.type != _LB_TYPE_BUFFER) {
 		ErrPrint("Handler is not valid type\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	id = fb_id(handler->lb.data.fb);
 	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	packet = packet_create("lb_acquire_pixmap", "ss", handler->pkgname, handler->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, create_cb_info(cb, data));
@@ -1594,23 +1595,23 @@ EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid handle\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->lb.type != _LB_TYPE_SCRIPT && handler->lb.type != _LB_TYPE_BUFFER) {
 		ErrPrint("Handler is not valid type\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	packet = packet_create_noack("lb_release_pixmap", "ssi", handler->pkgname, handler->id, pixmap);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	return master_rpc_request_only(handler, packet);
@@ -1623,27 +1624,27 @@ EAPI int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid handle\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->pd.type != _PD_TYPE_SCRIPT && handler->pd.type != _PD_TYPE_BUFFER) {
 		ErrPrint("Handler is not valid type\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	id = fb_id(handler->pd.data.fb);
 	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	packet = packet_create("pd_acquire_pixmap", "ss", handler->pkgname, handler->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, create_cb_info(cb, data));
@@ -1713,23 +1714,23 @@ EAPI int livebox_release_pd_pixmap(struct livebox *handler, int pixmap)
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Invalid handle\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->pd.type != _PD_TYPE_SCRIPT && handler->pd.type != _PD_TYPE_BUFFER) {
 		ErrPrint("Handler is not valid type\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	packet = packet_create_noack("pd_release_pixmap", "ssi", handler->pkgname, handler->id, pixmap);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(handler, packet);
@@ -1799,12 +1800,12 @@ EAPI int livebox_pdfb_bufsz(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	return fb_size(handler->pd.data.fb);
@@ -1814,12 +1815,12 @@ EAPI int livebox_lbfb_bufsz(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	return fb_size(handler->lb.data.fb);
@@ -1829,12 +1830,12 @@ EAPI int livebox_is_user(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	return handler->is_user;
@@ -1846,28 +1847,28 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->pinup_cb) {
 		ErrPrint("Previous pinup request is not finished\n");
-		return -EBUSY;
+		return LB_STATUS_ERROR_BUSY;
 	}
 
 	if (handler->is_pinned_up == flag) {
 		DbgPrint("No changes\n");
-		return -EALREADY;
+		return LB_STATUS_ERROR_ALREADY;
 	}
 
 	packet = packet_create("pinup_changed", "ssi", handler->pkgname, handler->id, flag);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (!cb)
@@ -1880,11 +1881,11 @@ EAPI int livebox_is_pinned_up(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	return handler->is_pinned_up;
 }
@@ -1893,11 +1894,11 @@ EAPI int livebox_has_pinup(struct livebox *handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	return handler->lb.pinup_supported;
 }
@@ -1906,14 +1907,14 @@ EAPI int livebox_set_data(struct livebox *handler, void *data)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	handler->data = data;
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI void *livebox_get_data(struct livebox *handler)
@@ -1974,12 +1975,12 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if ((handler->lb.type != _LB_TYPE_TEXT && handler->pd.type != _PD_TYPE_TEXT) || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!emission)
@@ -1992,7 +1993,7 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 				handler->pkgname, handler->id, emission, source, sx, sy, ex, ey);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_async_request(handler, packet, 0, text_signal_cb, create_cb_info(cb, data));
@@ -2011,7 +2012,7 @@ EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 	packet = packet_create_noack("subscribe", "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -2031,7 +2032,7 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 	packet = packet_create_noack("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -2043,16 +2044,16 @@ EAPI int livebox_refresh(struct livebox *handler)
 
 	if (!handler) {
 		ErrPrint("Hnalder is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	packet = packet_create_noack("update", "ss", handler->pkgname, handler->id);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(handler, packet);
@@ -2064,13 +2065,13 @@ EAPI int livebox_refresh_group(const char *cluster, const char *category)
 
 	if (!cluster || !category) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	packet = packet_create_noack("refresh_group", "ss", cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -2083,29 +2084,29 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->state != CREATE || !handler->id)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	if (!handler->is_user) {
 		/* System cluster livebox cannot be changed its visible states */
 		if (state == LB_HIDE_WITH_PAUSE) {
 			ErrPrint("CA Livebox is not able to change the visibility\n");
-			return -EPERM;
+			return LB_STATUS_ERROR_PERMISSION;
 		}
 	}
 
 	DbgPrint("Change the visibility %d <> %d, %s\n", handler->visible, state, handler->id);
 
 	if (handler->visible == state)
-		return 0;
+		return LB_STATUS_ERROR_ALREADY;
 
 	packet = packet_create_noack("change,visibility", "ssi", handler->pkgname, handler->id, (int)state);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	ret = master_rpc_request_only(handler, packet);
@@ -2137,7 +2138,7 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 		pc = strdup(cluster);
 		if (!pc) {
 			CRITICAL_LOG("Heap: %s (cluster: %s)\n", strerror(errno), cluster);
-			return -ENOMEM;
+			return LB_STATUS_ERROR_MEMORY;
 		}
 	}
 
@@ -2146,7 +2147,7 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 		if (!ps) {
 			CRITICAL_LOG("Heap: %s (category: %s)\n", strerror(errno), category);
 			free(pc);
-			return -ENOMEM;
+			return LB_STATUS_ERROR_MEMORY;
 		}
 	}
 
@@ -2159,7 +2160,7 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 	handler->cluster = pc;
 	handler->category = ps;
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 void lb_set_size(struct livebox *handler, int w, int h)
@@ -2329,7 +2330,7 @@ int lb_delete_all(void)
 		lb_unref(handler);
 	}
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int lb_set_content(struct livebox *handler, const char *content)
@@ -2343,11 +2344,11 @@ int lb_set_content(struct livebox *handler, const char *content)
 		handler->content = strdup(content);
 		if (!handler->content) {
 			CRITICAL_LOG("Heap: %s (content: %s)\n", strerror(errno), content);
-			return -ENOMEM;
+			return LB_STATUS_ERROR_MEMORY;
 		}
 	}
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int lb_set_title(struct livebox *handler, const char *title)
@@ -2361,11 +2362,11 @@ int lb_set_title(struct livebox *handler, const char *title)
 		handler->title = strdup(title);
 		if (!handler->title) {
 			CRITICAL_LOG("Heap: %s (title: %s)\n", strerror(errno), title);
-			return -ENOMEM;
+			return LB_STATUS_ERROR_MEMORY;
 		}
 	}
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 void lb_set_size_list(struct livebox *handler, int size_list)
@@ -2413,18 +2414,18 @@ int lb_set_lb_fb(struct livebox *handler, const char *filename)
 	struct fb_info *fb;
 
 	if (!handler)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	fb = handler->lb.data.fb;
 	if (fb && !strcmp(fb_id(fb), filename)) /*!< BUFFER is not changed, */
-		return 0;
+		return LB_STATUS_SUCCESS;
 
 	handler->lb.data.fb = NULL;
 
 	if (!filename || filename[0] == '\0') {
 		if (fb)
 			fb_destroy(fb);
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	handler->lb.data.fb = fb_create(filename, handler->lb.width, handler->lb.height);
@@ -2432,13 +2433,13 @@ int lb_set_lb_fb(struct livebox *handler, const char *filename)
 		ErrPrint("Faield to create a FB\n");
 		if (fb)
 			fb_destroy(fb);
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (fb)
 		fb_destroy(fb);
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int lb_set_pd_fb(struct livebox *handler, const char *filename)
@@ -2446,19 +2447,19 @@ int lb_set_pd_fb(struct livebox *handler, const char *filename)
 	struct fb_info *fb;
 
 	if (!handler)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	fb = handler->pd.data.fb;
 	if (fb && !strcmp(fb_id(fb), filename)) {
 		/* BUFFER is not changed, just update the content */
-		return -EEXIST;
+		return LB_STATUS_ERROR_EXIST;
 	}
 	handler->pd.data.fb = NULL;
 
 	if (!filename || filename[0] == '\0') {
 		if (fb)
 			fb_destroy(fb);
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	handler->pd.data.fb = fb_create(filename, handler->pd.width, handler->pd.height);
@@ -2466,12 +2467,12 @@ int lb_set_pd_fb(struct livebox *handler, const char *filename)
 		ErrPrint("Failed to create a FB\n");
 		if (fb)
 			fb_destroy(fb);
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (fb)
 		fb_destroy(fb);
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 struct fb_info *lb_get_lb_fb(struct livebox *handler)
@@ -2567,21 +2568,21 @@ int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 
 	if (!cb && !!data) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (handler->deleted_cb) {
 		ErrPrint("Already in-progress\n");
-		return -EINPROGRESS;
+		return LB_STATUS_ERROR_BUSY;
 	}
 
 	packet = packet_create("delete", "ss", handler->pkgname, handler->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		if (cb)
-			cb(handler, -EFAULT, data);
+			cb(handler, LB_STATUS_ERROR_FAULT, data);
 
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (!cb)
@@ -2597,7 +2598,7 @@ EAPI int livebox_client_paused(void)
 	packet = packet_create_noack("client_paused", "d", util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a pause packet\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -2610,7 +2611,7 @@ EAPI int livebox_client_resumed(void)
 	packet = packet_create_noack("client_resumed", "d", util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a resume packet\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);

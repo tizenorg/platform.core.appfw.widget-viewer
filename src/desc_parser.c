@@ -21,6 +21,7 @@
 #include <ctype.h>
 
 #include <dlog.h>
+#include <livebox-errno.h>
 
 #include "debug.h"
 #include "livebox.h"
@@ -53,8 +54,8 @@ struct block {
 	char *file;
 	int file_len;
 
-	char *group;
-	int group_len;
+	char *option;
+	int option_len;
 
 	char *id;
 	int id_len;
@@ -66,7 +67,7 @@ static int update_text(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block || !block->part || !block->data) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
@@ -81,12 +82,12 @@ static int update_image(struct livebox *handle, struct block *block, int is_pd)
 	struct livebox_script_operators *ops;
 	if (!block || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 	if (ops->update_image)
-		ops->update_image(handle, block->id, block->part, block->data);
+		ops->update_image(handle, block->id, block->part, block->data, block->option);
 
 	return 0;
 }
@@ -96,12 +97,12 @@ static int update_script(struct livebox *handle, struct block *block, int is_pd)
 	struct livebox_script_operators *ops;
 	if (!block || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 	if (ops->update_script)
-		ops->update_script(handle, block->id, block->part, block->data, block->group);
+		ops->update_script(handle, block->id, block->part, block->data, block->option);
 
 	return 0;
 }
@@ -112,7 +113,7 @@ static int update_signal(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
@@ -129,14 +130,14 @@ static int update_drag(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block || !block->data || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 
 	if (sscanf(block->data, "%lfx%lf", &dx, &dy) != 2) {
 		ErrPrint("Invalid format of data\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (ops->update_drag)
@@ -151,7 +152,7 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block || !block->part || !block->data) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
@@ -161,7 +162,7 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 
 		if (sscanf(block->data, "%dx%d", &w, &h) != 2) {
 			ErrPrint("Invalid format (%s)\n", block->data);
-			return -EINVAL;
+			return LB_STATUS_ERROR_INVALID;
 		}
 
 		if (ops->update_info_size)
@@ -214,7 +215,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		VALUE_PART = 0x01,
 		VALUE_DATA = 0x02,
 		VALUE_FILE = 0x03,
-		VALUE_GROUP = 0x04,
+		VALUE_OPTION = 0x04,
 		VALUE_ID = 0x05,
 	};
 	const char *field_name[] = {
@@ -222,7 +223,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		"part",
 		"data",
 		"file",
-		"group",
+		"option",
 		"id",
 		NULL
 	};
@@ -268,7 +269,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 	fp = fopen(descfile, "rt");
 	if (!fp) {
 		ErrPrint("Error: %s\n", strerror(errno));
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 	}
 
 	update_begin(handle, is_pd);
@@ -290,7 +291,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			if (!isspace(ch)) {
 				update_end(handle, is_pd);
 				fclose(fp);
-				return -EINVAL;
+				return LB_STATUS_ERROR_INVALID;
 			}
 			break;
 
@@ -306,7 +307,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				CRITICAL_LOG("Heap: %s\n", strerror(errno));
 				update_end(handle, is_pd);
 				fclose(fp);
-				return -ENOMEM;
+				return LB_STATUS_ERROR_MEMORY;
 			}
 
 			state = FIELD;
@@ -365,11 +366,11 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 					idx = 0;
 					break;
 				case 4:
-					state = VALUE_GROUP;
-					if (block->group) {
-						free(block->group);
-						block->group = NULL;
-						block->group_len = 0;
+					state = VALUE_OPTION;
+					if (block->option) {
+						free(block->option);
+						block->option = NULL;
+						block->option_len = 0;
 					}
 					idx = 0;
 					break;
@@ -496,25 +497,25 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			idx++;
 			break;
 
-		case VALUE_GROUP:
-			if (idx == block->group_len) {
-				block->group_len += 256;
-				block->group = realloc(block->group, block->group_len);
-				if (!block->group) {
+		case VALUE_OPTION:
+			if (idx == block->option_len) {
+				block->option_len += 256;
+				block->option = realloc(block->option, block->option_len);
+				if (!block->option) {
 					CRITICAL_LOG("Heap: %s\n", strerror(errno));
 					goto errout;
 				}
 			}
 
 			if (ch == '\n') {
-				block->group[idx] = '\0';
+				block->option[idx] = '\0';
 				state = FIELD;
 				idx = 0;
 				field_idx = 0;
 				break;
 			}
 
-			block->group[idx] = ch;
+			block->option[idx] = ch;
 			idx++;
 			break;
 		case VALUE_ID:
@@ -561,7 +562,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			free(block->type);
 			free(block->part);
 			free(block->data);
-			free(block->group);
+			free(block->option);
 			free(block->id);
 			free(block);
 			block = NULL;
@@ -589,7 +590,7 @@ errout:
 		free(block->type);
 		free(block->part);
 		free(block->data);
-		free(block->group);
+		free(block->option);
 		free(block->id);
 		free(block);
 	}
@@ -597,7 +598,7 @@ errout:
 	update_end(handle, is_pd);
 
 	fclose(fp);
-	return -EINVAL;
+	return LB_STATUS_ERROR_INVALID;
 }
 
 /* End of a file */
