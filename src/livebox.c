@@ -1,5 +1,5 @@
 /*
- * Copyright 2012  Samsung Electronics Co., Ltd
+ * Copyright 2013  Samsung Electronics Co., Ltd
  *
  * Licensed under the Flora License, Version 1.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2537,6 +2537,9 @@ struct livebox *lb_unref(struct livebox *handler)
 	handler->refcnt--;
 	if (handler->refcnt > 0)
 		return handler;
+
+	if (handler->filename)
+		util_unlink(handler->filename);
 
 	dlist_remove_data(s_info.livebox_list, handler);
 

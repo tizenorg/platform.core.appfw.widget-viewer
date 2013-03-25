@@ -1,8 +1,8 @@
 Name: liblivebox-viewer
 Summary: Library for developing the application.
-Version: 0.10.2
+Version: 0.10.3
 Release: 1
-Group: framework/livebox
+Group: HomeTF/Livebox
 License: Flora License
 Source0: %{name}-%{version}.tar.gz
 BuildRequires: cmake, gettext-tools, coreutils

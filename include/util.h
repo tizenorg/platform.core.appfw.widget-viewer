@@ -1,5 +1,5 @@
 /*
- * Copyright 2012  Samsung Electronics Co., Ltd
+ * Copyright 2013  Samsung Electronics Co., Ltd
  *
  * Licensed under the Flora License, Version 1.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ extern double util_timestamp(void);
 extern const char *util_basename(const char *name);
 extern int util_validate_livebox_package(const char *pkgname);
 extern const char *util_uri_to_path(const char *uri);
+extern int util_unlink(const char *filename);
 
 #define SCHEMA_FILE	"file://"
 #define SCHEMA_PIXMAP	"pixmap://"
