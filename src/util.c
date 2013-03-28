@@ -1,5 +1,5 @@
 /*
- * Copyright 2012  Samsung Electronics Co., Ltd
+ * Copyright 2013  Samsung Electronics Co., Ltd
  *
  * Licensed under the Flora License, Version 1.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,6 +137,33 @@ const char *util_uri_to_path(const char *uri)
 		return NULL;
 
 	return uri + len;
+}
+
+int util_unlink(const char *filename)
+{
+	char *descfile;
+	int desclen;
+	int ret;
+
+	desclen = strlen(filename) + 6; /* .desc */
+	descfile = malloc(desclen);
+	if (!descfile) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		return LB_STATUS_ERROR_MEMORY;
+	}
+
+	ret = snprintf(descfile, desclen, "%s.desc", filename);
+	if (ret < 0) {
+		ErrPrint("Error: %s\n", strerror(errno));
+		free(descfile);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	(void)unlink(descfile);
+	free(descfile);
+	(void)unlink(filename);
+
+	return LB_STATUS_SUCCESS;
 }
 
 /* End of a file */
