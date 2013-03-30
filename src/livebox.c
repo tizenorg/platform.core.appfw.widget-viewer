@@ -595,7 +595,7 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 	int width = 0;
 	int height = 0;
 
-	if (!pkgname || !cluster || !category || width < 0 || height < 0) {
+	if (!pkgname || !cluster || !category) {
 		ErrPrint("Invalid arguments: pkgname[%p], cluster[%p], category[%p]\n",
 								pkgname, cluster, category);
 		return NULL;
