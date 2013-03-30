@@ -66,6 +66,32 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 	return NULL;
 }
 
+static struct packet *master_hold_scroll(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int seize;
+	int ret;
+
+	ret = packet_get(packet, "ssi", &pkgname, &id, &seize);
+	if (ret != 3) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Instance(%s) is not exists\n", id);
+		goto out;
+	}
+
+	lb_invoke_event_handler(handler, seize ? LB_EVENT_HOLD_SCROLL : LB_EVENT_RELEASE_SCROLL);
+
+out:
+	return NULL;
+}
+
 static struct packet *master_pinup(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
@@ -846,6 +872,10 @@ static struct method s_table[] = {
 	{
 		.cmd = "pinup",
 		.handler = master_pinup,
+	},
+	{
+		.cmd = "scroll",
+		.handler = master_hold_scroll,
 	},
 	{
 		.cmd = NULL,

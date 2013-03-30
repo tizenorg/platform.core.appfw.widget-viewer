@@ -133,6 +133,9 @@ enum livebox_event_type { /*!< livebox_event_handler_set Event list */
 	LB_EVENT_PD_CREATED, /*!< If a PD is created even if you didn't call the livebox_create_pd API */
 	LB_EVENT_PD_DESTROYED, /*!< If a PD is destroyed even if you didn't call the livebox_destroy_pd API */
 
+	LB_EVENT_HOLD_SCROLL, /*!< If the screen should be freezed */
+	LB_EVENT_RELEASE_SCROLL, /*!< If the screen can be scrolled */
+
 	LB_EVENT_IGNORED, /*!< Request is ignored */
 };
 
