@@ -1104,7 +1104,7 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 {
 	int w = 1;
 	int h = 1;
-	char cmd[20] = { '\0', };
+	char cmd[32] = { '\0', };
 	char *ptr = cmd;
 
 	if (!handler) {
@@ -1179,24 +1179,27 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		*ptr++ = 'b';
 	}
 
+	/*!
+	 * Must be short than 29 bytes.
+	 */
 	switch ((type & ~CONTENT_EVENT_PD_MASK)) {
-	case CONTENT_EVENT_ACCESS_READ | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_read");
+	case CONTENT_EVENT_ACCESS_HIGHLIGHT | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_hl");
 		break;
-	case CONTENT_EVENT_ACCESS_READ_PREV | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_read_prev");
+	case CONTENT_EVENT_ACCESS_HIGHLIGHT_PREV | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_hl_prev");
 		break;
-	case CONTENT_EVENT_ACCESS_READ_NEXT | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_read_next");
+	case CONTENT_EVENT_ACCESS_HIGHLIGHT_NEXT | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_hl_next");
 		break;
 	case CONTENT_EVENT_ACCESS_ACTIVATE | CONTENT_EVENT_ACCESS_MASK:
 		strcpy(ptr, "_access_activate");
 		break;
-	case CONTENT_EVENT_ACCESS_UP | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_up");
+	case CONTENT_EVENT_ACCESS_VALUE_CHANGE | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_value_change");
 		break;
-	case CONTENT_EVENT_ACCESS_DOWN | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_down");
+	case CONTENT_EVENT_ACCESS_SCROLL | CONTENT_EVENT_ACCESS_MASK:
+		strcpy(ptr, "_access_scroll");
 		break;
 	case CONTENT_EVENT_MOUSE_ENTER | CONTENT_EVENT_MOUSE_MASK:
 		strcpy(ptr, "_mouse_enter");

@@ -262,9 +262,9 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	lb_set_priority(handler, priority);
 	lb_set_content(handler, content);
 	lb_set_title(handler, title);
+	lb_set_size(handler, lb_w, lb_h);
 
 	if (lb_text_lb(handler)) {
-		lb_set_size(handler, lb_w, lb_h);
 		(void)parse_desc(handler, livebox_filename(handler), 0);
 		/*!
 		 * \note
@@ -273,13 +273,11 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		 */
 		goto out;
 	} else if (lb_get_lb_fb(handler)) {
-		lb_set_size(handler, lb_w, lb_h);
 		lb_set_lb_fb(handler, fbfile);
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret < 0)
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 	} else {
-		lb_set_size(handler, lb_w, lb_h);
 		ret = 0;
 	}
 
@@ -447,6 +445,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 	struct livebox *handler;
 	const char *pkgname;
 	const char *id;
+	const char *fbfile;
 	int status;
 	int ret;
 	int w;
@@ -458,13 +457,13 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
-	ret = packet_get(packet, "ssiiii", &pkgname, &id, &is_pd, &w, &h, &status);
-	if (ret != 6) {
+	ret = packet_get(packet, "sssiiii", &pkgname, &id, &fbfile, &is_pd, &w, &h, &status);
+	if (ret != 7) {
 		ErrPrint("Invalid argument\n");
 		goto out;
 	}
 
-	DbgPrint("Size is changed: %dx%d (%s)\n", w, h, id);
+	DbgPrint("Size is changed: %dx%d (%s), fb: [%s]\n", w, h, id, fbfile);
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
@@ -502,8 +501,15 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			 * If there is a created LB FB, 
 			 * Update it too.
 			 */
-			if (lb_get_lb_fb(handler))
-				(void)lb_set_lb_fb(handler, id);
+			if (lb_get_lb_fb(handler)) {
+				lb_set_lb_fb(handler, fbfile);
+
+				ret = fb_sync(lb_get_lb_fb(handler));
+				if (ret < 0)
+					ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+
+				/* Just update the size info only. */
+			}
 
 			/*!
 			 * \NOTE
