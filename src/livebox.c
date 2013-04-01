@@ -2119,6 +2119,28 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 	return ret;
 }
 
+EAPI int livebox_set_update_mode(struct livebox *handler, int active_update)
+{
+	struct packet *packet;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->state != CREATE || !handler->id)
+		return LB_STATUS_ERROR_INVALID;
+
+	if (!handler->is_user)
+		return LB_STATUS_ERROR_PERMISSION;
+
+	packet = packet_create_noack("update_mode", "ssi", handler->pkgname, handler->id, active_update);
+	if (!packet)
+		return LB_STATUS_ERROR_FAULT;
+
+	return master_rpc_request_only(handler, packet);
+}
+
 EAPI enum livebox_visible_state livebox_visibility(struct livebox *handler)
 {
 	if (!handler) {

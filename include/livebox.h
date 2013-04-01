@@ -723,6 +723,17 @@ extern int livebox_set_visibility(struct livebox *handler, enum livebox_visible_
  */
 extern enum livebox_visible_state livebox_visibility(struct livebox *handler);
 
+/*!
+ * \brief Set the update mode of current livebox
+ *        if you set 1 for active update mode, you should get buffer without updated event from provider.
+ *	  But is passive mode, you have to update content of a box when you get updated event.
+ *	  Default is Passive mode.
+ * \param[in] handler Handler of a livebox
+ * \param[in] active_update 1 means active update, 0 means passive update (default)
+ * \return int
+ */
+extern int livebox_set_update_mode(struct livebox *handler, int active_update);
+
 #ifdef __cplusplus
 }
 #endif
