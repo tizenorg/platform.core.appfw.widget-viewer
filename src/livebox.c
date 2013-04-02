@@ -116,6 +116,11 @@ static inline void default_lb_size_changed_cb(struct livebox *handler, int ret, 
 	DbgPrint("Default LB size changed event handler: %d\n", ret);
 }
 
+static inline void default_update_mode_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default update mode set event handler: %d\n", ret);
+}
+
 static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_cb_t cb, void *data)
 {
 	struct cb_info *info;
@@ -134,6 +139,34 @@ static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_
 static inline void destroy_cb_info(struct cb_info *info)
 {
 	free(info);
+}
+
+static void update_mode_cb(struct livebox *handler, const struct packet *result, void *data)
+{
+	int ret;
+	struct cb_info *info = data;
+	ret_cb_t cb;
+	void *cbdata;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
+
+	if (!result) {
+		ret = LB_STATUS_ERROR_FAULT;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ErrPrint("Invalid argument\n");
+		ret = LB_STATUS_ERROR_INVALID;
+	}
+
+	if (ret == 0) {
+		DbgPrint("Update mode set is done, prepare the update mode set event\n");
+		handler->update_mode_cb = cb;
+		handler->update_mode_cbdata = cbdata;
+	} else {
+		DbgPrint("Resize request is failed: %d\n", ret);
+		cb(handler, ret, cbdata);
+	}
 }
 
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -861,6 +894,52 @@ EAPI void *livebox_unset_event_handler(int (*cb)(struct livebox *, enum livebox_
 	}
 
 	return NULL;
+}
+
+EAPI int livebox_set_update_mode(struct livebox *handler, int active_update, ret_cb_t cb, void *data)
+{
+	struct packet *packet;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->state != CREATE || !handler->id)
+		return LB_STATUS_ERROR_INVALID;
+
+	if (handler->update_mode_cb) {
+		ErrPrint("Previous update_mode cb is not finished yet\n");
+		return LB_STATUS_ERROR_BUSY;
+	}
+
+	if (handler->is_active_update == active_update)
+		return LB_STATUS_ERROR_ALREADY;
+
+	if (!handler->is_user)
+		return LB_STATUS_ERROR_PERMISSION;
+
+	packet = packet_create("update_mode", "ssi", handler->pkgname, handler->id, active_update);
+	if (!packet)
+		return LB_STATUS_ERROR_FAULT;
+
+	if (!cb)
+		cb = default_update_mode_cb;
+
+	return master_rpc_async_request(handler, packet, 0, update_mode_cb, create_cb_info(cb, data));
+}
+
+EAPI int livebox_is_active_update(struct livebox *handler)
+{
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->state != CREATE || !handler->id)
+		return LB_STATUS_ERROR_INVALID;
+
+	return handler->is_active_update;
 }
 
 EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *data)
@@ -2119,28 +2198,6 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 	return ret;
 }
 
-EAPI int livebox_set_update_mode(struct livebox *handler, int active_update)
-{
-	struct packet *packet;
-
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	if (handler->state != CREATE || !handler->id)
-		return LB_STATUS_ERROR_INVALID;
-
-	if (!handler->is_user)
-		return LB_STATUS_ERROR_PERMISSION;
-
-	packet = packet_create_noack("update_mode", "ssi", handler->pkgname, handler->id, active_update);
-	if (!packet)
-		return LB_STATUS_ERROR_FAULT;
-
-	return master_rpc_request_only(handler, packet);
-}
-
 EAPI enum livebox_visible_state livebox_visibility(struct livebox *handler)
 {
 	if (!handler) {
@@ -2192,6 +2249,11 @@ void lb_set_size(struct livebox *handler, int w, int h)
 {
 	handler->lb.width = w;
 	handler->lb.height = h;
+}
+
+void lb_set_update_mode(struct livebox *handle, int active_mode)
+{
+	handle->is_active_update = active_mode;
 }
 
 void lb_set_pdsize(struct livebox *handler, int w, int h)

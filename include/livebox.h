@@ -136,6 +136,14 @@ enum livebox_event_type { /*!< livebox_event_handler_set Event list */
 	LB_EVENT_HOLD_SCROLL, /*!< If the screen should be freezed */
 	LB_EVENT_RELEASE_SCROLL, /*!< If the screen can be scrolled */
 
+	LB_EVENT_LB_UPDATE_BEGIN,
+	LB_EVENT_LB_UPDATE_END,
+
+	LB_EVENT_PD_UPDATE_BEGIN,
+	LB_EVENT_PD_UPDATE_END,
+
+	LB_EVENT_UPDATE_MODE_CHANGED,
+
 	LB_EVENT_IGNORED, /*!< Request is ignored */
 };
 
@@ -730,9 +738,18 @@ extern enum livebox_visible_state livebox_visibility(struct livebox *handler);
  *	  Default is Passive mode.
  * \param[in] handler Handler of a livebox
  * \param[in] active_update 1 means active update, 0 means passive update (default)
+ * \param[in] cb Result callback function
+ * \param[in] data Callback data
  * \return int
  */
-extern int livebox_set_update_mode(struct livebox *handler, int active_update);
+extern int livebox_set_update_mode(struct livebox *handler, int active_update, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Is this box in the active update mode?
+ * \param[in] handler HAndler of a livebox
+ * \return int 0 if passive mode or 1 if active mode or error code
+ */
+extern int livebox_is_active_update(struct livebox *handler);
 
 #ifdef __cplusplus
 }
