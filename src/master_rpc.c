@@ -200,9 +200,6 @@ int master_rpc_async_request(struct livebox *handler, struct packet *packet, int
 	command = create_command(handler, packet);
 	if (!command) {
 		ErrPrint("Failed to create a command\n");
-		if (ret_cb)
-			ret_cb(handler, NULL, data);
-
 		packet_unref(packet);
 		return LB_STATUS_ERROR_FAULT;
 	}

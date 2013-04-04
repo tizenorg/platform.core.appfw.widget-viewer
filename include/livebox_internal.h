@@ -158,6 +158,9 @@ struct livebox {
 
 	ret_cb_t update_mode_cb;
 	void *update_mode_cbdata;
+
+	ret_cb_t access_event_cb;
+	void *access_event_cbdata;
 };
 
 /* End of a file */
