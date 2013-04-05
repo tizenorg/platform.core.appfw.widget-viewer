@@ -86,6 +86,7 @@ static struct packet *master_hold_scroll(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
+	DbgPrint("[HOLD] %s %d\n", id, seize);
 	lb_invoke_event_handler(handler, seize ? LB_EVENT_HOLD_SCROLL : LB_EVENT_RELEASE_SCROLL);
 
 out:
