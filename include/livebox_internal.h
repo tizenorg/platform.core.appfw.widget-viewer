@@ -40,6 +40,7 @@ extern void lb_set_text_pd(struct livebox *handler);
 extern int lb_text_lb(struct livebox *handler);
 extern int lb_text_pd(struct livebox *handler);
 extern void lb_set_period(struct livebox *handler, double period);
+extern void lb_set_update_mode(struct livebox *handler, int active_mode);
 extern struct livebox *lb_ref(struct livebox *handler);
 extern struct livebox *lb_unref(struct livebox *handler);
 extern int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data);
@@ -84,6 +85,7 @@ struct livebox {
 	int is_user;
 	int is_pd_created;
 	int is_pinned_up;
+	int is_active_update;
 
 	struct {
 		enum lb_type type;
@@ -153,6 +155,12 @@ struct livebox {
 
 	ret_cb_t pd_destroyed_cb;
 	void *pd_destroyed_cbdata;
+
+	ret_cb_t update_mode_cb;
+	void *update_mode_cbdata;
+
+	ret_cb_t access_event_cb;
+	void *access_event_cbdata;
 };
 
 /* End of a file */

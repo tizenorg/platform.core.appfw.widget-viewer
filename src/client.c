@@ -86,6 +86,7 @@ static struct packet *master_hold_scroll(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
+	DbgPrint("[HOLD] %s %d\n", id, seize);
 	lb_invoke_event_handler(handler, seize ? LB_EVENT_HOLD_SCROLL : LB_EVENT_RELEASE_SCROLL);
 
 out:
@@ -220,6 +221,208 @@ out:
 	return NULL;
 }
 
+static struct packet *master_lb_update_begin(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	const char *content;
+	const char *title;
+	const char *fbfile;
+	double priority;
+	int ret;
+
+	ret = packet_get(packet, "ssdsss", &pkgname, &id, &priority, &content, &title, &fbfile);
+	if (ret != 6) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Instance[%s] is not exists\n", id);
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		DbgPrint("(%s) is not created\n", id);
+		goto out;
+	}
+
+	lb_set_priority(handler, priority);
+	lb_set_content(handler, content);
+	lb_set_title(handler, title);
+
+	/*!
+	 * \NOTE
+	 * Width & Height is not changed in this case.
+	 * If the active update is began, the size should not be changed,
+	 * And if the size is changed, the provider should finish the updating first.
+	 * And then begin updating again after change its size.
+	 */
+	if (lb_get_lb_fb(handler)) {
+		lb_set_lb_fb(handler, fbfile);
+
+		ret = fb_sync(lb_get_lb_fb(handler));
+		if (ret != LB_STATUS_SUCCESS)
+			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
+		else
+			lb_invoke_event_handler(handler, LB_EVENT_LB_UPDATE_BEGIN);
+	} else {
+		ErrPrint("Invalid request[%s], %s\n", id, fbfile);
+	}
+
+out:
+	return NULL;
+}
+
+static struct packet *master_pd_update_begin(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	const char *fbfile;
+	int ret;
+
+	ret = packet_get(packet, "sss", &pkgname, &id, &fbfile);
+	if (ret != 2) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Instance[%s] is not exists\n", id);
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		DbgPrint("[%s] is not created\n", id);
+		goto out;
+	}
+
+	if (lb_get_pd_fb(handler)) {
+		lb_set_lb_fb(handler, fbfile);
+
+		ret = fb_sync(lb_get_lb_fb(handler));
+		if (ret != LB_STATUS_SUCCESS)
+			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
+		else
+			lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATE_BEGIN);
+	} else {
+		ErrPrint("Invalid request[%s], %s\n", id, fbfile);
+	}
+
+out:
+	return NULL;
+}
+
+static struct packet *master_lb_update_end(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int ret;
+
+	ret = packet_get(packet, "ss", &pkgname, &id);
+	if (ret != 2) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Instance[%s] is not exists\n", id);
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		DbgPrint("[%s] is not created\n", id);
+		goto out;
+	}
+
+	if (lb_get_lb_fb(handler)) {
+		lb_invoke_event_handler(handler, LB_EVENT_LB_UPDATE_END);
+	} else {
+		ErrPrint("Invalid request[%s]\n", id);
+	}
+
+out:
+	return NULL;
+}
+
+static struct packet *master_access_status(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int ret;
+	int status;
+
+	ret = packet_get(packet, "ssi", &pkgname, &id, &status);
+	if (ret != 3) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Instance[%s] is not exists\n", id);
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		DbgPrint("[%s] is not created\n", id);
+		goto out;
+	}
+
+	DbgPrint("Access status: %d\n", status);
+
+	if (handler->access_event_cb) {
+		handler->access_event_cb(handler, status, handler->access_event_cbdata);
+		handler->access_event_cb = NULL;
+		handler->access_event_cbdata = NULL;
+	} else {
+		ErrPrint("Invalid event[%s]\n", id);
+	}
+out:
+	return NULL;
+}
+
+static struct packet *master_pd_update_end(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int ret;
+
+	ret = packet_get(packet, "ss", &pkgname, &id);
+	if (ret != 2) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Instance[%s] is not exists\n", id);
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		DbgPrint("[%s] is not created\n", id);
+		goto out;
+	}
+
+	if (lb_get_lb_fb(handler)) {
+		lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATE_END);
+	} else {
+		ErrPrint("Invalid request[%s]", id);
+	}
+
+out:
+	return NULL;
+}
+
 static struct packet *master_lb_updated(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
@@ -275,13 +478,13 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	} else if (lb_get_lb_fb(handler)) {
 		lb_set_lb_fb(handler, fbfile);
 		ret = fb_sync(lb_get_lb_fb(handler));
-		if (ret < 0)
+		if (ret != LB_STATUS_SUCCESS)
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 	} else {
-		ret = 0;
+		ret = LB_STATUS_SUCCESS;
 	}
 
-	if (ret == 0)
+	if (ret == LB_STATUS_SUCCESS)
 		lb_invoke_event_handler(handler, LB_EVENT_LB_UPDATED);
 
 out:
@@ -434,6 +637,55 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 		else
 			lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
+	}
+
+out:
+	return NULL;
+}
+
+static struct packet *master_update_mode(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int active_mode;
+	int status;
+	int ret;
+
+	if (!packet) {
+		ErrPrint("Invalid packet\n");
+		goto out;
+	}
+
+	ret = packet_get(packet, "ssii", &pkgname, &id, &status, &active_mode);
+	if (ret != 4) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	DbgPrint("Update mode is changed: %d, %d, %s\n", status, active_mode, id);
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Livebox(%s) is not found\n", id);
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		ErrPrint("Livebox(%s) is not created yet\n", id);
+		goto out;
+	}
+
+	if (status == LB_STATUS_SUCCESS)
+		lb_set_update_mode(handler, active_mode);
+
+	if (handler->update_mode_cb) {
+		handler->update_mode_cb(handler, status, handler->update_mode_cbdata);
+
+		handler->update_mode_cb = NULL;
+		handler->update_mode_cbdata = NULL;
+	} else {
+		lb_invoke_event_handler(handler, LB_EVENT_UPDATE_MODE_CHANGED);
 	}
 
 out:
@@ -883,6 +1135,35 @@ static struct method s_table[] = {
 		.cmd = "scroll",
 		.handler = master_hold_scroll,
 	},
+
+	{
+		.cmd = "update_mode",
+		.handler = master_update_mode,
+	},
+
+	{
+		.cmd = "lb_update_begin",
+		.handler = master_lb_update_begin,
+	},
+	{
+		.cmd = "lb_update_end",
+		.handler = master_lb_update_end,
+	},
+
+	{
+		.cmd = "pd_update_begin",
+		.handler = master_pd_update_begin,
+	},
+	{
+		.cmd = "pd_update_end",
+		.handler = master_pd_update_end,
+	},
+
+	{
+		.cmd = "access_status",
+		.handler = master_access_status,
+	},
+
 	{
 		.cmd = NULL,
 		.handler = NULL,

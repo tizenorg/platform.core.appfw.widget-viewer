@@ -43,18 +43,10 @@ enum content_event_type {
 	CONTENT_EVENT_MOUSE_SET		= 0x00000020, /*!< LB mouse set auto event for livebox */
 	CONTENT_EVENT_MOUSE_UNSET	= 0x00000040, /*!< LB mouse unset auto event for livebox */
 
-	CONTENT_EVENT_ACCESS_HIGHLIGHT	= 0x00000100, /*!< LB accessibility: Hightlight a object */
-	CONTENT_EVENT_ACCESS_HIGHLIGHT_NEXT	= 0x00000200, /*!< LB accessibility: Set highlight to next object */
-	CONTENT_EVENT_ACCESS_HIGHLIGHT_PREV	= 0x00000400, /*!< LB accessibility: Set highlight to prev object */
-	CONTENT_EVENT_ACCESS_ACTIVATE	= 0x00000800, /*!< LB accessibility activate */
-	CONTENT_EVENT_ACCESS_VALUE_CHANGE	= 0x00001000, /*!< LB accessibility up */
-	CONTENT_EVENT_ACCESS_SCROLL	= 0x00002000, /*!< LB accessibility down */
-
 	CONTENT_EVENT_KEY_DOWN		= 0x00100000, /*!< LB key press */
 	CONTENT_EVENT_KEY_UP		= 0x00200000, /*!< LB key release */
 
 	CONTENT_EVENT_KEY_MASK		= 0x80000000,
-	CONTENT_EVENT_ACCESS_MASK	= 0x40000000,
 	CONTENT_EVENT_MOUSE_MASK	= 0x20000000,
 	CONTENT_EVENT_PD_MASK		= 0x10000000,
 	CONTENT_EVENT_LB_MASK		= 0x00000000,
@@ -75,20 +67,6 @@ enum content_event_type {
 	PD_MOUSE_SET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_SET,
 	PD_MOUSE_UNSET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UNSET,
 
-	LB_ACCESS_HIGHLIGHT		= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_HIGHLIGHT,
-	LB_ACCESS_HIGHLIGHT_NEXT	= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_HIGHLIGHT_NEXT,
-	LB_ACCESS_HIGHLIGHT_PREV	= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_HIGHLIGHT_PREV,
-	LB_ACCESS_ACTIVATE		= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_ACTIVATE,
-	LB_ACCESS_VALUE_CHANGE		= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_VALUE_CHANGE,
-	LB_ACCESS_SCROLL		= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_SCROLL,
-
-	PD_ACCESS_HIGHLIGHT		= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_HIGHLIGHT,
-	PD_ACCESS_HIGHLIGHT_NEXT	= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_HIGHLIGHT_NEXT,
-	PD_ACCESS_HIGHLIGHT_PREV	= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_HIGHLIGHT_PREV,
-	PD_ACCESS_ACTIVATE		= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_ACTIVATE,
-	PD_ACCESS_VALUE_CHANGE		= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_VALUE_CHANGE,
-	PD_ACCESS_SCROLL		= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_ACCESS_MASK | CONTENT_EVENT_ACCESS_SCROLL,
-
 	LB_KEY_DOWN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN,
 	LB_KEY_UP			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP,
 
@@ -96,6 +74,32 @@ enum content_event_type {
 	PD_KEY_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP,
 
 	CONTENT_EVENT_MAX	= 0xFFFFFFFF,
+};
+
+enum access_event_type {
+	ACCESS_EVENT_PD_MASK		= 0x10000000,
+	ACCESS_EVENT_LB_MASK		= 0x00000000,
+
+	ACCESS_EVENT_HIGHLIGHT		= 0x00000100, /*!< LB accessibility: Hightlight a object */
+	ACCESS_EVENT_HIGHLIGHT_NEXT	= 0x00000200, /*!< LB accessibility: Set highlight to next object */
+	ACCESS_EVENT_HIGHLIGHT_PREV	= 0x00000400, /*!< LB accessibility: Set highlight to prev object */
+	ACCESS_EVENT_ACTIVATE		= 0x00000800, /*!< LB accessibility activate */
+	ACCESS_EVENT_VALUE_CHANGE	= 0x00001000, /*!< LB accessibility up */
+	ACCESS_EVENT_SCROLL		= 0x00002000, /*!< LB accessibility down */
+
+	LB_ACCESS_HIGHLIGHT		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT,
+	LB_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,
+	LB_ACCESS_HIGHLIGHT_PREV	= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT_PREV,
+	LB_ACCESS_ACTIVATE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_ACTIVATE,
+	LB_ACCESS_VALUE_CHANGE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_VALUE_CHANGE,
+	LB_ACCESS_SCROLL		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL,
+
+	PD_ACCESS_HIGHLIGHT		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT,
+	PD_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,
+	PD_ACCESS_HIGHLIGHT_PREV	= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT_PREV,
+	PD_ACCESS_ACTIVATE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTIVATE,
+	PD_ACCESS_VALUE_CHANGE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_VALUE_CHANGE,
+	PD_ACCESS_SCROLL		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL,
 };
 
 /* Exported to user app */
@@ -135,6 +139,14 @@ enum livebox_event_type { /*!< livebox_event_handler_set Event list */
 
 	LB_EVENT_HOLD_SCROLL, /*!< If the screen should be freezed */
 	LB_EVENT_RELEASE_SCROLL, /*!< If the screen can be scrolled */
+
+	LB_EVENT_LB_UPDATE_BEGIN,
+	LB_EVENT_LB_UPDATE_END,
+
+	LB_EVENT_PD_UPDATE_BEGIN,
+	LB_EVENT_PD_UPDATE_END,
+
+	LB_EVENT_UPDATE_MODE_CHANGED,
 
 	LB_EVENT_IGNORED, /*!< Request is ignored */
 };
@@ -479,8 +491,21 @@ extern int livebox_pdfb_bufsz(struct livebox *handler);
  * \param[in] type
  * \param[in] x
  * \param[in] y
+ * \return
  */
 extern int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y);
+
+/*!
+ * \brief Send the access event(for buffer type) to provider(livebox).
+ * \param[in] handler
+ * \param[in] access_event_type
+ * \param[in] x
+ * \param[in] y
+ * \param[in] cb
+ * \param[in] data
+ * \return
+ */
+extern int livebox_access_event(struct livebox *handler, enum access_event_type type, double x, double y, ret_cb_t cb, void *data);
 
 /*!
  * \brief Do pin up or not.
@@ -722,6 +747,26 @@ extern int livebox_set_visibility(struct livebox *handler, enum livebox_visible_
  * \return enum visible state
  */
 extern enum livebox_visible_state livebox_visibility(struct livebox *handler);
+
+/*!
+ * \brief Set the update mode of current livebox
+ *        if you set 1 for active update mode, you should get buffer without updated event from provider.
+ *	  But is passive mode, you have to update content of a box when you get updated event.
+ *	  Default is Passive mode.
+ * \param[in] handler Handler of a livebox
+ * \param[in] active_update 1 means active update, 0 means passive update (default)
+ * \param[in] cb Result callback function
+ * \param[in] data Callback data
+ * \return int
+ */
+extern int livebox_set_update_mode(struct livebox *handler, int active_update, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Is this box in the active update mode?
+ * \param[in] handler HAndler of a livebox
+ * \return int 0 if passive mode or 1 if active mode or error code
+ */
+extern int livebox_is_active_update(struct livebox *handler);
 
 #ifdef __cplusplus
 }

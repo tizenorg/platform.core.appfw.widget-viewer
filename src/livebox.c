@@ -116,6 +116,16 @@ static inline void default_lb_size_changed_cb(struct livebox *handler, int ret, 
 	DbgPrint("Default LB size changed event handler: %d\n", ret);
 }
 
+static inline void default_update_mode_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default update mode set event handler: %d\n", ret);
+}
+
+static inline void default_access_event_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default access event handler: %d\n", ret);
+}
+
 static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_cb_t cb, void *data)
 {
 	struct cb_info *info;
@@ -136,6 +146,33 @@ static inline void destroy_cb_info(struct cb_info *info)
 	free(info);
 }
 
+static void update_mode_cb(struct livebox *handler, const struct packet *result, void *data)
+{
+	int ret;
+
+	if (!result) {
+		ret = LB_STATUS_ERROR_FAULT;
+		goto errout;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		ErrPrint("Invalid argument\n");
+		ret = LB_STATUS_ERROR_INVALID;
+		goto errout;
+	}
+
+	if (ret < 0) {
+		DbgPrint("Resize request is failed: %d\n", ret);
+		goto errout;
+	}
+	
+	return;
+
+errout:
+	handler->update_mode_cb(handler, ret, handler->update_mode_cbdata);
+	handler->update_mode_cb = NULL;
+	handler->update_mode_cbdata = NULL;
+	return;
+}
+
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
@@ -149,9 +186,11 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 
 	if (!result) {
 		ret = LB_STATUS_ERROR_FAULT;
+		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
 		ret = LB_STATUS_ERROR_INVALID;
+		goto errout;
 	}
 
 	/*!
@@ -163,14 +202,18 @@ static void resize_cb(struct livebox *handler, const struct packet *result, void
 	 * So the user can only get the resized value(result) from the first update event
 	 * after this request.
 	 */
-	if (ret == 0) {
-		DbgPrint("Resize request is done, prepare the size changed event\n");
-		handler->size_changed_cb = cb;
-		handler->size_cbdata = cbdata;
-	} else {
+	if (ret < 0) {
 		DbgPrint("Resize request is failed: %d\n", ret);
-		cb(handler, ret, cbdata);
+		goto errout;
 	}
+
+	DbgPrint("Resize request is successfully sent\n");
+	return;
+
+errout:
+	handler->size_changed_cb(handler, ret, handler->size_cbdata);
+	handler->size_changed_cb = NULL;
+	handler->size_cbdata = NULL;
 }
 
 static void text_signal_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -199,55 +242,50 @@ static void text_signal_cb(struct livebox *handler, const struct packet *result,
 static void set_group_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
-	void *cbdata;
-	ret_cb_t cb;
-	struct cb_info *info = data;
-
-	cbdata = info->data;
-	cb = info->cb;
-	destroy_cb_info(info);
 
 	if (!result) {
 		ret = LB_STATUS_ERROR_FAULT;
+		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
 		ret = LB_STATUS_ERROR_INVALID;
+		goto errout;
 	}
 
-	if (ret == 0) { /*!< Group information is successfully changed */
-		handler->group_changed_cb = cb;
-		handler->group_cbdata = cbdata;
-	} else if (cb) {
-		cb(handler, ret, cbdata);
-	}
+	if (ret < 0)
+		goto errout;
 
 	return;
+
+errout:
+	handler->group_changed_cb(handler, ret, handler->group_cbdata);
+	handler->group_changed_cb = NULL;
+	handler->group_cbdata = NULL;
 }
 
 static void period_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
-	struct cb_info *info = data;
 	int ret;
-	ret_cb_t cb;
-	void *cbdata;
-
-	cb = info->cb;
-	cbdata = info->data;
-	destroy_cb_info(info);
 
 	if (!result) {
 		ret = LB_STATUS_ERROR_FAULT;
+		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
 		ret = LB_STATUS_ERROR_INVALID;
+		goto errout;
 	}
 
-	if (ret == 0) {
-		handler->period_changed_cb = cb;
-		handler->period_cbdata = cbdata;
-	} else if (cb) {
-		cb(handler, ret, cbdata);
-	}
+	if (ret < 0)
+		goto errout;
+
+	DbgPrint("Succeed to send period change request, waiting result\n");
+	return;
+
+errout:
+	handler->period_changed_cb(handler, ret, handler->period_cbdata);
+	handler->period_changed_cb = NULL;
+	handler->period_cbdata = NULL;
 }
 
 static void del_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -330,29 +368,27 @@ static void new_ret_cb(struct livebox *handler, const struct packet *result, voi
 
 static void pd_create_cb(struct livebox *handler, const struct packet *result, void *data)
 {
-	struct cb_info *info = data;
-	void *cbdata;
-	ret_cb_t cb;
 	int ret;
-
-	cb = info->cb;
-	cbdata = info->data;
-	destroy_cb_info(data);
 
 	if (!result) {
 		ret = LB_STATUS_ERROR_FAULT;
+		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ret = LB_STATUS_ERROR_INVALID;
+		goto errout;
 	}
 
-	if (ret == 0) {
-		DbgPrint("PD Created event handler prepared\n");
-		handler->pd_created_cb = cb;
-		handler->pd_created_cbdata = cbdata;
-	} else if (cb) {
+	if (ret < 0) {
 		DbgPrint("Failed to create a PD\n");
-		cb(handler, ret, cbdata);
+		goto errout;
 	}
+
+	return;
+
+errout:
+	handler->pd_created_cb(handler, ret, handler->pd_created_cbdata);
+	handler->pd_created_cb = NULL;
+	handler->pd_created_cbdata = NULL;
 }
 
 static void activated_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -475,25 +511,69 @@ static void pixmap_acquired_cb(struct livebox *handler, const struct packet *res
 static void pinup_done_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
-	ret_cb_t cb;
-	void *cbdata;
-	struct cb_info *info = data;
 
-	cb = info->cb;
-	cbdata = info->data;
-	destroy_cb_info(info);
-
-	if (!result)
+	if (!result) {
 		ret = LB_STATUS_ERROR_FAULT;
-	else if (packet_get(result, "i", &ret) != 1)
-		ret = LB_STATUS_ERROR_INVALID;
-
-	if (ret == 0) {
-		handler->pinup_cb = cb;
-		handler->pinup_cbdata = cbdata;
-	} else if (cb) {
-		cb(handler, ret, cbdata);
+		goto errout;
+	} else if (packet_get(result, "i", &ret) != 1) {
+		goto errout;
 	}
+
+	if (ret < 0)
+		goto errout;
+
+	return;
+
+errout:
+	handler->pinup_cb(handler, ret, handler->pinup_cbdata);
+	handler->pinup_cb = NULL;
+	handler->pinup_cbdata = NULL;
+}
+
+static void access_ret_cb(struct livebox *handler, const struct packet *result, void *data)
+{
+	int ret;
+
+	if (!result) {
+		ret = LB_STATUS_ERROR_FAULT;
+		return;
+	}
+
+	if (packet_get(result, "i", &ret) != 1) {
+		ret = LB_STATUS_ERROR_INVALID;
+		return;
+	}
+
+	if (ret != LB_STATUS_SUCCESS) {
+		goto errout;
+	}
+
+	DbgPrint("Access event is successfully sent. waiting result\n");
+	return;
+
+errout:
+	handler->access_event_cb(handler, ret, handler->access_event_cbdata);
+	handler->access_event_cb = NULL;
+	handler->access_event_cbdata = NULL;
+	return;
+}
+
+static int send_access_event(struct livebox *handler, const char *event, int x, int y)
+{
+	struct packet *packet;
+	double timestamp;
+
+	timestamp = util_timestamp();
+
+	packet = packet_create(event, "ssdii", handler->pkgname, handler->id, timestamp, x, y);
+	if (!packet) {
+		ErrPrint("Failed to build packet\n");
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	DbgPrint("Send: %dx%d\n", x, y);
+
+	return master_rpc_async_request(handler, packet, 0, access_ret_cb, NULL);
 }
 
 static int send_mouse_event(struct livebox *handler, const char *event, int x, int y)
@@ -594,6 +674,7 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 	int ret;
 	int width = 0;
 	int height = 0;
+	struct cb_info *cbinfo;
 
 	if (!pkgname || !cluster || !category) {
 		ErrPrint("Invalid arguments: pkgname[%p], cluster[%p], category[%p]\n",
@@ -685,9 +766,22 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 		return NULL;
 	}
 
-	ret = master_rpc_async_request(handler, packet, 0, new_ret_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		ErrPrint("Failed to create a cbinfo\n");
+		packet_destroy(packet);
+		free(handler->category);
+		free(handler->cluster);
+		free(handler->content);
+		free(handler->pkgname);
+		free(handler);
+		return NULL;
+	}
+
+	ret = master_rpc_async_request(handler, packet, 0, new_ret_cb, cbinfo);
 	if (ret < 0) {
 		ErrPrint("Failed to send a new packet\n");
+		destroy_cb_info(cbinfo);
 		free(handler->category);
 		free(handler->cluster);
 		free(handler->content);
@@ -714,6 +808,7 @@ EAPI double livebox_period(struct livebox *handler)
 EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	int ret;
 
 	if (!handler || handler->state != CREATE || !handler->id) {
 		ErrPrint("Handler is not valid\n");
@@ -744,7 +839,16 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 	if (!cb)
 		cb = default_period_changed_cb;
 
-	return master_rpc_async_request(handler, packet, 0, period_ret_cb, create_cb_info(cb, data));
+	handler->period_changed_cb = cb;
+	handler->period_cbdata = data;
+
+	ret = master_rpc_async_request(handler, packet, 0, period_ret_cb, NULL);
+	if (ret < 0) {
+		handler->period_changed_cb = NULL;
+		handler->period_cbdata = NULL;
+	}
+
+	return ret;
 }
 
 EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
@@ -863,11 +967,68 @@ EAPI void *livebox_unset_event_handler(int (*cb)(struct livebox *, enum livebox_
 	return NULL;
 }
 
+EAPI int livebox_set_update_mode(struct livebox *handler, int active_update, ret_cb_t cb, void *data)
+{
+	struct packet *packet;
+	int ret;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->state != CREATE || !handler->id)
+		return LB_STATUS_ERROR_INVALID;
+
+	if (handler->update_mode_cb) {
+		ErrPrint("Previous update_mode cb is not finished yet\n");
+		return LB_STATUS_ERROR_BUSY;
+	}
+
+	if (handler->is_active_update == active_update)
+		return LB_STATUS_ERROR_ALREADY;
+
+	if (!handler->is_user)
+		return LB_STATUS_ERROR_PERMISSION;
+
+	packet = packet_create("update_mode", "ssi", handler->pkgname, handler->id, active_update);
+	if (!packet)
+		return LB_STATUS_ERROR_FAULT;
+
+	if (!cb)
+		cb = default_update_mode_cb;
+
+	handler->update_mode_cb = cb;
+	handler->update_mode_cbdata = data;
+
+	ret = master_rpc_async_request(handler, packet, 0, update_mode_cb, NULL);
+	if (ret < 0) {
+		handler->update_mode_cb = NULL;
+		handler->update_mode_cbdata = NULL;
+	}
+
+	return ret;
+}
+
+EAPI int livebox_is_active_update(struct livebox *handler)
+{
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->state != CREATE || !handler->id)
+		return LB_STATUS_ERROR_INVALID;
+
+	return handler->is_active_update;
+}
+
 EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	int w;
 	int h;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -908,7 +1069,16 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 	if (!cb)
 		cb = default_lb_size_changed_cb;
 
-	return master_rpc_async_request(handler, packet, 0, resize_cb, create_cb_info(cb, data));
+	handler->size_changed_cb = cb;
+	handler->size_cbdata = data;
+
+	ret = master_rpc_async_request(handler, packet, 0, resize_cb, NULL);
+	if (ret < 0) {
+		handler->size_changed_cb = NULL;
+		handler->size_cbdata = NULL;
+	}
+
+	return ret;
 }
 
 EAPI int livebox_click(struct livebox *handler, double x, double y)
@@ -997,6 +1167,7 @@ EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
 EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, double y, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1013,6 +1184,11 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 		return LB_STATUS_SUCCESS;
 	}
 
+	if (handler->pd_created_cb) {
+		ErrPrint("Previous request is not completed yet\n");
+		return LB_STATUS_ERROR_BUSY;
+	}
+
 	packet = packet_create("create_pd", "ssdd", handler->pkgname, handler->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
@@ -1020,9 +1196,18 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 	}
 
 	if (!cb)
-		handler->pd_created_cb = default_pd_created_cb;
+		cb = default_pd_created_cb;
 
-	return master_rpc_async_request(handler, packet, 0, pd_create_cb, create_cb_info(cb, data));
+	handler->pd_created_cb = cb;
+	handler->pd_created_cbdata = data;
+
+	ret = master_rpc_async_request(handler, packet, 0, pd_create_cb, NULL);
+	if (ret < 0) {
+		handler->pd_created_cb = NULL;
+		handler->pd_created_cbdata = NULL;
+	}
+
+	return ret;
 }
 
 EAPI int livebox_move_pd(struct livebox *handler, double x, double y)
@@ -1056,6 +1241,8 @@ EAPI int livebox_move_pd(struct livebox *handler, double x, double y)
 EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	struct cb_info *cbinfo;
+	int ret;
 
 	if (!pkgname)
 		return LB_STATUS_ERROR_INVALID;
@@ -1066,12 +1253,25 @@ EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	return master_rpc_async_request(NULL, packet, 0, activated_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		ErrPrint("Unable to create cbinfo\n");
+		packet_destroy(packet);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(NULL, packet, 0, activated_cb, cbinfo);
+	if (ret < 0)
+		destroy_cb_info(cbinfo);
+
+	return ret;
 }
 
 EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	struct cb_info *cbinfo;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1097,7 +1297,97 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 	if (!cb)
 		cb = default_pd_destroyed_cb;
 
-	return master_rpc_async_request(handler, packet, 0, pd_destroy_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(handler, packet, 0, pd_destroy_cb, cbinfo);
+	if (ret < 0)
+		destroy_cb_info(cbinfo);
+
+	return ret;
+}
+
+EAPI int livebox_access_event(struct livebox *handler, enum access_event_type type, double x, double y, ret_cb_t cb, void *data)
+{
+	int w = 1;
+	int h = 1;
+	char cmd[32] = { '\0', };
+	char *ptr = cmd;
+	int ret;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Handler is not valid\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->access_event_cb) {
+		ErrPrint("Previous access event is not yet done\n");
+		return LB_STATUS_ERROR_BUSY;
+	}
+
+	if (type & ACCESS_EVENT_PD_MASK) {
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+		*ptr++ = 'p';
+		*ptr++ = 'd';
+		w = handler->pd.width;
+		h = handler->pd.height;
+	} else if (type & ACCESS_EVENT_LB_MASK) {
+		*ptr++ = 'l';
+		*ptr++ = 'b';
+		w = handler->lb.width;
+		h = handler->lb.height;
+	} else {
+		ErrPrint("Invalid event type\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	switch (type & ~ACCESS_EVENT_PD_MASK) {
+	case ACCESS_EVENT_HIGHLIGHT:
+		strcpy(ptr, "_access_hl");
+		break;
+	case ACCESS_EVENT_HIGHLIGHT_NEXT:
+		strcpy(ptr, "_access_hl_next");
+		break;
+	case ACCESS_EVENT_HIGHLIGHT_PREV:
+		strcpy(ptr, "_access_hl_prev");
+		break;
+	case ACCESS_EVENT_ACTIVATE:
+		strcpy(ptr, "_access_activate");
+		break;
+	case ACCESS_EVENT_VALUE_CHANGE:
+		strcpy(ptr, "_access_value_change");
+		break;
+	case ACCESS_EVENT_SCROLL:
+		strcpy(ptr, "_access_scroll");
+		break;
+	default:
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (!cb)
+		cb = default_access_event_cb;
+
+	handler->access_event_cb = cb;
+	handler->access_event_cbdata = data;
+
+	ret = send_access_event(handler, cmd, x * w, y * h);
+	if (ret < 0) {
+		handler->access_event_cb = NULL;
+		handler->access_event_cbdata = NULL;
+	}
+
+	return ret;
 }
 
 EAPI int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y)
@@ -1183,24 +1473,6 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 	 * Must be short than 29 bytes.
 	 */
 	switch ((type & ~CONTENT_EVENT_PD_MASK)) {
-	case CONTENT_EVENT_ACCESS_HIGHLIGHT | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_hl");
-		break;
-	case CONTENT_EVENT_ACCESS_HIGHLIGHT_PREV | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_hl_prev");
-		break;
-	case CONTENT_EVENT_ACCESS_HIGHLIGHT_NEXT | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_hl_next");
-		break;
-	case CONTENT_EVENT_ACCESS_ACTIVATE | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_activate");
-		break;
-	case CONTENT_EVENT_ACCESS_VALUE_CHANGE | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_value_change");
-		break;
-	case CONTENT_EVENT_ACCESS_SCROLL | CONTENT_EVENT_ACCESS_MASK:
-		strcpy(ptr, "_access_scroll");
-		break;
 	case CONTENT_EVENT_MOUSE_ENTER | CONTENT_EVENT_MOUSE_MASK:
 		strcpy(ptr, "_mouse_enter");
 		break;
@@ -1324,6 +1596,7 @@ EAPI int livebox_size(struct livebox *handler)
 EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const char *category, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1359,7 +1632,16 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 	if (!cb)
 		cb = default_group_changed_cb;
 
-	return master_rpc_async_request(handler, packet, 0, set_group_ret_cb, create_cb_info(cb, data));
+	handler->group_changed_cb = cb;
+	handler->group_cbdata = data; 
+
+	ret = master_rpc_async_request(handler, packet, 0, set_group_ret_cb, NULL);
+	if (ret < 0) {
+		handler->group_changed_cb = NULL;
+		handler->group_cbdata = NULL;
+	}
+
+	return ret;
 }
 
 EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category)
@@ -1440,6 +1722,8 @@ EAPI double livebox_priority(struct livebox *handler)
 EAPI int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	struct cb_info *cbinfo;
+	int ret;
 
 	packet = packet_create("delete_cluster", "s", cluster);
 	if (!packet) {
@@ -1447,12 +1731,24 @@ EAPI int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data)
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	return master_rpc_async_request(NULL, packet, 0, delete_cluster_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(NULL, packet, 0, delete_cluster_cb, cbinfo);
+	if (ret < 0)
+		destroy_cb_info(cbinfo);
+
+	return ret;
 }
 
 EAPI int livebox_delete_category(const char *cluster, const char *category, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	struct cb_info *cbinfo;
+	int ret;
 
 	packet = packet_create("delete_category", "ss", cluster, category);
 	if (!packet) {
@@ -1460,7 +1756,17 @@ EAPI int livebox_delete_category(const char *cluster, const char *category, ret_
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	return master_rpc_async_request(NULL, packet, 0, delete_category_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(NULL, packet, 0, delete_category_cb, cbinfo);
+	if (ret < 0)
+		destroy_cb_info(cbinfo);
+
+	return ret;
 }
 
 EAPI enum livebox_lb_type livebox_lb_type(struct livebox *handler)
@@ -1562,7 +1868,9 @@ EAPI int livebox_set_text_handler(struct livebox *handler, struct livebox_script
 EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	struct cb_info *cbinfo;
 	const char *id;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1589,7 +1897,17 @@ EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, cbinfo);
+	if (ret < 0)
+		destroy_cb_info(cbinfo);
+
+	return ret;
 }
 
 EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
@@ -1623,7 +1941,9 @@ EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
 EAPI int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	struct cb_info *cbinfo;
 	const char *id;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1650,7 +1970,17 @@ EAPI int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, cbinfo);
+	if (ret < 0)
+		destroy_cb_info(cbinfo);
+
+	return ret;
 }
 
 EAPI int livebox_pd_pixmap(const struct livebox *handler)
@@ -1847,6 +2177,7 @@ EAPI int livebox_is_user(struct livebox *handler)
 EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1877,7 +2208,16 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 	if (!cb)
 		cb = default_pinup_cb;
 
-	return master_rpc_async_request(handler, packet, 0, pinup_done_cb, create_cb_info(cb, data));
+	handler->pinup_cb = cb;
+	handler->pinup_cbdata = data;
+
+	ret = master_rpc_async_request(handler, packet, 0, pinup_done_cb, NULL);
+	if (ret < 0) {
+		handler->pinup_cb = NULL;
+		handler->pinup_cbdata = NULL;
+	}
+
+	return ret;
 }
 
 EAPI int livebox_is_pinned_up(struct livebox *handler)
@@ -1975,6 +2315,8 @@ EAPI const char *livebox_category_title(struct livebox *handler)
 EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	struct cb_info *cbinfo;
+	int ret;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -1999,7 +2341,17 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	return master_rpc_async_request(handler, packet, 0, text_signal_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(handler, packet, 0, text_signal_cb, cbinfo);
+	if (ret < 0)
+		destroy_cb_info(cbinfo);
+
+	return LB_STATUS_ERROR_FAULT;
 }
 
 EAPI int livebox_subscribe_group(const char *cluster, const char *category)
@@ -2170,6 +2522,11 @@ void lb_set_size(struct livebox *handler, int w, int h)
 {
 	handler->lb.width = w;
 	handler->lb.height = h;
+}
+
+void lb_set_update_mode(struct livebox *handle, int active_mode)
+{
+	handle->is_active_update = active_mode;
 }
 
 void lb_set_pdsize(struct livebox *handler, int w, int h)
@@ -2541,6 +2898,76 @@ struct livebox *lb_unref(struct livebox *handler)
 	if (handler->refcnt > 0)
 		return handler;
 
+	if (handler->created_cb) {
+		DbgPrint("Clear created event callback\n");
+		handler->created_cb(handler, LB_STATUS_ERROR_FAULT, handler->created_cbdata);
+		handler->created_cb = NULL;
+		handler->created_cbdata = NULL;
+	}
+
+	if (handler->deleted_cb) {
+		DbgPrint("Clear deleted event callback\n");
+		handler->deleted_cb(handler, LB_STATUS_ERROR_FAULT, handler->deleted_cbdata);
+		handler->deleted_cb = NULL;
+		handler->deleted_cbdata = NULL;
+	}
+
+	if (handler->pinup_cb) {
+		DbgPrint("Clear pinup event callback\n");
+		handler->pinup_cb(handler, LB_STATUS_ERROR_FAULT, handler->pinup_cbdata);
+		handler->pinup_cb = NULL;
+		handler->pinup_cbdata = NULL;
+	}
+
+	if (handler->group_changed_cb) {
+		DbgPrint("Clear group changed event callback\n");
+		handler->group_changed_cb(handler, LB_STATUS_ERROR_FAULT, handler->group_cbdata);
+		handler->group_changed_cb = NULL;
+		handler->group_cbdata = NULL;
+	}
+
+	if (handler->period_changed_cb) {
+		DbgPrint("Clear period changed event callback\n");
+		handler->period_changed_cb(handler, LB_STATUS_ERROR_FAULT, handler->period_cbdata);
+		handler->period_changed_cb = NULL;
+		handler->period_cbdata = NULL;
+	}
+
+	if (handler->size_changed_cb) {
+		DbgPrint("Clear size changed event callback\n");
+		handler->size_changed_cb(handler, LB_STATUS_ERROR_FAULT, handler->size_cbdata);
+		handler->size_changed_cb = NULL;
+		handler->size_cbdata = NULL;
+	}
+
+	if (handler->pd_created_cb) {
+		DbgPrint("Clear pd created event callback\n");
+		handler->pd_created_cb(handler, LB_STATUS_ERROR_FAULT, handler->pd_created_cbdata);
+		handler->pd_created_cb = NULL;
+		handler->pd_created_cbdata = NULL;
+	}
+
+	if (handler->pd_destroyed_cb) {
+		DbgPrint("Clear pd destroyed event callback\n");
+		handler->pd_destroyed_cb(handler, LB_STATUS_ERROR_FAULT, handler->pd_destroyed_cbdata);
+		handler->pd_destroyed_cb = NULL;
+		handler->pd_destroyed_cbdata = NULL;
+	}
+
+	if (handler->update_mode_cb) {
+		DbgPrint("Clear update mode callback\n");
+		handler->update_mode_cb(handler, LB_STATUS_ERROR_FAULT, handler->update_mode_cbdata);
+		handler->update_mode_cb = NULL;
+		handler->update_mode_cbdata = NULL;
+	}
+
+	if (handler->access_event_cb) {
+		DbgPrint("Clear access status callback\n");
+		handler->access_event_cb(handler, LB_STATUS_ERROR_FAULT, handler->access_event_cbdata);
+		handler->access_event_cb = NULL;
+		handler->access_event_cbdata = NULL;
+	}
+
 	if (handler->filename)
 		util_unlink(handler->filename);
 
@@ -2571,6 +2998,8 @@ struct livebox *lb_unref(struct livebox *handler)
 int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	struct cb_info *cbinfo;
+	int ret;
 
 	if (!cb && !!data) {
 		ErrPrint("Invalid argument\n");
@@ -2594,7 +3023,17 @@ int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 	if (!cb)
 		cb = default_delete_cb;
 
-	return master_rpc_async_request(handler, packet, 0, del_ret_cb, create_cb_info(cb, data));
+	cbinfo = create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(handler, packet, 0, del_ret_cb, cbinfo);
+	if (ret < 0)
+		destroy_cb_info(cbinfo);
+
+	return ret;
 }
 
 EAPI int livebox_client_paused(void)
