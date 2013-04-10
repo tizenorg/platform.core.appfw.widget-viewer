@@ -376,6 +376,8 @@ static struct packet *master_access_status(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
+	DbgPrint("Access status: %d\n", status);
+
 	if (handler->access_event_cb) {
 		handler->access_event_cb(handler, status, handler->access_event_cbdata);
 		handler->access_event_cb = NULL;
