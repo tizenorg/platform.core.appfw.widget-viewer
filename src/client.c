@@ -128,10 +128,17 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	}
 
 	if (handler->pinup_cb) {
-		handler->pinup_cb(handler, ret, handler->pinup_cbdata);
+		ret_cb_t cb;
+		void *cbdata;
 
-		handler->pinup_cb = NULL; /*!< Reset pinup cb */
+		/* Make sure that user can call pinup API in its result callback */
+		cb = handler->pinup_cb;
+		cbdata = handler->pinup_cbdata;
+
+		handler->pinup_cb = NULL;
 		handler->pinup_cbdata = NULL;
+
+		cb(handler, ret, cbdata);
 	} else if (ret == 0) {
 		lb_invoke_event_handler(handler, LB_EVENT_PINUP_CHANGED);
 	}
@@ -175,6 +182,8 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	}
 
 	if (handler->created_cb) {
+		ret_cb_t cb;
+		void *cbdata;
 		/*!
 		 * \note
 		 *
@@ -196,16 +205,26 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		}
 
 		DbgPrint("Call the created cb with LB_STATUS_ERROR_CANCEL\n");
-		handler->created_cb(handler, LB_STATUS_ERROR_CANCEL, handler->created_cbdata);
+		cb = handler->created_cb;
+		cbdata = handler->created_cbdata;
+
 		handler->created_cb = NULL;
 		handler->created_cbdata = NULL;
+
+		cb(handler, LB_STATUS_ERROR_CANCEL, cbdata);
 	} else if (handler->id) {
 		if (handler->deleted_cb) {
-			DbgPrint("Call the deleted cb\n");
-			handler->deleted_cb(handler, LB_STATUS_SUCCESS, handler->deleted_cbdata);
+			ret_cb_t cb;
+			void *cbdata;
+
+			cb = handler->deleted_cb;
+			cbdata = handler->deleted_cbdata;
 
 			handler->deleted_cb = NULL;
 			handler->deleted_cbdata = NULL;
+
+			DbgPrint("Call the deleted cb\n");
+			cb(handler, LB_STATUS_SUCCESS, cbdata);
 		} else {
 			DbgPrint("Call the lb,deleted\n");
 			lb_invoke_event_handler(handler, LB_EVENT_DELETED);
@@ -379,9 +398,16 @@ static struct packet *master_access_status(pid_t pid, int handle, const struct p
 	DbgPrint("Access status: %d\n", status);
 
 	if (handler->access_event_cb) {
-		handler->access_event_cb(handler, status, handler->access_event_cbdata);
+		ret_cb_t cb;
+		void *cbdata;
+
+		cb = handler->access_event_cb;
+		cbdata = handler->access_event_cbdata;
+
 		handler->access_event_cb = NULL;
 		handler->access_event_cbdata = NULL;
+
+		cb(handler, status, cbdata);
 	} else {
 		ErrPrint("Invalid event[%s]\n", id);
 	}
@@ -532,11 +558,17 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 	handler->is_pd_created = (status == 0);
 
 	if (handler->pd_created_cb) {
-		DbgPrint("pd_created_cb (%s) - %d\n", buf_id, status);
-		handler->pd_created_cb(handler, status, handler->pd_created_cbdata);
+		ret_cb_t cb;
+		void *cbdata;
+
+		cb = handler->pd_created_cb;
+		cbdata = handler->pd_created_cbdata;
 
 		handler->pd_created_cb = NULL;
 		handler->pd_created_cbdata = NULL;
+
+		DbgPrint("pd_created_cb (%s) - %d\n", buf_id, status);
+		cb(handler, status, cbdata);
 	} else if (status == 0) {
 		DbgPrint("LB_EVENT_PD_CREATED (%s) - %d\n", buf_id, status);
 		lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);
@@ -574,11 +606,17 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 	handler->is_pd_created = 0;
 
 	if (handler->pd_destroyed_cb) {
-		DbgPrint("Invoke the PD Destroyed CB\n");
-		handler->pd_destroyed_cb(handler, status, handler->pd_destroyed_cbdata);
+		ret_cb_t cb;
+		void *cbdata;
+
+		cb = handler->pd_destroyed_cb;
+		cbdata = handler->pd_destroyed_cbdata;
 
 		handler->pd_destroyed_cb = NULL;
 		handler->pd_destroyed_cbdata = NULL;
+
+		DbgPrint("Invoke the PD Destroyed CB\n");
+		cb(handler, status, cbdata);
 	} else if (status == 0) {
 		DbgPrint("Invoke the LB_EVENT_PD_DESTROYED event\n");
 		lb_invoke_event_handler(handler, LB_EVENT_PD_DESTROYED);
@@ -680,10 +718,16 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 		lb_set_update_mode(handler, active_mode);
 
 	if (handler->update_mode_cb) {
-		handler->update_mode_cb(handler, status, handler->update_mode_cbdata);
+		ret_cb_t cb;
+		void *cbdata;
+
+		cb = handler->update_mode_cb;
+		cbdata = handler->update_mode_cbdata;
 
 		handler->update_mode_cb = NULL;
 		handler->update_mode_cbdata = NULL;
+
+		cb(handler, status, cbdata);
 	} else {
 		lb_invoke_event_handler(handler, LB_EVENT_UPDATE_MODE_CHANGED);
 	}
@@ -769,20 +813,32 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			 * So I added some log before & after call the user callback.
 			 */
 			if (handler->size_changed_cb) {
-				handler->size_changed_cb(handler, status, handler->size_cbdata);
+				ret_cb_t cb;
+				void *cbdata;
+
+				cb = handler->size_changed_cb;
+				cbdata = handler->size_cbdata;
 
 				handler->size_changed_cb = NULL;
 				handler->size_cbdata = NULL;
+
+				cb(handler, status, cbdata);
 			} else {
 				lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
 			}
 		} else {
 			DbgPrint("LB is not resized: %dx%d (%d)\n", w, h, status);
 			if (handler->size_changed_cb) {
-				handler->size_changed_cb(handler, status, handler->size_cbdata);
+				ret_cb_t cb;
+				void *cbdata;
+
+				cb = handler->size_changed_cb;
+				cbdata = handler->size_cbdata;
 
 				handler->size_changed_cb = NULL;
 				handler->size_cbdata = NULL;
+
+				cb(handler, status, cbdata);
 			}
 		}
 	}
@@ -822,10 +878,16 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		lb_set_period(handler, period);
 
 	if (handler->period_changed_cb) {
-		handler->period_changed_cb(handler, status, handler->group_cbdata);
+		ret_cb_t cb;
+		void *cbdata;
+
+		cb = handler->period_changed_cb;
+		cbdata = handler->period_cbdata;
 
 		handler->period_changed_cb = NULL;
 		handler->period_cbdata = NULL;
+
+		cb(handler, status, cbdata);
 	} else if (status == 0) {
 		lb_invoke_event_handler(handler, LB_EVENT_PERIOD_CHANGED);
 	}
@@ -871,10 +933,16 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		(void)lb_set_group(handler, cluster, category);
 
 	if (handler->group_changed_cb) {
-		handler->group_changed_cb(handler, status, handler->group_cbdata);
+		ret_cb_t cb;
+		void *cbdata;
+
+		cb = handler->group_changed_cb;
+		cbdata = handler->group_cbdata;
 
 		handler->group_changed_cb = NULL;
 		handler->group_cbdata = NULL;
+
+		cb(handler, status, cbdata);
 	} else if (status == 0) {
 		lb_invoke_event_handler(handler, LB_EVENT_GROUP_CHANGED);
 	}
@@ -1055,11 +1123,17 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		 */
 
 		if (handler->created_cb) {
-			DbgPrint("Invoke the created_cb\n");
-			handler->created_cb(handler, ret, handler->created_cbdata);
+			ret_cb_t cb;
+			void *cbdata;
+
+			cb = handler->created_cb;
+			cbdata = handler->created_cbdata;
 
 			handler->created_cb = NULL;
 			handler->created_cbdata = NULL;
+
+			DbgPrint("Invoke the created_cb\n");
+			cb(handler, ret, cbdata);
 		} else {
 			DbgPrint("Invoke the lb,created\n");
 			lb_invoke_event_handler(handler, LB_EVENT_CREATED);
