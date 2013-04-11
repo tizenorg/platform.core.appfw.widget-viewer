@@ -163,7 +163,7 @@ static void update_mode_cb(struct livebox *handler, const struct packet *result,
 		DbgPrint("Resize request is failed: %d\n", ret);
 		goto errout;
 	}
-	
+
 	return;
 
 errout:
@@ -1370,6 +1370,9 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 		break;
 	case ACCESS_EVENT_SCROLL:
 		strcpy(ptr, "_access_scroll");
+		break;
+	case ACCESS_EVENT_UNHIGHLIGHT:
+		strcpy(ptr, "_access_unhighlight");
 		break;
 	default:
 		return LB_STATUS_ERROR_INVALID;
