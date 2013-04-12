@@ -101,9 +101,10 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	struct livebox *handler;
 	char *new_content;
 	int ret;
+	int status;
 	int pinup;
 
-	ret = packet_get(packet, "iisss", &ret, &pinup, &pkgname, &id, &content);
+	ret = packet_get(packet, "iisss", &status, &pinup, &pkgname, &id, &content);
 	if (ret != 5) {
 		ErrPrint("Invalid argument\n");
 		goto out;
@@ -115,7 +116,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		goto out;
 	}
 
-	if (ret == 0) {
+	if (status == 0) {
 		new_content = strdup(content);
 		if (new_content) {
 			free(handler->content);
@@ -123,7 +124,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			handler->is_pinned_up = pinup;
 		} else {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			ret = LB_STATUS_ERROR_MEMORY;
+			status = LB_STATUS_ERROR_MEMORY;
 		}
 	}
 
@@ -138,8 +139,8 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		handler->pinup_cb = NULL;
 		handler->pinup_cbdata = NULL;
 
-		cb(handler, ret, cbdata);
-	} else if (ret == 0) {
+		cb(handler, status, cbdata);
+	} else if (status == 0) {
 		lb_invoke_event_handler(handler, LB_EVENT_PINUP_CHANGED);
 	}
 
