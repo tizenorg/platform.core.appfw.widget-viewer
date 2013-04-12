@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for developing the application.
-Version: 0.12.0
+Version: 0.12.2
 Release: 1
 Group: HomeTF/Livebox
 License: Flora License
