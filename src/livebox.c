@@ -1368,11 +1368,17 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	case ACCESS_EVENT_VALUE_CHANGE:
 		strcpy(ptr, "_access_value_change");
 		break;
-	case ACCESS_EVENT_SCROLL:
-		strcpy(ptr, "_access_scroll");
-		break;
 	case ACCESS_EVENT_UNHIGHLIGHT:
 		strcpy(ptr, "_access_unhighlight");
+		break;
+	case ACCESS_EVENT_SCROLL_DOWN:
+		strcpy(ptr, "_access_scroll_down");
+		break;
+	case ACCESS_EVENT_SCROLL_MOVE:
+		strcpy(ptr, "_access_scroll_move");
+		break;
+	case ACCESS_EVENT_SCROLL_UP:
+		strcpy(ptr, "_access_scroll_up");
 		break;
 	default:
 		return LB_STATUS_ERROR_INVALID;
