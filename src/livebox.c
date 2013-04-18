@@ -1097,9 +1097,11 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (handler->lb.auto_launch)
-		if (aul_open_app(handler->lb.auto_launch) < 0)
+	if (handler->lb.auto_launch) {
+		DbgPrint("Auto-launch enabled: %s\n", handler->lb.auto_launch);
+		if (aul_launch_app(handler->lb.auto_launch, NULL) < 0)
 			ErrPrint("Failed to launch app %s\n", handler->lb.auto_launch);
+	}
 
 	timestamp = util_timestamp();
 	packet = packet_create_noack("clicked", "sssddd", handler->pkgname, handler->id, "clicked", timestamp, x, y);
@@ -1368,11 +1370,17 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	case ACCESS_EVENT_VALUE_CHANGE:
 		strcpy(ptr, "_access_value_change");
 		break;
-	case ACCESS_EVENT_SCROLL:
-		strcpy(ptr, "_access_scroll");
-		break;
 	case ACCESS_EVENT_UNHIGHLIGHT:
 		strcpy(ptr, "_access_unhighlight");
+		break;
+	case ACCESS_EVENT_SCROLL_DOWN:
+		strcpy(ptr, "_access_scroll_down");
+		break;
+	case ACCESS_EVENT_SCROLL_MOVE:
+		strcpy(ptr, "_access_scroll_move");
+		break;
+	case ACCESS_EVENT_SCROLL_UP:
+		strcpy(ptr, "_access_scroll_up");
 		break;
 	default:
 		return LB_STATUS_ERROR_INVALID;
