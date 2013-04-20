@@ -23,6 +23,9 @@
 #include <dlog.h>
 #include <glib.h>
 
+#include <vconf.h>
+#include <vconf-keys.h>
+
 #include <packet.h>
 #include <com-core.h>
 #include <com-core_packet.h>
@@ -39,14 +42,10 @@
 #include "conf.h"
 #include "critical_log.h"
 
-static inline void make_connection(void);
-
 static struct info {
 	int fd;
-	guint reconnector;
 } s_info = {
 	.fd = -1,
-	.reconnector = 0,
 };
 
 static struct packet *master_fault_package(pid_t pid, int handle, const struct packet *packet)
@@ -1261,20 +1260,7 @@ static void acquire_cb(struct livebox *handler, const struct packet *result, voi
 	return;
 }
 
-static gboolean connector_cb(gpointer user_data)
-{
-	s_info.reconnector = 0;
-
-	if (s_info.fd > 0) {
-		DbgPrint("Connection is already made\n");
-		return FALSE;
-	}
-
-	make_connection();
-	return FALSE;
-}
-
-static inline void make_connection(void)
+static inline int make_connection(void)
 {
 	struct packet *packet;
 	int ret;
@@ -1283,20 +1269,15 @@ static inline void make_connection(void)
 
 	s_info.fd = com_core_packet_client_init(CLIENT_SOCKET, 0, s_table);
 	if (s_info.fd < 0) {
-		/*!< After 10 secs later, try to connect again */
-		s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL);
-		if (s_info.reconnector == 0)
-			ErrPrint("Failed to fire the reconnector\n");
-
-		ErrPrint("Try this again A sec later\n");
-		return;
+		ErrPrint("Try this again later\n");
+		return LB_STATUS_ERROR_IO;
 	}
 
 	packet = packet_create("acquire", "d", util_timestamp());
 	if (!packet) {
 		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
-		return;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 1, acquire_cb, NULL);
@@ -1304,14 +1285,31 @@ static inline void make_connection(void)
 		ErrPrint("Master RPC returns %d\n", ret);
 		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
+		return LB_STATUS_ERROR_IO;
 	}
 
+	return LB_STATUS_SUCCESS;
 }
 
 static int connected_cb(int handle, void *data)
 {
 	master_rpc_check_and_fire_consumer();
 	return 0;
+}
+
+static void master_started_cb(keynode_t *node, void *data)
+{
+	int state = 0;
+
+	if (vconf_get_bool(VCONFKEY_MASTER_STARTED, &state) < 0)
+		ErrPrint("Unable to get [%s]\n", VCONFKEY_MASTER_STARTED);
+
+	DbgPrint("Master state: %d\n", state);
+	if (state == 1 && make_connection() == LB_STATUS_SUCCESS) {
+		int ret;
+		ret = vconf_ignore_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb);
+		DbgPrint("master_started vconf key de-registered [%d]\n", ret);
+	}
 }
 
 static int disconnected_cb(int handle, void *data)
@@ -1323,22 +1321,17 @@ static int disconnected_cb(int handle, void *data)
 
 	s_info.fd = -1; /*!< Disconnected */
 
-	if (s_info.reconnector > 0) {
-		DbgPrint("Reconnector already fired\n");
-		return 0;
-	}
-
-	/*!< After 10 secs later, try to connect again */
-	s_info.reconnector = g_timeout_add(RECONNECT_PERIOD, connector_cb, NULL);
-	if (s_info.reconnector == 0) {
-		ErrPrint("Failed to fire the reconnector\n");
-		make_connection();
-	}
-
 	master_rpc_clear_all_request();
 	lb_invoke_fault_handler(LB_FAULT_PROVIDER_DISCONNECTED, MASTER_PKGNAME, "default", "disconnected");
 
 	lb_delete_all();
+
+	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0)
+		ErrPrint("Failed to add vconf for monitoring service state\n");
+	else
+		DbgPrint("vconf event callback is registered\n");
+
+	master_started_cb(NULL, NULL);
 	return 0;
 }
 
@@ -1346,7 +1339,12 @@ int client_init(void)
 {
 	com_core_add_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_add_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
-	make_connection();
+	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0)
+		ErrPrint("Failed to add vconf for service state\n");
+	else
+		DbgPrint("vconf event callback is registered\n");
+
+	master_started_cb(NULL, NULL);
 	return 0;
 }
 
@@ -1366,7 +1364,7 @@ int client_fini(void)
 	com_core_del_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_del_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
 	s_info.fd = -1;
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 /* End of a file */
