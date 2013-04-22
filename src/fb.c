@@ -555,6 +555,9 @@ int fb_get_size(struct fb_info *info, int *w, int *h)
 
 int fb_size(struct fb_info *info)
 {
+	if (!info)
+		return 0;
+
 	info->bufsz = info->w * info->h * s_info.depth;
 	return info ? info->bufsz : 0;
 }
