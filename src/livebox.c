@@ -1367,8 +1367,11 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	case ACCESS_EVENT_ACTIVATE:
 		strcpy(ptr, "_access_activate");
 		break;
-	case ACCESS_EVENT_VALUE_CHANGE:
-		strcpy(ptr, "_access_value_change");
+	case ACCESS_EVENT_ACTION_DOWN:
+		strcpy(ptr, "_access_action_down");
+		break;
+	case ACCESS_EVENT_ACTION_UP:
+		strcpy(ptr, "_access_action_up");
 		break;
 	case ACCESS_EVENT_UNHIGHLIGHT:
 		strcpy(ptr, "_access_unhighlight");
