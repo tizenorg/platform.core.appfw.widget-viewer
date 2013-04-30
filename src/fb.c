@@ -1,7 +1,7 @@
 /*
  * Copyright 2013  Samsung Electronics Co., Ltd
  *
- * Licensed under the Flora License, Version 1.0 (the "License");
+ * Licensed under the Flora License, Version 1.1 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -555,8 +555,11 @@ int fb_get_size(struct fb_info *info, int *w, int *h)
 
 int fb_size(struct fb_info *info)
 {
+	if (!info)
+		return 0;
+
 	info->bufsz = info->w * info->h * s_info.depth;
-	return info ? info->bufsz : 0;
+	return info->bufsz;
 }
 
 /* End of a file */

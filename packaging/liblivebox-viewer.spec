@@ -1,6 +1,6 @@
 Name: liblivebox-viewer
 Summary: Library for developing the application.
-Version: 0.12.5
+Version: 0.13.1
 Release: 1
 Group: HomeTF/Livebox
 License: Flora License
@@ -16,6 +16,7 @@ BuildRequires: pkgconfig(xext)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(livebox-service)
+BuildRequires: pkgconfig(vconf)
 
 %description
 API for creating a new instance of the livebox and managing its life-cycle.

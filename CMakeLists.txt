@@ -25,6 +25,7 @@ pkg_check_modules(pkgs REQUIRED
 	sqlite3
 	db-util
 	livebox-service
+	vconf
 )
 
 FOREACH(flag ${pkgs_CFLAGS})

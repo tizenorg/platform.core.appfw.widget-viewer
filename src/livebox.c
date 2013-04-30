@@ -1,7 +1,7 @@
 /*
  * Copyright 2013  Samsung Electronics Co., Ltd
  *
- * Licensed under the Flora License, Version 1.0 (the "License");
+ * Licensed under the Flora License, Version 1.1 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -1367,8 +1367,11 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	case ACCESS_EVENT_ACTIVATE:
 		strcpy(ptr, "_access_activate");
 		break;
-	case ACCESS_EVENT_VALUE_CHANGE:
-		strcpy(ptr, "_access_value_change");
+	case ACCESS_EVENT_ACTION_DOWN:
+		strcpy(ptr, "_access_action_down");
+		break;
+	case ACCESS_EVENT_ACTION_UP:
+		strcpy(ptr, "_access_action_up");
 		break;
 	case ACCESS_EVENT_UNHIGHLIGHT:
 		strcpy(ptr, "_access_unhighlight");
@@ -2707,11 +2710,13 @@ int lb_delete_all(void)
 int lb_set_content(struct livebox *handler, const char *content)
 {
 	if (handler->content) {
+		DbgPrint("Release content: %s\n", content);
 		free(handler->content);
 		handler->content = NULL;
 	}
 
 	if (content) {
+		DbgPrint("Update Content: [%s]\n", content);
 		handler->content = strdup(content);
 		if (!handler->content) {
 			CRITICAL_LOG("Heap: %s (content: %s)\n", strerror(errno), content);
