@@ -1451,7 +1451,7 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		}
 		*ptr++ = 'p';
 		*ptr++ = 'd';
-	} else {
+	} else if (type & CONTENT_EVENT_LB_MASK) {
 		int flag = 1;
 
 		if (type & CONTENT_EVENT_MOUSE_MASK) {
@@ -1481,12 +1481,15 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		}
 		*ptr++ = 'l';
 		*ptr++ = 'b';
+	} else {
+		ErrPrint("Invalid event type\n");
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	/*!
 	 * Must be short than 29 bytes.
 	 */
-	switch ((type & ~CONTENT_EVENT_PD_MASK)) {
+	switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
 	case CONTENT_EVENT_MOUSE_ENTER | CONTENT_EVENT_MOUSE_MASK:
 		strcpy(ptr, "_mouse_enter");
 		break;
