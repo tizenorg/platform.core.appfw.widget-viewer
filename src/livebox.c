@@ -1087,6 +1087,9 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	double timestamp;
 	int ret;
 
+	timestamp = util_timestamp();
+	DbgPrint("CLICKED: %lf\n", timestamp);
+
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
 		return LB_STATUS_ERROR_INVALID;
@@ -1103,7 +1106,6 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 			ErrPrint("Failed to launch app %s\n", handler->lb.auto_launch);
 	}
 
-	timestamp = util_timestamp();
 	packet = packet_create_noack("clicked", "sssddd", handler->pkgname, handler->id, "clicked", timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
