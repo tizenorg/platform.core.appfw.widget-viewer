@@ -44,8 +44,10 @@
 
 static struct info {
 	int fd;
+	guint timer_id;
 } s_info = {
 	.fd = -1,
+	.timer_id = 0,
 };
 
 static struct packet *master_fault_package(pid_t pid, int handle, const struct packet *packet)
@@ -1312,6 +1314,19 @@ static void master_started_cb(keynode_t *node, void *data)
 	}
 }
 
+static gboolean timeout_cb(gpointer data)
+{
+	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0)
+		ErrPrint("Failed to add vconf for monitoring service state\n");
+	else
+		DbgPrint("vconf event callback is registered\n");
+
+	master_started_cb(NULL, NULL);
+
+	s_info.timer_id = 0;
+	return FALSE;
+}
+
 static int disconnected_cb(int handle, void *data)
 {
 	if (s_info.fd != handle) {
@@ -1326,12 +1341,18 @@ static int disconnected_cb(int handle, void *data)
 
 	lb_delete_all();
 
-	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0)
-		ErrPrint("Failed to add vconf for monitoring service state\n");
-	else
-		DbgPrint("vconf event callback is registered\n");
+	/* Try to reconnect after 1 sec later */
+	if (!s_info.timer_id) {
+		DbgPrint("Reconnecting timer is added\n");
+		s_info.timer_id = g_timeout_add(1000, timeout_cb, NULL);
+		if (s_info.timer_id == 0) {
+			ErrPrint("Unable to add reconnecting timer\n");
+			return 0;
+		}
+	} else {
+		ErrPrint("Reconnecting timer is already exists\n");
+	}
 
-	master_started_cb(NULL, NULL);
 	return 0;
 }
 
