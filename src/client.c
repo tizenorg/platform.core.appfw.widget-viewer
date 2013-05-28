@@ -571,7 +571,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 
 		DbgPrint("pd_created_cb (%s) - %d\n", buf_id, status);
 		cb(handler, status, cbdata);
-	} else if (status == 0) {
+	} else if (handler->is_pd_created) {
 		DbgPrint("LB_EVENT_PD_CREATED (%s) - %d\n", buf_id, status);
 		lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);
 	}

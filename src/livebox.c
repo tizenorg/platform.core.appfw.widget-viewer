@@ -1287,7 +1287,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->is_pd_created) {
+	if (!handler->is_pd_created && !handler->pd_created_cb) {
 		ErrPrint("PD is not created\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
