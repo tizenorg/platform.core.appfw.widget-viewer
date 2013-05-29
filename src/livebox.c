@@ -2715,13 +2715,11 @@ int lb_delete_all(void)
 int lb_set_content(struct livebox *handler, const char *content)
 {
 	if (handler->content) {
-		DbgPrint("Release content: %s\n", content);
 		free(handler->content);
 		handler->content = NULL;
 	}
 
 	if (content) {
-		DbgPrint("Update Content: [%s]\n", content);
 		handler->content = strdup(content);
 		if (!handler->content) {
 			CRITICAL_LOG("Heap: %s (content: %s)\n", strerror(errno), content);
