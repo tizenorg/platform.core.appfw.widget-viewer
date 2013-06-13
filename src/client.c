@@ -1385,9 +1385,9 @@ int client_fini(void)
 	ret = vconf_ignore_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb);
 	if (ret < 0)
 		DbgPrint("Ignore vconf key: %d\n", ret);
-	com_core_packet_client_fini(s_info.fd);
 	com_core_del_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_del_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
+	com_core_packet_client_fini(s_info.fd);
 	s_info.fd = -1;
 	return LB_STATUS_SUCCESS;
 }
