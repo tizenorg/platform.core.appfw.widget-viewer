@@ -58,7 +58,7 @@ static struct info {
 	.fault_list = NULL,
 	.init_count = 0,
 	.prevent_overwrite = 0,
-	.event_filter = 0.02f,
+	.event_filter = 0.01f,
 };
 
 struct cb_info {
