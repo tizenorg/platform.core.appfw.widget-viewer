@@ -176,13 +176,6 @@ errout:
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
-	struct cb_info *info = data;
-	ret_cb_t cb;
-	void *cbdata;
-
-	cb = info->cb;
-	cbdata = info->data;
-	destroy_cb_info(info);
 
 	if (!result) {
 		ret = LB_STATUS_ERROR_FAULT;
