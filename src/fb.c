@@ -122,7 +122,7 @@ static inline int sync_for_file(struct fb_info *info)
 	}
 
 	if (buffer->type != BUFFER_TYPE_FILE) {
-		DbgPrint("Invalid buffer\n");
+		ErrPrint("Invalid buffer\n");
 		return LB_STATUS_SUCCESS;
 	}
 
@@ -175,7 +175,7 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 	}
 
 	if (buffer->type != BUFFER_TYPE_PIXMAP) {
-		DbgPrint("Invalid buffer\n");
+		ErrPrint("Invalid buffer\n");
 		return LB_STATUS_SUCCESS;
 	}
 
@@ -197,7 +197,7 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 	}
 
 	if (info->handle == 0) {
-		DbgPrint("Pixmap ID is not valid\n");
+		ErrPrint("Pixmap ID is not valid\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
 
@@ -447,7 +447,7 @@ int fb_release_buffer(void *data)
 	struct buffer *buffer;
 
 	if (!data) {
-		DbgPrint("buffer data == NIL\n");
+		ErrPrint("buffer data == NIL\n");
 		return 0;
 	}
 

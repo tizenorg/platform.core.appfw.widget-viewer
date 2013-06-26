@@ -63,7 +63,6 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 
 	master_rpc_clear_fault_package(pkgname);
 	lb_invoke_fault_handler(LB_FAULT_DEACTIVATED, pkgname, id, function);
-	DbgPrint("%s(%s) is deactivated\n", pkgname, id);
 	return NULL;
 }
 
@@ -87,7 +86,7 @@ static struct packet *master_hold_scroll(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
-	DbgPrint("[HOLD] %s %d\n", id, seize);
+	DbgPrint("HOLD: %s %d\n", id, seize);
 	lb_invoke_event_handler(handler, seize ? LB_EVENT_HOLD_SCROLL : LB_EVENT_RELEASE_SCROLL);
 
 out:
@@ -206,7 +205,6 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			handler->deleted_cbdata = NULL;
 		}
 
-		DbgPrint("Call the created cb with LB_STATUS_ERROR_CANCEL\n");
 		cb = handler->created_cb;
 		cbdata = handler->created_cbdata;
 
@@ -225,15 +223,11 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			handler->deleted_cb = NULL;
 			handler->deleted_cbdata = NULL;
 
-			DbgPrint("Call the deleted cb\n");
 			cb(handler, LB_STATUS_SUCCESS, cbdata);
 		} else {
-			DbgPrint("Call the lb,deleted\n");
 			lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		}
 	}
-
-	DbgPrint("[%p] %s(%s) is deleted\n", handler, pkgname, id);
 
 	/* Just try to delete it, if a user didn't remove it from the live box list */
 	lb_unref(handler);
@@ -266,7 +260,7 @@ static struct packet *master_lb_update_begin(pid_t pid, int handle, const struct
 	}
 
 	if (handler->state != CREATE) {
-		DbgPrint("(%s) is not created\n", id);
+		ErrPrint("(%s) is not created\n", id);
 		goto out;
 	}
 
@@ -318,7 +312,7 @@ static struct packet *master_pd_update_begin(pid_t pid, int handle, const struct
 	}
 
 	if (handler->state != CREATE) {
-		DbgPrint("[%s] is not created\n", id);
+		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
 
@@ -358,7 +352,7 @@ static struct packet *master_lb_update_end(pid_t pid, int handle, const struct p
 	}
 
 	if (handler->state != CREATE) {
-		DbgPrint("[%s] is not created\n", id);
+		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
 
@@ -393,11 +387,9 @@ static struct packet *master_access_status(pid_t pid, int handle, const struct p
 	}
 
 	if (handler->state != CREATE) {
-		DbgPrint("[%s] is not created\n", id);
+		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
-
-	DbgPrint("Access status: %d\n", status);
 
 	if (handler->access_event_cb) {
 		ret_cb_t cb;
@@ -437,7 +429,7 @@ static struct packet *master_pd_update_end(pid_t pid, int handle, const struct p
 	}
 
 	if (handler->state != CREATE) {
-		DbgPrint("[%s] is not created\n", id);
+		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
 
@@ -486,7 +478,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		 * Don't try to notice anything with this, Just ignore all events
 		 * Beacuse the user doesn't wants know about this anymore
 		 */
-		DbgPrint("(%s) is not exists, but updated\n", id);
+		ErrPrint("(%s) is not exists, but updated\n", id);
 		goto out;
 	}
 
@@ -569,10 +561,14 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		handler->pd_created_cb = NULL;
 		handler->pd_created_cbdata = NULL;
 
-		DbgPrint("pd_created_cb (%s) - %d\n", buf_id, status);
+		/*!
+		 * Before call the Callback function,
+		 * pd_create_cb must be reset.
+		 * Because, in the create callback, user can call create_pd function again.
+		 */
+		DbgPrint("CREATE_PD\n");
 		cb(handler, status, cbdata);
 	} else if (handler->is_pd_created) {
-		DbgPrint("LB_EVENT_PD_CREATED (%s) - %d\n", buf_id, status);
 		lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);
 	}
 
@@ -617,10 +613,13 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 		handler->pd_destroyed_cb = NULL;
 		handler->pd_destroyed_cbdata = NULL;
 
-		DbgPrint("Invoke the PD Destroyed CB\n");
+		/*!
+		 * Before call the Callback function,
+		 * pd_destroyed_cb must be reset.
+		 * Because, in the create callback, user can call destroy_pd function again.
+		 */
 		cb(handler, status, cbdata);
 	} else if (status == 0) {
-		DbgPrint("Invoke the LB_EVENT_PD_DESTROYED event\n");
 		lb_invoke_event_handler(handler, LB_EVENT_PD_DESTROYED);
 	}
 
@@ -674,7 +673,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 
 		ret = fb_sync(lb_get_pd_fb(handler));
 		if (ret < 0)
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+			ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 		else
 			lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
 	}
@@ -702,8 +701,6 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 		ErrPrint("Invalid argument\n");
 		goto out;
 	}
-
-	DbgPrint("Update mode is changed: %d, %d, %s\n", status, active_mode, id);
 
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
@@ -761,8 +758,6 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
-	DbgPrint("Size is changed: %dx%d (%s), fb: [%s]\n", w, h, id, fbfile);
-
 	handler = lb_find_livebox(pkgname, id);
 	if (!handler) {
 		ErrPrint("Livebox(%s) is not found\n", id);
@@ -775,7 +770,6 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 	}
 
 	if (is_pd) {
-		DbgPrint("PD is resized\n");
 		/*!
 		 * \NOTE
 		 * PD is not able to resized by the client.
@@ -791,7 +785,6 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		}
 	} else {
 		if (status == 0) {
-			DbgPrint("LB is successfully resized (%dx%d)\n", w, h);
 			lb_set_size(handler, w, h);
 
 			/*!
@@ -829,7 +822,6 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 				lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
 			}
 		} else {
-			DbgPrint("LB is not resized: %dx%d (%d)\n", w, h, status);
 			if (handler->size_changed_cb) {
 				ret_cb_t cb;
 				void *cbdata;
@@ -875,7 +867,6 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
-	DbgPrint("Update period is changed? %lf (%d)\n", period, status);
 	if (status == 0)
 		lb_set_period(handler, period);
 
@@ -930,7 +921,6 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
-	DbgPrint("Group is changed? [%s] / [%s] (%d)\n", cluster, category, status);
 	if (status == 0)
 		(void)lb_set_group(handler, cluster, category);
 
@@ -1134,17 +1124,14 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			handler->created_cb = NULL;
 			handler->created_cbdata = NULL;
 
-			DbgPrint("Invoke the created_cb\n");
 			cb(handler, ret, cbdata);
 		} else {
-			DbgPrint("Invoke the lb,created\n");
 			lb_invoke_event_handler(handler, LB_EVENT_CREATED);
 		}
 	}
 
 out:
 	if (ret == 0 && old_state == DELETE) {
-		DbgPrint("Send the delete request\n");
 		lb_send_delete(handler, handler->created_cb, handler->created_cbdata);
 
 		/*!
