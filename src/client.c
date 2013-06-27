@@ -566,7 +566,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		 * pd_create_cb must be reset.
 		 * Because, in the create callback, user can call create_pd function again.
 		 */
-		DbgPrint("CREATE_PD\n");
+		DbgPrint("PERF_DBOX\n");
 		cb(handler, status, cbdata);
 	} else if (handler->is_pd_created) {
 		lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);

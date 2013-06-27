@@ -1170,7 +1170,7 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 	if (!cb)
 		cb = default_pd_created_cb;
 
-	DbgPrint("CREATE_PD\n");
+	DbgPrint("PERF_DBOX\n");
 	ret = master_rpc_async_request(handler, packet, 0, pd_create_cb, NULL);
 	if (ret == LB_STATUS_SUCCESS) {
 		handler->pd_created_cb = cb;
@@ -1420,10 +1420,8 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		int flag = 1;
 
 		if (type & CONTENT_EVENT_MOUSE_MASK) {
-			if (!handler->lb.mouse_event) {
-				ErrPrint("Box is not support the mouse event\n");
+			if (!handler->lb.mouse_event)
 				return LB_STATUS_ERROR_INVALID;
-			}
 
 			if (!handler->lb.data.fb) {
 				ErrPrint("Handler is not valid\n");
