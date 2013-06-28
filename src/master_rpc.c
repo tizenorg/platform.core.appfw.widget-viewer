@@ -122,7 +122,7 @@ static gboolean cmd_consumer(gpointer user_data)
 		destroy_command(command);
 	} else {
 		if (com_core_packet_async_send(client_fd(), command->packet, 0u, done_cb, command) < 0) {
-			DbgPrint("Failed to send a packet to master\n");
+			ErrPrint("Failed to send a packet to master\n");
 			if (command->ret_cb)
 				command->ret_cb(command->handler, NULL, command->data);
 			destroy_command(command);
@@ -172,8 +172,6 @@ static int done_cb(pid_t pid, int handle, const struct packet *packet, void *dat
 		ErrPrint("Invalid result packet\n");
 		ret = LB_STATUS_ERROR_INVALID;
 	}
-
-	DbgPrint("[%s] Returns: %d\n", packet_command(packet), ret);
 
 out:
 	if (command->ret_cb)
@@ -248,8 +246,6 @@ int master_rpc_clear_fault_package(const char *pkgname)
 	if (!pkgname)
 		return LB_STATUS_ERROR_INVALID;
 
-	DbgPrint("Clear requests of the fault package(%s)\n", pkgname);
-
 	dlist_foreach_safe(s_info.cmd_list, l, n, command) {
 		if (!command->handler)
 			continue;
@@ -271,8 +267,6 @@ int master_rpc_clear_all_request(void)
 	struct command *command;
 	struct dlist *l;
 	struct dlist *n;
-
-	DbgPrint("Clear all pended requests\n");
 
 	dlist_foreach_safe(s_info.cmd_list, l, n, command) {
 		s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
