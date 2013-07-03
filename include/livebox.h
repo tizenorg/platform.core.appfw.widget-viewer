@@ -73,7 +73,7 @@ enum content_event_type {
 	PD_KEY_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN,
 	PD_KEY_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP,
 
-	CONTENT_EVENT_MAX	= 0xFFFFFFFF,
+	CONTENT_EVENT_MAX	= 0xFFFFFFFF
 };
 
 enum access_event_type {
@@ -111,7 +111,7 @@ enum access_event_type {
 	PD_ACCESS_ACTION_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTION_UP,
 	PD_ACCESS_SCROLL_DOWN		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_DOWN,
 	PD_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_MOVE,
-	PD_ACCESS_SCROLL_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_UP,
+	PD_ACCESS_SCROLL_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_UP
 };
 
 /* Exported to user app */
@@ -121,7 +121,7 @@ enum livebox_lb_type {
 	LB_TYPE_TEXT = 0x04, /*!< Contents of a livebox is based on formatted text file */
 	LB_TYPE_PIXMAP = 0x08, /*!< Contens of a livebox is shared by the pixmap(depends on X) */
 
-	LB_TYPE_INVALID = 0xFF,
+	LB_TYPE_INVALID = 0xFF
 };
 
 enum livebox_pd_type {
@@ -129,7 +129,7 @@ enum livebox_pd_type {
 	PD_TYPE_TEXT = 0x02, /*!< Contents of a PD is based on formatted text file */
 	PD_TYPE_PIXMAP = 0x04, /*!< Contents of a livebox is shared by the pixmap(depends on X) */
 
-	PD_TYPE_INVALID = 0xFF,
+	PD_TYPE_INVALID = 0xFF
 };
 
 enum livebox_event_type { /*!< livebox_event_handler_set Event list */
@@ -160,12 +160,12 @@ enum livebox_event_type { /*!< livebox_event_handler_set Event list */
 
 	LB_EVENT_UPDATE_MODE_CHANGED,
 
-	LB_EVENT_IGNORED, /*!< Request is ignored */
+	LB_EVENT_IGNORED /*!< Request is ignored */
 };
 
 enum livebox_fault_type {
 	LB_FAULT_DEACTIVATED, /*!< Livebox is deactivated by its fault operation */
-	LB_FAULT_PROVIDER_DISCONNECTED, /*!< Provider is disconnected */
+	LB_FAULT_PROVIDER_DISCONNECTED /*!< Provider is disconnected */
 };
 
 enum livebox_visible_state { /*!< Must be sync'd with the provider */
@@ -174,7 +174,7 @@ enum livebox_visible_state { /*!< Must be sync'd with the provider */
 
 	LB_HIDE_WITH_PAUSE = 0x02, /*!< Livebix is hide, it will paused the update timer, but if a livebox update its contents, update event will come to you */
 
-	LB_VISIBLE_ERROR = 0xFFFFFFFF, /* To enlarge the size of this enumeration type */
+	LB_VISIBLE_ERROR = 0xFFFFFFFF /* To enlarge the size of this enumeration type */
 };
 
 /*!
