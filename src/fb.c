@@ -54,7 +54,7 @@ struct fb_info {
 struct buffer { /*!< Must has to be sync with slave & provider */
 	enum {
 		CREATED = 0x00beef00,
-		DESTROYED = 0x00dead00,
+		DESTROYED = 0x00dead00
 	} state;
 	enum buffer_type type;
 	int refcnt;

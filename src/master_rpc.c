@@ -45,7 +45,7 @@ struct command {
 	void *data;
 	enum {
 		TYPE_ACK,
-		TYPE_NOACK,
+		TYPE_NOACK
 	} type;
 };
 

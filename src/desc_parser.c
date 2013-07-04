@@ -216,7 +216,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		VALUE_DATA = 0x02,
 		VALUE_FILE = 0x03,
 		VALUE_OPTION = 0x04,
-		VALUE_ID = 0x05,
+		VALUE_ID = 0x05
 	};
 	const char *field_name[] = {
 		"type",
