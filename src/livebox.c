@@ -1889,8 +1889,8 @@ EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
 {
 	struct packet *packet;
 
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
+	if (!handler || pixmap == 0) {
+		ErrPrint("Handler is NIL [%d]\n", pixmap);
 		return LB_STATUS_ERROR_INVALID;
 	}
 
@@ -2020,8 +2020,8 @@ EAPI int livebox_release_pd_pixmap(struct livebox *handler, int pixmap)
 {
 	struct packet *packet;
 
-	if (!handler) {
-		ErrPrint("Handler is NIL\n");
+	if (!handler || pixmap == 0) {
+		ErrPrint("Handler is NIL [%d]\n", pixmap);
 		return LB_STATUS_ERROR_INVALID;
 	}
 
