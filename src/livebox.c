@@ -2923,7 +2923,7 @@ struct livebox *lb_unref(struct livebox *handler)
 	}
 
 	if (handler->access_event_cb) {
-		handler->access_event_cb(handler, LB_STATUS_ERROR_FAULT, handler->access_event_cbdata);
+		handler->access_event_cb(handler, LB_ACCESS_STATUS_ERROR, handler->access_event_cbdata);
 		handler->access_event_cb = NULL;
 		handler->access_event_cbdata = NULL;
 	}
