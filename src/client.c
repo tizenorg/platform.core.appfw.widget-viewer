@@ -45,9 +45,11 @@
 static struct info {
 	int fd;
 	guint timer_id;
+	char *client_addr;
 } s_info = {
 	.fd = -1,
 	.timer_id = 0,
+	.client_addr = NULL,
 };
 
 static struct packet *master_fault_package(pid_t pid, int handle, const struct packet *packet)
@@ -1256,7 +1258,7 @@ static inline int make_connection(void)
 
 	DbgPrint("Let's making connection!\n");
 
-	s_info.fd = com_core_packet_client_init(CLIENT_SOCKET, 0, s_table);
+	s_info.fd = com_core_packet_client_init(client_addr(), 0, s_table);
 	if (s_info.fd < 0) {
 		ErrPrint("Try this again later\n");
 		return LB_STATUS_ERROR_IO;
@@ -1345,6 +1347,17 @@ static int disconnected_cb(int handle, void *data)
 
 int client_init(void)
 {
+	s_info.client_addr = vconf_get_str(VCONFKEY_MASTER_CLIENT_ADDR);
+	if (!s_info.client_addr) {
+		s_info.client_addr = strdup(CLIENT_SOCKET);
+		if (!s_info.client_addr) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return -ENOMEM;
+		}
+	}
+
+	DbgPrint("Server Address: %s\n", s_info.client_addr);
+
 	com_core_add_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_add_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
 	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0)
@@ -1363,7 +1376,7 @@ int client_fd(void)
 
 const char *client_addr(void)
 {
-	return CLIENT_SOCKET;
+	return s_info.client_addr;
 }
 
 int client_fini(void)
