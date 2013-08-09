@@ -113,8 +113,9 @@ static inline int sync_for_file(struct fb_info *info)
 
 	buffer = info->buffer;
 
-	if (!buffer) /* Ignore this sync request */
+	if (!buffer) { /* Ignore this sync request */
 		return LB_STATUS_SUCCESS;
+	}
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid state of a FB\n");
@@ -166,8 +167,9 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 	XImage *xim;
 
 	buffer = info->buffer;
-	if (!buffer) /*!< Ignore this sync request */
+	if (!buffer) { /*!< Ignore this sync request */
 		return LB_STATUS_SUCCESS;
+	}
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid state of a FB\n");
@@ -215,9 +217,9 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 	si.readOnly = False;
 	si.shmaddr = shmat(si.shmid, NULL, 0);
 	if (si.shmaddr == (void *)-1) {
-
-		if (shmctl(si.shmid, IPC_RMID, 0) < 0)
+		if (shmctl(si.shmid, IPC_RMID, 0) < 0) {
 			ErrPrint("shmctl: %s\n", strerror(errno));
+		}
 
 		return LB_STATUS_ERROR_FAULT;
 	}
@@ -231,11 +233,13 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 				&si,
 				info->w, info->h);
 	if (xim == NULL) {
-		if (shmdt(si.shmaddr) < 0)
+		if (shmdt(si.shmaddr) < 0) {
 			ErrPrint("shmdt: %s\n", strerror(errno));
+		}
 
-		if (shmctl(si.shmid, IPC_RMID, 0) < 0)
+		if (shmctl(si.shmid, IPC_RMID, 0) < 0) {
 			ErrPrint("shmctl: %s\n", strerror(errno));
+		}
 
 		return LB_STATUS_ERROR_FAULT;
 	}
@@ -251,11 +255,13 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 	XShmDetach(s_info.disp, &si);
 	XDestroyImage(xim);
 
-	if (shmdt(si.shmaddr) < 0)
+	if (shmdt(si.shmaddr) < 0) {
 		ErrPrint("shmdt: %s\n", strerror(errno));
+	}
 
-	if (shmctl(si.shmid, IPC_RMID, 0) < 0)
+	if (shmctl(si.shmid, IPC_RMID, 0) < 0) {
 		ErrPrint("shmctl: %s\n", strerror(errno));
+	}
 
 	return LB_STATUS_SUCCESS;
 }
@@ -472,8 +478,9 @@ int fb_release_buffer(void *data)
 			buffer->state = DESTROYED;
 			free(buffer);
 		
-			if (info && info->buffer == buffer)
+			if (info && info->buffer == buffer) {
 				info->buffer = NULL;
+			}
 		}
 		break;
 	case BUFFER_TYPE_FILE:
@@ -485,8 +492,9 @@ int fb_release_buffer(void *data)
 			buffer->state = DESTROYED;
 			free(buffer);
 
-			if (info && info->buffer == buffer)
+			if (info && info->buffer == buffer) {
 				info->buffer = NULL;
+			}
 		}
 		break;
 	default:
@@ -503,8 +511,9 @@ int fb_refcnt(void *data)
 	struct shmid_ds buf;
 	int ret;
 
-	if (!data)
+	if (!data) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	buffer = container_of(data, struct buffer, data);
 
@@ -555,8 +564,9 @@ int fb_get_size(struct fb_info *info, int *w, int *h)
 
 int fb_size(struct fb_info *info)
 {
-	if (!info)
+	if (!info) {
 		return 0;
+	}
 
 	info->bufsz = info->w * info->h * s_info.depth;
 	return info->bufsz;

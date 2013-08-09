@@ -71,8 +71,9 @@ static int update_text(struct livebox *handle, struct block *block, int is_pd)
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
-	if (ops->update_text)
+	if (ops->update_text) {
 		ops->update_text(handle, (const char *)block->id, (const char *)block->part, (const char *)block->data);
+	}
 
 	return 0;
 }
@@ -86,8 +87,9 @@ static int update_image(struct livebox *handle, struct block *block, int is_pd)
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
-	if (ops->update_image)
+	if (ops->update_image) {
 		ops->update_image(handle, block->id, block->part, block->data, block->option);
+	}
 
 	return 0;
 }
@@ -101,8 +103,9 @@ static int update_script(struct livebox *handle, struct block *block, int is_pd)
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
-	if (ops->update_script)
+	if (ops->update_script) {
 		ops->update_script(handle, block->id, block->part, block->data, block->option);
+	}
 
 	return 0;
 }
@@ -117,8 +120,9 @@ static int update_signal(struct livebox *handle, struct block *block, int is_pd)
 	}
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
-	if (ops->update_signal)
+	if (ops->update_signal) {
 		ops->update_signal(handle, block->id, block->data, block->part);
+	}
 
 	return 0;
 }
@@ -140,8 +144,9 @@ static int update_drag(struct livebox *handle, struct block *block, int is_pd)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (ops->update_drag)
+	if (ops->update_drag) {
 		ops->update_drag(handle, block->id, block->part, dx, dy);
+	}
 
 	return 0;
 }
@@ -165,12 +170,13 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 			return LB_STATUS_ERROR_INVALID;
 		}
 
-		if (ops->update_info_size)
+		if (ops->update_info_size) {
 			ops->update_info_size(handle, block->id, w, h);
-
+		}
 	} else if (!strcasecmp(block->part, INFO_CATEGORY)) {
-		if (ops->update_info_category)
+		if (ops->update_info_category) {
 			ops->update_info_category(handle, block->id, block->data);
+		}
 	}
 
 	return 0;
@@ -182,8 +188,9 @@ static inline int update_begin(struct livebox *handle, int is_pd)
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 
-	if (ops->update_begin)
+	if (ops->update_begin) {
 		ops->update_begin(handle);
+	}
 
 	return 0;
 }
@@ -194,8 +201,9 @@ static inline int update_end(struct livebox *handle, int is_pd)
 
 	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
 
-	if (ops->update_end)
+	if (ops->update_end) {
 		ops->update_end(handle);
+	}
 
 	return 0;
 }
@@ -296,11 +304,13 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			break;
 
 		case BLOCK_OPEN:
-			if (isblank(ch))
+			if (isblank(ch)) {
 				break;
+			}
 
-			if (ch != '\n')
+			if (ch != '\n') {
 				goto errout;
+			}
 
 			block = calloc(1, sizeof(*block));
 			if (!block) {
@@ -316,8 +326,9 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			break;
 
 		case FIELD:
-			if (isspace(ch))
+			if (isspace(ch)) {
 				break;
+			}
 
 			if (ch == '}') {
 				state = BLOCK_CLOSE;
@@ -325,8 +336,9 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			}
 
 			if (ch == '=') {
-				if (field_name[field_idx][idx] != '\0')
+				if (field_name[field_idx][idx] != '\0') {
 					goto errout;
+				}
 
 				switch (field_idx) {
 				case 0:
@@ -390,17 +402,25 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				break;
 			}
 
-			if (ch == '\n')
+			if (ch == '\n') {
 				goto errout;
+			}
 
 			if (field_name[field_idx][idx] != ch) {
-				ungetc(ch, fp);
-				while (--idx >= 0)
-					ungetc(field_name[field_idx][idx], fp);
+				if (ungetc(ch, fp) != ch) {
+					ErrPrint("ungetc: %s\n", strerror(errno));
+				}
+
+				while (--idx >= 0) {
+					if (ungetc(field_name[field_idx][idx], fp) != field_name[field_idx][idx]) {
+						ErrPrint("ungetc: %s\n", strerror(errno));
+					}
+				}
 
 				field_idx++;
-				if (field_name[field_idx] == NULL)
+				if (field_name[field_idx] == NULL) {
 					goto errout;
+				}
 
 				idx = 0;
 				break;
@@ -542,8 +562,9 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		case BLOCK_CLOSE:
 			if (!block->file) {
 				block->file = strdup(util_uri_to_path(handle->id));
-				if (!block->file)
+				if (!block->file) {
 					goto errout;
+				}
 			}
 
 			i = 0;
@@ -555,8 +576,9 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				i++;
 			}
 
-			if (!handlers[i].type)
+			if (!handlers[i].type) {
 				ErrPrint("Unknown block type: %s\n", block->type);
+			}
 
 			free(block->file);
 			free(block->type);
@@ -575,8 +597,9 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		} /* switch */
 	} /* while */
 
-	if (state != UNKNOWN)
+	if (state != UNKNOWN) {
 		goto errout;
+	}
 
 	update_end(handle, is_pd);
 

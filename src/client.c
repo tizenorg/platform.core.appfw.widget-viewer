@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include <dlog.h>
 #include <glib.h>
@@ -30,6 +31,7 @@
 #include <com-core.h>
 #include <com-core_packet.h>
 #include <livebox-errno.h>
+#include <secure_socket.h>
 
 #include "debug.h"
 #include "client.h"
@@ -41,6 +43,9 @@
 #include "master_rpc.h"
 #include "conf.h"
 #include "critical_log.h"
+#include "file_service.h"
+
+int errno;
 
 static struct info {
 	int fd;
@@ -281,10 +286,11 @@ static struct packet *master_lb_update_begin(pid_t pid, int handle, const struct
 		lb_set_lb_fb(handler, fbfile);
 
 		ret = fb_sync(lb_get_lb_fb(handler));
-		if (ret != LB_STATUS_SUCCESS)
+		if (ret != LB_STATUS_SUCCESS) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
-		else
+		} else {
 			lb_invoke_event_handler(handler, LB_EVENT_LB_UPDATE_BEGIN);
+		}
 	} else {
 		ErrPrint("Invalid request[%s], %s\n", id, fbfile);
 	}
@@ -322,10 +328,11 @@ static struct packet *master_pd_update_begin(pid_t pid, int handle, const struct
 		lb_set_lb_fb(handler, fbfile);
 
 		ret = fb_sync(lb_get_lb_fb(handler));
-		if (ret != LB_STATUS_SUCCESS)
+		if (ret != LB_STATUS_SUCCESS) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
-		else
+		} else {
 			lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATE_BEGIN);
+		}
 	} else {
 		ErrPrint("Invalid request[%s], %s\n", id, fbfile);
 	}
@@ -500,14 +507,16 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	} else if (lb_get_lb_fb(handler)) {
 		lb_set_lb_fb(handler, fbfile);
 		ret = fb_sync(lb_get_lb_fb(handler));
-		if (ret != LB_STATUS_SUCCESS)
+		if (ret != LB_STATUS_SUCCESS) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+		}
 	} else {
 		ret = LB_STATUS_SUCCESS;
 	}
 
-	if (ret == LB_STATUS_SUCCESS)
+	if (ret == LB_STATUS_SUCCESS) {
 		lb_invoke_event_handler(handler, LB_EVENT_LB_UPDATED);
+	}
 
 out:
 	return NULL;
@@ -547,8 +556,9 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 	} else {
 		(void)lb_set_pd_fb(handler, buf_id);
 		ret = fb_sync(lb_get_pd_fb(handler));
-		if (ret < 0)
+		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+		}
 	}
 
 	handler->is_pd_created = (status == 0);
@@ -674,10 +684,11 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 		(void)lb_set_pd_fb(handler, fbfile);
 
 		ret = fb_sync(lb_get_pd_fb(handler));
-		if (ret < 0)
+		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, util_basename(util_uri_to_path(id)), ret);
-		else
+		} else {
 			lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
+		}
 	}
 
 out:
@@ -715,8 +726,9 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
-	if (status == LB_STATUS_SUCCESS)
+	if (status == LB_STATUS_SUCCESS) {
 		lb_set_update_mode(handler, active_mode);
+	}
 
 	if (handler->update_mode_cb) {
 		ret_cb_t cb;
@@ -798,8 +810,9 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 				lb_set_lb_fb(handler, fbfile);
 
 				ret = fb_sync(lb_get_lb_fb(handler));
-				if (ret < 0)
+				if (ret < 0) {
 					ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+				}
 
 				/* Just update the size info only. */
 			}
@@ -869,8 +882,9 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
-	if (status == 0)
+	if (status == 0) {
 		lb_set_period(handler, period);
+	}
 
 	if (handler->period_changed_cb) {
 		ret_cb_t cb;
@@ -923,8 +937,9 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
-	if (status == 0)
+	if (status == 0) {
 		(void)lb_set_group(handler, cluster, category);
+	}
 
 	if (handler->group_changed_cb) {
 		ret_cb_t cb;
@@ -1057,12 +1072,14 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		break;
 	case _LB_TYPE_SCRIPT:
 	case _LB_TYPE_BUFFER:
-		if (!strlen(lb_fname))
+		if (!strlen(lb_fname)) {
 			break;
+		}
 		lb_set_lb_fb(handler, lb_fname);
 		ret = fb_sync(lb_get_lb_fb(handler));
-		if (ret < 0)
+		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+		}
 		break;
 	case _LB_TYPE_TEXT:
 		lb_set_text_lb(handler);
@@ -1077,13 +1094,15 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	switch (pd_type) {
 	case _PD_TYPE_SCRIPT:
 	case _PD_TYPE_BUFFER:
-		if (!strlen(pd_fname))
+		if (!strlen(pd_fname)) {
 			break;
+		}
 
 		lb_set_pd_fb(handler, pd_fname);
 		ret = fb_sync(lb_get_pd_fb(handler));
-		if (ret < 0)
+		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+		}
 		break;
 	case _PD_TYPE_TEXT:
 		lb_set_text_pd(handler);
@@ -1242,10 +1261,11 @@ static void acquire_cb(struct livebox *handler, const struct packet *result, voi
 	} else {
 		int ret;
 
-		if (packet_get(result, "i", &ret) != 1)
+		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Invalid argument\n");
-		else
+		} else {
 			DbgPrint("Acquire returns: %d\n", ret);
+		}
 	}
 
 	return;
@@ -1356,14 +1376,17 @@ int client_init(void)
 		}
 	}
 
+	(void)file_service_init();
+
 	DbgPrint("Server Address: %s\n", s_info.client_addr);
 
 	com_core_add_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_add_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
-	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0)
+	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0) {
 		ErrPrint("Failed to add vconf for service state\n");
-	else
+	} else {
 		DbgPrint("vconf event callback is registered\n");
+	}
 
 	master_started_cb(NULL, NULL);
 	return 0;
@@ -1382,13 +1405,20 @@ const char *client_addr(void)
 int client_fini(void)
 {
 	int ret;
+
+	(void)file_service_fini();
+
 	ret = vconf_ignore_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb);
-	if (ret < 0)
+	if (ret < 0) {
 		DbgPrint("Ignore vconf key: %d\n", ret);
+	}
+
 	com_core_del_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_del_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
 	com_core_packet_client_fini(s_info.fd);
 	s_info.fd = -1;
+	free(s_info.client_addr);
+	s_info.client_addr = NULL;
 	return LB_STATUS_SUCCESS;
 }
 
