@@ -52,8 +52,9 @@ int critical_log(const char *func, int line, const char *fmt, ...)
 	int ret;
 	struct timeval tv;
 
-	if (!s_info.fp)
+	if (!s_info.fp) {
 		return LB_STATUS_ERROR_IO;
+	}
 
 	gettimeofday(&tv, NULL);
 	fprintf(s_info.fp, "%d %lu.%lu [%s:%d] ", getpid(), tv.tv_sec, tv.tv_usec, util_basename((char *)func), line);
@@ -74,12 +75,16 @@ int critical_log(const char *func, int line, const char *fmt, ...)
 		if (filename) {
 			snprintf(filename, namelen, "%s/%d_%s", SLAVE_LOG_PATH, s_info.file_id, s_info.filename);
 
-			if (s_info.fp)
-				fclose(s_info.fp);
+			if (s_info.fp) {
+				if (fclose(s_info.fp) != 0) {
+					ErrPrint("fclose: %s\n", strerror(errno));
+				}
+			}
 
 			s_info.fp = fopen(filename, "w+");
-			if (!s_info.fp)
+			if (!s_info.fp) {
 				ErrPrint("Failed to open a file: %s\n", filename);
+			}
 
 			free(filename);
 		}
@@ -96,8 +101,9 @@ int critical_log_init(const char *name)
 	int namelen;
 	char *filename;
 
-	if (s_info.fp)
+	if (s_info.fp) {
 		return 0;
+	}
 
 	s_info.filename = strdup(name);
 	if (!s_info.filename) {
