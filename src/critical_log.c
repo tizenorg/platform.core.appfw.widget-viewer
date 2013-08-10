@@ -146,7 +146,9 @@ int critical_log_fini(void)
 	}
 
 	if (s_info.fp) {
-		fclose(s_info.fp);
+		if (fclose(s_info.fp) != 0) {
+			ErrPrint("fclose: %s\n", strerror(errno));
+		}
 		s_info.fp = NULL;
 	}
 
