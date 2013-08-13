@@ -164,7 +164,7 @@ static inline int file_service_open(void)
 	int len;
 	int fd;
 
-	addr = malloc(strlen(client_addr()));
+	addr = malloc(strlen(client_addr()) + 1);
 	if (!addr) {
 		ErrPrint("Heap: %s\n", strerror(errno));
 		return -ENOMEM;
