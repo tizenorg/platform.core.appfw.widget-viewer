@@ -298,7 +298,9 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 
 			if (!isspace(ch)) {
 				update_end(handle, is_pd);
-				fclose(fp);
+				if (fclose(fp) != 0) {
+					ErrPrint("fclose: %s\n", strerror(errno));
+				}
 				return LB_STATUS_ERROR_INVALID;
 			}
 			break;
@@ -316,7 +318,9 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 			if (!block) {
 				CRITICAL_LOG("Heap: %s\n", strerror(errno));
 				update_end(handle, is_pd);
-				fclose(fp);
+				if (fclose(fp) != 0) {
+					ErrPrint("fclose: %s\n", strerror(errno));
+				}
 				return LB_STATUS_ERROR_MEMORY;
 			}
 
@@ -603,7 +607,9 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 
 	update_end(handle, is_pd);
 
-	fclose(fp);
+	if (fclose(fp) != 0) {
+		ErrPrint("fclose: %s\n", strerror(errno));
+	}
 	return 0;
 
 errout:
@@ -620,7 +626,9 @@ errout:
 
 	update_end(handle, is_pd);
 
-	fclose(fp);
+	if (fclose(fp) != 0) {
+		ErrPrint("fclose: %s\n", strerror(errno));
+	}
 	return LB_STATUS_ERROR_INVALID;
 }
 

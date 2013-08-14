@@ -144,7 +144,9 @@ static inline int sync_for_file(struct fb_info *info)
 
 	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
 		ErrPrint("read: %s\n", strerror(errno));
-		close(fd);
+		if (close(fd) < 0) {
+			ErrPrint("close: %s\n", strerror(errno));
+		}
 
 		/*!
 		 * \note
@@ -156,7 +158,9 @@ static inline int sync_for_file(struct fb_info *info)
 		return LB_STATUS_SUCCESS;
 	}
 
-	close(fd);
+	if (close(fd) < 0) {
+		ErrPrint("close: %s\n", strerror(errno));
+	}
 	return LB_STATUS_SUCCESS;
 }
 
