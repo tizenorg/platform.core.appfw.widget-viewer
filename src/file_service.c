@@ -43,40 +43,46 @@
 do { \
 	int ret; \
 	ret = pthread_mutex_lock(handle); \
-	if (ret != 0) \
+	if (ret != 0) { \
 		ErrPrint("Failed to lock: %s\n", strerror(ret)); \
+	} \
 } while (0)
 
 #define CRITICAL_SECTION_END(handle) \
 do { \
 	int ret; \
 	ret = pthread_mutex_unlock(handle); \
-	if (ret != 0) \
+	if (ret != 0) { \
 		ErrPrint("Failed to unlock: %s\n", strerror(ret)); \
+	} \
 } while (0)
 
 #define CANCEL_SECTION_BEGIN() do { \
 	int ret; \
 	ret = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); \
-	if (ret != 0) \
+	if (ret != 0) { \
 		ErrPrint("Unable to set cancelate state: %s\n", strerror(ret)); \
+	} \
 } while (0)
 
 #define CANCEL_SECTION_END() do { \
 	int ret; \
 	ret = pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); \
-	if (ret != 0) \
+	if (ret != 0) { \
 		ErrPrint("Unable to set cancelate state: %s\n", strerror(ret)); \
+	} \
 } while (0)
 
 #define CLOSE_PIPE(p)	do { \
 	int status; \
 	status = close(p[PIPE_READ]); \
-	if (status < 0) \
+	if (status < 0) { \
 		ErrPrint("close: %s\n", strerror(errno)); \
+	} \
 	status = close(p[PIPE_WRITE]); \
-	if (status < 0) \
+	if (status < 0) { \
 		ErrPrint("close: %s\n", strerror(errno)); \
+	} \
 } while (0)
 
 #define PIPE_READ 0

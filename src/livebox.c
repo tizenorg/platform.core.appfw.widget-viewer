@@ -226,8 +226,9 @@ static void text_signal_cb(struct livebox *handler, const struct packet *result,
 		ret = LB_STATUS_ERROR_INVALID;
 	}
 
-	if (cb)
+	if (cb) {
 		cb(handler, ret, cbdata);
+	}
 	return;
 }
 
@@ -244,8 +245,9 @@ static void set_group_ret_cb(struct livebox *handler, const struct packet *resul
 		goto errout;
 	}
 
-	if (ret < 0)
+	if (ret < 0) {
 		goto errout;
+	}
 
 	return;
 
@@ -268,8 +270,9 @@ static void period_ret_cb(struct livebox *handler, const struct packet *result, 
 		goto errout;
 	}
 
-	if (ret < 0)
+	if (ret < 0) {
 		goto errout;
+	}
 
 	return;
 
@@ -398,8 +401,9 @@ static void activated_cb(struct livebox *handler, const struct packet *result, v
 		ret = LB_STATUS_ERROR_INVALID;
 	}
 
-	if (cb)
+	if (cb) {
 		cb(handler, ret, cbdata);
+	}
 }
 
 static void pd_destroy_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -447,8 +451,9 @@ static void delete_cluster_cb(struct livebox *handler, const struct packet *resu
 		ret = LB_STATUS_ERROR_INVALID;
 	}
 
-	if (cb)
+	if (cb) {
 		cb(handler, ret, cbdata);
+	}
 }
 
 static void delete_category_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -462,17 +467,20 @@ static void delete_category_cb(struct livebox *handler, const struct packet *res
 	cbdata = info->data;
 	destroy_cb_info(info);
 
-	if (!result)
+	if (!result) {
 		ret = LB_STATUS_ERROR_FAULT;
-	else if (packet_get(result, "i", &ret) != 1)
+	} else if (packet_get(result, "i", &ret) != 1) {
 		ret = LB_STATUS_ERROR_INVALID;
+	}
 
-	if (cb)
+	if (cb) {
 		cb(handler, ret, cbdata);
+	}
 }
 
-static void pixmap_acquired_cb(struct livebox *handler, const struct packet *result, void *data)
+static void lb_pixmap_acquired_cb(struct livebox *handler, const struct packet *result, void *data)
 {
+	int pixmap;
 	int ret;
 	ret_cb_t cb;
 	void *cbdata;
@@ -482,13 +490,53 @@ static void pixmap_acquired_cb(struct livebox *handler, const struct packet *res
 	cbdata = info->data;
 	destroy_cb_info(info);
 
-	if (!result)
-		ret = 0; /* PIXMAP 0 means error */
-	else if (packet_get(result, "i", &ret) != 1)
-		ret = 0;
+	if (!result) {
+		pixmap = 0; /* PIXMAP 0 means error */
+	} else if (packet_get(result, "ii", &pixmap, &ret) != 2) {
+		pixmap = 0;
+	}
 
-	if (cb)
-		cb(handler, ret, cbdata);
+	if (ret == LB_STATUS_ERROR_BUSY) {
+		ret = livebox_acquire_lb_pixmap(handler, cb, cbdata);
+		DbgPrint("Busy, Try again: %d\n", ret);
+		/* Try again */
+	} else {
+		if (cb) {
+			cb(handler, pixmap, cbdata);
+		}
+	}
+}
+
+static void pd_pixmap_acquired_cb(struct livebox *handler, const struct packet *result, void *data)
+{
+	int pixmap;
+	int ret;
+	ret_cb_t cb;
+	void *cbdata;
+	struct cb_info *info = data;
+
+	cb = info->cb;
+	cbdata = info->data;
+	destroy_cb_info(info);
+
+	if (!result) {
+		pixmap = 0; /* PIXMAP 0 means error */
+		ret = LB_STATUS_ERROR_FAULT;
+	} else if (packet_get(result, "ii", &pixmap, &ret) != 2) {
+		pixmap = 0;
+		ret = LB_STATUS_ERROR_INVALID;
+	}
+
+	if (ret == LB_STATUS_ERROR_BUSY) {
+		ret = livebox_acquire_pd_pixmap(handler, cb, cbdata);
+		DbgPrint("Busy, Try again: %d\n", ret);
+		/* Try again */
+	} else {
+		if (cb) {
+			DbgPrint("ret: %d, pixmap: %d\n", ret, pixmap);
+			cb(handler, pixmap, cbdata);
+		}
+	}
 }
 
 static void pinup_done_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -502,8 +550,9 @@ static void pinup_done_cb(struct livebox *handler, const struct packet *result, 
 		goto errout;
 	}
 
-	if (ret < 0)
+	if (ret < 0) {
 		goto errout;
+	}
 
 	return;
 
@@ -580,19 +629,22 @@ EAPI int livebox_init(void *disp)
 		return LB_STATUS_SUCCESS;
 	}
 	env = getenv("PROVIDER_DISABLE_PREVENT_OVERWRITE");
-	if (env && !strcasecmp(env, "true"))
+	if (env && !strcasecmp(env, "true")) {
 		s_info.prevent_overwrite = 1;
+	}
 
 	env = getenv("PROVIDER_EVENT_FILTER");
-	if (env)
+	if (env) {
 		sscanf(env, "%lf", &MINIMUM_EVENT);
+	}
 
 #if defined(FLOG)
 	char filename[BUFSIZ];
 	snprintf(filename, sizeof(filename), "/tmp/%d.box.log", getpid());
 	__file_log_fp = fopen(filename, "w+t");
-	if (!__file_log_fp)
+	if (!__file_log_fp) {
 		__file_log_fp = fdopen(1, "w+t");
+	}
 #endif
 	critical_log_init("viewer");
 	livebox_service_init();
@@ -630,8 +682,9 @@ static inline char *lb_pkgname(const char *pkgname)
 
 	lb = livebox_service_pkgname(pkgname);
 	if (!lb) {
-		if (util_validate_livebox_package(pkgname) == 0)
+		if (util_validate_livebox_package(pkgname) == 0) {
 			return strdup(pkgname);
+		}
 	}
 
 	return lb;
@@ -660,8 +713,9 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 		return NULL;
 	}
 
-	if (type != LB_SIZE_TYPE_UNKNOWN)
+	if (type != LB_SIZE_TYPE_UNKNOWN) {
 		livebox_service_get_size(type, &width, &height);
+	}
 
 	handler = calloc(1, sizeof(*handler));
 	if (!handler) {
@@ -713,8 +767,9 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 		return NULL;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_create_cb;
+	}
 
 	/* Data provider will set this */
 	handler->lb.type = _LB_TYPE_FILE;
@@ -813,8 +868,9 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_period_changed_cb;
+	}
 
 	ret = master_rpc_async_request(handler, packet, 0, period_ret_cb, NULL);
 	if (ret == LB_STATUS_SUCCESS) {
@@ -849,13 +905,15 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 		 * By the way, if the user adds any callback for getting return status of this,
 		 * call it at here.
 		 */
-		if (cb)
+		if (cb) {
 			cb(handler, 0, data);
+		}
 		return LB_STATUS_SUCCESS;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_delete_cb;
+	}
 
 	return lb_send_delete(handler, cb, data);
 }
@@ -864,8 +922,9 @@ EAPI int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char
 {
 	struct fault_info *info;
 
-	if (!cb)
+	if (!cb) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	info = malloc(sizeof(*info));
 	if (!info) {
@@ -952,26 +1011,31 @@ EAPI int livebox_set_update_mode(struct livebox *handler, int active_update, ret
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (handler->state != CREATE || !handler->id)
+	if (handler->state != CREATE || !handler->id) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	if (handler->update_mode_cb) {
 		ErrPrint("Previous update_mode cb is not finished yet\n");
 		return LB_STATUS_ERROR_BUSY;
 	}
 
-	if (handler->is_active_update == active_update)
+	if (handler->is_active_update == active_update) {
 		return LB_STATUS_ERROR_ALREADY;
+	}
 
-	if (!handler->is_user)
+	if (!handler->is_user) {
 		return LB_STATUS_ERROR_PERMISSION;
+	}
 
 	packet = packet_create("update_mode", "ssi", handler->pkgname, handler->id, active_update);
-	if (!packet)
+	if (!packet) {
 		return LB_STATUS_ERROR_FAULT;
+	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_update_mode_cb;
+	}
 
 	ret = master_rpc_async_request(handler, packet, 0, update_mode_cb, NULL);
 	if (ret == LB_STATUS_SUCCESS) {
@@ -989,8 +1053,9 @@ EAPI int livebox_is_active_update(struct livebox *handler)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (handler->state != CREATE || !handler->id)
+	if (handler->state != CREATE || !handler->id) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	return handler->is_active_update;
 }
@@ -1038,8 +1103,9 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_lb_size_changed_cb;
+	}
 
 	ret = master_rpc_async_request(handler, packet, 0, resize_cb, NULL);
 	if (ret == LB_STATUS_SUCCESS) {
@@ -1070,8 +1136,9 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 
 	if (handler->lb.auto_launch) {
 		DbgPrint("AUTO_LAUNCH [%s]\n", handler->lb.auto_launch);
-		if (aul_launch_app(handler->lb.auto_launch, NULL) < 0)
+		if (aul_launch_app(handler->lb.auto_launch, NULL) < 0) {
 			ErrPrint("Failed to launch app %s\n", handler->lb.auto_launch);
+		}
 	}
 
 	packet = packet_create_noack("clicked", "sssddd", handler->pkgname, handler->id, "clicked", timestamp, x, y);
@@ -1086,16 +1153,19 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	if (!handler->lb.mouse_event && (handler->lb.type == _LB_TYPE_BUFFER || handler->lb.type == _LB_TYPE_SCRIPT)) {
 		int ret; /* Shadow variable */
 		ret = send_mouse_event(handler, "lb_mouse_down", x * handler->lb.width, y * handler->lb.height);
-		if (ret < 0)
+		if (ret < 0) {
 			ErrPrint("Failed to send Down: %d\n", ret);
+		}
 
 		ret = send_mouse_event(handler, "lb_mouse_move", x * handler->lb.width, y * handler->lb.height);
-		if (ret < 0)
+		if (ret < 0) {
 			ErrPrint("Failed to send Move: %d\n", ret);
+		}
 
 		ret = send_mouse_event(handler, "lb_mouse_up", x * handler->lb.width, y * handler->lb.height);
-		if (ret < 0)
+		if (ret < 0) {
 			ErrPrint("Failed to send Up: %d\n", ret);
+		}
 	}
 
 	return ret;
@@ -1167,8 +1237,9 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_pd_created_cb;
+	}
 
 	DbgPrint("PERF_DBOX\n");
 	ret = master_rpc_async_request(handler, packet, 0, pd_create_cb, NULL);
@@ -1214,8 +1285,9 @@ EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 	struct cb_info *cbinfo;
 	int ret;
 
-	if (!pkgname)
+	if (!pkgname) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	packet = packet_create("activate_package", "s", pkgname);
 	if (!packet) {
@@ -1231,8 +1303,9 @@ EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 0, activated_cb, cbinfo);
-	if (ret < 0)
+	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	}
 
 	return ret;
 }
@@ -1264,8 +1337,9 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_pd_destroyed_cb;
+	}
 
 	cbinfo = create_cb_info(cb, data);
 	if (!cbinfo) {
@@ -1274,8 +1348,9 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 	}
 
 	ret = master_rpc_async_request(handler, packet, 0, pd_destroy_cb, cbinfo);
-	if (ret < 0)
+	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	}
 
 	return ret;
 }
@@ -1357,8 +1432,9 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_access_event_cb;
+	}
 
 	ret = send_access_event(handler, cmd, x * w, y * h);
 	if (ret == LB_STATUS_SUCCESS) {
@@ -1401,8 +1477,9 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 			}
 
 			if (type & CONTENT_EVENT_MOUSE_MOVE) {
-				if (fabs(x - handler->pd.x) < MINIMUM_EVENT && fabs(y - handler->pd.y) < MINIMUM_EVENT)
+				if (fabs(x - handler->pd.x) < MINIMUM_EVENT && fabs(y - handler->pd.y) < MINIMUM_EVENT) {
 					return LB_STATUS_ERROR_BUSY;
+				}
 			} else if (type & CONTENT_EVENT_MOUSE_SET) {
 				flag = 0;
 			}
@@ -1420,8 +1497,9 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		int flag = 1;
 
 		if (type & CONTENT_EVENT_MOUSE_MASK) {
-			if (!handler->lb.mouse_event)
+			if (!handler->lb.mouse_event) {
 				return LB_STATUS_ERROR_INVALID;
+			}
 
 			if (!handler->lb.data.fb) {
 				ErrPrint("Handler is not valid\n");
@@ -1429,8 +1507,9 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 			}
 
 			if (type & CONTENT_EVENT_MOUSE_MOVE) {
-				if (fabs(x - handler->lb.x) < MINIMUM_EVENT && fabs(y - handler->lb.y) < MINIMUM_EVENT)
+				if (fabs(x - handler->lb.x) < MINIMUM_EVENT && fabs(y - handler->lb.y) < MINIMUM_EVENT) {
 					return LB_STATUS_ERROR_BUSY;
+				}
 			} else if (type & CONTENT_EVENT_MOUSE_SET) {
 				flag = 0;
 			}
@@ -1500,8 +1579,9 @@ EAPI const char *livebox_filename(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->filename)
+	if (handler->filename) {
 		return handler->filename;
+	}
 
 	/* Oooops */
 	return util_uri_to_path(handler->id);
@@ -1522,10 +1602,12 @@ EAPI int livebox_get_pdsize(struct livebox *handler, int *w, int *h)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!w)
+	if (!w) {
 		w = &_w;
-	if (!h)
+	}
+	if (!h) {
 		h = &_h;
+	}
 
 	if (!handler->is_pd_created) {
 		*w = handler->pd.default_width;
@@ -1607,8 +1689,9 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_group_changed_cb;
+	}
 
 	ret = master_rpc_async_request(handler, packet, 0, set_group_ret_cb, NULL);
 	if (ret == LB_STATUS_SUCCESS) {
@@ -1653,8 +1736,9 @@ EAPI int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *siz
 
 	for (j = i = 0; i < NR_OF_SIZE_LIST; i++) {
 		if (handler->lb.size_list & (0x01 << i)) {
-			if (j == *cnt)
+			if (j == *cnt) {
 				break;
+			}
 
 			size_list[j++] = (0x01 << i);
 		}
@@ -1713,8 +1797,9 @@ EAPI int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data)
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 0, delete_cluster_cb, cbinfo);
-	if (ret < 0)
+	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	}
 
 	return ret;
 }
@@ -1738,8 +1823,9 @@ EAPI int livebox_delete_category(const char *cluster, const char *category, ret_
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 0, delete_category_cb, cbinfo);
-	if (ret < 0)
+	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	}
 
 	return ret;
 }
@@ -1764,8 +1850,9 @@ EAPI enum livebox_lb_type livebox_lb_type(struct livebox *handler)
 		{
 			const char *id;
 			id = fb_id(handler->lb.data.fb);
-			if (id && !strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+			if (id && !strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 				return LB_TYPE_PIXMAP;
+			}
 		}
 		return LB_TYPE_BUFFER;
 	case _LB_TYPE_TEXT:
@@ -1797,8 +1884,9 @@ EAPI enum livebox_pd_type livebox_pd_type(struct livebox *handler)
 		{
 			const char *id;
 			id = fb_id(handler->pd.data.fb);
-			if (id && !strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+			if (id && !strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 				return PD_TYPE_PIXMAP;
+			}
 		}
 		return PD_TYPE_BUFFER;
 	default:
@@ -1863,8 +1951,9 @@ EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 	}
 
 	id = fb_id(handler->lb.data.fb);
-	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	packet = packet_create("lb_acquire_pixmap", "ss", handler->pkgname, handler->id);
 	if (!packet) {
@@ -1878,9 +1967,10 @@ EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	ret = master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, cbinfo);
-	if (ret < 0)
+	ret = master_rpc_async_request(handler, packet, 0, lb_pixmap_acquired_cb, cbinfo);
+	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	}
 
 	return ret;
 }
@@ -1936,8 +2026,9 @@ EAPI int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 	}
 
 	id = fb_id(handler->pd.data.fb);
-	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP)))
+	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	packet = packet_create("pd_acquire_pixmap", "ss", handler->pkgname, handler->id);
 	if (!packet) {
@@ -1951,9 +2042,10 @@ EAPI int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	ret = master_rpc_async_request(handler, packet, 0, pixmap_acquired_cb, cbinfo);
-	if (ret < 0)
+	ret = master_rpc_async_request(handler, packet, 0, pd_pixmap_acquired_cb, cbinfo);
+	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	}
 
 	return ret;
 }
@@ -2180,8 +2272,9 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_pinup_cb;
+	}
 
 	ret = master_rpc_async_request(handler, packet, 0, pinup_done_cb, NULL);
 	if (ret == LB_STATUS_SUCCESS) {
@@ -2199,8 +2292,9 @@ EAPI int livebox_is_pinned_up(struct livebox *handler)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (handler->state != CREATE || !handler->id)
+	if (handler->state != CREATE || !handler->id) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	return handler->is_pinned_up;
 }
@@ -2212,8 +2306,9 @@ EAPI int livebox_has_pinup(struct livebox *handler)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (handler->state != CREATE || !handler->id)
+	if (handler->state != CREATE || !handler->id) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	return handler->lb.pinup_supported;
 }
@@ -2225,8 +2320,9 @@ EAPI int livebox_set_data(struct livebox *handler, void *data)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (handler->state != CREATE)
+	if (handler->state != CREATE) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	handler->data = data;
 	return LB_STATUS_SUCCESS;
@@ -2239,8 +2335,9 @@ EAPI void *livebox_get_data(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state != CREATE)
+	if (handler->state != CREATE) {
 		return NULL;
+	}
 
 	return handler->data;
 }
@@ -2265,8 +2362,9 @@ EAPI const char *livebox_content(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state != CREATE)
+	if (handler->state != CREATE) {
 		return NULL;
+	}
 
 	return handler->content;
 }
@@ -2278,8 +2376,9 @@ EAPI const char *livebox_category_title(struct livebox *handler)
 		return NULL;
 	}
 
-	if (handler->state != CREATE)
+	if (handler->state != CREATE) {
 		return NULL;
+	}
 
 	return handler->title;
 }
@@ -2300,11 +2399,13 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!emission)
+	if (!emission) {
 		emission = "";
+	}
 
-	if (!source)
+	if (!source) {
 		source = "";
+	}
 
 	packet = packet_create("text_signal", "ssssdddd",
 				handler->pkgname, handler->id, emission, source, sx, sy, ex, ey);
@@ -2320,8 +2421,9 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 	}
 
 	ret = master_rpc_async_request(handler, packet, 0, text_signal_cb, cbinfo);
-	if (ret < 0)
+	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	}
 
 	return LB_STATUS_ERROR_FAULT;
 }
@@ -2374,8 +2476,9 @@ EAPI int livebox_refresh(struct livebox *handler)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (handler->state != CREATE || !handler->id)
+	if (handler->state != CREATE || !handler->id) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	packet = packet_create_noack("update", "ss", handler->pkgname, handler->id);
 	if (!packet) {
@@ -2414,8 +2517,9 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (handler->state != CREATE || !handler->id)
+	if (handler->state != CREATE || !handler->id) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	if (!handler->is_user) {
 		/* System cluster livebox cannot be changed its visible states */
@@ -2425,8 +2529,9 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 		}
 	}
 
-	if (handler->visible == state)
+	if (handler->visible == state) {
 		return LB_STATUS_ERROR_ALREADY;
+	}
 
 	packet = packet_create_noack("change,visibility", "ssi", handler->pkgname, handler->id, (int)state);
 	if (!packet) {
@@ -2435,8 +2540,9 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 	}
 
 	ret = master_rpc_request_only(handler, packet);
-	if (ret == 0)
+	if (ret == 0) {
 		handler->visible = state;
+	}
 
 	return ret;
 }
@@ -2448,8 +2554,9 @@ EAPI enum livebox_visible_state livebox_visibility(struct livebox *handler)
 		return LB_VISIBLE_ERROR;
 	}
 
-	if (handler->state != CREATE || !handler->id)
+	if (handler->state != CREATE || !handler->id) {
 		return LB_VISIBLE_ERROR;
+	}
 
 	return handler->visible;
 }
@@ -2476,11 +2583,13 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 		}
 	}
 
-	if (handler->cluster)
+	if (handler->cluster) {
 		free(handler->cluster);
+	}
 
-	if (handler->category)
+	if (handler->category) {
 		free(handler->category);
+	}
 
 	handler->cluster = pc;
 	handler->category = ps;
@@ -2518,8 +2627,9 @@ void lb_invoke_fault_handler(enum livebox_fault_type event, const char *pkgname,
 	struct fault_info *info;
 
 	dlist_foreach_safe(s_info.fault_list, l, n, info) {
-		if (info->handler(event, pkgname, file, func, info->user_data) == EXIT_FAILURE)
+		if (info->handler(event, pkgname, file, func, info->user_data) == EXIT_FAILURE) {
 			s_info.fault_list = dlist_remove(s_info.fault_list, l);
+		}
 	}
 }
 
@@ -2530,8 +2640,9 @@ void lb_invoke_event_handler(struct livebox *handler, enum livebox_event_type ev
 	struct event_info *info;
 
 	dlist_foreach_safe(s_info.event_list, l, n, info) {
-		if (info->handler(handler, event, info->user_data) == EXIT_FAILURE)
+		if (info->handler(handler, event, info->user_data) == EXIT_FAILURE) {
 			s_info.event_list = dlist_remove(s_info.event_list, l);
+		}
 	}
 }
 
@@ -2541,11 +2652,13 @@ struct livebox *lb_find_livebox(const char *pkgname, const char *id)
 	struct livebox *handler;
 
 	dlist_foreach(s_info.livebox_list, l, handler) {
-		if (!handler->id)
+		if (!handler->id) {
 			continue;
+		}
 
-		if (!strcmp(handler->pkgname, pkgname) && !strcmp(handler->id, id))
+		if (!strcmp(handler->pkgname, pkgname) && !strcmp(handler->id, id)) {
 			return handler;
+		}
 	}
 
 	return NULL;
@@ -2557,8 +2670,9 @@ struct livebox *lb_find_livebox_by_timestamp(double timestamp)
 	struct livebox *handler;
 
 	dlist_foreach(s_info.livebox_list, l, handler) {
-		if (handler->timestamp == timestamp)
+		if (handler->timestamp == timestamp) {
 			return handler;
+		}
 	}
 
 	return NULL;
@@ -2582,8 +2696,9 @@ static inline char *get_file_kept_in_safe(const char *id)
 	 */
 	if (s_info.prevent_overwrite) {
 		new_path = strdup(path);
-		if (!new_path)
+		if (!new_path) {
 			ErrPrint("Heap: %s\n", strerror(errno));
+		}
 
 		return new_path;
 	}
@@ -2634,8 +2749,9 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *id, double times
 	handler->filename = get_file_kept_in_safe(id);
 	if (!handler->filename) {
 		handler->filename = strdup(util_uri_to_path(id));
-		if (!handler->filename)
+		if (!handler->filename) {
 			ErrPrint("Error: %s\n", strerror(errno));
+		}
 	}
 
 	handler->timestamp = timestamp;
@@ -2706,12 +2822,14 @@ void lb_set_size_list(struct livebox *handler, int size_list)
 
 void lb_set_auto_launch(struct livebox *handler, const char *auto_launch)
 {
-	if (!strlen(auto_launch))
+	if (!strlen(auto_launch)) {
 		return;
+	}
 
 	handler->lb.auto_launch = strdup(auto_launch);
-	if (!handler->lb.auto_launch)
+	if (!handler->lb.auto_launch) {
 		ErrPrint("Heap: %s\n", strerror(errno));
+	}
 }
 
 void lb_set_priority(struct livebox *handler, double priority)
@@ -2721,21 +2839,25 @@ void lb_set_priority(struct livebox *handler, double priority)
 
 void lb_set_id(struct livebox *handler, const char *id)
 {
-	if (handler->id)
+	if (handler->id) {
 		free(handler->id);
+	}
 
 	handler->id = strdup(id);
-	if (!handler->id)
+	if (!handler->id) {
 		ErrPrint("Error: %s\n", strerror(errno));
+	}
 
-	if (handler->filename)
+	if (handler->filename) {
 		free(handler->filename);
+	}
 
 	handler->filename = get_file_kept_in_safe(id);
 	if (!handler->filename) {
 		handler->filename = strdup(util_uri_to_path(id));
-		if (!handler->filename)
+		if (!handler->filename) {
 			ErrPrint("Error: %s\n", strerror(errno));
+		}
 	}
 }
 
@@ -2743,31 +2865,36 @@ int lb_set_lb_fb(struct livebox *handler, const char *filename)
 {
 	struct fb_info *fb;
 
-	if (!handler)
+	if (!handler) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	fb = handler->lb.data.fb;
-	if (fb && !strcmp(fb_id(fb), filename)) /*!< BUFFER is not changed, */
+	if (fb && !strcmp(fb_id(fb), filename)) { /*!< BUFFER is not changed, */
 		return LB_STATUS_SUCCESS;
+	}
 
 	handler->lb.data.fb = NULL;
 
 	if (!filename || filename[0] == '\0') {
-		if (fb)
+		if (fb) {
 			fb_destroy(fb);
+		}
 		return LB_STATUS_SUCCESS;
 	}
 
 	handler->lb.data.fb = fb_create(filename, handler->lb.width, handler->lb.height);
 	if (!handler->lb.data.fb) {
 		ErrPrint("Faield to create a FB\n");
-		if (fb)
+		if (fb) {
 			fb_destroy(fb);
+		}
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (fb)
+	if (fb) {
 		fb_destroy(fb);
+	}
 
 	return LB_STATUS_SUCCESS;
 }
@@ -2776,8 +2903,9 @@ int lb_set_pd_fb(struct livebox *handler, const char *filename)
 {
 	struct fb_info *fb;
 
-	if (!handler)
+	if (!handler) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	fb = handler->pd.data.fb;
 	if (fb && !strcmp(fb_id(fb), filename)) {
@@ -2787,21 +2915,24 @@ int lb_set_pd_fb(struct livebox *handler, const char *filename)
 	handler->pd.data.fb = NULL;
 
 	if (!filename || filename[0] == '\0') {
-		if (fb)
+		if (fb) {
 			fb_destroy(fb);
+		}
 		return LB_STATUS_SUCCESS;
 	}
 
 	handler->pd.data.fb = fb_create(filename, handler->pd.width, handler->pd.height);
 	if (!handler->pd.data.fb) {
 		ErrPrint("Failed to create a FB\n");
-		if (fb)
+		if (fb) {
 			fb_destroy(fb);
+		}
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (fb)
+	if (fb) {
 		fb_destroy(fb);
+	}
 	return LB_STATUS_SUCCESS;
 }
 
@@ -2852,8 +2983,9 @@ void lb_set_period(struct livebox *handler, double period)
 
 struct livebox *lb_ref(struct livebox *handler)
 {
-	if (!handler)
+	if (!handler) {
 		return NULL;
+	}
 
 	handler->refcnt++;
 	return handler;
@@ -2861,12 +2993,14 @@ struct livebox *lb_ref(struct livebox *handler)
 
 struct livebox *lb_unref(struct livebox *handler)
 {
-	if (!handler)
+	if (!handler) {
 		return NULL;
+	}
 
 	handler->refcnt--;
-	if (handler->refcnt > 0)
+	if (handler->refcnt > 0) {
 		return handler;
+	}
 
 	if (handler->created_cb) {
 		handler->created_cb(handler, LB_STATUS_ERROR_FAULT, handler->created_cbdata);
@@ -2928,8 +3062,9 @@ struct livebox *lb_unref(struct livebox *handler)
 		handler->access_event_cbdata = NULL;
 	}
 
-	if (handler->filename)
+	if (handler->filename) {
 		util_unlink(handler->filename);
+	}
 
 	dlist_remove_data(s_info.livebox_list, handler);
 
@@ -2974,14 +3109,16 @@ int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 	packet = packet_create("delete", "ss", handler->pkgname, handler->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		if (cb)
+		if (cb) {
 			cb(handler, LB_STATUS_ERROR_FAULT, data);
+		}
 
 		return LB_STATUS_ERROR_FAULT;
 	}
 
-	if (!cb)
+	if (!cb) {
 		cb = default_delete_cb;
+	}
 
 	cbinfo = create_cb_info(cb, data);
 	if (!cbinfo) {
@@ -2990,8 +3127,9 @@ int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 	}
 
 	ret = master_rpc_async_request(handler, packet, 0, del_ret_cb, cbinfo);
-	if (ret < 0)
+	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	}
 
 	return ret;
 }
