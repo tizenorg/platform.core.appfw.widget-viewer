@@ -470,8 +470,9 @@ int fb_release_buffer(void *data)
 
 	switch (buffer->type) {
 	case BUFFER_TYPE_SHM:
-		if (shmdt(buffer) < 0)
+		if (shmdt(buffer) < 0) {
 			ErrPrint("shmdt: %s\n", strerror(errno));
+		}
 		break;
 	case BUFFER_TYPE_PIXMAP:
 		buffer->refcnt--;

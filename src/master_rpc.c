@@ -67,8 +67,9 @@ static inline struct command *pop_command(void)
 	struct command *command;
 
 	l = dlist_nth(s_info.cmd_list, 0);
-	if (!l)
+	if (!l) {
 		return NULL;
+	}
 
 	command = dlist_data(l);
 	s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
@@ -116,15 +117,17 @@ static gboolean cmd_consumer(gpointer user_data)
 	 * increate the reference counter of the item->param
 	 */
 	if (command->type == TYPE_NOACK) {
-		if (com_core_packet_send_only(client_fd(), command->packet) < 0)
+		if (com_core_packet_send_only(client_fd(), command->packet) < 0) {
 			ErrPrint("Failed to send a packet to master\n");
+		}
 
 		destroy_command(command);
 	} else {
 		if (com_core_packet_async_send(client_fd(), command->packet, 0u, done_cb, command) < 0) {
 			ErrPrint("Failed to send a packet to master\n");
-			if (command->ret_cb)
+			if (command->ret_cb) {
 				command->ret_cb(command->handler, NULL, command->data);
+			}
 			destroy_command(command);
 		}
 	}
@@ -139,12 +142,14 @@ static inline void prepend_command(struct command *command)
 
 void master_rpc_check_and_fire_consumer(void)
 {
-	if (!s_info.cmd_list || s_info.cmd_timer || client_fd() < 0)
+	if (!s_info.cmd_list || s_info.cmd_timer || client_fd() < 0) {
 		return;
+	}
 
 	s_info.cmd_timer = g_timeout_add(REQUEST_DELAY, cmd_consumer, NULL);
-	if (!s_info.cmd_timer)
+	if (!s_info.cmd_timer) {
 		ErrPrint("Failed to add timer\n");
+	}
 }
 
 static int done_cb(pid_t pid, int handle, const struct packet *packet, void *data)
@@ -174,8 +179,9 @@ static int done_cb(pid_t pid, int handle, const struct packet *packet, void *dat
 	}
 
 out:
-	if (command->ret_cb)
+	if (command->ret_cb) {
 		command->ret_cb(command->handler, packet, command->data);
+	}
 
 	destroy_command(command);
 	return 0;
@@ -207,10 +213,11 @@ int master_rpc_async_request(struct livebox *handler, struct packet *packet, int
 	command->ttl = DEFAULT_TTL;
 	command->type = TYPE_ACK;
 
-	if (urgent)
+	if (urgent) {
 		prepend_command(command);
-	else
+	} else {
 		push_command(command);
+	}
 
 	packet_unref(packet);
 	return LB_STATUS_SUCCESS;
@@ -243,17 +250,20 @@ int master_rpc_clear_fault_package(const char *pkgname)
 	struct dlist *n;
 	struct command *command;
 
-	if (!pkgname)
+	if (!pkgname) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	dlist_foreach_safe(s_info.cmd_list, l, n, command) {
-		if (!command->handler)
+		if (!command->handler) {
 			continue;
+		}
 
 		if (!strcmp(command->handler->pkgname, pkgname)) {
 			s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
-			if (command->ret_cb)
+			if (command->ret_cb) {
 				command->ret_cb(command->handler, NULL, command->data);
+			}
 
 			destroy_command(command);
 		}
@@ -271,8 +281,9 @@ int master_rpc_clear_all_request(void)
 	dlist_foreach_safe(s_info.cmd_list, l, n, command) {
 		s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
 
-		if (command->ret_cb)
+		if (command->ret_cb) {
 			command->ret_cb(command->handler, NULL, command->data);
+		}
 
 		destroy_command(command);
 	}

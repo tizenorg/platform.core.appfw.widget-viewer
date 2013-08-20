@@ -195,7 +195,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		/*!
 		 * \note
 		 *
-		 * "if (handler->id == NULL)"
+		 * "if (handler->id == NULL) {"
 		 *
 		 * The instance is not created yet.
 		 * But the master forcely destroy it and send destroyed event to this
@@ -205,8 +205,9 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		 * before creating an instance successfully.
 		 */
 		if (handler->created_cb == handler->deleted_cb) {
-			if (handler->created_cbdata != handler->deleted_cbdata)
+			if (handler->created_cbdata != handler->deleted_cbdata) {
 				DbgPrint("cb is same but cbdata is different (%s - %s)\n", pkgname, id);
+			}
 
 			handler->deleted_cb = NULL;
 			handler->deleted_cbdata = NULL;
@@ -1312,8 +1313,9 @@ static void master_started_cb(keynode_t *node, void *data)
 {
 	int state = 0;
 
-	if (vconf_get_bool(VCONFKEY_MASTER_STARTED, &state) < 0)
+	if (vconf_get_bool(VCONFKEY_MASTER_STARTED, &state) < 0) {
 		ErrPrint("Unable to get [%s]\n", VCONFKEY_MASTER_STARTED);
+	}
 
 	DbgPrint("Master state: %d\n", state);
 	if (state == 1 && make_connection() == LB_STATUS_SUCCESS) {
@@ -1325,10 +1327,11 @@ static void master_started_cb(keynode_t *node, void *data)
 
 static gboolean timeout_cb(gpointer data)
 {
-	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0)
+	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0) {
 		ErrPrint("Failed to add vconf for monitoring service state\n");
-	else
+	} else {
 		DbgPrint("vconf event callback is registered\n");
+	}
 
 	master_started_cb(NULL, NULL);
 

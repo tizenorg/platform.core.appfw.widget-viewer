@@ -35,8 +35,9 @@ int util_check_extension(const char *filename, const char *check_ptr)
 
 	name_len = strlen(filename);
 	while (--name_len >= 0 && *check_ptr) {
-		if (filename[name_len] != *check_ptr)
+		if (filename[name_len] != *check_ptr) {
 			return LB_STATUS_ERROR_INVALID;
+		}
 
 		check_ptr ++;
 	}
@@ -57,8 +58,9 @@ const char *util_basename(const char *name)
 {
 	int length;
 	length = name ? strlen(name) : 0;
-	if (!length)
+	if (!length) {
 		return ".";
+	}
 
 	while (--length > 0 && name[length] != '/');
 
@@ -122,8 +124,9 @@ int util_validate_livebox_package(const char *pkgname)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!check_native_livebox(pkgname) || !check_web_livebox(pkgname))
+	if (!check_native_livebox(pkgname) || !check_web_livebox(pkgname)) {
 		return 0;
+	}
 
 	return LB_STATUS_ERROR_INVALID;
 }
@@ -133,8 +136,9 @@ const char *util_uri_to_path(const char *uri)
 	int len;
 
 	len = strlen(SCHEMA_FILE);
-	if (strncasecmp(uri, SCHEMA_FILE, len))
+	if (strncasecmp(uri, SCHEMA_FILE, len)) {
 		return NULL;
+	}
 
 	return uri + len;
 }
@@ -145,8 +149,9 @@ int util_unlink(const char *filename)
 	int desclen;
 	int ret;
 
-	if (!filename)
+	if (!filename) {
 		return LB_STATUS_ERROR_INVALID;
+	}
 
 	desclen = strlen(filename) + 6; /* .desc */
 	descfile = malloc(desclen);
