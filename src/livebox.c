@@ -481,7 +481,7 @@ static void delete_category_cb(struct livebox *handler, const struct packet *res
 static void lb_pixmap_acquired_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int pixmap;
-	int ret;
+	int ret = LB_STATUS_ERROR_INVALID;
 	ret_cb_t cb;
 	void *cbdata;
 	struct cb_info *info = data;
