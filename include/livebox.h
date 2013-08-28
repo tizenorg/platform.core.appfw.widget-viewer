@@ -21,19 +21,130 @@
 extern "C" {
 #endif
 
+/*!
+ * \ingroup CAPI_LIVEBOX_FRAMEWORK Tizen livebox framework
+ * \{
+ * \defgroup LIVEBOX Application Programming Interfaces for the viewer application
+ * \{
+ * \tableofcontents
+ * \section Intro Introduction
+ * Tizen(SLP) homescreen S/W framework is supporing the live box. (aka widget which is similiar with the android widget)
+ *
+ * \image html front.jpg
+ *
+ * \section WhatIsTheLivebox 1. What is the Livebox
+ * The live box is the widget of the TIZEN.
+ *
+ * It works as a small application displayed on other applications' (such as homescreen, lockscreen, etc ...) view.
+ * Each live box can have (not a mandatory option) a PD (progressive disclosure) in which more detailed information can be found.
+ * The content of PD can be exposed when a certain gesture (e.g., flick-down) has been applied to the live box.
+ * If you are interested in developing a livebox, there are things you should know prior to making any source code for the box.
+ * To make your live box added to any live box viewer application (e.g., live panel in our case), then you need to create and prepare    
+ * controller(SO file), layout script (EDJE for a PD if necessary), configuration files.
+ *
+ * A livebox is managed by data provider, since each SO file of a livebox is loaded on and controlled by data provider using predefined ABI.
+ * A viewer will receive any livebox's content in forms of "image file", "buffer" or "text" and display the content in various formats on its window.
+ * A livebox developer needs to make sure that your live box generates desirable content in-time on a explicit update-request or periodic update.
+ *
+ * After a data provider loads a livebox's SO file, it then assigns a specific "file name" for the livebox via an argument of a livebox function.
+ * Since then the livebox just generates content using then given file name.
+ * Passing an image file (whose name is the previously given name) is the basic method for providing contents to the viewer.
+ * But if you want play animation or handles user event in real-time, you can use the buffer type.
+ *
+ * And you should prepare the content of the Progressive Disclosure.
+ * The Progressive Dislcosure is only updated by the "buffer" type. so you should prepare the layout script for it.
+ * If you didn't install any script file for progressive disclosure, the viewer will ignore the "flick down" event from your livebox.
+ *
+ * \subsection Livebox 1.1 Livebox
+ * Live box is a default content of your widget. It always displays on the screen and updated periodically.
+ * It looks like below captured images.
+ * \image html weather.png Weather Livebox
+ * \image html stock.png Stock Livebox
+ * \image html twitter.png Twitter Livebox
+ *
+ * \subsection ProgressiveDisclosure 1.2 Progressive Disclosure
+ * \image html PD.png Progressive Disclosure
+ * Progressive disclosure will be displayed when a user flicks down a livebox. (basically it depends on the implementation of the view applications)
+ * To supports this, a developer should prepare the layout script (EDJE only for the moment) of the livebox's PD. (or you can use the buffer directly)
+ * Data provider supports EDJE script but the developer can use various scripts if (which is BIG IF) their interpreters can be implemented based on evas & ecore.
+ *
+ * When a layout script has been installed, data provider can load and rendering the given layout on the buffer.
+ * The content on the buffer can be shared between applications that need to display the content on their window.
+ * Description data file is necessary to place proper content components in rendered layout.
+ * Check this page Description Data. 
+ *
+ * \subsection ClusterCategory 1.3 What is the "cluster" and "category"
+ * The cluster and the sub-cluster is just like the grouping concept.
+ * It is used for creating/destorying your livebox instance when the data provider receives any context event from the context engine.
+ * You will only get "user,created" cluster and "default" category(sub cluster) info.
+ *
+ * \section LiveboxContent 2. How the livebox can draw contents for viewer?
+ * There are several ways to update the content of a livebox.
+ *
+ * \li Image file based content updating
+ * \li Description file based content updating (with the layout script file)
+ * \li Buffer based content updating
+ *
+ * Each method has specific benefit for implementing the livebox.
+ *
+ * \subsection ImageFormat 2.1 Via image file
+ * This is the basic method for providing content of a livebox to the viewer application.
+ * But this can be used only for the livebox. (Unavailable for the progressive disclosure).
+ * When your livebox is created, the provider will assign an unique ID for your livebox(it would be a filename).
+ * You should keep that ID until your livebox is running. The ID will be passed to you via livebox_create function.
+ * \image html image_format.png
+ *
+ * When you need to update the output of your livebox, you should generate the image file using given ID(filename).
+ * Then the data provider will recognize the event of updated output of a livebox and it will send that event to the viewer to reload it on the screen.
+ *
+ * \subsection ScriptFormat 2.2 Via layout script
+ * \image html script_format.png
+ * This method is supported for static layout & various contents (text & image)
+ * When you develop your livebox, first design the layout of box content using script (edje is default)
+ * Then the provider will load it to the content buffer and start rendering.
+ * After the sciprt is loaded, you can fill it using description data format.
+ * liblivebox defines description data handling functions.
+ *
+ * \subsection TextFormat 2.3 Via text data
+ * \image html text_format.png
+ * This is the simplified method to update the content of livebox.
+ * So your box only need to update the text data using description data format.
+ * Then the viewer will parse it to fill its screen.
+ * So there is no buffer area, just viewer decide how handles it.
+ *
+ * \subsection BufferFormat 2.4 Via buffer
+ * This method is very complex to implement.
+ * The provider will give a content buffer to you, then your box should render its contents on this buffer.
+ * This type is only supported for 3rd party livebox such as OSP and WEB.
+ * Inhouse(EFL) livebox is not able to use this buffer type for the box content.
+ *
+ * \section PackageNTools 3. How can I get the development packages or tools?
+ *
+ * \section DevelopLivebox 4. How can I write a new livebox
+ *
+ * \section TestLivebox 5. How can I test my livebox
+ *
+ * \section LiveboxDirectory 6. Livebox directory hierachy
+ * \image html preload_folder.png
+ * \image html download_folder.png
+ *
+ */
+
+/*!
+ * Structure for a Livebox instance
+ */
 struct livebox;
 
 /*!
- * \note size list
- * 172x172
- * 348x172
- * 348x348
- * 700x348
- * 700x172
- * 700x700
+ * Use the default update period which is defined in the livebox package manifest.
  */
 #define DEFAULT_PERIOD -1.0f
 
+/*!
+ * \brief
+ * Mouse & Key event for buffer type Livebox or PD
+ * Viewer should send these events to livebox.
+ */
 enum content_event_type {
 	CONTENT_EVENT_MOUSE_DOWN	= 0x00000001, /*!< LB mouse down event for livebox */
 	CONTENT_EVENT_MOUSE_UP		= 0x00000002, /*!< LB mouse up event for livebox */
@@ -51,31 +162,36 @@ enum content_event_type {
 	CONTENT_EVENT_PD_MASK		= 0x10000000,
 	CONTENT_EVENT_LB_MASK		= 0x40000000,
 
-	LB_MOUSE_DOWN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_DOWN,
-	LB_MOUSE_UP			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UP,
-	LB_MOUSE_MOVE			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_MOVE,
-	LB_MOUSE_ENTER			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_ENTER,
-	LB_MOUSE_LEAVE			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_LEAVE,
+	LB_MOUSE_DOWN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_DOWN, /*!< Mouse down on the livebox */
+	LB_MOUSE_UP			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UP, /*!< Mouse up on the livebox */
+	LB_MOUSE_MOVE			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_MOVE, /*!< Move move on the livebox */
+	LB_MOUSE_ENTER			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_ENTER, /*!< Mouse enter to the livebox */
+	LB_MOUSE_LEAVE			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_LEAVE, /*!< Mouse leave from the livebox */
 	LB_MOUSE_SET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_SET,
 	LB_MOUSE_UNSET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UNSET,
 
-	PD_MOUSE_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_DOWN,
-	PD_MOUSE_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UP,
-	PD_MOUSE_MOVE			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_MOVE,
-	PD_MOUSE_ENTER			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_ENTER,
-	PD_MOUSE_LEAVE			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_LEAVE,
+	PD_MOUSE_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_DOWN, /*!< Mouse down on the PD */
+	PD_MOUSE_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UP, /*!< Mouse up on the PD */
+	PD_MOUSE_MOVE			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_MOVE, /*!< Mouse move on the PD */
+	PD_MOUSE_ENTER			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_ENTER, /*!< Mouse enter to the PD */
+	PD_MOUSE_LEAVE			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_LEAVE, /*!< Mouse leave from the PD */
 	PD_MOUSE_SET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_SET,
 	PD_MOUSE_UNSET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UNSET,
 
-	LB_KEY_DOWN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN,
-	LB_KEY_UP			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP,
+	LB_KEY_DOWN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN, /*!< Key down on the livebox */
+	LB_KEY_UP			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP, /*!< Key up on the livebox */
 
-	PD_KEY_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN,
-	PD_KEY_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP,
+	PD_KEY_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN, /*!< Key down on the livebox */
+	PD_KEY_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP, /*!< Key up on the livebox */
 
-	CONTENT_EVENT_MAX	= 0xFFFFFFFF
+	CONTENT_EVENT_MAX		= 0xFFFFFFFF
 };
 
+/*!
+ * \brief
+ * Accessibility event for buffer type Livebox or PD.
+ * These event set are sync'd with Tizen accessibility event set.
+ */
 enum access_event_type {
 	ACCESS_EVENT_PD_MASK		= 0x10000000,
 	ACCESS_EVENT_LB_MASK		= 0x20000000,
@@ -91,16 +207,16 @@ enum access_event_type {
 	ACCESS_EVENT_SCROLL_MOVE	= 0x00200000, /*!< LB accessibility scroll move */
 	ACCESS_EVENT_SCROLL_UP		= 0x00400000, /*!< LB accessibility scroll up */
 
-	LB_ACCESS_HIGHLIGHT		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT,
-	LB_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,
-	LB_ACCESS_HIGHLIGHT_PREV	= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT_PREV,
-	LB_ACCESS_UNHIGHLIGHT		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_UNHIGHLIGHT,
-	LB_ACCESS_ACTIVATE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_ACTIVATE,
-	LB_ACCESS_ACTION_DOWN		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_ACTION_DOWN,
-	LB_ACCESS_ACTION_UP		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_ACTION_UP,
-	LB_ACCESS_SCROLL_DOWN		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_DOWN,
-	LB_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_MOVE,
-	LB_ACCESS_SCROLL_UP		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_UP,
+	LB_ACCESS_HIGHLIGHT		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT,	/*!< Access event - Highlight an object in the livebox */
+	LB_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,	/*!< Access event - Move highlight to the next object in a livebox */
+	LB_ACCESS_HIGHLIGHT_PREV	= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT_PREV,	/*!< Access event - Move highlight to the prev object in a livebox */
+	LB_ACCESS_UNHIGHLIGHT		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_UNHIGHLIGHT,	/*!< Access event - Delete highlight from the livebox */
+	LB_ACCESS_ACTIVATE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_ACTIVATE,		/*!< Access event - Launch or activate the highlighted object */
+	LB_ACCESS_ACTION_DOWN		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_ACTION_DOWN,	/*!< Access event - down */
+	LB_ACCESS_ACTION_UP		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_ACTION_UP,	/*!< Access event - up */
+	LB_ACCESS_SCROLL_DOWN		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_DOWN,	/*!< Access event - scroll down */
+	LB_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_MOVE,	/*!< Access event - scroll move */
+	LB_ACCESS_SCROLL_UP		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_UP,	/*!< Access event - scroll up */
 
 	PD_ACCESS_HIGHLIGHT		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT,
 	PD_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,
@@ -114,7 +230,10 @@ enum access_event_type {
 	PD_ACCESS_SCROLL_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_UP
 };
 
-/* Exported to user app */
+/*!
+ * \brief
+ * Livebox LB content type
+ */
 enum livebox_lb_type {
 	LB_TYPE_IMAGE = 0x01, /*!< Contents of a livebox is based on the image file */
 	LB_TYPE_BUFFER = 0x02, /*!< Contents of a livebox is based on canvas buffer(shared) */
@@ -124,6 +243,10 @@ enum livebox_lb_type {
 	LB_TYPE_INVALID = 0xFF
 };
 
+/*!
+ * \brief
+ * Livebox PD content type
+ */
 enum livebox_pd_type {
 	PD_TYPE_BUFFER = 0x01, /*!< Contents of a PD is based on canvas buffer(shared) */
 	PD_TYPE_TEXT = 0x02, /*!< Contents of a PD is based on formatted text file */
@@ -132,6 +255,11 @@ enum livebox_pd_type {
 	PD_TYPE_INVALID = 0xFF
 };
 
+/*!
+ * \brief
+ * Livebox event type.
+ * These event will be sent from the provider.
+ */
 enum livebox_event_type { /*!< livebox_event_handler_set Event list */
 	LB_EVENT_LB_UPDATED, /*!< Contents of the given livebox is updated */
 	LB_EVENT_PD_UPDATED, /*!< Contents of the given pd is updated */
@@ -199,11 +327,27 @@ struct livebox_script_operators {
 };
 
 /*!
- * \brief Prototype of the return callback of every async functions.
- * \param[in] handle
- * \param[in] ret
- * \param[in] data
+ * \brief Prototype of the return callback of every async functions
+ * \param[in] handle Handle of the livebox instance
+ * \param[in] ret Result status of operation. LB_STATUS_XXX defined from liblivebox-service
+ * \param[in] data data for result callback
  * \return void
+ * \sa livebox_add
+ * \sa livebox_add_with_size
+ * \sa livebox_del
+ * \sa livebox_activate
+ * \sa livebox_resize
+ * \sa livebox_set_group
+ * \sa livebox_set_period
+ * \sa livebox_access_event
+ * \sa livebox_set_pinup
+ * \sa livebox_create_pd
+ * \sa livebox_create_pd_with_position
+ * \sa livebox_destroy_pd
+ * \sa livebox_emit_text_signal
+ * \sa livebox_acquire_pd_pixmap
+ * \sa livebox_acquire_lb_pixmap
+ * \sa livebox_set_update_mode
  */
 typedef void (*ret_cb_t)(struct livebox *handle, int ret, void *data);
 
@@ -211,28 +355,28 @@ typedef void (*ret_cb_t)(struct livebox *handle, int ret, void *data);
  * \brief Initialize the livebox system
  * \param[in] disp If you have X Display connection object, you can re-use it. but you should care its life cycle.
  *                 It must be alive before call the livebox_fini
- * \return int 0 if success or < 0 (errno)
+ * \return int LB_STATUS_SUCCESS(0) if success or < 0 (livebox-errno)
  * \sa livebox_fini
  */
 extern int livebox_init(void *disp);
 
 /*!
  * \brief Finalize the livebox system
- * \return int 0 if success, -EINVAL if livebox_init is not called.
+ * \return int LB_STATUS_SUCCESS(0) if success,  LB_STATUS_ERROR_INVALID if livebox_init is not called.
  * \sa livebox_init
  */
 extern int livebox_fini(void);
 
 /*!
  * \brief Client is paused.
- * \return int 0 if success, -EFAULT if it failed to send state(paused) info
+ * \return int LB_STATUS_SUCCESS if success, LB_STATUS_ERROR_FAULT if it failed to send state(paused) info
  * \sa livebox_client_resumed
  */
 extern int livebox_client_paused(void);
 
 /*!
  * \brief Client is rfesumed.
- * \return int 0 if success, -EFAULT if it failed to send state(resumed) info
+ * \return int LB_STATUS_SUCCESS if success, LB_STATUS_ERROR_FAULT if it failed to send state(resumed) info
  * \sa livebox_client_paused
  */
 extern int livebox_client_resumed(void);
@@ -240,23 +384,53 @@ extern int livebox_client_resumed(void);
 /*!
  * \brief Add a new livebox
  * \param[in] pkgname Livebox Id
- * \param[in] content Will be passed to the livebox.
- * \param[in] cluster
- * \param[in] category
+ * \param[in] content Will be passed to the livebox instance.
+ * \param[in] cluster Main group
+ * \param[in] category Sub group
  * \param[in] period Update period. if you set DEFAULT_PERIOD, the provider will use the default period which is described in the manifest.
  * \param[in] cb After send the request to the provider, its result will be passed
  * \param[in] data
  * \return handle
+ * \sa ret_cb_t
  */
 extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Add a new livebox
+ * 1x1=175x175
+ * 2x1=354x175
+ * 2x2=354x354
+ * 4x1=712x175
+ * 4x2=712x354
+ * 4x3=712x533
+ * 4x4=712x712
+ * 4x5=712x891
+ * 4x6=712x1070
+ * 21x21=224x215
+ * 23x21=680x215
+ * 23x23=680x653
+ * 0x0=720x1280
+ *
+ * \param[in] pkgname Livebox Id
+ * \param[in] content Will be passed to the livebox instance.
+ * \param[in] cluster Main group
+ * \param[in] category Sub group
+ * \param[in] period DEFAULT_PERIOD can be used for this. this argument will be used to specify the period of update content of livebox.
+ * \param[in] type Size type - which are defined from liblivebox-service package.
+ * \param[in] cb After the request is sent to the master provider, this callback will be called.
+ * \param[in] data This data will be passed to the callback.
+ * \return handle
+ * \sa ret_cb_t
+ */
 extern struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data);
 
 /*!
  * \brief Delete a livebox
- * \param[in] handle
+ * \param[in] handle Handle of a livebox instance
  * \param[in] ret_cb_t return callback
  * \param[in] data user data for return callback
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
 
@@ -264,16 +438,15 @@ extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
  * \brief Set a livebox events callback
  * \param[in] cb Event handler
  * \param[in] data User data for the event handler
- * \return int
+ * \return int LB_STATUS_SUCCESS if succeed to set event handler or LB_STATUS_ERROR_XXXX
  * \sa livebox_unset_event_handler
  */
-
 extern int livebox_set_event_handler(int (*cb)(struct livebox *handler, enum livebox_event_type event, void *data), void *data);
 
 /*!
  * \brief Unset the livebox event handler
  * \param[in] cb
- * \return void * pointer of 'data' which is registered from the livebox_event_handler_set
+ * \return void * pointer of 'data' which is used with the livebox_set_event_handler
  * \sa livebox_set_event_handler
  */
 extern void *livebox_unset_event_handler(int (*cb)(struct livebox *handler, enum livebox_event_type event, void *data));
@@ -286,7 +459,7 @@ extern void *livebox_unset_event_handler(int (*cb)(struct livebox *handler, enum
  * \brief Live box fault event handler registeration function
  * \param[in] cb
  * \param[in] data
- * \return int
+ * \return int LB_STATUS_SUCCESS if succeed to set fault event handler or LB_STATUS_ERROR_XXXX
  * \sa livebox_unset_fault_handler
  */
 extern int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data);
@@ -294,7 +467,7 @@ extern int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const ch
 /*!
  * \brief Unset the live box fault event handler
  * \param[in] cb
- * \return pointer of 'data'
+ * \return pointer of 'data' which is used with the livebox_set_fault_handler
  * \sa livebox_set_fault_handler
  */
 extern void *livebox_unset_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *));
@@ -305,16 +478,32 @@ extern void *livebox_unset_fault_handler(int (*cb)(enum livebox_fault_type, cons
  * \param[in] cb
  * \param[in] data
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_activate(const char *pkgname, ret_cb_t cb, void *data);
 
 /*!
  * \brief Resize the livebox
+ * 1x1=175x175
+ * 2x1=354x175
+ * 2x2=354x354
+ * 4x1=712x175
+ * 4x2=712x354
+ * 4x3=712x533
+ * 4x4=712x712
+ * 4x5=712x891
+ * 4x6=712x1070
+ * 21x21=224x215
+ * 23x21=680x215
+ * 23x23=680x653
+ * 0x0=720x1280
+ *
  * \param[in] handler Handler of a livebox
  * \param[in] type Type of a livebox size, LB_SIZE_TYPE_1x1, ...
  * \param[in] cb Result callback of the resize operation.
  * \param[in] data User data for return callback
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *data);
 
@@ -335,6 +524,7 @@ extern int livebox_click(struct livebox *handler, double x, double y);
  * \param[in] cb Result callback for changing the cluster/category of a livebox
  * \param[in] data User data for the result callback
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_set_group(struct livebox *handler, const char *cluster, const char *category, ret_cb_t cb, void *data);
 
@@ -361,6 +551,7 @@ extern double livebox_period(struct livebox *handler);
  * \param[in] cb Result callback of changing the update period of this livebox
  * \param[in] data User data for the result callback
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb, void *data);
 
@@ -368,6 +559,7 @@ extern int livebox_set_period(struct livebox *handler, double period, ret_cb_t c
  * \brief Is this an text type livebox?
  * \param[in] handler
  * \return content_type
+ * \sa livebox_lb_type
  */
 extern enum livebox_lb_type livebox_lb_type(struct livebox *handler);
 
@@ -526,6 +718,7 @@ extern int livebox_access_event(struct livebox *handler, enum access_event_type 
  * \param[in] cb
  * \param[in] data
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void *data);
 
@@ -556,6 +749,7 @@ extern int livebox_has_pd(struct livebox *handler);
  * \param[in] cb
  * \param[in] data
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data);
 
@@ -585,6 +779,7 @@ extern int livebox_move_pd(struct livebox *handler, double x, double y);
  * \param[in] cb
  * \param[in] data
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data);
 
@@ -599,6 +794,7 @@ extern int livebox_pd_is_created(struct livebox *handler);
  * \brief Check the content type of the progressive disclosure of given handler
  * \param[in] handler
  * \return int
+ * \sa livebox_pd_type
  */
 extern enum livebox_pd_type livebox_pd_type(struct livebox *handler);
 
@@ -636,6 +832,8 @@ extern int livebox_set_pd_text_handler(struct livebox *handler, struct livebox_s
  * \param[in] ey
  * \param[in] cb
  * \param[in] data
+ * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_emit_text_signal(struct livebox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, ret_cb_t cb, void *data);
 
@@ -711,6 +909,7 @@ extern int livebox_pd_pixmap(const struct livebox *handler);
  * \return int
  * \sa livebox_release_pd_pixmap
  * \sa livebox_acquire_lb_pixmap
+ * \sa ret_cb_t
  */
 extern int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *data);
 
@@ -732,6 +931,7 @@ extern int livebox_release_pd_pixmap(struct livebox *handler, int pixmap);
  * \return int
  * \sa livebox_release_lb_pixmap
  * \sa livebox_acquire_pd_pixmap
+ * \sa ret_cb_t
  */
 extern int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *data);
 
@@ -770,6 +970,7 @@ extern enum livebox_visible_state livebox_visibility(struct livebox *handler);
  * \param[in] cb Result callback function
  * \param[in] data Callback data
  * \return int
+ * \sa ret_cb_t
  */
 extern int livebox_set_update_mode(struct livebox *handler, int active_update, ret_cb_t cb, void *data);
 
@@ -780,9 +981,16 @@ extern int livebox_set_update_mode(struct livebox *handler, int active_update, r
  */
 extern int livebox_is_active_update(struct livebox *handler);
 
+/*!
+ * \}
+ */
+
+/*!
+ * \}
+ */
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-/* End of a file */
