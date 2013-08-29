@@ -1094,7 +1094,7 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 
 	if (handler->lb.width == w && handler->lb.height == h) {
 		DbgPrint("No changes\n");
-		return LB_STATUS_ERROR_ALREADY;;
+		return LB_STATUS_ERROR_ALREADY;
 	}
 
 	packet = packet_create("resize", "ssii", handler->pkgname, handler->id, w, h);
@@ -2425,7 +2425,7 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 		destroy_cb_info(cbinfo);
 	}
 
-	return LB_STATUS_ERROR_FAULT;
+	return ret;
 }
 
 EAPI int livebox_subscribe_group(const char *cluster, const char *category)
@@ -2433,7 +2433,7 @@ EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 	struct packet *packet;
 
 	/*!
-	 * \TODO
+	 * \todo
 	 * Validate the group info using DB
 	 * If the group info is not valid, do not send this request
 	 */
@@ -2452,7 +2452,7 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 	struct packet *packet;
 
 	/*!
-	 * \TODO
+	 * \todo
 	 * Validate the group info using DB
 	 * If the group info is not valid, do not send this request
 	 * AND Check the subscribed or not too
