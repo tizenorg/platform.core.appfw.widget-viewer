@@ -460,17 +460,19 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	const char *fbfile;
 	const char *content;
 	const char *title;
+	const char *safe_file;
 	struct livebox *handler;
 	int lb_w;
 	int lb_h;
 	double priority;
 	int ret;
 
-	ret = packet_get(packet, "sssiidss",
+	ret = packet_get(packet, "sssiidsss",
 				&pkgname, &id,
 				&fbfile, &lb_w, &lb_h,
-				&priority, &content, &title);
-	if (ret != 8) {
+				&priority, &content, &title,
+				&safe_file);
+	if (ret != 9) {
 		ErrPrint("Invalid argument\n");
 		goto out;
 	}
@@ -496,6 +498,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	lb_set_content(handler, content);
 	lb_set_title(handler, title);
 	lb_set_size(handler, lb_w, lb_h);
+	lb_set_filename(handler, safe_file);
 
 	if (lb_text_lb(handler)) {
 		(void)parse_desc(handler, livebox_filename(handler), 0);

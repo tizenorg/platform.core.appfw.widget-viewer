@@ -45,6 +45,7 @@ extern struct livebox *lb_ref(struct livebox *handler);
 extern struct livebox *lb_unref(struct livebox *handler);
 extern int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data);
 extern int lb_delete_all(void);
+extern void lb_set_filename(struct livebox *handler, const char *filename);
 
 enum lb_type { /*!< Must have to be sync with data-provider-master */
 	_LB_TYPE_NONE = 0x0,
