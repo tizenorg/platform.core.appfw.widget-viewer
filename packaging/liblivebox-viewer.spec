@@ -57,7 +57,6 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/livebox-viewer/livebox.h
-%{_datarootdir}/doc/livebox-viewer/livebox-viewer_PG.h
 %{_libdir}/pkgconfig/*.pc
 
 # End of a file

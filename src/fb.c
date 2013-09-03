@@ -458,7 +458,7 @@ int fb_release_buffer(void *data)
 
 	if (!data) {
 		ErrPrint("buffer data == NIL\n");
-		return 0;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	buffer = container_of(data, struct buffer, data);
@@ -507,7 +507,7 @@ int fb_release_buffer(void *data)
 		break;
 	}
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int fb_refcnt(void *data)
