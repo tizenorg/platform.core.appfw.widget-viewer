@@ -19,6 +19,7 @@
 #include <stdlib.h> /* malloc */
 #include <string.h> /* strdup */
 #include <math.h>
+#include <unistd.h>
 
 #include <aul.h>
 #include <dlog.h>
@@ -2678,49 +2679,6 @@ struct livebox *lb_find_livebox_by_timestamp(double timestamp)
 	return NULL;
 }
 
-static inline char *get_file_kept_in_safe(const char *id)
-{
-	const char *path;
-	char *new_path;
-	int len;
-	int base_idx;
-
-	path = util_uri_to_path(id);
-	if (!path) {
-		ErrPrint("Invalid URI(%s)\n", id);
-		return NULL;
-	}
-
-	/*!
-	 * \TODO: REMOVE ME
-	 */
-	if (s_info.prevent_overwrite) {
-		new_path = strdup(path);
-		if (!new_path) {
-			ErrPrint("Heap: %s\n", strerror(errno));
-		}
-
-		return new_path;
-	}
-
-
-	len = strlen(path);
-	base_idx = len - 1;
-
-	while (base_idx > 0 && path[base_idx] != '/') base_idx--;
-	base_idx += (path[base_idx] == '/');
-
-	new_path = malloc(len + 10);
-	if (!new_path) {
-		ErrPrint("Heap: %s\n", strerror(errno));
-		return NULL;
-	}
-
-	strncpy(new_path, path, base_idx);
-	snprintf(new_path + base_idx, len + 10 - base_idx, "reader/%s", path + base_idx);
-	return new_path;
-}
-
 struct livebox *lb_new_livebox(const char *pkgname, const char *id, double timestamp)
 {
 	struct livebox *handler;
@@ -2744,14 +2702,6 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *id, double times
 		free(handler->pkgname);
 		free(handler);
 		return NULL;
-	}
-
-	handler->filename = get_file_kept_in_safe(id);
-	if (!handler->filename) {
-		handler->filename = strdup(util_uri_to_path(id));
-		if (!handler->filename) {
-			ErrPrint("Error: %s\n", strerror(errno));
-		}
 	}
 
 	handler->timestamp = timestamp;
@@ -2847,17 +2797,22 @@ void lb_set_id(struct livebox *handler, const char *id)
 	if (!handler->id) {
 		ErrPrint("Error: %s\n", strerror(errno));
 	}
+}
 
+void lb_set_filename(struct livebox *handler, const char *filename)
+{
 	if (handler->filename) {
+		if (unlink(handler->filename) < 0) {
+			ErrPrint("unlink: %s\n", strerror(errno));
+		}
+
 		free(handler->filename);
 	}
 
-	handler->filename = get_file_kept_in_safe(id);
+	handler->filename = strdup(filename);
 	if (!handler->filename) {
-		handler->filename = strdup(util_uri_to_path(id));
-		if (!handler->filename) {
-			ErrPrint("Error: %s\n", strerror(errno));
-		}
+		ErrPrint("Heap: %s\n", strerror(errno));
+		return;
 	}
 }
 
@@ -3063,7 +3018,7 @@ struct livebox *lb_unref(struct livebox *handler)
 	}
 
 	if (handler->filename) {
-		util_unlink(handler->filename);
+		(void)util_unlink(handler->filename);
 	}
 
 	dlist_remove_data(s_info.livebox_list, handler);
