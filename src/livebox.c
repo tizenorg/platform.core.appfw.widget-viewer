@@ -2802,11 +2802,9 @@ void lb_set_id(struct livebox *handler, const char *id)
 void lb_set_filename(struct livebox *handler, const char *filename)
 {
 	if (handler->filename) {
-		/*
 		if (unlink(handler->filename) < 0) {
 			ErrPrint("unlink: %s\n", strerror(errno));
 		}
-		*/
 
 		free(handler->filename);
 	}
