@@ -737,7 +737,7 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 		return NULL;
 	}
 
-	if (content) {
+	if (content && strlen(content)) {
 		handler->content = strdup(content);
 		if (!handler->content) {
 			ErrPrint("Error: %s\n", strerror(errno));
