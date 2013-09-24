@@ -621,24 +621,8 @@ static int send_mouse_event(struct livebox *handler, const char *event, int x, i
 	return master_rpc_request_only(handler, packet);
 }
 
-EAPI int livebox_init(void *disp)
+static void initialize_livebox(void *disp)
 {
-	const char *env;
-
-	if (s_info.init_count > 0) {
-		s_info.init_count++;
-		return LB_STATUS_SUCCESS;
-	}
-	env = getenv("PROVIDER_DISABLE_PREVENT_OVERWRITE");
-	if (env && !strcasecmp(env, "true")) {
-		s_info.prevent_overwrite = 1;
-	}
-
-	env = getenv("PROVIDER_EVENT_FILTER");
-	if (env) {
-		sscanf(env, "%lf", &MINIMUM_EVENT);
-	}
-
 #if defined(FLOG)
 	char filename[BUFSIZ];
 	snprintf(filename, sizeof(filename), "/tmp/%d.box.log", getpid());
@@ -654,6 +638,47 @@ EAPI int livebox_init(void *disp)
 	client_init();
 
 	s_info.init_count++;
+}
+
+EAPI int livebox_init_with_options(void *disp, int prevent_overwrite, double event_filter)
+{
+	if (s_info.init_count > 0) {
+		s_info.init_count++;
+		return LB_STATUS_SUCCESS;
+	}
+
+	/*!
+	 * \note
+	 * Some application doesn't want to use the environment value.
+	 * So set them using arguments.
+	 */
+	s_info.prevent_overwrite = prevent_overwrite;
+	MINIMUM_EVENT = event_filter;
+
+	initialize_livebox(disp);
+	return LB_STATUS_SUCCESS;
+}
+
+EAPI int livebox_init(void *disp)
+{
+	const char *env;
+
+	if (s_info.init_count > 0) {
+		s_info.init_count++;
+		return LB_STATUS_SUCCESS;
+	}
+
+	env = getenv("PROVIDER_DISABLE_PREVENT_OVERWRITE");
+	if (env && !strcasecmp(env, "true")) {
+		s_info.prevent_overwrite = 1;
+	}
+
+	env = getenv("PROVIDER_EVENT_FILTER");
+	if (env) {
+		sscanf(env, "%lf", &MINIMUM_EVENT);
+	}
+
+	initialize_livebox(disp);
 	return LB_STATUS_SUCCESS;
 }
 

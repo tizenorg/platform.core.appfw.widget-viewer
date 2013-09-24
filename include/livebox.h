@@ -272,6 +272,24 @@ typedef void (*ret_cb_t)(struct livebox *handle, int ret, void *data);
 extern int livebox_init(void *disp);
 
 /*!
+ * \brief Initialize the livebox system with some options
+ * \details livebox_init function uses environment value to initiate some configurable values
+ *          But some application doesn't want to use the env value.
+ *          For them, this API will give a chance to set default options using given arguments
+ * \remarks N/A
+ * \param[in] disp
+ * \param[in] prevent_overwrite
+ * \param[in] event_filter
+ * \return int
+ * \retval LB_STATUS_SUCCESS if success
+ * \pre N/A
+ * \post N/A
+ * \see livebox_init
+ * \see livebox_fini
+ */
+extern int livebox_init_with_options(void *disp, int prevent_overwrite, double event_filter);
+
+/*!
  * \brief Finalize the livebox system
  * \details N/A
  * \remarks N/A
