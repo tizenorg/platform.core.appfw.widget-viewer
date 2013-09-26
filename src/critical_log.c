@@ -50,14 +50,20 @@ int critical_log(const char *func, int line, const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
-	struct timeval tv;
 
 	if (!s_info.fp) {
 		return LB_STATUS_ERROR_IO;
 	}
 
+#if defined(_USE_ECORE_TIME_GET)
+	double tv;
+	tv = util_timestamp();
+	fprintf(s_info.fp, "%d %lf [%s:%d] ", getpid(), tv, util_basename((char *)func), line);
+#else
+	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	fprintf(s_info.fp, "%d %lu.%lu [%s:%d] ", getpid(), tv.tv_sec, tv.tv_usec, util_basename((char *)func), line);
+#endif
 
 	va_start(ap, fmt);
 	ret = vfprintf(s_info.fp, fmt, ap);
