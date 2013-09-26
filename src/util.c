@@ -67,7 +67,13 @@ double util_timestamp(void)
 		if (s_info.type == CLOCK_MONOTONIC) {
 			s_info.type = CLOCK_REALTIME;
 		} else if (s_info.type == CLOCK_REALTIME) {
-			break;
+			struct timeval tv;
+			if (gettimeofday(&tv, NULL) < 0) {
+				ErrPrint("gettimeofday: %s\n", strerror(errno));
+				break;
+			}
+
+			return tv.tv_sec + tv.tv_usec / 1000000.0f;
 		}
 	} while (1);
 
@@ -75,7 +81,12 @@ double util_timestamp(void)
 #else
 	struct timeval tv;
 
-	gettimeofday(&tv, NULL);
+	if (gettimeofday(&tv, NULL) < 0) {
+		ErrPrint("gettimeofday: %s\n", strerror(errno));
+		tv.tv_sec = 0;
+		tv.tv_usec = 0;
+	}
+
 	return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0f;
 #endif
 }
