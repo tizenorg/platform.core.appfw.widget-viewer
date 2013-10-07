@@ -284,7 +284,7 @@ static struct packet *master_lb_update_begin(pid_t pid, int handle, const struct
 	 * And then begin updating again after change its size.
 	 */
 	if (lb_get_lb_fb(handler)) {
-		lb_set_lb_fb(handler, fbfile);
+		(void)lb_set_lb_fb(handler, fbfile);
 
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret != LB_STATUS_SUCCESS) {
@@ -326,7 +326,7 @@ static struct packet *master_pd_update_begin(pid_t pid, int handle, const struct
 	}
 
 	if (lb_get_pd_fb(handler)) {
-		lb_set_lb_fb(handler, fbfile);
+		(void)lb_set_lb_fb(handler, fbfile);
 
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret != LB_STATUS_SUCCESS) {
@@ -509,10 +509,21 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		 */
 		goto out;
 	} else if (lb_get_lb_fb(handler)) {
-		lb_set_lb_fb(handler, fbfile);
-		ret = fb_sync(lb_get_lb_fb(handler));
-		if (ret != LB_STATUS_SUCCESS) {
-			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+		if (conf_frame_drop_for_resizing() && handler->size_changed_cb) {
+			/* Just for skipping the update event callback call, After request to resize buffer, update event will be discarded */
+			DbgPrint("Discards obsoloted update event\n");
+			ret = LB_STATUS_ERROR_BUSY;
+		} else {
+			(void)lb_set_lb_fb(handler, fbfile);
+
+			if (!conf_manual_sync()) {
+				ret = fb_sync(lb_get_lb_fb(handler));
+				if (ret != LB_STATUS_SUCCESS) {
+					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+				}
+			} else {
+				ret = LB_STATUS_SUCCESS;
+			}
 		}
 	} else {
 		ret = LB_STATUS_SUCCESS;
@@ -685,13 +696,20 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 	if (lb_text_pd(handler)) {
 		(void)parse_desc(handler, descfile, 1);
 	} else {
-		(void)lb_set_pd_fb(handler, fbfile);
-
-		ret = fb_sync(lb_get_pd_fb(handler));
-		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+		if (conf_frame_drop_for_resizing() && handler->size_changed_cb) {
+			/* Just for skipping the update event callback call, After request to resize buffer, update event will be discarded */
+			DbgPrint("Discards obsoloted update event\n");
 		} else {
-			lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
+			(void)lb_set_pd_fb(handler, fbfile);
+
+			 if (!conf_manual_sync()) {
+				 ret = fb_sync(lb_get_pd_fb(handler));
+				 if (ret < 0) {
+					 ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+				 } else {
+					 lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
+				 }
+			}
 		}
 	}
 
@@ -811,7 +829,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			 * Update it too.
 			 */
 			if (lb_get_lb_fb(handler)) {
-				lb_set_lb_fb(handler, fbfile);
+				(void)lb_set_lb_fb(handler, fbfile);
 
 				ret = fb_sync(lb_get_lb_fb(handler));
 				if (ret < 0) {
@@ -1079,7 +1097,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		if (!strlen(lb_fname)) {
 			break;
 		}
-		lb_set_lb_fb(handler, lb_fname);
+		(void)lb_set_lb_fb(handler, lb_fname);
+
 		ret = fb_sync(lb_get_lb_fb(handler));
 		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));

@@ -1413,6 +1413,18 @@ extern int livebox_set_update_mode(struct livebox *handler, int active_update, r
  */
 extern int livebox_is_active_update(struct livebox *handler);
 
+extern void livebox_set_manual_sync(int flag);
+
+extern int livebox_manual_sync(void);
+
+extern void livebox_set_frame_drop_for_resizing(int flag);
+
+extern int livebox_frame_drop_for_resizing(void);
+
+extern int livebox_sync_pd_fb(struct livebox *handler);
+
+extern int livebox_sync_lb_fb(struct livebox *handler);
+
 /*!
  * \}
  */
