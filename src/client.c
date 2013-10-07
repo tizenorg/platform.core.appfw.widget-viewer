@@ -703,12 +703,14 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 			(void)lb_set_pd_fb(handler, fbfile);
 
 			 if (!conf_manual_sync()) {
-				 ret = fb_sync(lb_get_pd_fb(handler));
-				 if (ret < 0) {
-					 ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, util_basename(util_uri_to_path(id)), ret);
-				 } else {
-					 lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
-				 }
+				ret = fb_sync(lb_get_pd_fb(handler));
+				if (ret < 0) {
+					ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+				} else {
+					lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
+				}
+			} else {
+				lb_invoke_event_handler(handler, LB_EVENT_PD_UPDATED);
 			}
 		}
 	}
