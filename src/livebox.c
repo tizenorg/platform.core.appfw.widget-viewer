@@ -38,6 +38,7 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "critical_log.h"
+#include "conf.h"
 
 #define EAPI __attribute__((visibility("default")))
 #define MINIMUM_EVENT	s_info.event_filter
@@ -2827,8 +2828,8 @@ void lb_set_id(struct livebox *handler, const char *id)
 void lb_set_filename(struct livebox *handler, const char *filename)
 {
 	if (handler->filename) {
-		if (unlink(handler->filename) < 0) {
-			ErrPrint("unlink: %s\n", strerror(errno));
+		if (handler->filename[0] && unlink(handler->filename) < 0) {
+			ErrPrint("unlink: %s (%s)\n", strerror(errno), handler->filename);
 		}
 
 		free(handler->filename);
@@ -2836,7 +2837,7 @@ void lb_set_filename(struct livebox *handler, const char *filename)
 
 	handler->filename = strdup(filename);
 	if (!handler->filename) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %s (%s)\n", strerror(errno), handler->filename);
 		return;
 	}
 }
@@ -3138,6 +3139,36 @@ EAPI int livebox_client_resumed(void)
 	}
 
 	return master_rpc_request_only(NULL, packet);
+}
+
+EAPI void livebox_set_manual_sync(int flag)
+{
+	conf_set_manual_sync(flag);
+}
+
+EAPI int livebox_manual_sync(void)
+{
+	return conf_manual_sync();
+}
+
+EAPI void livebox_set_frame_drop_for_resizing(int flag)
+{
+	conf_set_frame_drop_for_resizing(flag);
+}
+
+EAPI int livebox_frame_drop_for_resizing(void)
+{
+	return conf_frame_drop_for_resizing();
+}
+
+EAPI int livebox_sync_lb_fb(struct livebox *handler)
+{
+	return fb_sync(lb_get_lb_fb(handler));
+}
+
+EAPI int livebox_sync_pd_fb(struct livebox *handler)
+{
+	return fb_sync(lb_get_pd_fb(handler));
 }
 
 /* End of a file */

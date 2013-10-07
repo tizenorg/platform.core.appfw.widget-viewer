@@ -30,4 +30,9 @@
 #define VCONFKEY_MASTER_CLIENT_ADDR "db/data-provider-master/serveraddr"
 #endif
 
+extern void conf_set_manual_sync(int flag);
+extern int conf_manual_sync(void);
+extern void conf_set_frame_drop_for_resizing(int flag);
+extern int conf_frame_drop_for_resizing(void);
+
 /* End of a file */

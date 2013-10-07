@@ -106,6 +106,11 @@ int fb_fini(void)
 	return 0;
 }
 
+static inline void update_fb_size(struct fb_info *info)
+{
+	info->bufsz = info->w * info->h * s_info.depth;
+}
+
 static inline int sync_for_file(struct fb_info *info)
 {
 	int fd;
@@ -208,6 +213,12 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 	}
 
 	if (info->bufsz == 0) {
+		/*!
+		 * If the client does not acquire the buffer,
+		 * This function will do nothing.
+		 * It will work only if the buffer is acquired.
+		 * To sync its contents.
+		 */
 		DbgPrint("Nothing can be sync\n");
 		return LB_STATUS_SUCCESS;
 	}
@@ -386,7 +397,8 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 	if (!info->buffer) {
 		if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-			info->bufsz = info->w * info->h * s_info.depth;
+			update_fb_size(info);
+
 			buffer = calloc(1, sizeof(*buffer) + info->bufsz);
 			if (!buffer) {
 				CRITICAL_LOG("Heap: %s\n", strerror(errno));
@@ -406,7 +418,8 @@ void *fb_acquire_buffer(struct fb_info *info)
 			 */
 			sync_for_pixmap(info);
 		} else if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
-			info->bufsz = info->w * info->h * s_info.depth;
+			update_fb_size(info);
+
 			buffer = calloc(1, sizeof(*buffer) + info->bufsz);
 			if (!buffer) {
 				CRITICAL_LOG("Heap: %s\n", strerror(errno));
@@ -573,7 +586,8 @@ int fb_size(struct fb_info *info)
 		return 0;
 	}
 
-	info->bufsz = info->w * info->h * s_info.depth;
+	update_fb_size(info);
+
 	return info->bufsz;
 }
 
