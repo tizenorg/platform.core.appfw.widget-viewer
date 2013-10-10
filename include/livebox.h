@@ -226,6 +226,8 @@ struct livebox_script_operators {
 	int (*update_drag)(struct livebox *handle, const char *id, const char *part, double dx, double dy); /*!< Update drag info */
 	int (*update_info_size)(struct livebox *handle, const char *id, int w, int h); /*!< Update content size */
 	int (*update_info_category)(struct livebox *handle, const char *id, const char *category); /*!< Update content category info */
+	int (*update_access)(struct livebox *handle, const char *id, const char *part, const char *text, const char *option); /*!< Update access information */
+	int (*operate_access)(struct livebox *handle, const char *id, const char *part, const char *operation, const char *option); /*!< Update access operation */
 };
 
 /*!
@@ -1413,16 +1415,76 @@ extern int livebox_set_update_mode(struct livebox *handler, int active_update, r
  */
 extern int livebox_is_active_update(struct livebox *handler);
 
+/*!
+ * \brief Use the manual sync for S/W buffer
+ * \details N/A
+ * \remarks N/A
+ * param[in] flag
+ * \return void
+ * \see livebox_manual_sync
+ * \see livebox_sync_pd_fb
+ * \see livebox_sync_lb_fb
+ */
 extern void livebox_set_manual_sync(int flag);
 
+/*!
+ * \brief Get current mode
+ * \details N/A
+ * \remarks N/A
+ * \return int
+ * \retval 0 if auto sync
+ * \retval 1 if manual sync
+ * \see livebox_set_manual_sync
+ * \see livebox_sync_pd_fb
+ * \see livebox_sync_lb_fb
+ */
 extern int livebox_manual_sync(void);
 
+/*!
+ * \brief Use the frame drop while resizing contents
+ * \details N/A
+ * \remarks N/A
+ * \param[in] flag
+ * \return void
+ * \see livebox_frame_drop_for_resizing
+ */
 extern void livebox_set_frame_drop_for_resizing(int flag);
 
+/*!
+ * \brief Get current mode
+ * \details N/A
+ * \remarks N/A
+ * \return int
+ * \retval 0 if disabled
+ * \retval 1 if enabled
+ * \see livebox_set_frame_drop_for_resizing
+ */
 extern int livebox_frame_drop_for_resizing(void);
 
+/*!
+ * \brief Sync manually
+ * \details N/A
+ * \remarks N/A
+ * param[in] handler
+ * \return void
+ * \retval 0 if success
+ * \see livebox_set_manual_sync
+ * \see livebox_manual_sync
+ * \see livebox_sync_lb_fb
+ */
 extern int livebox_sync_pd_fb(struct livebox *handler);
 
+/*!
+ * \brief Sync manually
+ * \details N/A
+ * \remarks N/A
+ * param[in] handler
+ * \return void
+ * \retval 0 if success
+ * \see livebox_set_manual_sync
+ * \see livebox_manual_sync
+ * \see livebox_sync_pd_fb
+ */
 extern int livebox_sync_lb_fb(struct livebox *handler);
 
 /*!

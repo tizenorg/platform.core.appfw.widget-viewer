@@ -37,6 +37,8 @@
 #define TYPE_SIGNAL "signal"
 #define TYPE_INFO "info"
 #define TYPE_DRAG "drag"
+#define TYPE_ACCESS "access"
+#define TYPE_OPERATE_ACCESS "access,operation"
 
 #define INFO_SIZE "size"
 #define INFO_CATEGORY "category"
@@ -182,6 +184,40 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
+static int update_access(struct livebox *handle, struct block *block, int is_pd)
+{
+	struct livebox_script_operators *ops;
+
+	if (!block) {
+		ErrPrint("Invalid argument\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
+	if (ops->update_access) {
+		ops->update_access(handle, block->id, block->part, block->data, block->option);
+	}
+
+	return 0;
+}
+
+static int operate_access(struct livebox *handle, struct block *block, int is_pd)
+{
+	struct livebox_script_operators *ops;
+
+	if (!block) {
+		ErrPrint("Invalid argument\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	ops = is_pd ? &handle->pd.data.ops : &handle->lb.data.ops;
+	if (ops->operate_access) {
+		ops->operate_access(handle, block->id, block->part, block->data, block->option);
+	}
+
+	return 0;
+}
+
 static inline int update_begin(struct livebox *handle, int is_pd)
 {
 	struct livebox_script_operators *ops;
@@ -267,6 +303,14 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 		{
 			.type = TYPE_INFO,
 			.handler = update_info,
+		},
+		{
+			.type = TYPE_ACCESS,
+			.handler = update_access,
+		},
+		{
+			.type = TYPE_OPERATE_ACCESS,
+			.handler = operate_access,
 		},
 		{
 			.type = NULL,
