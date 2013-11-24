@@ -161,8 +161,9 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	const char *id;
 	double timestamp;
 	struct livebox *handler;
+	int reason;
 
-	if (packet_get(packet, "ssd", &pkgname, &id, &timestamp) != 3) {
+	if (packet_get(packet, "ssdi", &pkgname, &id, &timestamp, &reason) != 4) {
 		ErrPrint("Invalid arguemnt\n");
 		goto out;
 	}
@@ -219,7 +220,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		handler->created_cb = NULL;
 		handler->created_cbdata = NULL;
 
-		cb(handler, LB_STATUS_ERROR_CANCEL, cbdata);
+		cb(handler, reason, cbdata);
 	} else if (handler->id) {
 		if (handler->deleted_cb) {
 			ret_cb_t cb;
@@ -231,7 +232,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			handler->deleted_cb = NULL;
 			handler->deleted_cbdata = NULL;
 
-			cb(handler, LB_STATUS_SUCCESS, cbdata);
+			cb(handler, reason, cbdata);
 		} else {
 			lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		}

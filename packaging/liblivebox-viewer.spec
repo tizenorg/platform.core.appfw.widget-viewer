@@ -1,10 +1,11 @@
 Name: liblivebox-viewer
 Summary: Library for developing the application.
-Version: 0.14.6
+Version: 0.14.7
 Release: 1
 Group: HomeTF/Livebox
-License: Flora License
+License: Flora
 Source0: %{name}-%{version}.tar.gz
+Source1001: %{name}.manifest
 BuildRequires: cmake, gettext-tools, coreutils
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(aul)
@@ -31,6 +32,7 @@ Livebox viewer development library (dev)
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 %build
 %if 0%{?tizen_build_binary_release_type_eng}
@@ -49,12 +51,13 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %post
 
 %files -n liblivebox-viewer
-%manifest liblivebox-viewer.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/*.so*
 %{_datarootdir}/license/*
 
 %files devel
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/livebox-viewer/livebox.h
 %{_libdir}/pkgconfig/*.pc
