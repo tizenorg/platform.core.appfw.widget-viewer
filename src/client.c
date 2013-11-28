@@ -220,6 +220,9 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		handler->created_cb = NULL;
 		handler->created_cbdata = NULL;
 
+		if (reason == LB_STATUS_SUCCESS) {
+			reason = LB_STATUS_ERROR_CANCEL;
+		}
 		cb(handler, reason, cbdata);
 	} else if (handler->id) {
 		if (handler->deleted_cb) {
