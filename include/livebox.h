@@ -1221,6 +1221,7 @@ extern int livebox_unsubscribe_group(const char *cluster, const char *category);
  * \remarks N/A
  * \param[in] cluster Cluster ID
  * \param[in] category Sub-cluster ID
+ * \param[in] force 1 if the boxes should be updated even if they are paused
  * \return int
  * \retval LB_STATUS_ERROR_INVALID
  * \retval LB_STATUS_ERROR_FAULT
@@ -1229,13 +1230,14 @@ extern int livebox_unsubscribe_group(const char *cluster, const char *category);
  * \post N/A
  * \see N/A
  */
-extern int livebox_refresh_group(const char *cluster, const char *category);
+extern int livebox_refresh_group(const char *cluster, const char *category, int force);
 
 /*!
  * \brief Refresh a livebox
  * \details N/A
  * \remarks N/A
  * \param[in] handler
+ * \param[in] force 1 if the box should be updated even if it is paused
  * \return int
  * \retval LB_STATUS_ERROR_INVALID
  * \retval LB_STATUS_ERROR_FAULT
@@ -1244,7 +1246,7 @@ extern int livebox_refresh_group(const char *cluster, const char *category);
  * \post N/A
  * \see N/A
  */
-extern int livebox_refresh(struct livebox *handler);
+extern int livebox_refresh(struct livebox *handler, int force);
 
 /*!
  * \brief Pixmap Id of a livebox content
