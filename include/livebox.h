@@ -52,8 +52,12 @@ enum content_event_type {
 	CONTENT_EVENT_MOUSE_SET		= 0x00000020, /*!< LB mouse set auto event for livebox */
 	CONTENT_EVENT_MOUSE_UNSET	= 0x00000040, /*!< LB mouse unset auto event for livebox */
 
-	CONTENT_EVENT_KEY_DOWN		= 0x00100000, /*!< LB key press */
-	CONTENT_EVENT_KEY_UP		= 0x00200000, /*!< LB key release */
+	CONTENT_EVENT_KEY_DOWN		= 0x00000001, /*!< LB key press */
+	CONTENT_EVENT_KEY_UP		= 0x00000002, /*!< LB key release */
+	CONTENT_EVENT_KEY_FOCUS_IN	= 0x00000008, /*!< LB key focused in */
+	CONTENT_EVENT_KEY_FOCUS_OUT	= 0x00000010, /*!< LB key focused out */
+	CONTENT_EVENT_KEY_SET		= 0x00000020,
+	CONTENT_EVENT_KEY_UNSET		= 0x00000040,
 
 	CONTENT_EVENT_KEY_MASK		= 0x80000000,
 	CONTENT_EVENT_MOUSE_MASK	= 0x20000000,
@@ -78,9 +82,13 @@ enum content_event_type {
 
 	LB_KEY_DOWN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN, /*!< Key down on the livebox */
 	LB_KEY_UP			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP, /*!< Key up on the livebox */
+	LB_KEY_SET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_SET,
+	LB_KEY_UNSET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UNSET,
 
 	PD_KEY_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN, /*!< Key down on the livebox */
 	PD_KEY_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP, /*!< Key up on the livebox */
+	PD_KEY_SET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_SET,
+	PD_KEY_UNSET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UNSET,
 
 	CONTENT_EVENT_MAX		= 0xFFFFFFFF
 };
@@ -902,7 +910,7 @@ extern int livebox_pdfb_bufsz(struct livebox *handler);
 /*!
  * \brief Send the content event (for buffer type) to provider(livebox)
  * \details N/A
- * \remarks N/A
+ * \remarks DEPRECATED
  * \param[in] handler
  * \param[in] type
  * \param[in] x
@@ -917,6 +925,25 @@ extern int livebox_pdfb_bufsz(struct livebox *handler);
  * \see livebox_access_event
  */
 extern int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y);
+
+/*!
+ * \brief Send the content event (for buffer type) to provider(livebox)
+ * \details N/A
+ * \remarks N/A
+ * \param[in] handler
+ * \param[in] type
+ * \param[in] x
+ * \param[in] y
+ * \return int
+ * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_ERROR_BUSY
+ * \retval LB_STATUS_ERROR_FAULT
+ * \retval LB_STATUS_SUCCESS
+ * \pre N/A
+ * \post N/A
+ * \see livebox_content_event
+ */
+extern int livebox_mouse_event(struct livebox *handler, enum content_event_type type, double x, double y);
 
 /*!
  * \brief Send the access event(for buffer type) to provider(livebox).
@@ -935,9 +962,32 @@ extern int livebox_content_event(struct livebox *handler, enum content_event_typ
  * \retval LB_STATUS_SUCCESS
  * \pre N/A
  * \post N/A
- * \see livebox_content_event
+ * \see livebox_mouse_event
+ * \see livebox_key_event
  */
 extern int livebox_access_event(struct livebox *handler, enum access_event_type type, double x, double y, ret_cb_t cb, void *data);
+
+/*!
+ * \brief Send the key event(for buffer type) to provider(livebox).
+ * \details N/A
+ * \remarks N/A
+ * \param[in] handler
+ * \param[in] type
+ * \param[in] x
+ * \param[in] y
+ * \param[in] cb
+ * \param[in] data
+ * \return int
+ * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_ERROR_BUSY
+ * \retval LB_STATUS_ERROR_FAULT
+ * \retval LB_STATUS_SUCCESS
+ * \pre N/A
+ * \post N/A
+ * \see livebox_mouse_event
+ * \see livebox_access_event
+ */
+extern int livebox_key_event(struct livebox *handler, enum content_event_type type, unsigned int keycode, ret_cb_t cb, void *data);
 
 /*!
  * \brief Do pin up or not.
