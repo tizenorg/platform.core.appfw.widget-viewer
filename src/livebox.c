@@ -128,6 +128,11 @@ static inline void default_access_event_cb(struct livebox *handler, int ret, voi
 	DbgPrint("Default access event handler: %d\n", ret);
 }
 
+static inline void default_key_event_cb(struct livebox *handler, int ret, void *data)
+{
+	DbgPrint("Default key event handler: %d\n", ret);
+}
+
 static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_cb_t cb, void *data)
 {
 	struct cb_info *info;
@@ -564,6 +569,32 @@ errout:
 	handler->pinup_cbdata = NULL;
 }
 
+static void key_ret_cb(struct livebox *handler, const struct packet *result, void *data)
+{
+	int ret;
+
+	if (!result) {
+		ret = LB_STATUS_ERROR_FAULT;
+		return;
+	}
+
+	if (packet_get(result, "i", &ret) != 1) {
+		ret = LB_STATUS_ERROR_INVALID;
+		return;
+	}
+
+	if (ret != LB_STATUS_SUCCESS) {
+		goto errout;
+	}
+
+	return;
+errout:
+	handler->key_event_cb(handler, ret, handler->key_event_cbdata);
+	handler->key_event_cb = NULL;
+	handler->key_event_cbdata = NULL;
+	return;
+}
+
 static void access_ret_cb(struct livebox *handler, const struct packet *result, void *data)
 {
 	int ret;
@@ -605,6 +636,21 @@ static int send_access_event(struct livebox *handler, const char *event, int x, 
 	}
 
 	return master_rpc_async_request(handler, packet, 0, access_ret_cb, NULL);
+}
+
+static int send_key_event(struct livebox *handler, const char *event, unsigned int keycode)
+{
+	struct packet *packet;
+	double timestamp;
+
+	timestamp = util_timestamp();
+	packet = packet_create(event, "ssdi", handler->pkgname, handler->id, timestamp, keycode);
+	if (!packet) {
+		ErrPrint("Failed to build packet\n");
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	return master_rpc_async_request(handler, packet, 0, key_ret_cb, NULL);
 }
 
 static int send_mouse_event(struct livebox *handler, const char *event, int x, int y)
@@ -1474,6 +1520,11 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 
 EAPI int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y)
 {
+	return livebox_mouse_event(handler, type, x, y);
+}
+
+EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type type, double x, double y)
+{
 	int w = 1;
 	int h = 1;
 	char cmd[32] = { '\0', };
@@ -1489,6 +1540,11 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 		return LB_STATUS_ERROR_INVALID;
 	}
 
+	if (!(type & CONTENT_EVENT_MOUSE_MASK)) {
+		ErrPrint("Invalid content event is used\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
 	if (type & CONTENT_EVENT_PD_MASK) {
 		int flag = 1;
 
@@ -1497,19 +1553,17 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 			return LB_STATUS_ERROR_INVALID;
 		}
 
-		if (type & CONTENT_EVENT_MOUSE_MASK) {
-			if (!handler->pd.data.fb) {
-				ErrPrint("Handler is not valid\n");
-				return LB_STATUS_ERROR_INVALID;
-			}
+		if (!handler->pd.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
 
-			if (type & CONTENT_EVENT_MOUSE_MOVE) {
-				if (fabs(x - handler->pd.x) < MINIMUM_EVENT && fabs(y - handler->pd.y) < MINIMUM_EVENT) {
-					return LB_STATUS_ERROR_BUSY;
-				}
-			} else if (type & CONTENT_EVENT_MOUSE_SET) {
-				flag = 0;
+		if (type & CONTENT_EVENT_MOUSE_MOVE) {
+			if (fabs(x - handler->pd.x) < MINIMUM_EVENT && fabs(y - handler->pd.y) < MINIMUM_EVENT) {
+				return LB_STATUS_ERROR_BUSY;
 			}
+		} else if (type & CONTENT_EVENT_MOUSE_SET) {
+			flag = 0;
 		}
 
 		if (flag) {
@@ -1523,23 +1577,21 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 	} else if (type & CONTENT_EVENT_LB_MASK) {
 		int flag = 1;
 
-		if (type & CONTENT_EVENT_MOUSE_MASK) {
-			if (!handler->lb.mouse_event) {
-				return LB_STATUS_ERROR_INVALID;
-			}
+		if (!handler->lb.mouse_event) {
+			return LB_STATUS_ERROR_INVALID;
+		}
 
-			if (!handler->lb.data.fb) {
-				ErrPrint("Handler is not valid\n");
-				return LB_STATUS_ERROR_INVALID;
-			}
+		if (!handler->lb.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
 
-			if (type & CONTENT_EVENT_MOUSE_MOVE) {
-				if (fabs(x - handler->lb.x) < MINIMUM_EVENT && fabs(y - handler->lb.y) < MINIMUM_EVENT) {
-					return LB_STATUS_ERROR_BUSY;
-				}
-			} else if (type & CONTENT_EVENT_MOUSE_SET) {
-				flag = 0;
+		if (type & CONTENT_EVENT_MOUSE_MOVE) {
+			if (fabs(x - handler->lb.x) < MINIMUM_EVENT && fabs(y - handler->lb.y) < MINIMUM_EVENT) {
+				return LB_STATUS_ERROR_BUSY;
 			}
+		} else if (type & CONTENT_EVENT_MOUSE_SET) {
+			flag = 0;
 		}
 
 		if (flag) {
@@ -1580,18 +1632,126 @@ EAPI int livebox_content_event(struct livebox *handler, enum content_event_type 
 	case CONTENT_EVENT_MOUSE_UNSET | CONTENT_EVENT_MOUSE_MASK:
 		strcpy(ptr, "_mouse_unset");
 		break;
-	case CONTENT_EVENT_KEY_DOWN | CONTENT_EVENT_KEY_MASK:
-		strcpy(ptr, "_key_down");
-		break;
-	case CONTENT_EVENT_KEY_UP | CONTENT_EVENT_KEY_MASK:
-		strcpy(ptr, "_key_up");
-		break;
 	default:
 		ErrPrint("Invalid event type\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
 
 	return send_mouse_event(handler, cmd, x * w, y * h);
+}
+
+EAPI int livebox_key_event(struct livebox *handler, enum content_event_type type, unsigned int keycode, ret_cb_t cb, void *data)
+{
+	char cmd[32] = { '\0', };
+	char *ptr = cmd;
+	int ret;
+
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->state != CREATE || !handler->id) {
+		ErrPrint("Handler is not valid\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (!(type & CONTENT_EVENT_KEY_MASK)) {
+		ErrPrint("Invalid key event is used\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (type & CONTENT_EVENT_PD_MASK) {
+		if (!handler->is_pd_created) {
+			ErrPrint("PD is not created\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (!handler->pd.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (type & CONTENT_EVENT_KEY_DOWN) {
+			/*!
+			 * \TODO
+			 * filtering the reproduced events if it is too fast
+			 */
+		} else if (type & CONTENT_EVENT_KEY_SET) {
+			/*!
+			 * \TODO
+			 * What can I do for this case?
+			 */
+		}
+
+		*ptr++ = 'p';
+		*ptr++ = 'd';
+	} else if (type & CONTENT_EVENT_LB_MASK) {
+		if (!handler->lb.mouse_event) {
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (!handler->lb.data.fb) {
+			ErrPrint("Handler is not valid\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (type & CONTENT_EVENT_KEY_DOWN) {
+			/*!
+			 * \TODO
+			 * filtering the reproduced events if it is too fast
+			 */
+		} else if (type & CONTENT_EVENT_KEY_SET) {
+			/*!
+			 * What can I do for this case?
+			 */
+		}
+
+		*ptr++ = 'l';
+		*ptr++ = 'b';
+	} else {
+		ErrPrint("Invalid event type\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	/*!
+	 * Must be short than 29 bytes.
+	 */
+	switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
+	case CONTENT_EVENT_KEY_FOCUS_IN | CONTENT_EVENT_KEY_MASK:
+		strcpy(ptr, "_key_focus_in");
+		break;
+	case CONTENT_EVENT_KEY_FOCUS_OUT | CONTENT_EVENT_KEY_MASK:
+		strcpy(ptr, "_key_focus_out");
+		break;
+	case CONTENT_EVENT_KEY_UP | CONTENT_EVENT_KEY_MASK:
+		strcpy(ptr, "_key_up");
+		break;
+	case CONTENT_EVENT_KEY_DOWN | CONTENT_EVENT_KEY_MASK:
+		strcpy(ptr, "_key_down");
+		break;
+	case CONTENT_EVENT_KEY_SET | CONTENT_EVENT_KEY_MASK:
+		strcpy(ptr, "_key_set");
+		break;
+	case CONTENT_EVENT_KEY_UNSET | CONTENT_EVENT_KEY_MASK:
+		strcpy(ptr, "_key_unset");
+		break;
+	default:
+		ErrPrint("Invalid event type\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (!cb) {
+		cb = default_key_event_cb;
+	}
+
+	ret = send_key_event(handler, cmd, keycode);
+	if (ret == LB_STATUS_SUCCESS) {
+		handler->key_event_cb = cb;
+		handler->key_event_cbdata = data;
+	}
+
+	return ret;
 }
 
 EAPI const char *livebox_filename(struct livebox *handler)
@@ -3041,6 +3201,12 @@ struct livebox *lb_unref(struct livebox *handler)
 		handler->access_event_cb(handler, LB_ACCESS_STATUS_ERROR, handler->access_event_cbdata);
 		handler->access_event_cb = NULL;
 		handler->access_event_cbdata = NULL;
+	}
+
+	if (handler->key_event_cb) {
+		handler->key_event_cb(handler, LB_KEY_STATUS_ERROR, handler->key_event_cbdata);
+		handler->key_event_cb = NULL;
+		handler->key_event_cbdata = NULL;
 	}
 
 	if (handler->filename) {
