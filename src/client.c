@@ -423,6 +423,37 @@ out:
 	return NULL;
 }
 
+static struct packet *master_request_close_pd(pid_t pid, int handle, const struct packet *packet)
+{
+	struct livebox *handler;
+	const char *pkgname;
+	const char *id;
+	int ret;
+	int reason;
+
+	ret = packet_get(packet, "ssi", &pkgname, &id, &reason);
+	if (ret != 3) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	handler = lb_find_livebox(pkgname, id);
+	if (!handler) {
+		ErrPrint("Instance[%s] is not exists\n", id);
+		goto out;
+	}
+
+	if (handler->state != CREATE) {
+		ErrPrint("[%s] is not created\n", id);
+		goto out;
+	}
+
+	DbgPrint("Reason: %d\n", reason);
+	lb_invoke_event_handler(handler, LB_EVENT_REQUEST_CLOSE_PD);
+out:
+	return NULL;
+}
+
 static struct packet *master_access_status(pid_t pid, int handle, const struct packet *packet)
 {
 	struct livebox *handler;
@@ -1322,6 +1353,10 @@ static struct method s_table[] = {
 	{
 		.cmd = "key_status",
 		.handler = master_key_status,
+	},
+	{
+		.cmd = "close_pd",
+		.handler = master_request_close_pd,
 	},
 
 	{
