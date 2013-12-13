@@ -37,7 +37,6 @@
 #include "util.h"
 #include "master_rpc.h"
 #include "client.h"
-#include "critical_log.h"
 #include "conf.h"
 
 #define EAPI __attribute__((visibility("default")))
@@ -139,7 +138,7 @@ static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_
 
 	info = malloc(sizeof(*info));
 	if (!info) {
-		CRITICAL_LOG("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %s\n", strerror(errno));
 		return NULL;
 	}
 
@@ -678,7 +677,6 @@ static void initialize_livebox(void *disp)
 		__file_log_fp = fdopen(1, "w+t");
 	}
 #endif
-	critical_log_init("viewer");
 	livebox_service_init();
 	fb_init(disp);
 
@@ -745,7 +743,6 @@ EAPI int livebox_fini(void)
 	client_fini();
 	fb_fini();
 	livebox_service_fini();
-	critical_log_fini();
 	return LB_STATUS_SUCCESS;
 }
 
@@ -858,6 +855,7 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 	handler->timestamp = util_timestamp();
 	handler->is_user = 1;
 	handler->visible = LB_SHOW;
+	handler->delete_type = LB_DELETE_PERMANENTLY;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
@@ -954,7 +952,7 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 	return ret;
 }
 
-EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
+EAPI int livebox_del_NEW(struct livebox *handler, int type, ret_cb_t cb, void *data)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -967,6 +965,7 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 	}
 
 	handler->state = DELETE;
+	handler->delete_type = type;
 
 	if (!handler->id) {
 		/*!
@@ -988,7 +987,45 @@ EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
 		cb = default_delete_cb;
 	}
 
-	return lb_send_delete(handler, cb, data);
+	return lb_send_delete(handler, type, cb, data);
+}
+
+EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
+{
+	if (!handler) {
+		ErrPrint("Handler is NIL\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	if (handler->state != CREATE) {
+		ErrPrint("Handler is already deleted\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	handler->state = DELETE;
+	handler->delete_type = LB_DELETE_PERMANENTLY;
+
+	if (!handler->id) {
+		/*!
+		 * \note
+		 * The id is not determined yet.
+		 * It means a user didn't receive created event yet.
+		 * Then just stop to delete procedure from here.
+		 * Because the "created" event handler will release this.
+		 * By the way, if the user adds any callback for getting return status of this,
+		 * call it at here.
+		 */
+		if (cb) {
+			cb(handler, 0, data);
+		}
+		return LB_STATUS_SUCCESS;
+	}
+
+	if (!cb) {
+		cb = default_delete_cb;
+	}
+
+	return lb_send_delete(handler, LB_DELETE_PERMANENTLY, cb, data);
 }
 
 EAPI int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data)
@@ -1001,7 +1038,7 @@ EAPI int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char
 
 	info = malloc(sizeof(*info));
 	if (!info) {
-		CRITICAL_LOG("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %s\n", strerror(errno));
 		return LB_STATUS_ERROR_MEMORY;
 	}
 
@@ -1043,7 +1080,7 @@ EAPI int livebox_set_event_handler(int (*cb)(struct livebox *, enum livebox_even
 
 	info = malloc(sizeof(*info));
 	if (!info) {
-		CRITICAL_LOG("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %s\n", strerror(errno));
 		return LB_STATUS_ERROR_MEMORY;
 	}
 
@@ -1266,7 +1303,7 @@ EAPI int livebox_pd_is_created(struct livebox *handler)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
+	if (handler->state != CREATE || !handler->pd.data.fb || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
@@ -1289,7 +1326,7 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
+	if (handler->state != CREATE || !handler->pd.data.fb || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
@@ -1333,7 +1370,7 @@ EAPI int livebox_move_pd(struct livebox *handler, double x, double y)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
+	if (handler->state != CREATE || !handler->pd.data.fb || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
@@ -1394,7 +1431,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->pd.data.fb || handler->state != CREATE || !handler->id) {
+	if (handler->state != CREATE || !handler->pd.data.fb || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
@@ -2581,7 +2618,7 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if ((handler->lb.type != _LB_TYPE_TEXT && handler->pd.type != _PD_TYPE_TEXT) || handler->state != CREATE || !handler->id) {
+	if (handler->state != CREATE || (handler->lb.type != _LB_TYPE_TEXT && handler->pd.type != _PD_TYPE_TEXT) || !handler->id) {
 		ErrPrint("Handler is not valid\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
@@ -2756,7 +2793,7 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 	if (cluster) {
 		pc = strdup(cluster);
 		if (!pc) {
-			CRITICAL_LOG("Heap: %s (cluster: %s)\n", strerror(errno), cluster);
+			ErrPrint("Heap: %s (cluster: %s)\n", strerror(errno), cluster);
 			return LB_STATUS_ERROR_MEMORY;
 		}
 	}
@@ -2764,7 +2801,7 @@ int lb_set_group(struct livebox *handler, const char *cluster, const char *categ
 	if (category) {
 		ps = strdup(category);
 		if (!ps) {
-			CRITICAL_LOG("Heap: %s (category: %s)\n", strerror(errno), category);
+			ErrPrint("Heap: %s (category: %s)\n", strerror(errno), category);
 			free(pc);
 			return LB_STATUS_ERROR_MEMORY;
 		}
@@ -2895,6 +2932,7 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *id, double times
 	handler->pd.type = _PD_TYPE_SCRIPT;
 	handler->state = CREATE;
 	handler->visible = LB_SHOW;
+	handler->delete_type = LB_DELETE_PERMANENTLY;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 	lb_ref(handler);
@@ -2925,7 +2963,7 @@ int lb_set_content(struct livebox *handler, const char *content)
 	if (content) {
 		handler->content = strdup(content);
 		if (!handler->content) {
-			CRITICAL_LOG("Heap: %s (content: %s)\n", strerror(errno), content);
+			ErrPrint("Heap: %s (content: %s)\n", strerror(errno), content);
 			return LB_STATUS_ERROR_MEMORY;
 		}
 	}
@@ -2943,7 +2981,7 @@ int lb_set_title(struct livebox *handler, const char *title)
 	if (title) {
 		handler->title = strdup(title);
 		if (!handler->title) {
-			CRITICAL_LOG("Heap: %s (title: %s)\n", strerror(errno), title);
+			ErrPrint("Heap: %s (title: %s)\n", strerror(errno), title);
 			return LB_STATUS_ERROR_MEMORY;
 		}
 	}
@@ -3237,7 +3275,7 @@ struct livebox *lb_unref(struct livebox *handler)
 	return NULL;
 }
 
-int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
+int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
@@ -3253,7 +3291,7 @@ int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data)
 		return LB_STATUS_ERROR_BUSY;
 	}
 
-	packet = packet_create("delete", "ss", handler->pkgname, handler->id);
+	packet = packet_create("delete", "ssi", handler->pkgname, handler->id, type);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		if (cb) {

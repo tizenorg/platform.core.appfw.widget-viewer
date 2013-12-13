@@ -54,7 +54,6 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/desc_parser.c
 	src/master_rpc.c
 	src/client.c
-	src/critical_log.c
 	src/file_service.c
 	src/conf.c
 )

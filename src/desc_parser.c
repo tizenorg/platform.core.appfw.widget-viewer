@@ -29,7 +29,6 @@
 #include "desc_parser.h"
 #include "dlist.h"
 #include "util.h"
-#include "critical_log.h"
 
 #define TYPE_TEXT "text"
 #define TYPE_IMAGE "image"
@@ -360,7 +359,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 
 			block = calloc(1, sizeof(*block));
 			if (!block) {
-				CRITICAL_LOG("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %s\n", strerror(errno));
 				update_end(handle, is_pd);
 				if (fclose(fp) != 0) {
 					ErrPrint("fclose: %s\n", strerror(errno));
@@ -482,7 +481,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				block->type_len += 256;
 				block->type = realloc(block->type, block->type_len);
 				if (!block->type) {
-					CRITICAL_LOG("Heap: %s\n", strerror(errno));
+					ErrPrint("Heap: %s\n", strerror(errno));
 					goto errout;
 				}
 			}
@@ -504,7 +503,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				block->part_len += 256;
 				block->part = realloc(block->part, block->part_len);
 				if (!block->part) {
-					CRITICAL_LOG("Heap: %s\n", strerror(errno));
+					ErrPrint("Heap: %s\n", strerror(errno));
 					goto errout;
 				}
 			}
@@ -526,7 +525,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				block->data_len += 256;
 				block->data = realloc(block->data, block->data_len);
 				if (!block->data) {
-					CRITICAL_LOG("Heap: %s\n", strerror(errno));
+					ErrPrint("Heap: %s\n", strerror(errno));
 					goto errout;
 				}
 			}
@@ -548,7 +547,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				block->file_len += 256;
 				block->file = realloc(block->file, block->file_len);
 				if (!block->file) {
-					CRITICAL_LOG("Heap: %s\n", strerror(errno));
+					ErrPrint("Heap: %s\n", strerror(errno));
 					goto errout;
 				}
 			}
@@ -570,7 +569,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				block->option_len += 256;
 				block->option = realloc(block->option, block->option_len);
 				if (!block->option) {
-					CRITICAL_LOG("Heap: %s\n", strerror(errno));
+					ErrPrint("Heap: %s\n", strerror(errno));
 					goto errout;
 				}
 			}
@@ -591,7 +590,7 @@ int parse_desc(struct livebox *handle, const char *descfile, int is_pd)
 				block->id_len += 256;
 				block->id = realloc(block->id, block->id_len);
 				if (!block->id) {
-					CRITICAL_LOG("Heap: %s\n", strerror(errno));
+					ErrPrint("Heap: %s\n", strerror(errno));
 					goto errout;
 				}
 			}

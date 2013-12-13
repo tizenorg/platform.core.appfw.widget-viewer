@@ -430,6 +430,7 @@ extern struct livebox *livebox_add_with_size(const char *pkgname, const char *co
  * \see ret_cb_t
  */
 extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
+extern int livebox_del_NEW(struct livebox *handler, int type, ret_cb_t cb, void *data);
 
 /*!
  * \brief Set a livebox events callback

@@ -20,7 +20,7 @@
  */
 #define MAX_LOG_FILE	3
 #define MAX_LOG_LINE	1000
-#define SLAVE_LOG_PATH "/opt/usr/share/live_magazine/log"
+#define SLAVE_LOG_PATH	"/tmp/.dbox.service/log/"
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED	"memory/data-provider-master/started"
