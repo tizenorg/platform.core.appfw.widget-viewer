@@ -31,6 +31,7 @@
 #include <com-core.h>
 #include <com-core_packet.h>
 #include <livebox-errno.h>
+#include <livebox-service.h>
 #include <secure_socket.h>
 
 #include "debug.h"
