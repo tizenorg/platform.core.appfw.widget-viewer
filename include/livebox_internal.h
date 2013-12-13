@@ -43,7 +43,7 @@ extern void lb_set_period(struct livebox *handler, double period);
 extern void lb_set_update_mode(struct livebox *handler, int active_mode);
 extern struct livebox *lb_ref(struct livebox *handler);
 extern struct livebox *lb_unref(struct livebox *handler);
-extern int lb_send_delete(struct livebox *handler, ret_cb_t cb, void *data);
+extern int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *data);
 extern int lb_delete_all(void);
 extern void lb_set_filename(struct livebox *handler, const char *filename);
 
