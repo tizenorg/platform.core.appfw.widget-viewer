@@ -31,6 +31,7 @@
 #include <com-core.h>
 #include <com-core_packet.h>
 #include <livebox-errno.h>
+#include <livebox-service.h>
 #include <secure_socket.h>
 
 #include "debug.h"
@@ -42,7 +43,6 @@
 #include "util.h"
 #include "master_rpc.h"
 #include "conf.h"
-#include "critical_log.h"
 #include "file_service.h"
 
 int errno;
@@ -185,7 +185,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			 * \note
 			 * This is not possible
 			 */
-			CRITICAL_LOG("Already deleted handler (%s - %s)\n", pkgname, id);
+			ErrPrint("Already deleted handler (%s - %s)\n", pkgname, id);
 			return NULL;
 		}
 	}
@@ -1256,7 +1256,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 out:
 	if (ret == 0 && old_state == DELETE) {
-		lb_send_delete(handler, handler->created_cb, handler->created_cbdata);
+		lb_send_delete(handler, handler->delete_type, handler->created_cb, handler->created_cbdata);
 
 		/*!
 		 * \note
