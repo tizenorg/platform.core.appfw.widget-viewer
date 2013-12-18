@@ -46,6 +46,7 @@ extern struct livebox *lb_unref(struct livebox *handler);
 extern int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *data);
 extern int lb_delete_all(void);
 extern void lb_set_filename(struct livebox *handler, const char *filename);
+extern void lb_set_alt_info(struct livebox *handler, const char *icon, const char *name);
 
 enum lb_type { /*!< Must have to be sync with data-provider-master */
 	_LB_TYPE_NONE = 0x0,
@@ -78,6 +79,8 @@ struct livebox {
 	char *content;
 	char *title;
 	char *filename;
+	char *icon;
+	char *name;
 
 	double timestamp;
 

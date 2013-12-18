@@ -3026,8 +3026,10 @@ void lb_set_id(struct livebox *handler, const char *id)
 void lb_set_filename(struct livebox *handler, const char *filename)
 {
 	if (handler->filename) {
-		if (handler->filename[0] && unlink(handler->filename) < 0) {
-			ErrPrint("unlink: %s (%s)\n", strerror(errno), handler->filename);
+		if (handler->lb.type == _LB_TYPE_FILE || handler->lb.type == _LB_TYPE_TEXT) {
+			if (handler->filename[0] && unlink(handler->filename) < 0) {
+				ErrPrint("unlink: %s (%s)\n", strerror(errno), handler->filename);
+			}
 		}
 
 		free(handler->filename);
@@ -3035,9 +3037,40 @@ void lb_set_filename(struct livebox *handler, const char *filename)
 
 	handler->filename = strdup(filename);
 	if (!handler->filename) {
-		ErrPrint("Heap: %s (%s)\n", strerror(errno), handler->filename);
-		return;
+		ErrPrint("Heap: %s\n", strerror(errno));
 	}
+}
+
+void lb_set_alt_info(struct livebox *handler, const char *icon, const char *name)
+{
+	char *_icon = NULL;
+	char *_name = NULL;
+
+	if (icon && strlen(icon)) {
+		_icon = strdup(icon);
+		if (!_icon) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	}
+
+	if (name && strlen(name)) {
+		_name = strdup(name);
+		if (!_name) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	}
+
+	if (handler->icon) {
+		free(handler->icon);
+	}
+
+	handler->icon = _icon;
+
+	if (handler->name) {
+		free(handler->name);
+	}
+
+	handler->name = _name;
 }
 
 int lb_set_lb_fb(struct livebox *handler, const char *filename)
@@ -3260,6 +3293,8 @@ struct livebox *lb_unref(struct livebox *handler)
 	free(handler->pkgname);
 	free(handler->filename);
 	free(handler->lb.auto_launch);
+	free(handler->icon);
+	free(handler->name);
 
 	if (handler->lb.data.fb) {
 		fb_destroy(handler->lb.data.fb);
@@ -3373,6 +3408,25 @@ EAPI int livebox_sync_lb_fb(struct livebox *handler)
 EAPI int livebox_sync_pd_fb(struct livebox *handler)
 {
 	return fb_sync(lb_get_pd_fb(handler));
+}
+
+EAPI const char *livebox_alt_icon(struct livebox *handler)
+{
+	if (!handler || handler->state != CREATE) {
+		ErrPrint("Handler is not valid[%p]\n", handler);
+		return NULL;
+	}
+	return handler->icon;
+}
+
+EAPI const char *livebox_alt_name(struct livebox *handler)
+{
+	if (!handler || handler->state != CREATE) {
+		ErrPrint("Handler is not valid[%p]\n", handler);
+		return NULL;
+	}
+
+	return handler->name;
 }
 
 /* End of a file */
