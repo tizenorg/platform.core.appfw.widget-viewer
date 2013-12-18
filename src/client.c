@@ -539,18 +539,20 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	const char *content;
 	const char *title;
 	const char *safe_file;
+	const char *icon;
+	const char *name;
 	struct livebox *handler;
 	int lb_w;
 	int lb_h;
 	double priority;
 	int ret;
 
-	ret = packet_get(packet, "sssiidsss",
+	ret = packet_get(packet, "sssiidsssss",
 				&pkgname, &id,
 				&fbfile, &lb_w, &lb_h,
 				&priority, &content, &title,
-				&safe_file);
-	if (ret != 9) {
+				&safe_file, &icon, &name);
+	if (ret != 11) {
 		ErrPrint("Invalid argument\n");
 		goto out;
 	}

@@ -1524,7 +1524,7 @@ extern int livebox_frame_drop_for_resizing(void);
  * \brief Sync manually
  * \details N/A
  * \remarks N/A
- * param[in] handler
+ * param[in] handler Livebox handler
  * \return void
  * \retval 0 if success
  * \see livebox_set_manual_sync
@@ -1537,7 +1537,7 @@ extern int livebox_sync_pd_fb(struct livebox *handler);
  * \brief Sync manually
  * \details N/A
  * \remarks N/A
- * param[in] handler
+ * \param[in] handler Livebox handler
  * \return void
  * \retval 0 if success
  * \see livebox_set_manual_sync
@@ -1545,6 +1545,30 @@ extern int livebox_sync_pd_fb(struct livebox *handler);
  * \see livebox_sync_pd_fb
  */
 extern int livebox_sync_lb_fb(struct livebox *handler);
+
+/*!
+ * \brief Getting the alternative icon of given livebox instance.
+ * \details If the box should be represented as a shortcut icon, this function will get the alternative icon.
+ * \remarks N/A
+ * \param[in] handler Livebox handler
+ * \return const char *
+ * \retval address Absolute path of an alternative icon file
+ * \retval NULL Has no icon file
+ * \see livebox_alt_name
+ */
+extern const char *livebox_alt_icon(struct livebox *handler);
+
+/*!
+ * \brief Getting the alternative name of given livebox instance.
+ * \details If the box should be represented as a shortcut name, this function will get the alternative name.
+ * \remarks N/A
+ * \param[in] handler Livebox handler
+ * \return const char *
+ * \retval name Name of a livebox
+ * \retval NULL Has no name
+ * \see livebox_alt_icon
+ */
+extern const char *livebox_alt_name(struct livebox *handler);
 
 /*!
  * \}
