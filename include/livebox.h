@@ -284,6 +284,7 @@ typedef void (*ret_cb_t)(struct livebox *handle, int ret, void *data);
  * \pre N/A
  * \post N/A
  * \see livebox_fini
+ * \see livebox_init_with_options
  */
 extern int livebox_init(void *disp);
 
@@ -296,6 +297,7 @@ extern int livebox_init(void *disp);
  * \param[in] disp
  * \param[in] prevent_overwrite
  * \param[in] event_filter
+ * \param[in] use_thread Use the receive thread
  * \return int
  * \retval LB_STATUS_SUCCESS if success
  * \pre N/A
@@ -303,7 +305,7 @@ extern int livebox_init(void *disp);
  * \see livebox_init
  * \see livebox_fini
  */
-extern int livebox_init_with_options(void *disp, int prevent_overwrite, double event_filter);
+extern int livebox_init_with_options(void *disp, int prevent_overwrite, double event_filter, int use_thread);
 
 /*!
  * \brief Finalize the livebox system
@@ -315,6 +317,7 @@ extern int livebox_init_with_options(void *disp, int prevent_overwrite, double e
  * \pre N/A
  * \post N/A
  * \see livebox_init
+ * \see livebox_init_with_options
  */
 extern int livebox_fini(void);
 

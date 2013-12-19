@@ -1480,8 +1480,10 @@ static int disconnected_cb(int handle, void *data)
 	return 0;
 }
 
-int client_init(void)
+int client_init(int use_thread)
 {
+	com_core_packet_use_thread(use_thread);
+
 	s_info.client_addr = vconf_get_str(VCONFKEY_MASTER_CLIENT_ADDR);
 	if (!s_info.client_addr) {
 		s_info.client_addr = strdup(CLIENT_SOCKET);

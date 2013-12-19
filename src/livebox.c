@@ -667,7 +667,7 @@ static int send_mouse_event(struct livebox *handler, const char *event, int x, i
 	return master_rpc_request_only(handler, packet);
 }
 
-static void initialize_livebox(void *disp)
+static void initialize_livebox(void *disp, int use_thread)
 {
 #if defined(FLOG)
 	char filename[BUFSIZ];
@@ -680,12 +680,12 @@ static void initialize_livebox(void *disp)
 	livebox_service_init();
 	fb_init(disp);
 
-	client_init();
+	client_init(use_thread);
 
 	s_info.init_count++;
 }
 
-EAPI int livebox_init_with_options(void *disp, int prevent_overwrite, double event_filter)
+EAPI int livebox_init_with_options(void *disp, int prevent_overwrite, double event_filter, int use_thread)
 {
 	if (s_info.init_count > 0) {
 		s_info.init_count++;
@@ -700,7 +700,7 @@ EAPI int livebox_init_with_options(void *disp, int prevent_overwrite, double eve
 	s_info.prevent_overwrite = prevent_overwrite;
 	MINIMUM_EVENT = event_filter;
 
-	initialize_livebox(disp);
+	initialize_livebox(disp, use_thread);
 	return LB_STATUS_SUCCESS;
 }
 
@@ -723,7 +723,7 @@ EAPI int livebox_init(void *disp)
 		sscanf(env, "%lf", &MINIMUM_EVENT);
 	}
 
-	initialize_livebox(disp);
+	initialize_livebox(disp, 0);
 	return LB_STATUS_SUCCESS;
 }
 
