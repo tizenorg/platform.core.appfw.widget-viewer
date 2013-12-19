@@ -34,7 +34,7 @@ struct livebox;
 
 /*!
  * \brief
- * Use the default update period which is defined in the livebox package manifest.
+ * Use the default update period which is defined in the package manifest file of a livebox.
  */
 #define DEFAULT_PERIOD -1.0f
 
@@ -56,8 +56,8 @@ enum content_event_type {
 	CONTENT_EVENT_KEY_UP		= 0x00000002, /*!< LB key release */
 	CONTENT_EVENT_KEY_FOCUS_IN	= 0x00000008, /*!< LB key focused in */
 	CONTENT_EVENT_KEY_FOCUS_OUT	= 0x00000010, /*!< LB key focused out */
-	CONTENT_EVENT_KEY_SET		= 0x00000020,
-	CONTENT_EVENT_KEY_UNSET		= 0x00000040,
+	CONTENT_EVENT_KEY_SET		= 0x00000020, /*!< LB Key, start feeding event by master */
+	CONTENT_EVENT_KEY_UNSET		= 0x00000040, /*!< LB key, stop feeding event by master */
 
 	CONTENT_EVENT_KEY_MASK		= 0x80000000,
 	CONTENT_EVENT_MOUSE_MASK	= 0x20000000,
@@ -69,30 +69,30 @@ enum content_event_type {
 	LB_MOUSE_MOVE			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_MOVE, /*!< Move move on the livebox */
 	LB_MOUSE_ENTER			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_ENTER, /*!< Mouse enter to the livebox */
 	LB_MOUSE_LEAVE			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_LEAVE, /*!< Mouse leave from the livebox */
-	LB_MOUSE_SET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_SET,
-	LB_MOUSE_UNSET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UNSET,
+	LB_MOUSE_SET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_SET, /*!< Mouse event, start feeding event by master */
+	LB_MOUSE_UNSET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UNSET, /*!< Mouse event, stop feeding event by master */
 
 	PD_MOUSE_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_DOWN, /*!< Mouse down on the PD */
 	PD_MOUSE_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UP, /*!< Mouse up on the PD */
 	PD_MOUSE_MOVE			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_MOVE, /*!< Mouse move on the PD */
 	PD_MOUSE_ENTER			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_ENTER, /*!< Mouse enter to the PD */
 	PD_MOUSE_LEAVE			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_LEAVE, /*!< Mouse leave from the PD */
-	PD_MOUSE_SET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_SET,
-	PD_MOUSE_UNSET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UNSET,
+	PD_MOUSE_SET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_SET, /*!< Mouse event, start feeding event by master */
+	PD_MOUSE_UNSET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_MOUSE_MASK | CONTENT_EVENT_MOUSE_UNSET, /*!< Mouse event, stop feeding event by master */
 
 	LB_KEY_DOWN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN, /*!< Key down on the livebox */
 	LB_KEY_UP			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP, /*!< Key up on the livebox */
-	LB_KEY_SET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_SET,
-	LB_KEY_UNSET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UNSET,
-	LB_KEY_FOCUS_IN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_FOCUS_IN,
-	LB_KEY_FOCUS_OUT		= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_FOCUS_OUT,
+	LB_KEY_SET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_SET, /*!< Key event, start feeding event by master */
+	LB_KEY_UNSET			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UNSET, /*!< Key event, stop feeding event by master */
+	LB_KEY_FOCUS_IN			= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_FOCUS_IN, /*!< Key event, focus in */
+	LB_KEY_FOCUS_OUT		= CONTENT_EVENT_LB_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_FOCUS_OUT, /*!< Key event, foucs out */
 
 	PD_KEY_DOWN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_DOWN, /*!< Key down on the livebox */
 	PD_KEY_UP			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UP, /*!< Key up on the livebox */
-	PD_KEY_SET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_SET,
-	PD_KEY_UNSET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UNSET,
-	PD_KEY_FOCUS_IN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_FOCUS_IN,
-	PD_KEY_FOCUS_OUT		= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_FOCUS_OUT,
+	PD_KEY_SET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_SET, /*!< Key event, start feeding event by master */
+	PD_KEY_UNSET			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_UNSET, /*!< Key event, stop feeding event by master */
+	PD_KEY_FOCUS_IN			= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_FOCUS_IN, /*!< Key event, focus in */
+	PD_KEY_FOCUS_OUT		= CONTENT_EVENT_PD_MASK | CONTENT_EVENT_KEY_MASK | CONTENT_EVENT_KEY_FOCUS_OUT, /*!< Key event, focus out */
 
 	CONTENT_EVENT_MAX		= 0xFFFFFFFF
 };
@@ -128,16 +128,16 @@ enum access_event_type {
 	LB_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_MOVE,	/*!< Access event - scroll move */
 	LB_ACCESS_SCROLL_UP		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_UP,	/*!< Access event - scroll up */
 
-	PD_ACCESS_HIGHLIGHT		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT,
-	PD_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,
-	PD_ACCESS_HIGHLIGHT_PREV	= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT_PREV,
-	PD_ACCESS_UNHIGHLIGHT		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_UNHIGHLIGHT,
-	PD_ACCESS_ACTIVATE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTIVATE,
-	PD_ACCESS_ACTION_DOWN		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTION_DOWN,
-	PD_ACCESS_ACTION_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTION_UP,
-	PD_ACCESS_SCROLL_DOWN		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_DOWN,
-	PD_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_MOVE,
-	PD_ACCESS_SCROLL_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_UP
+	PD_ACCESS_HIGHLIGHT		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT,	/*!< Access event - Highlight an object in the PD */
+	PD_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,	/*!< Access event - Move highlight to the next object in a PD */
+	PD_ACCESS_HIGHLIGHT_PREV	= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT_PREV,	/*!< Access event - Move highlight to the prev object in a PD */
+	PD_ACCESS_UNHIGHLIGHT		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_UNHIGHLIGHT,	/*!< Access event - Delet highlight from the PD */
+	PD_ACCESS_ACTIVATE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTIVATE,		/*!< Access event - Launch or activate the highlighted object */
+	PD_ACCESS_ACTION_DOWN		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTION_DOWN,	/*!< Access event - down */
+	PD_ACCESS_ACTION_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTION_UP,	/*!< Access event - up */
+	PD_ACCESS_SCROLL_DOWN		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_DOWN,	/*!< Access event - scroll down */
+	PD_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_MOVE,	/*!< Access event - scroll move */
+	PD_ACCESS_SCROLL_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_UP		/*!< Access event - scroll up */
 };
 
 /*!
@@ -294,11 +294,11 @@ extern int livebox_init(void *disp);
  *          But some application doesn't want to use the env value.
  *          For them, this API will give a chance to set default options using given arguments
  * \remarks N/A
- * \param[in] disp
- * \param[in] prevent_overwrite
- * \param[in] event_filter
- * \param[in] use_thread Use the receive thread
- * \return int
+ * \param[in] disp if this display is NULL, the library will try to acquire a new connection with X
+ * \param[in] prevent_overwrite If the content of image type livebox is updated, don't overwrite it(1) or overwrite old file(0)
+ * \param[in] event_filter If the next event comes in this period, ignore it. It is too fast to processing it in time.
+ * \param[in] use_thread Use the receive thread.
+ * \return int Integer, Livebox status code
  * \retval LB_STATUS_SUCCESS if success
  * \pre N/A
  * \post N/A
@@ -335,7 +335,7 @@ extern int livebox_fini(void);
 extern int livebox_client_paused(void);
 
 /*!
- * \brief Client is rfesumed.
+ * \brief Client is resumed.
  * \details N/A
  * \remarks N/A
  * \return int
