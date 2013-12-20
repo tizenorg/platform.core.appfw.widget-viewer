@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-extern int client_init(void);
+extern int client_init(int use_thread);
 extern int client_fd(void);
 extern const char *client_addr(void);
 extern int client_fini(void);
