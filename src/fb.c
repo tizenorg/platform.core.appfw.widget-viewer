@@ -590,4 +590,34 @@ int fb_size(struct fb_info *info)
 	return info->bufsz;
 }
 
+int fb_type(struct fb_info *info)
+{
+	struct buffer *buffer;
+
+	if (!info) {
+		return BUFFER_TYPE_ERROR;
+	}
+
+	buffer = info->buffer;
+	if (!buffer) {
+		int type = BUFFER_TYPE_ERROR;
+		/*!
+		 * \note
+		 * Try to get this from SCHEMA
+		 */
+		if (info->id) {
+			if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
+				type = BUFFER_TYPE_FILE;
+			} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
+				type = BUFFER_TYPE_PIXMAP;
+			} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
+				type = BUFFER_TYPE_SHM;
+			}
+		}
+
+		return type;
+	}
+
+	return buffer->type;
+}
 /* End of a file */

@@ -20,6 +20,9 @@
 #include <string.h> /* strdup */
 #include <math.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <aul.h>
 #include <dlog.h>
@@ -150,6 +153,126 @@ static inline __attribute__((always_inline)) struct cb_info *create_cb_info(ret_
 static inline void destroy_cb_info(struct cb_info *info)
 {
 	free(info);
+}
+
+static int do_fb_lock(int fd)
+{
+        struct flock flock;
+	int ret;
+
+	flock.l_type = F_RDLCK;
+	flock.l_whence = SEEK_SET;
+	flock.l_start = 0;
+	flock.l_len = 0;
+	flock.l_pid = getpid();
+
+	do {
+		ret = fcntl(fd, F_SETLKW, &flock);
+		if (ret < 0) {
+			ret = errno;
+			ErrPrint("fcntl: %s\n", strerror(errno));
+		}
+	} while (ret == EINTR);
+
+	return ret;
+}
+
+static int do_fb_unlock(int fd)
+{
+	struct flock flock;
+	int ret;
+
+	flock.l_type = F_UNLCK;
+	flock.l_whence = SEEK_SET;
+	flock.l_start = 0;
+	flock.l_len = 0;
+	flock.l_pid = getpid();
+
+	do {
+		ret = fcntl(fd, F_SETLKW, &flock);
+		if (ret < 0) {
+			ret = errno;
+			ErrPrint("fcntl: %s\n", strerror(errno));
+		}
+	} while (ret == EINTR);
+
+	return ret;
+}
+
+int lb_destroy_lock_file(struct livebox *info, int is_pd)
+{
+	if (is_pd) {
+		if (!info->pd.lock) {
+			return -EINVAL;
+		}
+
+		if (close(info->pd.lock_fd) < 0) {
+			ErrPrint("close: %s\n", strerror(errno));
+		}
+		info->pd.lock_fd = -1;
+
+		if (unlink(info->pd.lock) < 0) {
+			ErrPrint("unlink: %s\n", strerror(errno));
+		}
+
+		free(info->pd.lock);
+		info->pd.lock = NULL;
+	} else {
+		if (!info->lb.lock) {
+			return -EINVAL;
+		}
+
+		if (close(info->lb.lock_fd) < 0) {
+			ErrPrint("close: %s\n", strerror(errno));
+		}
+		info->lb.lock_fd = -1;
+
+		if (unlink(info->lb.lock) < 0) {
+			ErrPrint("unlink: %s\n", strerror(errno));
+		}
+
+		free(info->lb.lock);
+		info->lb.lock = NULL;
+	}
+
+	return 0;
+}
+
+int lb_create_lock_file(struct livebox *info, int is_pd)
+{
+	int len;
+	char *file;
+
+	len = strlen(info->id);
+	file = malloc(len + 20);
+	if (!file) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		return -ENOMEM;
+	}
+
+	snprintf(file, len + 20, "%s.%s.lck", util_uri_to_path(info->id), is_pd ? "pd" : "lb");
+
+	if (is_pd) {
+		info->pd.lock_fd = open(file, O_RDONLY);
+		if (info->pd.lock_fd < 0) {
+			ErrPrint("open: %s\n", strerror(errno));
+			free(file);
+			return -EIO;
+		}
+
+		info->pd.lock = file;
+	} else {
+		info->lb.lock_fd = open(file, O_RDONLY);
+		if (info->lb.lock_fd < 0) {
+			ErrPrint("open: %s\n", strerror(errno));
+			free(file);
+			return -EIO;
+		}
+
+		info->lb.lock = file;
+	}
+
+	return 0;
 }
 
 static void update_mode_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -784,7 +907,7 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 	}
 
 	if (type != LB_SIZE_TYPE_UNKNOWN) {
-		livebox_service_get_size(type, &width, &height);
+		(void)livebox_service_get_size(type, &width, &height);
 	}
 
 	handler = calloc(1, sizeof(*handler));
@@ -856,6 +979,10 @@ EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *cont
 	handler->is_user = 1;
 	handler->visible = LB_SHOW;
 	handler->delete_type = LB_DELETE_PERMANENTLY;
+	handler->pd.lock = NULL;
+	handler->pd.lock_fd = -1;
+	handler->lb.lock = NULL;
+	handler->lb.lock_fd = -1;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 
@@ -2933,6 +3060,10 @@ struct livebox *lb_new_livebox(const char *pkgname, const char *id, double times
 	handler->state = CREATE;
 	handler->visible = LB_SHOW;
 	handler->delete_type = LB_DELETE_PERMANENTLY;
+	handler->pd.lock = NULL;
+	handler->pd.lock_fd = -1;
+	handler->lb.lock = NULL;
+	handler->lb.lock_fd = -1;
 
 	s_info.livebox_list = dlist_append(s_info.livebox_list, handler);
 	lb_ref(handler);
@@ -3402,12 +3533,32 @@ EAPI int livebox_frame_drop_for_resizing(void)
 
 EAPI int livebox_sync_lb_fb(struct livebox *handler)
 {
-	return fb_sync(lb_get_lb_fb(handler));
+	int ret;
+
+	if (fb_type(lb_get_lb_fb(handler)) == BUFFER_TYPE_FILE && handler->lb.lock_fd >= 0) {
+		(void)do_fb_lock(handler->lb.lock_fd);
+		ret = fb_sync(lb_get_lb_fb(handler));
+		(void)do_fb_unlock(handler->lb.lock_fd);
+	} else {
+		ret = fb_sync(lb_get_lb_fb(handler));
+	}
+
+	return ret;
 }
 
 EAPI int livebox_sync_pd_fb(struct livebox *handler)
 {
-	return fb_sync(lb_get_pd_fb(handler));
+	int ret;
+
+	if (fb_type(lb_get_pd_fb(handler)) == BUFFER_TYPE_FILE && handler->pd.lock_fd >= 0) {
+		(void)do_fb_lock(handler->pd.lock_fd);
+		ret = fb_sync(lb_get_pd_fb(handler));
+		(void)do_fb_unlock(handler->pd.lock_fd);
+	} else {
+		ret = fb_sync(lb_get_pd_fb(handler));
+	}
+
+	return ret;
 }
 
 EAPI const char *livebox_alt_icon(struct livebox *handler)
@@ -3427,6 +3578,74 @@ EAPI const char *livebox_alt_name(struct livebox *handler)
 	}
 
 	return handler->name;
+}
+
+EAPI int livebox_acquire_fb_lock(struct livebox *handler, int is_pd)
+{
+	int ret = LB_STATUS_SUCCESS;
+	int fd;
+
+	if (is_pd) {
+		if (!handler->pd.lock || handler->pd.lock_fd < 0) {
+			DbgPrint("Lock: %s (%d)\n", handler->pd.lock, handler->pd.lock_fd);
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (fb_type(lb_get_pd_fb(handler)) == BUFFER_TYPE_FILE) {
+			return LB_STATUS_SUCCESS;
+		}
+
+		fd = handler->pd.lock_fd;
+	} else {
+		if (!handler->lb.lock || handler->lb.lock_fd < 0) {
+			DbgPrint("Lock: %s (%d)\n", handler->lb.lock, handler->lb.lock_fd);
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (fb_type(lb_get_lb_fb(handler)) == BUFFER_TYPE_FILE) {
+			return LB_STATUS_SUCCESS;
+		}
+
+		fd = handler->lb.lock_fd;
+	}
+
+	ret = do_fb_lock(fd);
+
+	return ret == 0 ? LB_STATUS_SUCCESS : LB_STATUS_ERROR_FAULT;
+}
+
+EAPI int livebox_release_fb_lock(struct livebox *handler, int is_pd)
+{
+	int ret = LB_STATUS_SUCCESS;
+	int fd;
+
+	if (is_pd) {
+		if (!handler->pd.lock || handler->pd.lock_fd < 0) {
+			DbgPrint("Unlock: %s (%d)\n", handler->pd.lock, handler->pd.lock_fd);
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (fb_type(lb_get_pd_fb(handler)) == BUFFER_TYPE_FILE) {
+			return LB_STATUS_SUCCESS;
+		}
+
+		fd = handler->pd.lock_fd;
+	} else {
+		if (!handler->lb.lock || handler->lb.lock_fd < 0) {
+			DbgPrint("Unlock: %s (%d)\n", handler->lb.lock, handler->lb.lock_fd);
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (fb_type(lb_get_lb_fb(handler)) == BUFFER_TYPE_FILE) {
+			return LB_STATUS_SUCCESS;
+		}
+
+		fd = handler->lb.lock_fd;
+	}
+
+	ret = do_fb_unlock(fd);
+
+	return ret == 0 ? LB_STATUS_SUCCESS : LB_STATUS_ERROR_FAULT;
 }
 
 /* End of a file */

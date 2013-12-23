@@ -47,6 +47,8 @@ extern int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *
 extern int lb_delete_all(void);
 extern void lb_set_filename(struct livebox *handler, const char *filename);
 extern void lb_set_alt_info(struct livebox *handler, const char *icon, const char *name);
+extern int lb_destroy_lock_file(struct livebox *info, int is_pd);
+extern int lb_create_lock_file(struct livebox *info, int is_pd);
 
 enum lb_type { /*!< Must have to be sync with data-provider-master */
 	_LB_TYPE_NONE = 0x0,
@@ -113,6 +115,8 @@ struct livebox {
 		/* For the filtering event */
 		double x;
 		double y;
+		char *lock;
+		int lock_fd;
 	} lb;
 
 	struct {
@@ -131,6 +135,8 @@ struct livebox {
 		/* For the filtering event */
 		double x;
 		double y;
+		char *lock;
+		int lock_fd;
 	} pd;
 
 	int nr_of_sizes;

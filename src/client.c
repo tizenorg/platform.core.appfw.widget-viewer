@@ -241,6 +241,12 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		}
 	}
 
+	/*!
+	 * \note
+	 * Lock file should be deleted after all callbacks are processed.
+	 */
+	lb_destroy_lock_file(handler, 0);
+
 	/* Just try to delete it, if a user didn't remove it from the live box list */
 	lb_unref(handler);
 
@@ -290,7 +296,7 @@ static struct packet *master_lb_update_begin(pid_t pid, int handle, const struct
 	if (lb_get_lb_fb(handler)) {
 		(void)lb_set_lb_fb(handler, fbfile);
 
-		ret = fb_sync(lb_get_lb_fb(handler));
+		ret = livebox_sync_lb_fb(handler);
 		if (ret != LB_STATUS_SUCCESS) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
 		} else {
@@ -332,7 +338,7 @@ static struct packet *master_pd_update_begin(pid_t pid, int handle, const struct
 	if (lb_get_pd_fb(handler)) {
 		(void)lb_set_lb_fb(handler, fbfile);
 
-		ret = fb_sync(lb_get_lb_fb(handler));
+		ret = livebox_sync_lb_fb(handler);
 		if (ret != LB_STATUS_SUCCESS) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
 		} else {
@@ -597,7 +603,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 			(void)lb_set_lb_fb(handler, fbfile);
 
 			if (!conf_manual_sync()) {
-				ret = fb_sync(lb_get_lb_fb(handler));
+				ret = livebox_sync_lb_fb(handler);
 				if (ret != LB_STATUS_SUCCESS) {
 					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 				}
@@ -650,13 +656,32 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		DbgPrint("Text TYPE does not need to handle this\n");
 	} else {
 		(void)lb_set_pd_fb(handler, buf_id);
-		ret = fb_sync(lb_get_pd_fb(handler));
+		ret = livebox_sync_pd_fb(handler);
 		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 		}
 	}
 
 	handler->is_pd_created = (status == 0);
+
+	switch (handler->pd.type) {
+	case _PD_TYPE_SCRIPT:
+	case _PD_TYPE_BUFFER:
+		switch (fb_type(lb_get_pd_fb(handler))) {
+		case BUFFER_TYPE_FILE:
+		case BUFFER_TYPE_SHM:
+			lb_create_lock_file(handler, 1);
+			break;
+		case BUFFER_TYPE_PIXMAP:
+		case BUFFER_TYPE_ERROR:
+		default:
+			break;
+		}
+		break;
+	case _PD_TYPE_TEXT:
+	default:
+		break;
+	}
 
 	if (handler->pd_created_cb) {
 		ret_cb_t cb;
@@ -730,6 +755,29 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 		lb_invoke_event_handler(handler, LB_EVENT_PD_DESTROYED);
 	}
 
+	/*!
+	 * \note
+	 * Lock file should be deleted after all callbacks are processed.
+	 */
+	switch (handler->pd.type) {
+	case _PD_TYPE_SCRIPT:
+	case _PD_TYPE_BUFFER:
+		switch (fb_type(lb_get_pd_fb(handler))) {
+		case BUFFER_TYPE_FILE:
+		case BUFFER_TYPE_SHM:
+			lb_destroy_lock_file(handler, 1);
+			break;
+		case BUFFER_TYPE_PIXMAP:
+		case BUFFER_TYPE_ERROR:
+		default:
+			break;
+		}
+		break;
+	case _PD_TYPE_TEXT:
+	default:
+		break;
+	}
+
 out:
 	return NULL;
 }
@@ -783,7 +831,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 			(void)lb_set_pd_fb(handler, fbfile);
 
 			 if (!conf_manual_sync()) {
-				ret = fb_sync(lb_get_pd_fb(handler));
+				ret = livebox_sync_pd_fb(handler);
 				if (ret < 0) {
 					ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 				} else {
@@ -913,7 +961,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			if (lb_get_lb_fb(handler)) {
 				(void)lb_set_lb_fb(handler, fbfile);
 
-				ret = fb_sync(lb_get_lb_fb(handler));
+				ret = livebox_sync_lb_fb(handler);
 				if (ret < 0) {
 					ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 				}
@@ -1181,7 +1229,24 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		}
 		(void)lb_set_lb_fb(handler, lb_fname);
 
-		ret = fb_sync(lb_get_lb_fb(handler));
+		/*!
+		 * \note
+		 * Livebox should create the lock file from here.
+		 * Even if the old_state == DELETE,
+		 * the lock file will be deleted from deleted event callback.
+		 */
+		switch (fb_type(lb_get_lb_fb(handler))) {
+		case BUFFER_TYPE_FILE:
+		case BUFFER_TYPE_SHM:
+			lb_create_lock_file(handler, 0);
+			break;
+		case BUFFER_TYPE_PIXMAP:
+		case BUFFER_TYPE_ERROR:
+		default:
+			break;
+		}
+
+		ret = livebox_sync_lb_fb(handler);
 		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 		}
@@ -1204,10 +1269,17 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		}
 
 		lb_set_pd_fb(handler, pd_fname);
-		ret = fb_sync(lb_get_pd_fb(handler));
+		ret = livebox_sync_pd_fb(handler);
 		if (ret < 0) {
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 		}
+
+		/*!
+		 * \brief
+		 * PD doesn't need to create the lock file from here.
+		 * Just create it from PD_CREATED event.
+		 */
+
 		break;
 	case _PD_TYPE_TEXT:
 		lb_set_text_pd(handler);
