@@ -1574,6 +1574,34 @@ extern const char *livebox_alt_icon(struct livebox *handler);
 extern const char *livebox_alt_name(struct livebox *handler);
 
 /*!
+ * \brief
+ * \details
+ * \remarks
+ * \param[in] handler
+ * \param[in] is_pd
+ * \return int
+ * \retval LB_STATUS_ERROR_FAULT
+ * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_SUCCESS
+ * \see livebox_release_fb_lock
+ */
+extern int livebox_acquire_fb_lock(struct livebox *handler, int is_pd);
+
+/*!
+ * \brief
+ * \details
+ * \remarks
+ * \param[in] handler
+ * \param[in] is_pd
+ * \return int
+ * \retval LB_STATUS_ERROR_FAULT
+ * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_SUCCESS
+ * \see livebox_acquire_fb_lock
+ */
+extern int livebox_release_fb_lock(struct livebox *handler, int is_pd);
+
+/*!
  * \}
  */
 
