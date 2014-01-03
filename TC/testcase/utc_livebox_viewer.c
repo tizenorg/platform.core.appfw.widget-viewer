@@ -18,12 +18,13 @@
 #include <tet_api.h>
 #include <stdlib.h>
 
-#include <livebox-viewer.h>
+#include <livebox.h>
+#include <livebox-service.h>
 #include <livebox-errno.h>
 
 #define MUSIC_APP "com.samsung.music-player"
 #define EMAIL_APP "com.samsung.email"
-#define EMAIL_LIVEBOX EAMIL_APP ".livebox"
+#define EMAIL_LIVEBOX EMAIL_APP ".livebox"
 #define MUSIC_LIVEBOX MUSIC_APP ".livebox"
 #define MUSIC_EASYBOX "com.samsung.music-player.easymode.livebox"
 
@@ -57,6 +58,7 @@ static void utc_livebox_client_paused_n(void)
 	 * \note
 	 * Unable to test negative case
 	 */
+	dts_pass("livebox_client_paused", "skip negative test");
 }
 
 static void utc_livebox_client_paused_p(void)
@@ -73,6 +75,7 @@ static void utc_livebox_client_resumed_n(void)
 	 * \note
 	 * Unable to test negative case
 	 */
+	dts_pass("livebox_client_resumed", "skip negative test");
 }
 
 static void utc_livebox_client_resumed_p(void)
@@ -103,7 +106,9 @@ static void utc_livebox_add_n(void)
 	struct livebox *handle;
 
 	handle = livebox_add(NULL, NULL, NULL, NULL, -1.0f, create_ret_cb, NULL);
-	dts_check_eq("livebox_add", handle, NULL, "Handle is NULL");
+	if (handle == NULL) {
+		dts_check_eq("livebox_add", handle, NULL, "Handle is NULL");
+	}
 }
 
 static void create_ret_with_size_cb(struct livebox *handle, int ret, void *data)
@@ -133,7 +138,7 @@ static void utc_livebox_del_n(void)
 {
 	int ret;
 
-	ret = livebox_del(NULL);
+	ret = livebox_del(NULL, NULL, NULL);
 	dts_check_ne("livebox_del", ret, LB_STATUS_SUCCESS, "Failed");
 }
 
@@ -144,7 +149,10 @@ static void del_ret_cb(struct livebox *handle, int ret, void *data)
 
 static void create_cb_for_testing_del(struct livebox *handle, int ret, void *data)
 {
-	int ret;
+	if (ret != LB_STATUS_SUCCESS) {
+		dts_check_eq("livebox_del", ret, LB_STATUS_SUCCESS, "create failed");
+		return;
+	}
 
 	ret = livebox_del(handle, del_ret_cb, NULL);
 	if (ret != LB_STATUS_SUCCESS) {
@@ -177,9 +185,12 @@ static void del_NEW_ret_cb(struct livebox *handle, int ret, void *data)
 
 static void create_cb_for_testing_del_NEW(struct livebox *handle, int ret, void *data)
 {
-	int ret;
+	if (ret != LB_STATUS_SUCCESS) {
+		dts_check_eq("livebox_del_NEW", ret, LB_STATUS_SUCCESS, "Create failed");
+		return;
+	}
 
-	ret = livebox_del_NEW(handler, LB_DELETE_PERMANENTLY, del_NEW_ret_cb, NULL);
+	ret = livebox_del_NEW(handle, LB_DELETE_PERMANENTLY, del_NEW_ret_cb, NULL);
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_del_NEW", ret, LB_STATUS_SUCCESS, "Success");
 	}
@@ -188,7 +199,6 @@ static void create_cb_for_testing_del_NEW(struct livebox *handle, int ret, void 
 static void utc_livebox_del_NEW_p(void)
 {
 	struct livebox *handle;
-	int ret;
 
 	handle = livebox_add_with_size(MUSIC_LIVEBOX, NULL, NULL, NULL, -1.0f, LB_SIZE_TYPE_1x1, create_cb_for_testing_del_NEW, NULL);
 	if (!handle) {
@@ -198,6 +208,7 @@ static void utc_livebox_del_NEW_p(void)
 
 static int event_handler(struct livebox *handler, enum livebox_event_type event, void *data)
 {
+	return 0;
 }
 
 static void utc_livebox_set_event_handler_n(void)
@@ -222,12 +233,12 @@ static void utc_livebox_unset_event_handler_n(void)
 	 * \note
 	 * Unable to unset event handler
 	 */
+	dts_pass("livebox_unset_event_handler", "skip negative test");
 }
 
 static void utc_livebox_unset_event_handler_p(void)
 {
 	void *data;
-	int ret;
 
 	data = livebox_unset_event_handler(event_handler);
 	dts_check_eq("livebox_unset_event_handler", data, (void *)123, "Unset");
@@ -257,6 +268,7 @@ static void utc_livebox_unset_fault_handler_n(void)
 	/*!
 	 * Unable to test negative case
 	 */
+	dts_pass("livebox_unset_fault_handler", "skip negative test");
 }
 
 static void utc_livebox_unset_fault_handler_p(void)
@@ -284,7 +296,7 @@ static void utc_livebox_activate_p(void)
 {
 	int ret;
 
-	ret = livebox_activate(MUSIC_LIVEBOX, ret_cb, NULL);
+	ret = livebox_activate(MUSIC_LIVEBOX, activate_ret_cb, NULL);
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_activate", ret, LB_STATUS_SUCCESS, "Success");
 	}
@@ -317,7 +329,6 @@ static void utc_livebox_resize_n(void)
 static void utc_livebox_resize_p(void)
 {
 	struct livebox *handle;
-	int ret;
 
 	handle = livebox_add_with_size(MUSIC_LIVEBOX, NULL, NULL, NULL, -1.0f, LB_SIZE_TYPE_1x1, resize_create_cb, NULL);
 	if (!handle) {
@@ -327,10 +338,10 @@ static void utc_livebox_resize_p(void)
 
 static void utc_livebox_click_n(void)
 {
-	struct livebox *handle;
+	int ret;
 
 	ret = livebox_click(NULL, 0.5f, 0.5f);
-	dts_check_eq("livebox_click", ret, LB_STATUS_INVALID, "Success");
+	dts_check_eq("livebox_click", ret, LB_STATUS_ERROR_INVALID, "Success");
 }
 
 static void click_create_cb(struct livebox *handle, int ret, void *data)
@@ -390,11 +401,13 @@ static void utc_livebox_set_group_p(void)
 
 static void utc_livebox_get_group_n(void)
 {
+	int ret;
+
 	ret = livebox_get_group(NULL, NULL, NULL);
 	dts_check_eq("livebox_get_group", ret, LB_STATUS_ERROR_INVALID, "Success");
 }
 
-static void get_gorup_create_cb(struct livebox *handle, int ret, void *data)
+static void get_group_create_cb(struct livebox *handle, int ret, void *data)
 {
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_get_group", ret, LB_STATUS_SUCCESS, "get_group,create");
@@ -451,7 +464,7 @@ static void utc_livebox_set_period_n(void)
 {
 	int ret;
 
-	ret = livebox_set_period(NULL, 20.0f);
+	ret = livebox_set_period(NULL, 20.0f, NULL, NULL);
 	dts_check_gt("livebox_period", ret, LB_STATUS_ERROR_INVALID, "Invalid");
 }
 
@@ -460,7 +473,7 @@ static void set_period_create_cb(struct livebox *handle, int ret, void *data)
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_period", ret, LB_STATUS_SUCCESS, "Success");
 	} else {
-		ret = livebox_set_period(handle, 20.0f);
+		ret = livebox_set_period(handle, 20.0f, NULL, NULL);
 		dts_check_eq("livebox_period", ret, LB_STATUS_SUCCESS, "Success");
 	}
 }
@@ -468,7 +481,6 @@ static void set_period_create_cb(struct livebox *handle, int ret, void *data)
 static void utc_livebox_set_period_p(void)
 {
 	struct livebox *handle;
-	int ret;
 
 	handle = livebox_add_with_size(MUSIC_LIVEBOX, NULL, NULL, NULL, -1.0f, LB_SIZE_TYPE_1x1, set_period_create_cb, NULL);
 	if (!handle) {
@@ -497,7 +509,6 @@ static void lb_type_create_cb(struct livebox *handle, int ret, void *data)
 static void utc_livebox_lb_type_p(void)
 {
 	struct livebox *handle;
-	int ret;
 
 	handle = livebox_add_with_size(MUSIC_LIVEBOX, NULL, NULL, NULL, -1.0f, LB_SIZE_TYPE_1x1, lb_type_create_cb, NULL);
 	if (!handle) {
@@ -513,12 +524,22 @@ static void utc_livebox_is_user_n(void)
 	dts_check_eq("livebox_is_user", ret, LB_STATUS_ERROR_INVALID, "Success");
 }
 
+static void livebox_is_user_create_cb(struct livebox *handle, int ret, void *data)
+{
+	return;
+}
+
 static void utc_livebox_is_user_p(void)
 {
 	struct livebox *handle;
 	int ret;
 
-	handle = livebox_add_with_size(MUSIC_LIVEBOX, NULL, NULL, NULL, -1.0f, LB_SIZE_TYPE_1x1, ret_cb, NULL);
+	handle = livebox_add_with_size(MUSIC_LIVEBOX, NULL, NULL, NULL, -1.0f, LB_SIZE_TYPE_1x1, livebox_is_user_create_cb, NULL);
+	if (handle == NULL) {
+		dts_check_ne("livebox_is_user", handle, NULL, "handle is NULL");
+		return;
+	}
+
 	ret = livebox_is_user(handle);
 	dts_check_eq("livebox_is_user", ret, 1, "Success");
 }
@@ -622,6 +643,7 @@ static void utc_livebox_pkgname_p(void)
 static void utc_livebox_priority_n(void)
 {
 	double priority;
+
 	priority = livebox_priority(NULL);
 	dts_check_eq("livebox_priority", priority, 0.0f, "Success");
 }
@@ -647,6 +669,7 @@ static void utc_livebox_priority_p(void)
 static void utc_livebox_acquire_fb_n(void)
 {
 	void *data;
+
 	data = livebox_acquire_fb(NULL);
 	dts_check_eq("livebox_acquire_fb", data, NULL, "Success");
 }
@@ -687,7 +710,6 @@ static void release_fb_create_cb(struct livebox *handle, int ret, void *data)
 		dts_check_eq("livebox_release_fb", ret, LB_STATUS_SUCCESS, "release_fb");
 	} else {
 		void *data;
-		int ret;
 
 		data = livebox_acquire_fb(handle);
 
@@ -712,7 +734,6 @@ static void refcnt_fb_create_cb(struct livebox *handle, int ret, void *data)
 		dts_check_eq("livebox_fb_refcnt", ret, LB_STATUS_SUCCESS, "refcnt");
 	} else {
 		void *data;
-		int ret;
 
 		data = livebox_acquire_fb(handle);
 
@@ -743,7 +764,10 @@ static void utc_livebox_fb_refcnt_n(void)
 
 static void acquire_pdfb_pd_cb(struct livebox *handle, int ret, void *data)
 {
-	void *data;
+	if (ret != LB_STATUS_SUCCESS) {
+		dts_check_eq("livebox_acquire_pdfb", ret, LB_STATUS_SUCCESS, "create pd failed");
+		return;
+	}
 
 	data = livebox_acquire_pdfb(handle);
 	dts_check_ne("livebox_acquire_pdfb", data, NULL, "acquire_pdfb");
@@ -782,8 +806,10 @@ static void utc_livebox_acquire_pdfb_n(void)
 
 static void release_pdfb_pd_cb(struct livebox *handle, int ret, void *data)
 {
-	void *data;
-	int ret;
+	if (ret != LB_STATUS_SUCCESS) {
+		dts_check_eq("livebox_release_pdfb", ret, LB_STATUS_SUCCESS, "create pd");
+		return;
+	}
 
 	data = livebox_acquire_pdfb(handle);
 	ret = livebox_release_pdfb(data);
@@ -828,8 +854,10 @@ static void utc_livebox_pdfb_refcnt_n(void)
 
 static void refcnt_pdfb_pd_cb(struct livebox *handle, int ret, void *data)
 {
-	void *data;
-	int ret;
+	if (ret != LB_STATUS_SUCCESS) {
+		dts_check_eq("livebox_pdfb_refcnt", ret, LB_STATUS_SUCCESS, "create pd");
+		return;
+	}
 
 	data = livebox_acquire_pdfb(handle);
 	ret = livebox_pdfb_refcnt(data);
@@ -840,11 +868,11 @@ static void refcnt_pdfb_pd_cb(struct livebox *handle, int ret, void *data)
 static void refcnt_pdfb_cb(struct livebox *handle, int ret, void *data)
 {
 	if (ret != LB_STATUS_SUCCESS) {
-		dts_check_eq("livebox_acquire_pdfb", ret, LB_STATUS_SUCCESS, "refcnt");
+		dts_check_eq("livebox_pdfb_refcnt", ret, LB_STATUS_SUCCESS, "refcnt");
 	} else {
 		ret = livebox_create_pd(handle, refcnt_pdfb_pd_cb, NULL);
 		if (ret != LB_STATUS_SUCCESS) {
-			dts_check_eq("livebox_acquire_pdfb", ret, LB_STATUS_SUCCESS, "refcnt");
+			dts_check_eq("livebox_pdfb_refcnt", ret, LB_STATUS_SUCCESS, "refcnt");
 		}
 	}
 }
@@ -1006,10 +1034,9 @@ static void utc_livebox_pdfb_bufsz_p(void)
 
 static void utc_livebox_content_event_n(void)
 {
-//extern int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y);
 	int ret;
 
-	ret = livebox_content_event(NULL, PD_EVENT_MOUSE_DOWN, 0.0f, 0.0f);
+	ret = livebox_content_event(NULL, PD_MOUSE_DOWN, 0.0f, 0.0f);
 	dts_check_eq("livebox_content_event", ret, LB_STATUS_ERROR_INVALID, "Invalid");
 }
 
@@ -1018,8 +1045,7 @@ static void content_event_create_cb(struct livebox *handle, int ret, void *data)
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_content_event", ret, LB_STATUS_SUCCESS, "content_event");
 	} else {
-		int ret;
-		ret = livebox_content_event(handle, PD_EVENT_MOUSE_DOWN, 0.0f, 0.0f);
+		ret = livebox_content_event(handle, PD_MOUSE_DOWN, 0.0f, 0.0f);
 		dts_check_eq("livebox_content_event", ret, LB_STATUS_SUCCESS, "content_event");
 	}
 }
@@ -1037,7 +1063,7 @@ static void utc_livebox_content_event_p(void)
 static void utc_livebox_mouse_event_n(void)
 {
 	int ret;
-	ret = livebox_mouse_event(NULL, PD_EVENT_MOUSE_DOWN, 0.0f, 0.0f);
+	ret = livebox_mouse_event(NULL, PD_MOUSE_DOWN, 0.0f, 0.0f);
 	dts_check_eq("livebox_mouse_event", ret, LB_STATUS_ERROR_INVALID, "invalid");
 }
 
@@ -1046,8 +1072,7 @@ static void mouse_event_create_cb(struct livebox *handle, int ret, void *data)
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_content_event", ret, LB_STATUS_SUCCESS, "content_event");
 	} else {
-		int ret;
-		ret = livebox_content_event(handle, PD_EVENT_MOUSE_DOWN, 0.0f, 0.0f);
+		ret = livebox_content_event(handle, PD_MOUSE_DOWN, 0.0f, 0.0f);
 		dts_check_eq("livebox_content_event", ret, LB_STATUS_SUCCESS, "content_event");
 	}
 }
@@ -1064,7 +1089,6 @@ static void utc_livebox_mouse_event_p(void)
 
 static void utc_livebox_access_event_n(void)
 {
-//extern int livebox_access_event(struct livebox *handler, enum access_event_type type, double x, double y, ret_cb_t cb, void *data);
 	int ret;
 	ret = livebox_access_event(NULL, ACCESS_EVENT_ACTION_DOWN, 0.0f, 0.0f, NULL, NULL);
 	dts_check_eq("livebox_mouse_event", ret, LB_STATUS_ERROR_INVALID, "invalid");
@@ -1092,7 +1116,6 @@ static void utc_livebox_access_event_p(void)
 
 static void utc_livebox_key_event_n(void)
 {
-//extern int livebox_key_event(struct livebox *handler, enum content_event_type type, unsigned int keycode, ret_cb_t cb, void *data);
 	int ret;
 	ret = livebox_key_event(NULL, PD_KEY_DOWN, 13, NULL, NULL);
 	dts_check_eq("livebox_key_event", ret, LB_STATUS_ERROR_INVALID, "invalid");
@@ -1120,7 +1143,6 @@ static void utc_livebox_key_event_p(void)
 
 static void utc_livebox_set_pinup_n(void)
 {
-//extern int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void *data);
 	int ret;
 	ret = livebox_set_pinup(NULL, 0, NULL, NULL);
 	dts_check_eq("livebox_set_pinup", ret, LB_STATUS_ERROR_INVALID, "invalid");
@@ -1148,7 +1170,6 @@ static void utc_livebox_set_pinup_p(void)
 
 static void utc_livebox_is_pinned_up_n(void)
 {
-//extern int livebox_is_pinned_up(struct livebox *handler);
 	int ret;
 	ret = livebox_is_pinned_up(NULL);
 	dts_check_eq("livebox_is_pinned_up", ret, LB_STATUS_ERROR_INVALID, "invalid");
@@ -1159,7 +1180,7 @@ static void is_pinup_cb(struct livebox *handle, int ret, void *data)
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_is_pinned_up", ret, LB_STATUS_SUCCESS, "key_event");
 	} else {
-		ret = livebox_is_pinned_up(handle, 0, NULL, NULL);
+		ret = livebox_is_pinned_up(handle);
 		dts_check_eq("livebox_is_pinned_up", ret, LB_STATUS_ERROR_ALREADY, "already");
 	}
 }
@@ -1230,7 +1251,6 @@ static void utc_livebox_has_pd_n(void)
 
 static void utc_livebox_create_pd_n(void)
 {
-//extern int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data);
 	int ret;
 	ret = livebox_create_pd(NULL, NULL, NULL);
 	dts_check_eq("livebox_create_pd", ret, LB_STATUS_ERROR_INVALID, "invalid");
@@ -1266,7 +1286,6 @@ static void utc_livebox_create_pd_p(void)
 
 static void utc_livebox_create_pd_with_position_n(void)
 {
-//extern int livebox_create_pd_with_position(struct livebox *handler, double x, double y, ret_cb_t cb, void *data);
 	int ret;
 	ret = livebox_create_pd_with_position(NULL, 0.0f, 0.0f, NULL, NULL);
 	dts_check_eq("livebox_create_pd_with_position", ret, LB_STATUS_ERROR_INVALID, "invalid");
@@ -1341,7 +1360,6 @@ static void utc_livebox_move_pd_p(void)
 
 static void utc_livebox_destroy_pd_n(void)
 {
-//extern int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data);
 	int ret;
 	ret = livebox_destroy_pd(NULL, NULL, NULL);
 	dts_check_eq("livebox_destroy_pd", ret, LB_STATUS_ERROR_INVALID, "invalid");
@@ -1352,7 +1370,7 @@ static void destroy_pd_cb(struct livebox *handle, int ret, void *data)
 	dts_check_eq("livebox_destroy_pd", ret, LB_STATUS_SUCCESS, "destroy_pd");
 }
 
-static void destroy_pd_create_cb(struct livebox *handle, int ret, void *data)
+static void destroy_pd_create_pd_cb(struct livebox *handle, int ret, void *data)
 {
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_destroy_pd", ret, LB_STATUS_SUCCESS, "destroy_pd");
@@ -1369,7 +1387,7 @@ static void destroy_pd_create_cb(struct livebox *handle, int ret, void *data)
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_destroy_pd", ret, LB_STATUS_SUCCESS, "destroy_pd");
 	} else {
-		ret = livebox_create_pd_with_position(handle, 0.0f, 0.0f, destroy_pd_create_cb, NULL);
+		ret = livebox_create_pd_with_position(handle, 0.0f, 0.0f, destroy_pd_create_pd_cb, NULL);
 		if (ret != LB_STATUS_SUCCESS) {
 			dts_check_eq("livebox_destroy_pd", ret, LB_STATUS_SUCCESS, "invalid");
 		}
@@ -1400,7 +1418,7 @@ static void pd_is_created_cb(struct livebox *handle, int ret, void *data)
 	} else {
 		ret = livebox_pd_is_created(handle);
 		dts_check_eq("livebox_pd_is_created", ret, 0, "pd_is_created");
-		(void)livebox_del(handle);
+		(void)livebox_del(handle, NULL, NULL);
 	}
 }
 
@@ -1416,13 +1434,12 @@ static void utc_livebox_pd_is_created_p(void)
 
 static void utc_livebox_pd_type_n(void)
 {
-//extern enum livebox_pd_type livebox_pd_type(struct livebox *handler);
 	int type;
 	type = livebox_pd_type(NULL);
 	dts_check_eq("livebox_pd_type", type, PD_TYPE_INVALID, "invalid");
 }
 
-static void pd_type_cretaed_cb(struct livebox *handle, int ret, void *data)
+static void pd_type_created_cb(struct livebox *handle, int ret, void *data)
 {
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_pd_type", ret, LB_STATUS_SUCCESS, "pd_type");
@@ -1461,7 +1478,6 @@ static void utc_livebox_set_text_handler_n(void)
 	int ret;
 	ret = livebox_set_text_handler(NULL, NULL);
 	dts_check_eq("livebox_set_text_handler", ret, LB_STATUS_ERROR_INVALID, "invalid");
-//extern int livebox_set_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
 }
 
 static void set_text_handler_created_cb(struct livebox *handle, int ret, void *data)
@@ -1503,7 +1519,6 @@ static void utc_livebox_set_pd_text_handler_n(void)
 	int ret;
 	ret = livebox_set_pd_text_handler(NULL, NULL);
 	dts_check_eq("livebox_set_pd_text_handler", ret, LB_STATUS_ERROR_INVALID, "invalid");
-//extern int livebox_set_pd_text_handler(struct livebox *handler, struct livebox_script_operators *ops);
 }
 
 static void set_pd_text_handler_created_cb(struct livebox *handle, int ret, void *data)
@@ -1572,7 +1587,6 @@ static void utc_livebox_set_data_n(void)
 	int ret;
 	ret = livebox_set_data(NULL, NULL);
 	dts_check_eq("livebox_set_data", ret, LB_STATUS_ERROR_INVALID, "invalid");
-//extern int livebox_set_data(struct livebox *handler, void *data);
 }
 
 static void utc_livebox_set_data_p(void)
@@ -1618,6 +1632,7 @@ static void utc_livebox_subscribe_group_n(void)
 	 * \note
 	 * Unable to test negative case
 	 */
+	dts_pass("livebox_subscribe_group", "pass negative test");
 }
 
 static void utc_livebox_subscribe_group_p(void)
@@ -1633,6 +1648,7 @@ static void utc_livebox_unsubscribe_group_n(void)
 	 * \note
 	 * Unable to test negative case
 	 */
+	dts_pass("livebox_unsubscribe_group", "pass negative test");
 }
 
 static void utc_livebox_unsubscribe_group_p(void)
@@ -1687,7 +1703,6 @@ static void utc_livebox_refresh_n(void)
 
 static void utc_livebox_lb_pixmap_n(void)
 {
-//extern int livebox_lb_pixmap(const struct livebox *handler);
 	int ret;
 	ret = livebox_lb_pixmap(NULL);
 	dts_check_eq("livebox_lb_pixmap", ret, 0, "invalid");
@@ -1714,7 +1729,7 @@ static void utc_livebox_lb_pixmap_p(void)
 	}
 }
 
-static void pd_pixmap_create_cb(struct livebox *handle, int ret, void *data)
+static void pd_pixmap_create_pd_cb(struct livebox *handle, int ret, void *data)
 {
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_pd_pixmap", ret, LB_STATUS_SUCCESS, "invalid");
@@ -1729,7 +1744,7 @@ static void pd_pixmap_create_cb(struct livebox *handle, int ret, void *data)
 	if (ret != LB_STATUS_SUCCESS) {
 		dts_check_eq("livebox_pd_pixmap", ret, LB_STATUS_SUCCESS, "invalid");
 	} else {
-		ret = livebox_create_pd(handle, pd_pixmap_create_cb, NULL);
+		ret = livebox_create_pd(handle, pd_pixmap_create_pd_cb, NULL);
 		if (ret != LB_STATUS_SUCCESS) {
 			dts_check_eq("livebox_pd_pixmap", ret, LB_STATUS_SUCCESS, "invalid");
 		}
@@ -1802,7 +1817,6 @@ static void utc_livebox_acquire_pd_pixmap_p(void)
 
 static void utc_livebox_release_pd_pixmap_n(void)
 {
-//extern int livebox_release_pd_pixmap(struct livebox *handler, int pixmap);
 	int ret;
 	ret = livebox_release_pd_pixmap(NULL, 0);
 	dts_check_eq("livebox_release_pd_pixmap", ret, LB_STATUS_ERROR_INVALID, "invalid");
@@ -1890,7 +1904,7 @@ static void utc_livebox_acquire_lb_pixmap_n(void)
 	dts_check_eq("livebox_acquire_lb_pixmap", ret, LB_STATUS_ERROR_INVALID, "invalid");
 }
 
-static void acquire_lb_pixmap_cb(struct livebox *handle, int pixmap, void *data)
+static void release_lb_pixmap_cb(struct livebox *handle, int pixmap, void *data)
 {
 	if (pixmap == 0) {
 		dts_check_ne("livebox_release_lb_pixmap", pixmap, 0, "release_lb_pixmap");
