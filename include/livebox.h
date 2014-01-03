@@ -641,7 +641,7 @@ extern int livebox_set_group(struct livebox *handler, const char *cluster, const
  * \post N/A
  * \see N/A
  */
-extern int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category);
+extern int livebox_get_group(struct livebox *handler, const char **cluster, const char **category);
 
 /*!
  * \brief Get the period of this livebox handler

@@ -6,6 +6,7 @@ C_FILES = $(shell ls *.c)
 	
 PKGS = $(PKG_NAME)
 PKGS += glib-2.0
+PKGS += livebox-service
 LDFLAGS = `pkg-config --libs $(PKGS)`
 LDFLAGS += $(TET_ROOT)/lib/tet3/tcm_s.o
 LDFLAGS += -L$(TET_ROOT)/lib/tet3 -ltcm_s

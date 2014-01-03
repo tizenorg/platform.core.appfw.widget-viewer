@@ -2053,7 +2053,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 	return ret;
 }
 
-EAPI int livebox_get_group(struct livebox *handler, char ** const cluster, char ** const category)
+EAPI int livebox_get_group(struct livebox *handler, const char **cluster, const char **category)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
