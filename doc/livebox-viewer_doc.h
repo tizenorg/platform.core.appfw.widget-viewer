@@ -15,8 +15,8 @@
  */
 
 /*!
- * \ingroup CAPI_LIVEBOX_FRAMEWORK Tizen livebox framework
- * \defgroup CAPI_LIVEBOX_VIEWER_MODULE Application Programming Interfaces for the viewer application
+ * \ingroup CAPI_LIVEBOX_FRAMEWORK
+ * \defgroup CAPI_LIVEBOX_VIEWER_MODULE Livebox Viewer
  * \brief API for livebox viewer (widget screen, home screen, ...)
  * \section CAPI_LIVEBOX_VIEWER_MODULE_HEADER Required Header
  * \#include <livebox.h>
