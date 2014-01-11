@@ -203,6 +203,14 @@ enum livebox_event_type { /*!< livebox_event_handler_set Event list */
 	LB_EVENT_IGNORED /*!< Request is ignored */
 };
 
+enum livebox_option_type {
+	LB_OPTION_MANUAL_SYNC,			/*!< Sync manually */
+	LB_OPTION_FRAME_DROP_FOR_RESIZE,	/*!< Drop frames while resizing */
+	LB_OPTION_SHARED_CONTENT,		/*!< Use only one real instance for multiple fake instances if user creates it using same content */
+
+	LB_OPTION_ERROR = 0xFFFFFFFF		/*!< To specify the size of this enumeration type */
+};
+
 enum livebox_fault_type {
 	LB_FAULT_DEACTIVATED, /*!< Livebox is deactivated by its fault operation */
 	LB_FAULT_PROVIDER_DISCONNECTED /*!< Provider is disconnected */
@@ -213,12 +221,12 @@ enum livebox_fault_type {
  * Must be sync'd with the provider
  */
 enum livebox_visible_state {
-	LB_SHOW = 0x00, /*!< Livebox is showed. Default state */
-	LB_HIDE = 0x01, /*!< Livebox is hide, Update timer is not be freezed. but you cannot receive any updates events. you should refresh(reload) the content of a livebox when you make this show again */
+	LB_SHOW = 0x00, /*!< Livebox is shown. Default state */
+	LB_HIDE = 0x01, /*!< Livebox is hidden, Update timer will not be freezed. but you cannot receive any updates events. */
 
-	LB_HIDE_WITH_PAUSE = 0x02, /*!< Livebix is hide, it will paused the update timer, but if a livebox update its contents, update event will come to you */
+	LB_HIDE_WITH_PAUSE = 0x02, /*!< Livebix is hidden, it will pause the update timer, but if a livebox updates its contents, update event will be triggered */
 
-	LB_VISIBLE_ERROR = 0xFFFFFFFF /* To enlarge the size of this enumeration type */
+	LB_VISIBLE_ERROR = 0xFFFFFFFF /*!< To specify the size of this enumeration type */
 };
 
 /*!
@@ -227,11 +235,11 @@ enum livebox_visible_state {
  */
 struct livebox_script_operators {
 	int (*update_begin)(struct livebox *handle); /*!< Content parser is started */
-	int (*update_end)(struct livebox *handle); /*!< Content parser is stopped */
+	int (*update_end)(struct livebox *handle); /*!< Content parser is finished */
 
 	/*!
 	 * \brief
-	 * Listed functions will be called when parser meets each typed component
+	 * Listed functions will be called when parser meets each typed content
 	 */
 	int (*update_text)(struct livebox *handle, const char *id, const char *part, const char *data); /*!< Update text content */
 	int (*update_image)(struct livebox *handle, const char *id, const char *part, const char *data, const char *option); /*!< Update image content */
@@ -242,6 +250,7 @@ struct livebox_script_operators {
 	int (*update_info_category)(struct livebox *handle, const char *id, const char *category); /*!< Update content category info */
 	int (*update_access)(struct livebox *handle, const char *id, const char *part, const char *text, const char *option); /*!< Update access information */
 	int (*operate_access)(struct livebox *handle, const char *id, const char *part, const char *operation, const char *option); /*!< Update access operation */
+	int (*update_color)(struct livebox *handle, const char *id, const char *part, const char *data, const char *option); /*!< Update color */
 };
 
 /*!
@@ -1559,63 +1568,6 @@ extern int livebox_set_update_mode(struct livebox *handler, int active_update, r
 extern int livebox_is_active_update(struct livebox *handler);
 
 /*!
- * \brief Use the manual sync for S/W buffer
- * \details N/A
- * \remarks N/A
- * param[in] flag
- * \return void
- * \pre N/A
- * \post N/A
- * \see livebox_manual_sync
- * \see livebox_sync_pd_fb
- * \see livebox_sync_lb_fb
- */
-extern void livebox_set_manual_sync(int flag);
-
-/*!
- * \brief Get current mode
- * \details N/A
- * \remarks N/A
- * \return int
- * \retval 0 if auto sync
- * \retval 1 if manual sync
- * \pre N/A
- * \post N/A
- * \see livebox_set_manual_sync
- * \see livebox_sync_pd_fb
- * \see livebox_sync_lb_fb
- */
-extern int livebox_manual_sync(void);
-
-/*!
- * \brief Use the frame drop while resizing contents
- * \details N/A
- * \remarks N/A
- * \param[in] flag 1 for dropping frames of old size or 0.
- * \return void
- * \pre N/A
- * \post N/A
- * \see livebox_frame_drop_for_resizing
- */
-extern void livebox_set_frame_drop_for_resizing(int flag);
-
-/*!
- * \brief Get current mode
- * \details
- *   While resizing the box, viewer doesn't want to know the updaed frames of old size anymore,
- *   In that case, if this mode is turnned on, the provider will not send the updated event to the viewer about old size.
- *   So the viewer can reduce its burden to update (or ignore) unnecessary frames
- * \remarks N/A
- * \return int
- * \retval 0 if it is disabled
- * \retval 1 if it is enabled
- * \pre N/A
- * \post N/A
- * \see livebox_set_frame_drop_for_resizing
- */
-extern int livebox_frame_drop_for_resizing(void);
-
-/*!
  * \brief Sync manually
  * \details N/A
  * \remarks N/A
@@ -1711,6 +1663,54 @@ extern int livebox_acquire_fb_lock(struct livebox *handler, int is_pd);
  * \see livebox_acquire_fb_lock
  */
 extern int livebox_release_fb_lock(struct livebox *handler, int is_pd);
+
+/*!
+ * \brief Set options for controlling livebox sub-system.
+ * \details
+ *   LB_OPTION_FRAME_DROP_FOR_RESIZE
+ *     While resizing the box, viewer doesn't want to know the updated frames of old size content anymore,
+ *     In that case, turn this on, the provider will not send the updated event to the viewer about old content.
+ *     So the viewer can reduce its burden to update unnecessary frames
+ *   LB_OPTION_MANUAL_SYNC
+ *     If you don't want updates frame automatically,
+ *     Only you want reload the frames by your hands,(manually)
+ *     Turn it on.
+ *     After turnned it on, you should sync it using
+ *       livebox_sync_pd_fb
+ *       livebox_sync_lb_pfb
+ *   LB_OPTION_SHARED_CONTENT
+ *     If this option is turnned on, even though you create a new livebox,
+ *     If there are already added same instance has same content, the instance will not be created again
+ *     Instead of creating a new instance, viewer will provides old instance with new handle.
+ * \remarks N/A
+ * \param[in] option option which will be affected by this call
+ * \param[in] state new value for given option
+ * \return int
+ * \retval LB_STATUS_ERROR_INVALID Unknown option
+ * \retval LB_STATUS_ERROR_FAULT Failed to change the state of option
+ * \retval LB_STATUS_SUCCESS Successfully changed
+ * \pre N/A
+ * \post N/A
+ * \see livebox_get_option
+ * \see livebox_sync_pd_fb
+ * \see livebox_sync_lb_fb
+ */
+extern int livebox_set_option(enum livebox_option_type option, int state);
+
+/*!
+ * \brief Get options livebox sub-system
+ * \details N/A
+ * \remarks N/A
+ * \param[in] option type of option
+ * \return int
+ * \retval LB_STATUS_ERROR_INVALID invalid option
+ * \retval LB_STATUS_ERROR_FAULT Failed to get option
+ * \retval >=0 Value of given option. must has to be >=0
+ * \pre N/A
+ * \post N/A
+ * \see livebox_set_option
+ */
+extern int livebox_option(enum livebox_option_type option);
 
 /*!
  * \}

@@ -436,7 +436,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 		} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 			buffer = shmat(info->handle, NULL, 0);
 			if (buffer == (void *)-1) {
-				ErrPrint("shmat: %s\n", strerror(errno));
+				ErrPrint("shmat: %s (%d)\n", strerror(errno), info->handle);
 				return NULL;
 			}
 

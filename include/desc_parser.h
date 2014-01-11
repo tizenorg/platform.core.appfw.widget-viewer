@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-extern int parse_desc(struct livebox *handle, const char *descfile, int is_pd);
+extern int parse_desc(struct livebox_common *common, const char *filename, int is_pd);
 
 /* End of a file */

@@ -2065,7 +2065,7 @@ static void utc_livebox_set_manual_sync_n(void)
 
 static void utc_livebox_set_manual_sync_p(void)
 {
-	livebox_set_manual_sync(0);
+	livebox_set_option(LB_OPTION_MANUAL_SYNC, 0);
 	dts_pass("livebox_set_manual_sync", "Pass!");
 }
 
@@ -2073,7 +2073,7 @@ static void utc_livebox_manual_sync_p(void)
 {
 	int ret;
 
-	ret = livebox_manual_sync();
+	ret = livebox_option(LB_OPTION_MANUAL_SYNC);
 	dts_check_eq("livebox_manual_sync", ret, 0, "ok");
 }
 
@@ -2097,7 +2097,7 @@ static void utc_livebox_set_frame_drop_for_resizing_n(void)
 
 static void utc_livebox_set_frame_drop_for_resizing_p(void)
 {
-	livebox_set_frame_drop_for_resizing(1);
+	livebox_set_option(LB_OPTION_FRAME_DROP_FOR_RESIZE, 1);
 	dts_pass("livebox_set_frame_drop_for_resizing", "pass");
 }
 
@@ -2114,7 +2114,7 @@ static void utc_livebox_frame_drop_for_resizing_p(void)
 {
 	int ret;
 
-	ret = livebox_frame_drop_for_resizing();
+	ret = livebox_option(LB_OPTION_FRAME_DROP_FOR_RESIZE);
 	dts_check_eq("livebox_frame_drop_for_resizing", ret, 1, "drop_for_resizing");
 }
 

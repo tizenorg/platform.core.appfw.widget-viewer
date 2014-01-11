@@ -95,7 +95,7 @@ static inline struct command *create_command(struct livebox *handler, struct pac
 static inline void destroy_command(struct command *command)
 {
 	packet_unref(command->packet);
-	lb_unref(command->handler);
+	lb_unref(command->handler, 1);
 	free(command);
 }
 
@@ -260,7 +260,7 @@ int master_rpc_clear_fault_package(const char *pkgname)
 			continue;
 		}
 
-		if (!strcmp(command->handler->pkgname, pkgname)) {
+		if (!strcmp(command->handler->common->pkgname, pkgname)) {
 			s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
 			if (command->ret_cb) {
 				command->ret_cb(command->handler, NULL, command->data);
