@@ -69,6 +69,7 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 		return NULL;
 	}
 
+	DbgPrint("[%s]\n", pkgname);
 	master_rpc_clear_fault_package(pkgname);
 	lb_invoke_fault_handler(LB_FAULT_DEACTIVATED, pkgname, id, function);
 	return NULL;
@@ -183,6 +184,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		goto out;
 	}
 
+	DbgPrint("[%s]\n", pkgname);
 	common = lb_find_common_handle_by_timestamp(timestamp);
 	if (!common) {
 		/*!
@@ -269,15 +271,8 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 		}
 
 		/* Just try to delete it, if a user didn't remove it from the live box list */
-		lb_unref(handler, 0);
+		lb_unref(handler, 1);
 	}
-
-	/*!
-	 * \note
-	 * Lock file should be deleted after all callbacks are processed.
-	 */
-	lb_destroy_lock_file(common, 0);
-	lb_destroy_common_handle(common);
 
 out:
 	return NULL;
@@ -630,6 +625,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
+	DbgPrint("[%s]\n", pkgname);
 	common = lb_find_common_handle(pkgname, id);
 	if (!common) {
 		ErrPrint("instance(%s) is not exists\n", id);
@@ -722,6 +718,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
+	DbgPrint("[%s]\n", pkgname);
 	common = lb_find_common_handle(pkgname, id);
 	if (!common) {
 		ErrPrint("Instance(%s) is not exists\n", id);
@@ -810,6 +807,7 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
+	DbgPrint("[%s]\n", pkgname);
 	common = lb_find_common_handle(pkgname, id);
 	if (!common) {
 		ErrPrint("Instance(%s) is not exists\n", id);
@@ -895,6 +893,7 @@ static struct packet *master_pd_updated(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
+	DbgPrint("[%s]\n", pkgname);
 	common = lb_find_common_handle(pkgname, id);
 	if (!common) {
 		ErrPrint("Instance(%s) is not exists\n", id);

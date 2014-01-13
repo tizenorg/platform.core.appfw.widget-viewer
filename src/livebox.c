@@ -318,7 +318,7 @@ errout:
 	handler->cbs.update_mode.cb(handler, ret, handler->cbs.update_mode.data);
 	handler->cbs.update_mode.cb = NULL;
 	handler->cbs.update_mode.data = NULL;
-	return;
+	handler->common->request.update_mode = 0;
 }
 
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -354,6 +354,7 @@ errout:
 	handler->cbs.size_changed.cb(handler, ret, handler->cbs.size_changed.data);
 	handler->cbs.size_changed.cb = NULL;
 	handler->cbs.size_changed.data = NULL;
+	handler->common->request.size_changed = 0;
 }
 
 static void text_signal_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -403,6 +404,7 @@ errout:
 	handler->cbs.group_changed.cb(handler, ret, handler->cbs.group_changed.data);
 	handler->cbs.group_changed.cb = NULL;
 	handler->cbs.group_changed.data = NULL;
+	handler->common->request.group_changed = 0;
 }
 
 static void period_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -428,6 +430,7 @@ errout:
 	handler->cbs.period_changed.cb(handler, ret, handler->cbs.period_changed.data);
 	handler->cbs.period_changed.cb = NULL;
 	handler->cbs.period_changed.data = NULL;
+	handler->common->request.period_changed = 0;
 }
 
 static void del_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -529,6 +532,7 @@ errout:
 	handler->cbs.pd_created.cb(handler, ret, handler->cbs.pd_created.data);
 	handler->cbs.pd_created.cb = NULL;
 	handler->cbs.pd_created.data = NULL;
+	handler->common->request.pd_created = 0;
 }
 
 static void activated_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -776,6 +780,7 @@ errout:
 	handler->cbs.pinup.cb(handler, ret, handler->cbs.pinup.data);
 	handler->cbs.pinup.cb = NULL;
 	handler->cbs.pinup.data = NULL;
+	handler->common->request.pinup = 0;
 }
 
 static void key_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -801,7 +806,7 @@ errout:
 	handler->cbs.key_event.cb(handler, ret, handler->cbs.key_event.data);
 	handler->cbs.key_event.cb = NULL;
 	handler->cbs.key_event.data = NULL;
-	return;
+	handler->common->request.key_event = 0;
 }
 
 static void access_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -828,7 +833,7 @@ errout:
 	handler->cbs.access_event.cb(handler, ret, handler->cbs.access_event.data);
 	handler->cbs.access_event.cb = NULL;
 	handler->cbs.access_event.data = NULL;
-	return;
+	handler->common->request.access_event = 0;
 }
 
 static int send_access_event(struct livebox *handler, const char *event, int x, int y)
@@ -1592,6 +1597,15 @@ static void job_del_cb(struct livebox *handle, int type, void *data)
 	data = cbinfo->data;
 	destroy_cb_info(cbinfo);
 
+	if (handle->common->state != CREATE) {
+		DbgPrint("[%s] %d\n", handle->common->pkgname, handle->refcnt);
+		if (cb) {
+			cb(handle, LB_STATUS_SUCCESS, data);
+		}
+
+		return;
+	}
+
 	if (handle->common->refcnt == 1) {
 		handle->common->delete_type = type;
 		handle->common->state = DELETE;
@@ -2285,6 +2299,8 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		ErrPrint("PD is not created\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
+
+	DbgPrint("[%s]\n", handler->common->pkgname);
 
 	packet = packet_create("destroy_pd", "ss", handler->common->pkgname, handler->common->id);
 	if (!packet) {
@@ -4289,10 +4305,16 @@ struct livebox *lb_unref(struct livebox *handler, int destroy_common)
 	handler->state = DESTROYED;
 	if (lb_common_unref(handler->common, handler) == 0) {
 		if (destroy_common) {
+			/*!
+			 * \note
+			 * Lock file should be deleted after all callbacks are processed.
+			 */
+			lb_destroy_lock_file(handler->common, 0);
 			lb_destroy_common_handle(handler->common);
 		}
 	}
 	free(handler);
+	DbgPrint("Handler is released\n");
 	return NULL;
 }
 
