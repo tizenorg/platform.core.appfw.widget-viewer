@@ -733,11 +733,33 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
+	common->is_pd_created = (status == LB_STATUS_SUCCESS);
+	common->request.pd_created = 0;
+
 	lb_set_pdsize(common, width, height);
 	if (lb_text_pd(common)) {
 		DbgPrint("Text TYPE does not need to handle this\n");
 	} else {
 		(void)lb_set_pd_fb(common, buf_id);
+
+		switch (common->pd.type) {
+		case _PD_TYPE_SCRIPT:
+		case _PD_TYPE_BUFFER:
+			switch (fb_type(lb_get_pd_fb(common))) {
+			case BUFFER_TYPE_FILE:
+			case BUFFER_TYPE_SHM:
+				lb_create_lock_file(common, 1);
+				break;
+			case BUFFER_TYPE_PIXMAP:
+			case BUFFER_TYPE_ERROR:
+			default:
+				break;
+			}
+			break;
+		case _PD_TYPE_TEXT:
+		default:
+			break;
+		}
 
 		ret = lb_sync_pd_fb(common);
 		if (ret < 0) {
@@ -745,29 +767,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		}
 	}
 
-	common->is_pd_created = (status == 0);
-
-	switch (common->pd.type) {
-	case _PD_TYPE_SCRIPT:
-	case _PD_TYPE_BUFFER:
-		switch (fb_type(lb_get_pd_fb(common))) {
-		case BUFFER_TYPE_FILE:
-		case BUFFER_TYPE_SHM:
-			lb_create_lock_file(common, 1);
-			break;
-		case BUFFER_TYPE_PIXMAP:
-		case BUFFER_TYPE_ERROR:
-		default:
-			break;
-		}
-		break;
-	case _PD_TYPE_TEXT:
-	default:
-		break;
-	}
-
 	DbgPrint("PERF_DBOX\n");
-	common->request.pd_created = 0;
 	dlist_foreach(common->livebox_list, l, handler) {
 		if (handler->cbs.pd_created.cb) {
 			ret_cb_t cb;
