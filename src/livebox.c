@@ -44,7 +44,6 @@
 #include "conf.h"
 
 #define EAPI __attribute__((visibility("default")))
-#define MINIMUM_EVENT	s_info.event_filter
 
 #if defined(FLOG)
 FILE *__file_log_fp;
@@ -64,7 +63,6 @@ static struct info {
 
 	int init_count;
 	int prevent_overwrite;
-	double event_filter;
 	enum event_state event_state;
 	enum event_state fault_state;
 	guint job_timer;
@@ -75,7 +73,6 @@ static struct info {
 	.fault_list = NULL,
 	.init_count = 0,
 	.prevent_overwrite = 0,
-	.event_filter = 0.01f,
 	.event_state = INFO_STATE_CALLBACK_IN_IDLE,
 	.fault_state = INFO_STATE_CALLBACK_IN_IDLE,
 	.job_timer = 0,
@@ -911,7 +908,7 @@ EAPI int livebox_init_with_options(void *disp, int prevent_overwrite, double eve
 	 * So set them using arguments.
 	 */
 	s_info.prevent_overwrite = prevent_overwrite;
-	MINIMUM_EVENT = event_filter;
+	conf_set_event_filter(event_filter);
 
 	initialize_livebox(disp, use_thread);
 	return LB_STATUS_SUCCESS;
@@ -933,7 +930,10 @@ EAPI int livebox_init(void *disp)
 
 	env = getenv("PROVIDER_EVENT_FILTER");
 	if (env) {
-		sscanf(env, "%lf", &MINIMUM_EVENT);
+		double event_filter;
+		if (sscanf(env, "%lf", &event_filter) == 1) {
+			conf_set_event_filter(event_filter);
+		}
 	}
 
 	initialize_livebox(disp, 0);
@@ -2452,7 +2452,7 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 		}
 
 		if (type & CONTENT_EVENT_MOUSE_MOVE) {
-			if (fabs(x - handler->common->pd.x) < MINIMUM_EVENT && fabs(y - handler->common->pd.y) < MINIMUM_EVENT) {
+			if (fabs(x - handler->common->pd.x) < conf_event_filter() && fabs(y - handler->common->pd.y) < conf_event_filter()) {
 				return LB_STATUS_ERROR_BUSY;
 			}
 		} else if (type & CONTENT_EVENT_MOUSE_SET) {
@@ -2480,7 +2480,7 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 		}
 
 		if (type & CONTENT_EVENT_MOUSE_MOVE) {
-			if (fabs(x - handler->common->lb.x) < MINIMUM_EVENT && fabs(y - handler->common->lb.y) < MINIMUM_EVENT) {
+			if (fabs(x - handler->common->lb.x) < conf_event_filter() && fabs(y - handler->common->lb.y) < conf_event_filter()) {
 				return LB_STATUS_ERROR_BUSY;
 			}
 		} else if (type & CONTENT_EVENT_MOUSE_SET) {
