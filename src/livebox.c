@@ -1370,9 +1370,7 @@ static int lb_set_visibility(struct livebox *handler, enum livebox_visible_state
 	int ret;
 
 	if (handler->common->visible != LB_SHOW && state == LB_SHOW) {
-		if (handler->paused_updating) {
-			need_to_add_job = 1;
-		}
+		need_to_add_job = !!handler->paused_updating;
 	} else if (handler->common->visible == LB_SHOW && state != LB_SHOW) {
 		struct dlist *l;
 		struct livebox *item;
@@ -1633,6 +1631,8 @@ static void lb_update_visibility(struct livebox_common *old_common)
 		} else {
 			ErrPrint("Unable to get the valid handle from common handler\n");
 		}
+	} else {
+		lb_set_visibility(item, LB_SHOW);
 	}
 }
 
@@ -2075,7 +2075,8 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 					handler->common = common;
 
 					if (handler->visible == LB_SHOW) {
-						lb_update_visibility(old_common);
+						lb_update_visibility(old_common); /* To update visibility: Show --> Paused */
+						lb_update_visibility(common);	/* To update visibility: Paused --> Show */
 					}
 				} else {
 					destroy_cb_info(cbinfo);
