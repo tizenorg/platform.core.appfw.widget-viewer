@@ -319,6 +319,11 @@ errout:
 	handler->cbs.update_mode.cb = NULL;
 	handler->cbs.update_mode.data = NULL;
 	handler->common->request.update_mode = 0;
+
+	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
+	}
 }
 
 static void resize_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -355,6 +360,11 @@ errout:
 	handler->cbs.size_changed.cb = NULL;
 	handler->cbs.size_changed.data = NULL;
 	handler->common->request.size_changed = 0;
+
+	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
+	}
 }
 
 static void text_signal_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -405,6 +415,11 @@ errout:
 	handler->cbs.group_changed.cb = NULL;
 	handler->cbs.group_changed.data = NULL;
 	handler->common->request.group_changed = 0;
+
+	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
+	}
 }
 
 static void period_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -431,6 +446,11 @@ errout:
 	handler->cbs.period_changed.cb = NULL;
 	handler->cbs.period_changed.data = NULL;
 	handler->common->request.period_changed = 0;
+
+	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
+	}
 }
 
 static void del_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -533,6 +553,11 @@ errout:
 	handler->cbs.pd_created.cb = NULL;
 	handler->cbs.pd_created.data = NULL;
 	handler->common->request.pd_created = 0;
+
+	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
+	}
 }
 
 static void activated_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -577,12 +602,16 @@ static void pd_destroy_cb(struct livebox *handler, const struct packet *result, 
 		ret = LB_STATUS_ERROR_INVALID;
 	}
 
-	if (ret == 0) {
+	if (ret == LB_STATUS_SUCCESS) {
 		handler->cbs.pd_destroyed.cb = cb;
 		handler->cbs.pd_destroyed.data = cbdata;
-	} else if (cb) {
+	} else {
 		handler->common->is_pd_created = 0;
-		cb(handler, ret, cbdata);
+		handler->common->request.pd_destroyed = 0;
+
+		if (cb) {
+			cb(handler, ret, cbdata);
+		}
 	}
 }
 
@@ -684,6 +713,13 @@ static void lb_pixmap_acquired_cb(struct livebox *handler, const struct packet *
 		ret = lb_acquire_lb_pixmap(handler, cb, cbdata);
 		DbgPrint("Busy, Try again: %d\n", ret);
 		/* Try again */
+	} else if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		if (cb) {
+			cb(handler, pixmap, cbdata);
+		}
+
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
 	} else {
 		if (cb) {
 			cb(handler, pixmap, cbdata);
@@ -751,6 +787,12 @@ static void pd_pixmap_acquired_cb(struct livebox *handler, const struct packet *
 		ret = lb_acquire_pd_pixmap(handler, cb, cbdata);
 		DbgPrint("Busy, Try again: %d\n", ret);
 		/* Try again */
+	} else if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		if (cb) {
+			cb(handler, pixmap, cbdata);
+		}
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
 	} else {
 		if (cb) {
 			DbgPrint("ret: %d, pixmap: %d\n", ret, pixmap);
@@ -781,6 +823,11 @@ errout:
 	handler->cbs.pinup.cb = NULL;
 	handler->cbs.pinup.data = NULL;
 	handler->common->request.pinup = 0;
+
+	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
+	}
 }
 
 static void key_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -807,6 +854,11 @@ errout:
 	handler->cbs.key_event.cb = NULL;
 	handler->cbs.key_event.data = NULL;
 	handler->common->request.key_event = 0;
+
+	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
+	}
 }
 
 static void access_ret_cb(struct livebox *handler, const struct packet *result, void *data)
@@ -834,6 +886,11 @@ errout:
 	handler->cbs.access_event.cb = NULL;
 	handler->cbs.access_event.data = NULL;
 	handler->common->request.access_event = 0;
+
+	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
+		lb_unref(handler, 1);
+	}
 }
 
 static int send_access_event(struct livebox *handler, const char *event, int x, int y)
@@ -2149,6 +2206,25 @@ EAPI int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data)
 	return livebox_create_pd_with_position(handler, -1.0, -1.0, cb, data);
 }
 
+static void turn_off_pd_destroyed_flag_cb(struct livebox *handler, int ret, void *data)
+{
+	if (handler->common->request.pd_destroyed) {
+		ret_cb_t cb;
+		void *data;
+
+		DbgPrint("pd_destroyed request is canceled\n");
+		handler->common->request.pd_destroyed = 0;
+		cb = handler->cbs.pd_destroyed.cb;
+		data = handler->cbs.pd_destroyed.data;
+		handler->cbs.pd_destroyed.cb = NULL;
+		handler->cbs.pd_destroyed.data = NULL;
+
+		if (cb) {
+			cb(handler, ret, data);
+		}
+	}
+}
+
 EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, double y, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
@@ -2173,14 +2249,24 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 	 * \note
 	 * Only one handler can have a PD
 	 */
-	if (handler->common->is_pd_created == 1) {
-		DbgPrint("PD already created\n");
+	if (handler->common->is_pd_created) {
+		DbgPrint("PD is already created\n");
 		return LB_STATUS_SUCCESS;
 	}
 
 	if (handler->common->request.pd_created) {
 		ErrPrint("Previous request is not completed yet\n");
 		return LB_STATUS_ERROR_BUSY;
+	}
+
+	/*!
+	 * \note
+	 * Turn off the pd_destroyed request flag
+	 */
+	if (handler->common->request.pd_destroyed) {
+		if (job_add(handler, turn_off_pd_destroyed_flag_cb, LB_STATUS_ERROR_CANCEL, NULL) < 0) {
+			ErrPrint("Failed to add pd_destroyed job\n");
+		}
 	}
 
 	packet = packet_create("create_pd", "ssdd", handler->common->pkgname, handler->common->id, x, y);
@@ -2268,6 +2354,25 @@ EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 	return ret;
 }
 
+static void turn_off_pd_created_flag_cb(struct livebox *handler, int ret, void *data)
+{
+	if (handler->common->request.pd_created) {
+		ret_cb_t cb;
+		void *data;
+
+		DbgPrint("pd_created request is canceled\n");
+		handler->common->request.pd_created = 0;
+		cb = handler->cbs.pd_created.cb;
+		data = handler->cbs.pd_created.data;
+		handler->cbs.pd_created.cb = NULL;
+		handler->cbs.pd_created.data = NULL;
+
+		if (cb) {
+			cb(handler, ret, data);
+		}
+	}
+}
+
 EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
@@ -2300,6 +2405,21 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
+	if (handler->common->request.pd_destroyed) {
+		ErrPrint("PD destroy request is already sent\n");
+		return LB_STATUS_ERROR_ALREADY;
+	}
+
+	/*!
+	 * \note
+	 * Disable the pd_created request flag
+	 */
+	if (handler->common->request.pd_created) {
+		if (job_add(handler, turn_off_pd_created_flag_cb, LB_STATUS_ERROR_CANCEL, NULL) < 0) {
+			ErrPrint("Failed to add a new job\n");
+		}
+	}
+
 	DbgPrint("[%s]\n", handler->common->pkgname);
 
 	packet = packet_create("destroy_pd", "ss", handler->common->pkgname, handler->common->id);
@@ -2321,6 +2441,8 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 	ret = master_rpc_async_request(handler, packet, 0, pd_destroy_cb, cbinfo);
 	if (ret < 0) {
 		destroy_cb_info(cbinfo);
+	} else {
+		handler->common->request.pd_destroyed = 1;
 	}
 
 	return ret;

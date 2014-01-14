@@ -97,7 +97,7 @@ static struct packet *master_hold_scroll(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
-	DbgPrint("HOLD: %s %d\n", id, seize);
+	DbgPrint("HOLD: [%s] seize(%d)\n", id, seize);
 	seize = seize ? LB_EVENT_HOLD_SCROLL : LB_EVENT_RELEASE_SCROLL;
 	dlist_foreach(common->livebox_list, l, livebox) {
 		lb_invoke_event_handler(livebox, seize);
@@ -114,6 +114,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	const char *content;
 	struct livebox *handler;
 	struct dlist *l;
+	struct dlist *n;
 	struct livebox_common *common;
 	char *new_content;
 	int ret;
@@ -132,7 +133,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		goto out;
 	}
 
-	if (status == 0) {
+	if (status == LB_STATUS_SUCCESS) {
 		new_content = strdup(content);
 		if (new_content) {
 			free(common->content);
@@ -146,7 +147,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 
 	common->request.pinup = 0;
 
-	dlist_foreach(common->livebox_list, l, handler) {
+	dlist_foreach_safe(common->livebox_list, l, n, handler) {
 		if (handler->cbs.pinup.cb) {
 			ret_cb_t cb;
 			void *cbdata;
@@ -159,7 +160,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			handler->cbs.pinup.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == 0) {
+		} else if (status == LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_PINUP_CHANGED);
 		}
 	}
@@ -625,7 +626,6 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
-	DbgPrint("[%s]\n", pkgname);
 	common = lb_find_common_handle(pkgname, id);
 	if (!common) {
 		ErrPrint("instance(%s) is not exists\n", id);
@@ -707,6 +707,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 	const char *id;
 	const char *buf_id;
 	struct dlist *l;
+	struct dlist *n;
 	int width;
 	int height;
 	int ret;
@@ -730,42 +731,49 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
+	if (!common->request.pd_created) {
+		ErrPrint("PD create request is canceled\n");
+		goto out;
+	}
+
 	common->is_pd_created = (status == LB_STATUS_SUCCESS);
 	common->request.pd_created = 0;
 
-	lb_set_pdsize(common, width, height);
-	if (lb_text_pd(common)) {
-		DbgPrint("Text TYPE does not need to handle this\n");
-	} else {
-		(void)lb_set_pd_fb(common, buf_id);
+	if (common->is_pd_created) {
+		lb_set_pdsize(common, width, height);
+		if (lb_text_pd(common)) {
+			DbgPrint("Text TYPE does not need to handle this\n");
+		} else {
+			(void)lb_set_pd_fb(common, buf_id);
 
-		switch (common->pd.type) {
-		case _PD_TYPE_SCRIPT:
-		case _PD_TYPE_BUFFER:
-			switch (fb_type(lb_get_pd_fb(common))) {
-			case BUFFER_TYPE_FILE:
-			case BUFFER_TYPE_SHM:
-				lb_create_lock_file(common, 1);
+			switch (common->pd.type) {
+			case _PD_TYPE_SCRIPT:
+			case _PD_TYPE_BUFFER:
+				switch (fb_type(lb_get_pd_fb(common))) {
+				case BUFFER_TYPE_FILE:
+				case BUFFER_TYPE_SHM:
+					lb_create_lock_file(common, 1);
+					break;
+				case BUFFER_TYPE_PIXMAP:
+				case BUFFER_TYPE_ERROR:
+				default:
+					break;
+				}
 				break;
-			case BUFFER_TYPE_PIXMAP:
-			case BUFFER_TYPE_ERROR:
+			case _PD_TYPE_TEXT:
 			default:
 				break;
 			}
-			break;
-		case _PD_TYPE_TEXT:
-		default:
-			break;
-		}
 
-		ret = lb_sync_pd_fb(common);
-		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+			ret = lb_sync_pd_fb(common);
+			if (ret < 0) {
+				ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+			}
 		}
 	}
 
 	DbgPrint("PERF_DBOX\n");
-	dlist_foreach(common->livebox_list, l, handler) {
+	dlist_foreach_safe(common->livebox_list, l, n, handler) {
 		if (handler->cbs.pd_created.cb) {
 			ret_cb_t cb;
 			void *cbdata;
@@ -782,9 +790,9 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 			 * Because, in the create callback, user can call create_pd function again.
 			 */
 			cb(handler, status, cbdata);
-		} else {
+		} else if (status == LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);
-		}
+		} 
 	}
 
 out:
@@ -819,6 +827,11 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
+	if (common->is_pd_created == 0) {
+		ErrPrint("PD is not created, event is ignored\n");
+		goto out;
+	}
+
 	common->is_pd_created = 0;
 	common->request.pd_destroyed = 0;
 
@@ -839,7 +852,7 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 			 * Because, in the create callback, user can call destroy_pd function again.
 			 */
 			cb(handler, status, cbdata);
-		} else if (status == 0) {
+		} else if (status == LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_PD_DESTROYED);
 		}
 	}
@@ -948,6 +961,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 	struct livebox *handler;
 	struct livebox_common *common;
 	struct dlist *l;
+	struct dlist *n;
 	const char *pkgname;
 	const char *id;
 	int active_mode;
@@ -981,7 +995,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 	}
 
 	common->request.update_mode = 0;
-	dlist_foreach(common->livebox_list, l, handler) {
+	dlist_foreach_safe(common->livebox_list, l, n, handler) {
 		if (handler->cbs.update_mode.cb) {
 			ret_cb_t cb;
 			void *cbdata;
@@ -993,7 +1007,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 			handler->cbs.update_mode.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else {
+		} else if (status == LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_UPDATE_MODE_CHANGED);
 		}
 	}
@@ -1006,7 +1020,6 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 {
 	struct livebox *handler;
 	struct livebox_common *common;
-	struct dlist *l;
 	const char *pkgname;
 	const char *id;
 	const char *fbfile;
@@ -1047,7 +1060,9 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		 * So the PD has no private resized event handler.
 		 * Notify it via global event handler only.
 		 */
-		if (status == 0) {
+		if (status == LB_STATUS_SUCCESS) {
+			struct dlist *l;
+
 			lb_set_pdsize(common, w, h);
 			dlist_foreach(common->livebox_list, l, handler) {
 				lb_invoke_event_handler(handler, LB_EVENT_PD_SIZE_CHANGED);
@@ -1056,7 +1071,10 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 			ErrPrint("This is not possible. PD Size is changed but the return value is not ZERO (%d)\n", status);
 		}
 	} else {
-		if (status == 0) {
+		struct dlist *l;
+		struct dlist *n;
+
+		if (status == LB_STATUS_SUCCESS) {
 			lb_set_size(common, w, h);
 
 			/*!
@@ -1081,7 +1099,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		 * I cannot believe client.
 		 * So I added some log before & after call the user callback.
 		 */
-		dlist_foreach(common->livebox_list, l, handler) {
+		dlist_foreach_safe(common->livebox_list, l, n, handler) {
 			if (handler->cbs.size_changed.cb) {
 				ret_cb_t cb;
 				void *cbdata;
@@ -1093,7 +1111,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 				handler->cbs.size_changed.data = NULL;
 
 				cb(handler, status, cbdata);
-			} else if (status == 0) {
+			} else if (status == LB_STATUS_SUCCESS) {
 				lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
 			}
 		}
@@ -1108,6 +1126,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 	struct livebox *handler;
 	struct livebox_common *common;
 	struct dlist *l;
+	struct dlist *n;
 	const char *pkgname;
 	const char *id;
 	int ret;
@@ -1131,13 +1150,13 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
-	if (status == 0) {
+	if (status == LB_STATUS_SUCCESS) {
 		lb_set_period(common, period);
 	}
 
 	common->request.period_changed = 0;
 
-	dlist_foreach(common->livebox_list, l, handler) {
+	dlist_foreach_safe(common->livebox_list, l, n, handler) {
 		if (handler->cbs.period_changed.cb) {
 			ret_cb_t cb;
 			void *cbdata;
@@ -1149,7 +1168,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 			handler->cbs.period_changed.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == 0) {
+		} else if (status == LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_PERIOD_CHANGED);
 		}
 	}
@@ -1163,6 +1182,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 	struct livebox *handler;
 	struct livebox_common *common;
 	struct dlist *l;
+	struct dlist *n;
 	const char *pkgname;
 	const char *id;
 	int ret;
@@ -1192,13 +1212,13 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
-	if (status == 0) {
+	if (status == LB_STATUS_SUCCESS) {
 		(void)lb_set_group(common, cluster, category);
 	}
 
 	common->request.group_changed = 0;
 
-	dlist_foreach(common->livebox_list, l, handler) {
+	dlist_foreach_safe(common->livebox_list, l, n, handler) {
 		if (handler->cbs.group_changed.cb) {
 			ret_cb_t cb;
 			void *cbdata;
@@ -1210,7 +1230,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 			handler->cbs.group_changed.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == 0) {
+		} else if (status == LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_GROUP_CHANGED);
 		}
 	}
