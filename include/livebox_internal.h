@@ -14,41 +14,50 @@
  * limitations under the License.
  */
 
-extern int lb_set_group(struct livebox *handler, const char *cluster, const char *category);
-extern void lb_set_size(struct livebox *handler, int w, int h);
-extern void lb_set_pdsize(struct livebox *handler, int w, int h);
-extern void lb_set_default_pdsize(struct livebox *handler, int w, int h);
 extern void lb_invoke_event_handler(struct livebox *handler, enum livebox_event_type event);
 extern void lb_invoke_fault_handler(enum livebox_fault_type type, const char *pkgname, const char *filename, const char *function);
-extern int lb_set_content(struct livebox *handler, const char *content);
-extern int lb_set_title(struct livebox *handler, const char *title);
-extern void lb_set_auto_launch(struct livebox *handler, const char *auto_launch);
-extern struct livebox *lb_find_livebox(const char *pkgname, const char *filename);
-extern struct livebox *lb_new_livebox(const char *pkgname, const char *filename, double timestamp);
-extern struct livebox *lb_find_livebox_by_timestamp(double timestamp);
-extern void lb_set_id(struct livebox *handler, const char *id);
-extern void lb_set_size_list(struct livebox *handler, int size_list);
-extern void lb_set_priority(struct livebox *handler, double priority);
-extern int lb_set_lb_fb(struct livebox *handler, const char *filename);
-extern int lb_set_pd_fb(struct livebox *handler, const char *filename);
-extern struct fb_info *lb_get_pd_fb(struct livebox *handler);
-extern struct fb_info *lb_get_lb_fb(struct livebox *handler);
-extern void lb_set_user(struct livebox *handler, int user);
-extern void lb_set_pinup(struct livebox *handler, int pinup);
-extern void lb_set_text_lb(struct livebox *handler);
-extern void lb_set_text_pd(struct livebox *handler);
-extern int lb_text_lb(struct livebox *handler);
-extern int lb_text_pd(struct livebox *handler);
-extern void lb_set_period(struct livebox *handler, double period);
-extern void lb_set_update_mode(struct livebox *handler, int active_mode);
+
+extern struct livebox_common *lb_find_common_handle(const char *pkgname, const char *filename);
+extern struct livebox *lb_new_livebox(const char *pkgname, const char *id, double timestamp, const char *cluster, const char *category);
+extern struct livebox_common *lb_find_common_handle_by_timestamp(double timestamp);
+
+extern int lb_set_group(struct livebox_common *common, const char *cluster, const char *category);
+extern void lb_set_size(struct livebox_common *common, int w, int h);
+extern void lb_set_pdsize(struct livebox_common *common, int w, int h);
+extern void lb_set_default_pdsize(struct livebox_common *common, int w, int h);
+extern int lb_set_content(struct livebox_common *common, const char *content);
+extern int lb_set_title(struct livebox_common *handler, const char *title);
+extern void lb_set_auto_launch(struct livebox_common *handler, const char *auto_launch);
+extern void lb_set_id(struct livebox_common *handler, const char *id);
+extern void lb_set_size_list(struct livebox_common *handler, int size_list);
+extern void lb_set_priority(struct livebox_common *handler, double priority);
+extern int lb_set_lb_fb(struct livebox_common *handler, const char *filename);
+extern int lb_set_pd_fb(struct livebox_common *handler, const char *filename);
+extern struct fb_info *lb_get_pd_fb(struct livebox_common *handler);
+extern struct fb_info *lb_get_lb_fb(struct livebox_common *handler);
+extern void lb_set_user(struct livebox_common *handler, int user);
+extern void lb_set_pinup(struct livebox_common *handler, int pinup);
+extern void lb_set_text_lb(struct livebox_common *handler);
+extern void lb_set_text_pd(struct livebox_common *handler);
+extern int lb_text_lb(struct livebox_common *handler);
+extern int lb_text_pd(struct livebox_common *handler);
+extern void lb_set_period(struct livebox_common *handler, double period);
+extern void lb_set_update_mode(struct livebox_common *handler, int active_mode);
+extern void lb_set_filename(struct livebox_common *handler, const char *filename);
+extern void lb_set_alt_info(struct livebox_common *handler, const char *icon, const char *name);
+extern int lb_destroy_lock_file(struct livebox_common *common, int is_pd);
+extern int lb_create_lock_file(struct livebox_common *common, int is_pd);
+extern int lb_destroy_common_handle(struct livebox_common *common);
+extern struct livebox_common *lb_create_common_handle(struct livebox *handle, const char *pkgname, const char *cluster, const char *category);
+extern int lb_sync_pd_fb(struct livebox_common *common);
+extern int lb_sync_lb_fb(struct livebox_common *common);
+extern int lb_common_unref(struct livebox_common *common, struct livebox *handle);
+extern int lb_common_ref(struct livebox_common *common, struct livebox *handle);
+
 extern struct livebox *lb_ref(struct livebox *handler);
-extern struct livebox *lb_unref(struct livebox *handler);
+extern struct livebox *lb_unref(struct livebox *handler, int destroy_common);
 extern int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *data);
 extern int lb_delete_all(void);
-extern void lb_set_filename(struct livebox *handler, const char *filename);
-extern void lb_set_alt_info(struct livebox *handler, const char *icon, const char *name);
-extern int lb_destroy_lock_file(struct livebox *info, int is_pd);
-extern int lb_create_lock_file(struct livebox *info, int is_pd);
 
 enum lb_type { /*!< Must have to be sync with data-provider-master */
 	_LB_TYPE_NONE = 0x0,
@@ -65,41 +74,46 @@ enum pd_type { /*!< Must have to be sync with data-provider-master */
 	_PD_TYPE_BUFFER
 };
 
-struct livebox {
+enum livebox_state {
+	CREATE = 0xBEEFbeef,
+	DELETE = 0xDEADdead, /* Delete only for this client */
+	DESTROYED = 0x00DEAD00
+};
+
+struct livebox_common {
+	enum livebox_state state;
+
+	struct dlist *livebox_list;
 	int refcnt;
-	enum {
-		CREATE = 0xBEEFbeef,
-		DELETE = 0xDEADdead, /* Delete only for this client */
-		DESTROYED = 0x00DEAD00
-	} state;
 
 	char *cluster;
 	char *category;
 
 	char *pkgname;
 	char *id;
+
 	char *content;
 	char *title;
 	char *filename;
-	char *icon;
-	char *name;
 
 	double timestamp;
 
-	enum livebox_visible_state visible;
+	struct alt_info {
+		char *icon;
+		char *name;
+	} alt;
+
 	enum livebox_delete_type delete_type;
 
 	int is_user;
 	int is_pd_created;
 	int is_pinned_up;
 	int is_active_update;
+	enum livebox_visible_state visible;
 
 	struct {
 		enum lb_type type;
-		union {
-			struct fb_info *fb;
-			struct livebox_script_operators ops;
-		} data;
+		struct fb_info *fb;
 
 		int size_list;
 
@@ -121,10 +135,7 @@ struct livebox {
 
 	struct {
 		enum pd_type type;
-		union {
-			struct fb_info *fb;
-			struct livebox_script_operators ops;
-		} data;
+		struct fb_info *fb;
 
 		int width;
 		int height;
@@ -141,40 +152,104 @@ struct livebox {
 
 	int nr_of_sizes;
 
+	struct requested_flag {
+		unsigned int created:1;
+		unsigned int deleted:1;
+		unsigned int pinup:1;
+		unsigned int group_changed:1;
+		unsigned int period_changed:1;
+		unsigned int size_changed:1;
+		unsigned int pd_created:1;
+		unsigned int pd_destroyed:1;
+		unsigned int update_mode:1;
+		unsigned int access_event:1;
+		unsigned int key_event:1;
+
+		/*!
+		 * \note
+		 * Reserved
+		 */
+		unsigned int reserved:21;
+	} request;
+};
+
+struct job_item {
+	struct livebox *handle;
+	ret_cb_t cb;
+	int ret;
+	void *data;
+};
+
+struct livebox {
+	enum livebox_state state;
+
+	int refcnt;
+	int paused_updating;
+
+	enum livebox_visible_state visible;
+	struct livebox_common *common;
+
 	void *data;
 
-	ret_cb_t created_cb;
-	void *created_cbdata;
+	struct callback_table {
+		struct livebox_script_operators lb_ops;
+		struct livebox_script_operators pd_ops;
 
-	ret_cb_t deleted_cb;
-	void *deleted_cbdata;
+		struct created {
+			ret_cb_t cb;
+			void *data;
+		} created;
 
-	ret_cb_t pinup_cb;
-	void *pinup_cbdata;
+		struct deleted {
+			ret_cb_t cb;
+			void *data;
+		} deleted;
 
-	ret_cb_t group_changed_cb;
-	void *group_cbdata;
+		struct pinup {
+			ret_cb_t cb;
+			void *data;
+		} pinup;
 
-	ret_cb_t period_changed_cb;
-	void *period_cbdata;
+		struct group_changed {
+			ret_cb_t cb;
+			void *data;
+		} group_changed;
 
-	ret_cb_t size_changed_cb;
-	void *size_cbdata;
+		struct period_changed {
+			ret_cb_t cb;
+			void *data;
+		} period_changed;
 
-	ret_cb_t pd_created_cb;
-	void *pd_created_cbdata;
+		struct size_changed {
+			ret_cb_t cb;
+			void *data;
+		} size_changed;
 
-	ret_cb_t pd_destroyed_cb;
-	void *pd_destroyed_cbdata;
+		struct pd_created {
+			ret_cb_t cb;
+			void *data;
+		} pd_created;
 
-	ret_cb_t update_mode_cb;
-	void *update_mode_cbdata;
+		struct pd_destroyed {
+			ret_cb_t cb;
+			void *data;
+		} pd_destroyed;
 
-	ret_cb_t access_event_cb;
-	void *access_event_cbdata;
+		struct update_mode {
+			ret_cb_t cb;
+			void *data;
+		} update_mode;
 
-	ret_cb_t key_event_cb;
-	void *key_event_cbdata;
+		struct access_event {
+			ret_cb_t cb;
+			void *data;
+		} access_event;
+
+		struct key_event {
+			ret_cb_t cb;
+			void *data;
+		} key_event;
+	} cbs;
 };
 
 /* End of a file */

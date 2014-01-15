@@ -34,5 +34,9 @@ extern void conf_set_manual_sync(int flag);
 extern int conf_manual_sync(void);
 extern void conf_set_frame_drop_for_resizing(int flag);
 extern int conf_frame_drop_for_resizing(void);
+extern void conf_set_shared_content(int flag);
+extern int conf_shared_content(void);
+extern double conf_event_filter(void);
+extern void conf_set_event_filter(double filter);
 
 /* End of a file */
