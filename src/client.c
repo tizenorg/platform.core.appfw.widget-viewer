@@ -1463,7 +1463,6 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 out:
 	if (ret == 0 && old_state == DELETE) {
-		int delete_event_sent = 0;
 		int cnt;
 
 		DbgPrint("Take place unexpected case\n");
@@ -1473,7 +1472,7 @@ out:
 			handler = dlist_data(l);
 
 			if (handler->cbs.created.cb) {
-				if (delete_event_sent == 0) {
+				if (!handler->common->request.deleted) {
 					if (lb_send_delete(handler, common->delete_type, handler->cbs.created.cb, handler->cbs.created.data) < 0) {
 						/*!
 						 * \note
@@ -1481,9 +1480,7 @@ out:
 						 * Callback will be called in any cases
 						 */
 					}
-
-					delete_event_sent = 1;
-				} else {
+				} else if (handler->state != DELETE) {
 					handler->cbs.created.cb(handler, LB_STATUS_ERROR_CANCEL, handler->cbs.created.data);
 					lb_unref(handler, 1);
 				}
