@@ -4459,7 +4459,7 @@ int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *data)
 		cb = default_delete_cb;
 	}
 
-	packet = packet_create("delete", "ssi", handler->common->pkgname, handler->common->id, type);
+	packet = packet_create("delete", "ssid", handler->common->pkgname, handler->common->id, type, handler->common->timestamp);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		if (cb) {
