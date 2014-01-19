@@ -1463,14 +1463,10 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 out:
 	if (ret == 0 && old_state == DELETE) {
-		int cnt;
+		struct dlist *n;
 
-		DbgPrint("Take place unexpected case\n");
-		cnt = common->refcnt;
-		while (cnt > 0) {
-			l = dlist_nth(common->livebox_list, 0);
-			handler = dlist_data(l);
-
+		DbgPrint("Take place an unexpected case [%d]\n", common->refcnt);
+		dlist_foreach_safe(common->livebox_list, l, n, handler) {
 			if (handler->cbs.created.cb) {
 				if (!handler->common->request.deleted) {
 					if (lb_send_delete(handler, common->delete_type, handler->cbs.created.cb, handler->cbs.created.data) < 0) {
@@ -1488,8 +1484,6 @@ out:
 				lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 				lb_unref(handler, 1);
 			}
-
-			cnt--;
 		}
 
 		/*!
