@@ -1313,6 +1313,11 @@ int lb_destroy_common_handle(struct livebox_common *common)
 	dlist_remove_data(s_info.livebox_common_list, common);
 
 	common->state = DESTROYED;
+
+	if (common->filename) {
+		(void)util_unlink(common->filename);
+	}
+
 	free(common->cluster);
 	free(common->category);
 	free(common->id);
@@ -4417,10 +4422,6 @@ struct livebox *lb_unref(struct livebox *handler, int destroy_common)
 		handler->cbs.key_event.cb(handler, LB_KEY_STATUS_ERROR, handler->cbs.key_event.data);
 		handler->cbs.key_event.cb = NULL;
 		handler->cbs.key_event.data = NULL;
-	}
-
-	if (handler->common->filename) {
-		(void)util_unlink(handler->common->filename);
 	}
 
 	dlist_remove_data(s_info.livebox_list, handler);
