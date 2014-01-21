@@ -3886,8 +3886,6 @@ EAPI int livebox_set_visibility(struct livebox *handler, enum livebox_visible_st
 		}
 	}
 
-	DbgPrint("[%s] Change visiblity to 0x%x\n", handler->common->pkgname, state);
-
 	if (handler->visible == state) {
 		DbgPrint("%s has no changes\n", handler->common->pkgname);
 		return LB_STATUS_ERROR_ALREADY;
