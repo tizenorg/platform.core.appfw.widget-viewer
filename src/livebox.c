@@ -3254,16 +3254,24 @@ EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 	return lb_acquire_lb_pixmap(handler, cb, data);
 }
 
+/*!
+ * \note
+ * Do not check the state of handler and common-handler.
+ * If this function is used in the deleted callback,
+ * the handler and common-handler's state would be DELETE
+ * if this function check the state of handles,
+ * user cannot release the pixmap.
+ */
 EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
 {
 	struct packet *packet;
 
-	if (!handler || pixmap == 0 || handler->state != CREATE) {
+	if (!handler || pixmap == 0 /* || handler->state != CREATE */ ) {
 		ErrPrint("Handler is invalid [%d]\n", pixmap);
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common /* || handler->common->state != CREATE */) {
 		ErrPrint("Handler is invalid\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
@@ -3380,16 +3388,24 @@ EAPI int livebox_lb_pixmap(const struct livebox *handler)
 	return pixmap;
 }
 
+/*!
+ * \note
+ * Do not check the state of handler and common-handler.
+ * If this function is used in the deleted callback,
+ * the handler and common-handler's state would be DELETE
+ * if this function check the state of handles,
+ * user cannot release the pixmap.
+ */
 EAPI int livebox_release_pd_pixmap(struct livebox *handler, int pixmap)
 {
 	struct packet *packet;
 
-	if (!handler || pixmap == 0 || handler->state != CREATE) {
+	if (!handler || pixmap == 0 /* || handler->state != CREATE */) {
 		ErrPrint("Handler is invalid [%d]\n", pixmap);
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common /* || handler-common->state != CREATE */) {
 		ErrPrint("Handler is invalid\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
