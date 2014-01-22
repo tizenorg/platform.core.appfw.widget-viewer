@@ -320,7 +320,7 @@ errout:
 	handler->cbs.update_mode.data = NULL;
 	handler->common->request.update_mode = 0;
 
-	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler, 1);
 	}
@@ -361,7 +361,7 @@ errout:
 	handler->cbs.size_changed.data = NULL;
 	handler->common->request.size_changed = 0;
 
-	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler, 1);
 	}
@@ -416,7 +416,7 @@ errout:
 	handler->cbs.group_changed.data = NULL;
 	handler->common->request.group_changed = 0;
 
-	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler, 1);
 	}
@@ -447,7 +447,7 @@ errout:
 	handler->cbs.period_changed.data = NULL;
 	handler->common->request.period_changed = 0;
 
-	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler, 1);
 	}
@@ -554,7 +554,7 @@ errout:
 	handler->cbs.pd_created.data = NULL;
 	handler->common->request.pd_created = 0;
 
-	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler, 1);
 	}
@@ -602,7 +602,7 @@ static void pd_destroy_cb(struct livebox *handler, const struct packet *result, 
 		ret = LB_STATUS_ERROR_INVALID;
 	}
 
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.pd_destroyed.cb = cb;
 		handler->cbs.pd_destroyed.data = cbdata;
 	} else {
@@ -709,11 +709,11 @@ static void lb_pixmap_acquired_cb(struct livebox *handler, const struct packet *
 		pixmap = 0;
 	}
 
-	if (ret == LB_STATUS_ERROR_BUSY) {
+	if (ret == (int)LB_STATUS_ERROR_BUSY) {
 		ret = lb_acquire_lb_pixmap(handler, cb, cbdata);
 		DbgPrint("Busy, Try again: %d\n", ret);
 		/* Try again */
-	} else if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	} else if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		if (cb) {
 			cb(handler, pixmap, cbdata);
 		}
@@ -783,11 +783,11 @@ static void pd_pixmap_acquired_cb(struct livebox *handler, const struct packet *
 		ret = LB_STATUS_ERROR_INVALID;
 	}
 
-	if (ret == LB_STATUS_ERROR_BUSY) {
+	if (ret == (int)LB_STATUS_ERROR_BUSY) {
 		ret = lb_acquire_pd_pixmap(handler, cb, cbdata);
 		DbgPrint("Busy, Try again: %d\n", ret);
 		/* Try again */
-	} else if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	} else if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		if (cb) {
 			cb(handler, pixmap, cbdata);
 		}
@@ -824,7 +824,7 @@ errout:
 	handler->cbs.pinup.data = NULL;
 	handler->common->request.pinup = 0;
 
-	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler, 1);
 	}
@@ -855,7 +855,7 @@ errout:
 	handler->cbs.key_event.data = NULL;
 	handler->common->request.key_event = 0;
 
-	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler, 1);
 	}
@@ -887,7 +887,7 @@ errout:
 	handler->cbs.access_event.data = NULL;
 	handler->common->request.access_event = 0;
 
-	if (ret == LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+	if (ret == (int)LB_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
 		lb_invoke_event_handler(handler, LB_EVENT_DELETED);
 		lb_unref(handler, 1);
 	}
@@ -1407,7 +1407,7 @@ static int lb_set_visibility(struct livebox *handler, enum livebox_visible_state
 	}
 
 	ret = master_rpc_request_only(handler, packet);
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		DbgPrint("[%s] visibility is changed 0x[%x]\n", handler->common->pkgname, state);
 		handler->common->visible = state;
 
@@ -1604,7 +1604,7 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 	}
 
 	ret = master_rpc_async_request(handler, packet, 0, period_ret_cb, NULL);
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.period_changed.cb = cb;
 		handler->cbs.period_changed.data = data;
 		handler->common->request.period_changed = 1;
@@ -1873,7 +1873,7 @@ EAPI int livebox_set_update_mode(struct livebox *handler, int active_update, ret
 	}
 
 	ret = master_rpc_async_request(handler, packet, 0, update_mode_cb, NULL);
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.update_mode.cb = cb;
 		handler->cbs.update_mode.data = data;
 		handler->common->request.update_mode = 1;
@@ -1987,7 +1987,7 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 		}
 
 		ret = master_rpc_async_request(handler, packet, 0, resize_cb, NULL);
-		if (ret == LB_STATUS_SUCCESS) {
+		if (ret == (int)LB_STATUS_SUCCESS) {
 			handler->cbs.size_changed.cb = cb;
 			handler->cbs.size_changed.data = data;
 			handler->common->request.size_changed = 1;
@@ -2067,7 +2067,7 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 				ret = LB_STATUS_ERROR_MEMORY;
 			} else {
 				ret = job_add(handler, resize_job_cb, LB_STATUS_SUCCESS, cbinfo);
-				if (ret == LB_STATUS_SUCCESS) {
+				if (ret == (int)LB_STATUS_SUCCESS) {
 					struct livebox_common *old_common;
 
 					old_common = handler->common;
@@ -2287,7 +2287,7 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 
 	DbgPrint("PERF_DBOX\n");
 	ret = master_rpc_async_request(handler, packet, 0, pd_create_cb, NULL);
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.pd_created.cb = cb;
 		handler->cbs.pd_created.data = data;
 		handler->common->request.pd_created = 1;
@@ -2541,7 +2541,7 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	}
 
 	ret = send_access_event(handler, cmd, x * w, y * h);
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.access_event.cb = cb;
 		handler->cbs.access_event.data = data;
 		handler->common->request.access_event = 1;
@@ -2793,7 +2793,7 @@ EAPI int livebox_key_event(struct livebox *handler, enum content_event_type type
 	}
 
 	ret = send_key_event(handler, cmd, keycode);
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.key_event.cb = cb;
 		handler->cbs.key_event.data = data;
 		handler->common->request.key_event = 1;
@@ -2954,7 +2954,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 	}
 
 	ret = master_rpc_async_request(handler, packet, 0, set_group_ret_cb, NULL);
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.group_changed.cb = cb;
 		handler->cbs.group_changed.data = data; 
 		handler->common->request.group_changed = 1;
@@ -3600,7 +3600,7 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 	}
 
 	ret = master_rpc_async_request(handler, packet, 0, pinup_done_cb, NULL);
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.pinup.cb = cb;
 		handler->cbs.pinup.data = data;
 		handler->common->request.pinup = 1;
