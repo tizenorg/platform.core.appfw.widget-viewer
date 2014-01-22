@@ -133,7 +133,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		goto out;
 	}
 
-	if (status == LB_STATUS_SUCCESS) {
+	if (status == (int)LB_STATUS_SUCCESS) {
 		new_content = strdup(content);
 		if (new_content) {
 			free(common->content);
@@ -160,7 +160,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			handler->cbs.pinup.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == LB_STATUS_SUCCESS) {
+		} else if (status == (int)LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_PINUP_CHANGED);
 		}
 	}
@@ -249,7 +249,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			handler->cbs.created.cb = NULL;
 			handler->cbs.created.data = NULL;
 
-			if (reason == LB_STATUS_SUCCESS) {
+			if (reason == (int)LB_STATUS_SUCCESS) {
 				reason = LB_STATUS_ERROR_CANCEL;
 			}
 
@@ -324,7 +324,7 @@ static struct packet *master_lb_update_begin(pid_t pid, int handle, const struct
 
 		ret = lb_sync_lb_fb(common);
 
-		if (ret != LB_STATUS_SUCCESS) {
+		if (ret != (int)LB_STATUS_SUCCESS) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
 		} else {
 			struct dlist *l;
@@ -370,7 +370,7 @@ static struct packet *master_pd_update_begin(pid_t pid, int handle, const struct
 		(void)lb_set_pd_fb(common, fbfile);
 
 		ret = lb_sync_pd_fb(common);
-		if (ret != LB_STATUS_SUCCESS) {
+		if (ret != (int)LB_STATUS_SUCCESS) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
 		} else {
 			struct dlist *l;
@@ -675,7 +675,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 
 			if (!conf_manual_sync()) {
 				ret = lb_sync_lb_fb(common);
-				if (ret != LB_STATUS_SUCCESS) {
+				if (ret != (int)LB_STATUS_SUCCESS) {
 					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 				}
 			} else {
@@ -686,7 +686,7 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		ret = LB_STATUS_SUCCESS;
 	}
 
-	if (ret == LB_STATUS_SUCCESS) {
+	if (ret == (int)LB_STATUS_SUCCESS) {
 		struct dlist *l;
 		struct dlist *n;
 
@@ -736,7 +736,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
-	common->is_pd_created = (status == LB_STATUS_SUCCESS);
+	common->is_pd_created = (status == (int)LB_STATUS_SUCCESS);
 	common->request.pd_created = 0;
 
 	if (common->is_pd_created) {
@@ -790,7 +790,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 			 * Because, in the create callback, user can call create_pd function again.
 			 */
 			cb(handler, status, cbdata);
-		} else if (status == LB_STATUS_SUCCESS) {
+		} else if (status == (int)LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);
 		} 
 	}
@@ -852,7 +852,7 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 			 * Because, in the create callback, user can call destroy_pd function again.
 			 */
 			cb(handler, status, cbdata);
-		} else if (status == LB_STATUS_SUCCESS) {
+		} else if (status == (int)LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_PD_DESTROYED);
 		}
 	}
@@ -990,7 +990,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
-	if (status == LB_STATUS_SUCCESS) {
+	if (status == (int)LB_STATUS_SUCCESS) {
 		lb_set_update_mode(common, active_mode);
 	}
 
@@ -1007,7 +1007,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 			handler->cbs.update_mode.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == LB_STATUS_SUCCESS) {
+		} else if (status == (int)LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_UPDATE_MODE_CHANGED);
 		}
 	}
@@ -1060,7 +1060,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		 * So the PD has no private resized event handler.
 		 * Notify it via global event handler only.
 		 */
-		if (status == LB_STATUS_SUCCESS) {
+		if (status == (int)LB_STATUS_SUCCESS) {
 			struct dlist *l;
 
 			lb_set_pdsize(common, w, h);
@@ -1074,7 +1074,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		struct dlist *l;
 		struct dlist *n;
 
-		if (status == LB_STATUS_SUCCESS) {
+		if (status == (int)LB_STATUS_SUCCESS) {
 			lb_set_size(common, w, h);
 
 			/*!
@@ -1111,7 +1111,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 				handler->cbs.size_changed.data = NULL;
 
 				cb(handler, status, cbdata);
-			} else if (status == LB_STATUS_SUCCESS) {
+			} else if (status == (int)LB_STATUS_SUCCESS) {
 				lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
 			}
 		}
@@ -1150,7 +1150,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
-	if (status == LB_STATUS_SUCCESS) {
+	if (status == (int)LB_STATUS_SUCCESS) {
 		lb_set_period(common, period);
 	}
 
@@ -1168,7 +1168,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 			handler->cbs.period_changed.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == LB_STATUS_SUCCESS) {
+		} else if (status == (int)LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_PERIOD_CHANGED);
 		}
 	}
@@ -1212,7 +1212,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
-	if (status == LB_STATUS_SUCCESS) {
+	if (status == (int)LB_STATUS_SUCCESS) {
 		(void)lb_set_group(common, cluster, category);
 	}
 
@@ -1230,7 +1230,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 			handler->cbs.group_changed.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == LB_STATUS_SUCCESS) {
+		} else if (status == (int)LB_STATUS_SUCCESS) {
 			lb_invoke_event_handler(handler, LB_EVENT_GROUP_CHANGED);
 		}
 	}
@@ -1656,7 +1656,7 @@ static void master_started_cb(keynode_t *node, void *data)
 	}
 
 	DbgPrint("Master state: %d\n", state);
-	if (state == 1 && make_connection() == LB_STATUS_SUCCESS) {
+	if (state == 1 && make_connection() == (int)LB_STATUS_SUCCESS) {
 		int ret;
 		ret = vconf_ignore_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb);
 		DbgPrint("master_started vconf key de-registered [%d]\n", ret);
