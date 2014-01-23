@@ -1419,7 +1419,7 @@ extern int livebox_pd_pixmap(const struct livebox *handler);
  *   After acquire the pixmap of PD, it will not be destroyed
  *   So if the new update is comming with new pixmap Id, you should release old pixmap manually
  * \remarks N/A
- * \param[in] handler Handler of a livebox instance
+ * \param[in] handler Handler of a livebox instance.
  * \param[in] cb Result callback for acquiring request
  * \param[in] data Callback Data
  * \return int
@@ -1438,7 +1438,7 @@ extern int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void 
  * \brief Release the acquired pixmap ID
  * \details N/A
  * \remarks N/A
- * \param[in] handler Handler of a livebox instance
+ * \param[in] handler Handler of a livebox instance, This can be NULL, only if the handler is deleted.
  * \param[in] pixmap Pixmap Id to release it
  * \return int
  * \retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -1480,7 +1480,7 @@ extern int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void 
  *   After the client gets new pixmap or no more need to keep current pixmap, use this to release it.
  *   If there is no user for given pixmap, the pixmap will be destroyed.
  * \remarks N/A
- * \param[in] handler Handler of a livebox instance
+ * \param[in] handler Handler of a livebox instance, This can be NULL, only if the handler is deleted.
  * \param[in] pixmap Pixmap Id of given livebox handler
  * \return int
  * \retval LB_STATUS_ERROR_INVALID Invalid argument
