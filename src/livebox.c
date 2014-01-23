@@ -3265,28 +3265,53 @@ EAPI int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *d
 EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
 {
 	struct packet *packet;
+	const char *pkgname;
+	const char *id;
 
-	if (!handler || pixmap == 0 /* || handler->state != CREATE */ ) {
+	if (pixmap == 0 /* || handler->state != CREATE */ ) {
 		ErrPrint("Handler is invalid [%d]\n", pixmap);
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->common /* || handler->common->state != CREATE */) {
-		ErrPrint("Handler is invalid\n");
-		return LB_STATUS_ERROR_INVALID;
+	if (!handler) {
+		/*!
+		 * \note
+		 * Even though the handler is NULL, we should send the release request to the master.
+		 * Because the pixmap resource can be released after the handler is destroyed.
+		 * Pixmap resource is used by client. and it cannot be guaranteed to release pixmap.
+		 * In some cases, the pixmap can be released after the handler is deleted.
+		 *
+		 * Its implementation is up to the viewer app.
+		 * But we cannot force it to use only with valid handler.
+		 */
+		DbgPrint("Using NULL handler\n");
+		pkgname = NULL;
+		id = NULL;
+		/*!
+		 * \note
+		 * Master will try to find the buffer handler using given pixmap. if the pkgname and id is not valid.
+		 */
+	} else {
+		if (!handler->common /* || handler->common->state != CREATE */) {
+			ErrPrint("Handler is invalid\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (!handler->common->id) {
+			ErrPrint("Invalid handle\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (handler->common->lb.type != _LB_TYPE_SCRIPT && handler->common->lb.type != _LB_TYPE_BUFFER) {
+			ErrPrint("Handler is not valid type\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		pkgname = handler->common->pkgname;
+		id = handler->common->id;
 	}
 
-	if (!handler->common->id) {
-		ErrPrint("Invalid handle\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	if (handler->common->lb.type != _LB_TYPE_SCRIPT && handler->common->lb.type != _LB_TYPE_BUFFER) {
-		ErrPrint("Handler is not valid type\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	packet = packet_create_noack("lb_release_pixmap", "ssi", handler->common->pkgname, handler->common->id, pixmap);
+	packet = packet_create_noack("lb_release_pixmap", "ssi", pkgname, id, pixmap);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_INVALID;
@@ -3399,28 +3424,53 @@ EAPI int livebox_lb_pixmap(const struct livebox *handler)
 EAPI int livebox_release_pd_pixmap(struct livebox *handler, int pixmap)
 {
 	struct packet *packet;
+	const char *pkgname;
+	const char *id;
 
-	if (!handler || pixmap == 0 /* || handler->state != CREATE */) {
-		ErrPrint("Handler is invalid [%d]\n", pixmap);
+	if (pixmap == 0 /* || handler->state != CREATE */) {
+		ErrPrint("Pixmap is invalid [%d]\n", pixmap);
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (!handler->common /* || handler-common->state != CREATE */) {
-		ErrPrint("Handler is invalid\n");
-		return LB_STATUS_ERROR_INVALID;
+	if (!handler) {
+		/*!
+		 * \note
+		 * Even though the handler is NULL, we should send the release request to the master.
+		 * Because the pixmap resource can be released after the handler is destroyed.
+		 * Pixmap resource is used by client. and it cannot be guaranteed to release pixmap.
+		 * In some cases, the pixmap can be released after the handler is deleted.
+		 *
+		 * Its implementation is up to the viewer app.
+		 * But we cannot force it to use only with valid handler.
+		 */
+		DbgPrint("Using NULL handler\n");
+		pkgname = NULL;
+		id = NULL;
+		/*!
+		 * \note
+		 * Master will try to find the buffer handler using given pixmap. if the pkgname and id is not valid.
+		 */
+	} else {
+		if (!handler->common /* || handler-common->state != CREATE */) {
+			ErrPrint("Handler is invalid\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (!handler->common->id) {
+			ErrPrint("Invalid handle\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		if (handler->common->pd.type != _PD_TYPE_SCRIPT && handler->common->pd.type != _PD_TYPE_BUFFER) {
+			ErrPrint("Handler is not valid type\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
+
+		pkgname = handler->common->pkgname;
+		id = handler->common->id;
 	}
 
-	if (!handler->common->id) {
-		ErrPrint("Invalid handle\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	if (handler->common->pd.type != _PD_TYPE_SCRIPT && handler->common->pd.type != _PD_TYPE_BUFFER) {
-		ErrPrint("Handler is not valid type\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	packet = packet_create_noack("pd_release_pixmap", "ssi", handler->common->pkgname, handler->common->id, pixmap);
+	packet = packet_create_noack("pd_release_pixmap", "ssi", pkgname, id, pixmap);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
