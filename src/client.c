@@ -1659,7 +1659,9 @@ static void master_started_cb(keynode_t *node, void *data)
 	if (state == 1 && make_connection() == (int)LB_STATUS_SUCCESS) {
 		int ret;
 		ret = vconf_ignore_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb);
-		DbgPrint("master_started vconf key de-registered [%d]\n", ret);
+		if (ret < 0) {
+			DbgPrint("master_started vconf key de-registered [%d]\n", ret);
+		}
 	}
 }
 
