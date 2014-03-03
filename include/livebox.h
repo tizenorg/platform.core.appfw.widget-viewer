@@ -1712,6 +1712,21 @@ extern int livebox_set_option(enum livebox_option_type option, int state);
  */
 extern int livebox_option(enum livebox_option_type option);
 
+
+/*!
+ * \brief Set a handler for launching an app for auto-launch feature
+ * \details If a user clicks a box, and the box uses auto-launch option, the launcher_handler will be called.
+ * \remarks N/A
+ * \param[in] launch_handler Handler for launching an app manually
+ * \param[in] data Callback data which will be given a data for launch_handler
+ * \return int
+ * \retval
+ * \pre N/A
+ * \post N/A
+ * \see N/A
+ */
+extern int livebox_set_auto_launch_handler(int (*launch_handler)(struct livebox *handler, const char *appid, void *data), void *data);
+
 /*!
  * \}
  */

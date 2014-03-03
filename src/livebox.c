@@ -49,6 +49,8 @@
 FILE *__file_log_fp;
 #endif
 
+static int default_launch_handler(struct livebox *handler, const char *appid, void *data);
+
 enum event_state {
 	INFO_STATE_CALLBACK_IN_IDLE = 0x00,
 	INFO_STATE_CALLBACK_IN_PROCESSING = 0x01,
@@ -67,6 +69,11 @@ static struct info {
 	enum event_state fault_state;
 	guint job_timer;
 	struct dlist *job_list;
+
+	struct launch {
+		int (*handler)(struct livebox *handler, const char *appid, void *data);
+		void *data;
+	} launch;
 } s_info = {
 	.livebox_list = NULL,
 	.event_list = NULL,
@@ -77,6 +84,10 @@ static struct info {
 	.fault_state = INFO_STATE_CALLBACK_IN_IDLE,
 	.job_timer = 0,
 	.job_list = NULL,
+	.launch = {
+		.handler = default_launch_handler,
+		.data = NULL,
+	},
 };
 
 struct cb_info {
@@ -98,6 +109,33 @@ struct fault_info {
 
 static void lb_pixmap_acquired_cb(struct livebox *handler, const struct packet *result, void *data);
 static void pd_pixmap_acquired_cb(struct livebox *handler, const struct packet *result, void *data);
+
+static int default_launch_handler(struct livebox *handler, const char *appid, void *data)
+{
+	int ret;
+
+	ret = aul_launch_app(appid, NULL);
+	if (ret <= 0) {
+		ErrPrint("Failed to launch an app %s (%d)\n", appid, ret);
+	}
+
+/*
+	service_h service;
+
+	DbgPrint("AUTO_LAUNCH [%s]\n", handler->common->lb.auto_launch);
+
+	ret = service_create(&service);
+	if (ret == SERVICE_ERROR_NONE) {
+		service_set_package(service, handler->common->lb.auto_launch);
+		service_send_launch_request(service, NULL, NULL);
+		service_destroy(service);
+	} else {
+		ErrPrint("Failed to launch an app %s (%d)\n", handler->common->lb.auto_launch, ret);
+	}
+*/
+
+	return ret > 0 ? LB_STATUS_SUCCESS : LB_STATUS_ERROR_FAULT;
+}
 
 static inline void default_create_cb(struct livebox *handler, int ret, void *data)
 {
@@ -2115,23 +2153,11 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	}
 
 	if (handler->common->lb.auto_launch) {
-/*
-		service_h service;
-
-		DbgPrint("AUTO_LAUNCH [%s]\n", handler->common->lb.auto_launch);
-
-		ret = service_create(&service);
-		if (ret == SERVICE_ERROR_NONE) {
-			service_set_package(service, handler->common->lb.auto_launch);
-			service_send_launch_request(service, NULL, NULL);
-			service_destroy(service);
-		} else {
-			ErrPrint("Failed to launch an app %s (%d)\n", handler->common->lb.auto_launch, ret);
-		}
-*/
-		ret = aul_launch_app(handler->common->lb.auto_launch, NULL);
-		if (ret <= 0) {
-			ErrPrint("Failed to launch an app %s (%d)\n", handler->common->lb.auto_launch, ret);
+		if (s_info.launch.handler) {
+			ret = s_info.launch.handler(handler, handler->common->lb.auto_launch, s_info.launch.data);
+			if (ret < 0) {
+				ErrPrint("launch handler app %s (%d)\n", handler->common->lb.auto_launch, ret);
+			}
 		}
 	}
 
@@ -4827,6 +4853,14 @@ EAPI int livebox_option(enum livebox_option_type option)
 	}
 
 	return ret;
+}
+
+EAPI int livebox_set_auto_launch_handler(int (*launch_handler)(struct livebox *handler, const char *appid, void *data), void *data)
+{
+	s_info.launch.handler = launch_handler;
+	s_info.launch.data = data;
+
+	return LB_STATUS_SUCCESS;
 }
 
 /* End of a file */
