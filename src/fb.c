@@ -47,6 +47,7 @@ struct fb_info {
 	int bufsz;
 	void *buffer;
 
+	int pixels;
 	int handle;
 };
 
@@ -64,14 +65,12 @@ struct buffer { /*!< Must has to be sync with slave & provider */
 static struct {
 	Display *disp;
 	int screen;
-	int depth;
 	Visual *visual;
 	int disp_is_opened;
 } s_info = {
 	.disp = NULL,
 	.disp_is_opened = 0,
 	.screen = -1,
-	.depth = 0,
 	.visual = NULL,
 };
 
@@ -87,7 +86,6 @@ int fb_init(void *disp)
 		s_info.visual = DefaultVisualOfScreen(screen);
 	}
 
-	s_info.depth = sizeof(int); //DefaultDepthOfScreen(screen);
 	return 0;
 }
 
@@ -101,13 +99,12 @@ int fb_fini(void)
 	s_info.disp_is_opened = 0;
 	s_info.visual = NULL;
 	s_info.screen = -1;
-	s_info.depth = 0;
 	return 0;
 }
 
 static inline void update_fb_size(struct fb_info *info)
 {
-	info->bufsz = info->w * info->h * s_info.depth;
+	info->bufsz = info->w * info->h * info->pixels;
 }
 
 static inline int sync_for_file(struct fb_info *info)
@@ -243,7 +240,7 @@ static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info 
 	 * Use the 24 bits Pixmap for Video player
 	 */
 	xim = XShmCreateImage(s_info.disp, s_info.visual,
-				(s_info.depth << 3), ZPixmap, NULL,
+				(info->pixels << 3), ZPixmap, NULL,
 				&si,
 				info->w, info->h);
 	if (xim == NULL) {
@@ -326,10 +323,12 @@ struct fb_info *fb_create(const char *id, int w, int h)
 		return NULL;
 	}
 
+	info->pixels = sizeof(int);	/* Use the default pixels(depth) */
+
 	if (sscanf(info->id, SCHEMA_SHM "%d", &info->handle) == 1) {
 		DbgPrint("SHMID: %d is gotten\n", info->handle);
-	} else if (sscanf(info->id, SCHEMA_PIXMAP "%d", &info->handle) == 1) {
-		DbgPrint("PIXMAP-SHMID: %d is gotten\n", info->handle);
+	} else if (sscanf(info->id, SCHEMA_PIXMAP "%d:%d", &info->handle, &info->pixels) == 2) {
+		DbgPrint("PIXMAP-SHMID: %d is gotten (%d)\n", info->handle, info->pixels);
 	} else {
 		info->handle = LB_STATUS_ERROR_INVALID;
 	}
