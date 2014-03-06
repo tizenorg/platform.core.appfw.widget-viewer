@@ -1,6 +1,8 @@
+%bcond_with wayland
+
 Name: liblivebox-viewer
 Summary: Library for developing the application
-Version: 0.21.0
+Version: 0.30.0
 Release: 1
 Group: HomeTF/Livebox
 License: Flora
@@ -12,12 +14,16 @@ BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(com-core)
-BuildRequires: pkgconfig(x11)
-BuildRequires: pkgconfig(xext)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(livebox-service)
 BuildRequires: pkgconfig(vconf)
+
+%if %{with wayland}
+%else
+BuildRequires: pkgconfig(x11)
+BuildRequires: pkgconfig(xext)
+%endif
 
 %description
 API for creating a new instance of the livebox and managing its life-cycle.
@@ -46,7 +52,16 @@ export CFLAGS="${CFLAGS} -DTIZEN_ENGINEER_MODE"
 export CXXFLAGS="${CXXFLAGS} -DTIZEN_ENGINEER_MODE"
 export FFLAGS="${FFLAGS} -DTIZEN_ENGINEER_MODE"
 %endif
-%cmake .
+
+%if %{with wayland}
+export WAYLAND_SUPPORT=On
+export X11_SUPPORT=Off
+%else
+export WAYLAND_SUPPORT=Off
+export X11_SUPPORT=On
+%endif
+
+%cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT}
 make %{?jobs:-j%jobs}
 
 %install
