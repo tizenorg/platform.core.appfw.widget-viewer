@@ -9,7 +9,7 @@ SET(INCLUDEDIR "\${prefix}/include/${PROJECT_NAME}")
 SET(VERSION_MAJOR 0)
 SET(VERSION "${VERSION_MAJOR}.0.1")
 
-set(CMAKE_SKIP_BUILD_RPATH true)
+SET(CMAKE_SKIP_BUILD_RPATH true)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
@@ -20,15 +20,49 @@ pkg_check_modules(pkgs REQUIRED
 	glib-2.0
 	gio-2.0
 	com-core
-	x11
-	xext
 	sqlite3
 	db-util
 	livebox-service
 	vconf
 )
 
+SET(BUILD_SOURCE
+	src/dlist.c
+	src/livebox.c
+	src/util.c
+	src/desc_parser.c
+	src/master_rpc.c
+	src/client.c
+	src/file_service.c
+	src/conf.c
+)
+
+IF (X11_SUPPORT)
+pkg_check_modules(pkgs_extra REQUIRED
+	x11
+	xext
+)
+
+SET(BUILD_SOURCE
+	${BUILD_SOURCE}
+	src/fb.c
+)
+ADD_DEFINITIONS("-DHAVE_X11")
+ENDIF (X11_SUPPORT)
+
+IF (WAYLAND_SUPPORT)
+SET(BUILD_SOURCE
+	${BUILD_SOURCE}
+	src/fb_wayland.c
+)
+ADD_DEFINITIONS("-DHAVE_WAYLAND")
+ENDIF (WAYLAND_SUPPORT)
+
 FOREACH(flag ${pkgs_CFLAGS})
+	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
+ENDFOREACH(flag)
+
+FOREACH(flag ${pkgs_extra_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
 ENDFOREACH(flag)
 
@@ -46,20 +80,11 @@ ADD_DEFINITIONS("-DINFO_SOCKET=\"/opt/usr/share/live_magazine/.live.socket\"")
 ADD_DEFINITIONS("-DCLIENT_SOCKET=\"/opt/usr/share/live_magazine/.client.socket\"")
 ADD_DEFINITIONS("-DSLAVE_SOCKET=\"/opt/usr/share/live_magazine/.slave.socket\"")
 ADD_DEFINITIONS("-DSERVICE_SOCKET=\"/opt/usr/share/live_magazine/.service.socket\"")
-ADD_LIBRARY(${PROJECT_NAME} SHARED
-	src/dlist.c
-	src/livebox.c
-	src/util.c
-	src/fb.c
-	src/desc_parser.c
-	src/master_rpc.c
-	src/client.c
-	src/file_service.c
-	src/conf.c
-)
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${BUILD_SOURCE})
+
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${VERSION_MAJOR})
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pkgs_LDFLAGS} "-lpthread")
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pkgs_LDFLAGS} ${pkgs_extra_LDFLAGS} "-lpthread")
 
 CONFIGURE_FILE(${PROJECT_NAME}.pc.in ${PROJECT_NAME}.pc @ONLY)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${PROJECT_NAME}.pc")

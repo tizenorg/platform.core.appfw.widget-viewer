@@ -27,10 +27,6 @@
 #include <sys/shm.h>
 #include <sys/ipc.h>
 
-#include <X11/Xlib.h>
-#include <X11/extensions/XShm.h>
-#include <X11/Xutil.h>
-
 #include <dlog.h>
 #include <livebox-errno.h> /* For error code */
 
@@ -63,42 +59,16 @@ struct buffer { /*!< Must has to be sync with slave & provider */
 };
 
 static struct {
-	Display *disp;
-	int screen;
-	Visual *visual;
-	int disp_is_opened;
 } s_info = {
-	.disp = NULL,
-	.disp_is_opened = 0,
-	.screen = -1,
-	.visual = NULL,
 };
 
 int fb_init(void *disp)
 {
-	s_info.disp = disp;
-	if (s_info.disp) {
-		Screen *screen;
-
-		screen = DefaultScreenOfDisplay(s_info.disp);
-
-		s_info.screen = DefaultScreen(s_info.disp);
-		s_info.visual = DefaultVisualOfScreen(screen);
-	}
-
 	return 0;
 }
 
 int fb_fini(void)
 {
-	if (s_info.disp_is_opened && s_info.disp) {
-		XCloseDisplay(s_info.disp);
-	}
-
-	s_info.disp = NULL;
-	s_info.disp_is_opened = 0;
-	s_info.visual = NULL;
-	s_info.screen = -1;
 	return 0;
 }
 
@@ -165,118 +135,6 @@ static inline int sync_for_file(struct fb_info *info)
 	return LB_STATUS_SUCCESS;
 }
 
-static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info *info)
-{
-	struct buffer *buffer;
-	XShmSegmentInfo si;
-	XImage *xim;
-
-	buffer = info->buffer;
-	if (!buffer) { /*!< Ignore this sync request */
-		return LB_STATUS_SUCCESS;
-	}
-
-	if (buffer->state != CREATED) {
-		ErrPrint("Invalid state of a FB\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	if (buffer->type != BUFFER_TYPE_PIXMAP) {
-		ErrPrint("Invalid buffer\n");
-		return LB_STATUS_SUCCESS;
-	}
-
-	if (!s_info.disp) {
-		s_info.disp = XOpenDisplay(NULL);
-		if (s_info.disp) {
-			Screen *screen;
-
-			s_info.disp_is_opened = 1;
-
-			screen = DefaultScreenOfDisplay(s_info.disp);
-
-			s_info.screen = DefaultScreen(s_info.disp);
-			s_info.visual = DefaultVisualOfScreen(screen);
-		} else {
-			ErrPrint("Failed to open a display\n");
-			return LB_STATUS_ERROR_FAULT;
-		}
-	}
-
-	if (info->handle == 0) {
-		ErrPrint("Pixmap ID is not valid\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	if (info->bufsz == 0) {
-		/*!
-		 * If the client does not acquire the buffer,
-		 * This function will do nothing.
-		 * It will work only if the buffer is acquired.
-		 * To sync its contents.
-		 */
-		DbgPrint("Nothing can be sync\n");
-		return LB_STATUS_SUCCESS;
-	}
-
-	si.shmid = shmget(IPC_PRIVATE, info->bufsz, IPC_CREAT | 0666);
-	if (si.shmid < 0) {
-		ErrPrint("shmget: %s\n", strerror(errno));
-		return LB_STATUS_ERROR_FAULT;
-	}
-
-	si.readOnly = False;
-	si.shmaddr = shmat(si.shmid, NULL, 0);
-	if (si.shmaddr == (void *)-1) {
-		if (shmctl(si.shmid, IPC_RMID, 0) < 0) {
-			ErrPrint("shmctl: %s\n", strerror(errno));
-		}
-
-		return LB_STATUS_ERROR_FAULT;
-	}
-
-	/*!
-	 * \NOTE
-	 * Use the 24 bits Pixmap for Video player
-	 */
-	xim = XShmCreateImage(s_info.disp, s_info.visual,
-				(info->pixels << 3), ZPixmap, NULL,
-				&si,
-				info->w, info->h);
-	if (xim == NULL) {
-		if (shmdt(si.shmaddr) < 0) {
-			ErrPrint("shmdt: %s\n", strerror(errno));
-		}
-
-		if (shmctl(si.shmid, IPC_RMID, 0) < 0) {
-			ErrPrint("shmctl: %s\n", strerror(errno));
-		}
-
-		return LB_STATUS_ERROR_FAULT;
-	}
-
-	xim->data = si.shmaddr;
-	XShmAttach(s_info.disp, &si);
-
-	XShmGetImage(s_info.disp, info->handle, xim, 0, 0, 0xFFFFFFFF);
-	XSync(s_info.disp, False);
-
-	memcpy(buffer->data, xim->data, info->bufsz);
-
-	XShmDetach(s_info.disp, &si);
-	XDestroyImage(xim);
-
-	if (shmdt(si.shmaddr) < 0) {
-		ErrPrint("shmdt: %s\n", strerror(errno));
-	}
-
-	if (shmctl(si.shmid, IPC_RMID, 0) < 0) {
-		ErrPrint("shmctl: %s\n", strerror(errno));
-	}
-
-	return LB_STATUS_SUCCESS;
-}
-
 int fb_sync(struct fb_info *info)
 {
 	if (!info) {
@@ -292,7 +150,6 @@ int fb_sync(struct fb_info *info)
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 		return sync_for_file(info);
 	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-		return sync_for_pixmap(info);
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		/* No need to do sync */ 
 		return LB_STATUS_SUCCESS;
@@ -329,6 +186,9 @@ struct fb_info *fb_create(const char *id, int w, int h)
 		DbgPrint("SHMID: %d is gotten\n", info->handle);
 	} else if (sscanf(info->id, SCHEMA_PIXMAP "%d:%d", &info->handle, &info->pixels) == 2) {
 		DbgPrint("PIXMAP-SHMID: %d is gotten (%d)\n", info->handle, info->pixels);
+		ErrPrint("Unsupported\n");
+		free(info);
+		return NULL;
 	} else {
 		info->handle = LB_STATUS_ERROR_INVALID;
 	}
@@ -395,26 +255,8 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 	if (!info->buffer) {
 		if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-			update_fb_size(info);
-
-			buffer = calloc(1, sizeof(*buffer) + info->bufsz);
-			if (!buffer) {
-				ErrPrint("Heap: %s\n", strerror(errno));
-				info->bufsz = 0;
-				return NULL;
-			}
-
-			buffer->type = BUFFER_TYPE_PIXMAP;
-			buffer->refcnt = 0;
-			buffer->state = CREATED;
-			buffer->info = info;
-			info->buffer = buffer;
-
-			/*!
-			 * \note
-			 * Just update from here.
-			 */
-			sync_for_pixmap(info);
+			ErrPrint("Unsupported Type\n");
+			return NULL;
 		} else if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 			update_fb_size(info);
 
@@ -449,12 +291,10 @@ void *fb_acquire_buffer(struct fb_info *info)
 	buffer = info->buffer;
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_PIXMAP:
-		buffer->refcnt++;
-		break;
 	case BUFFER_TYPE_FILE:
 		buffer->refcnt++;
 		break;
+	case BUFFER_TYPE_PIXMAP:
 	default:
 		DbgPrint("Unknwon FP: %d\n", buffer->type);
 		break;
@@ -485,20 +325,6 @@ int fb_release_buffer(void *data)
 			ErrPrint("shmdt: %s\n", strerror(errno));
 		}
 		break;
-	case BUFFER_TYPE_PIXMAP:
-		buffer->refcnt--;
-		if (buffer->refcnt == 0) {
-			struct fb_info *info;
-			info = buffer->info;
-
-			buffer->state = DESTROYED;
-			free(buffer);
-		
-			if (info && info->buffer == buffer) {
-				info->buffer = NULL;
-			}
-		}
-		break;
 	case BUFFER_TYPE_FILE:
 		buffer->refcnt--;
 		if (buffer->refcnt == 0) {
@@ -513,6 +339,7 @@ int fb_release_buffer(void *data)
 			}
 		}
 		break;
+	case BUFFER_TYPE_PIXMAP:
 	default:
 		ErrPrint("Unknwon buffer type\n");
 		break;
@@ -547,12 +374,10 @@ int fb_refcnt(void *data)
 
 		ret = buf.shm_nattch;
 		break;
-	case BUFFER_TYPE_PIXMAP:
-		ret = buffer->refcnt;
-		break;
 	case BUFFER_TYPE_FILE:
 		ret = buffer->refcnt;
 		break;
+	case BUFFER_TYPE_PIXMAP:
 	default:
 		ret = LB_STATUS_ERROR_INVALID;
 		break;
@@ -608,7 +433,7 @@ int fb_type(struct fb_info *info)
 			if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 				type = BUFFER_TYPE_FILE;
 			} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-				type = BUFFER_TYPE_PIXMAP;
+				/* Unsupported type */
 			} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 				type = BUFFER_TYPE_SHM;
 			}
