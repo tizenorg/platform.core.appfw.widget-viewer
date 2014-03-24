@@ -243,14 +243,14 @@ struct livebox_script_operators {
 	 */
 	int (*update_text)(struct livebox *handle, const char *id, const char *part, const char *data); /*!< Update text content */
 	int (*update_image)(struct livebox *handle, const char *id, const char *part, const char *data, const char *option); /*!< Update image content */
-	int (*update_script)(struct livebox *handle, const char *id, const char *part, const char *file, const char *group); /*!< Update script content */
+	int (*update_script)(struct livebox *handle, const char *id, const char *new_id, const char *part, const char *file, const char *group); /*!< Update script content */
 	int (*update_signal)(struct livebox *handle, const char *id, const char *emission, const char *signal); /*!< Update signal */
 	int (*update_drag)(struct livebox *handle, const char *id, const char *part, double dx, double dy); /*!< Update drag info */
 	int (*update_info_size)(struct livebox *handle, const char *id, int w, int h); /*!< Update content size */
 	int (*update_info_category)(struct livebox *handle, const char *id, const char *category); /*!< Update content category info */
 	int (*update_access)(struct livebox *handle, const char *id, const char *part, const char *text, const char *option); /*!< Update access information */
 	int (*operate_access)(struct livebox *handle, const char *id, const char *part, const char *operation, const char *option); /*!< Update access operation */
-	int (*update_color)(struct livebox *handle, const char *id, const char *part, const char *data, const char *option); /*!< Update color */
+	int (*update_color)(struct livebox *handle, const char *id, const char *part, const char *data); /*!< Update color */
 };
 
 /*!

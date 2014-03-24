@@ -145,7 +145,7 @@ static int update_script(struct livebox *handle, struct block *block, int is_pd)
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
 	if (ops->update_script) {
-		ops->update_script(handle, block->id, block->part, block->data, block->option);
+		ops->update_script(handle, block->id, block->target, block->part, block->data, block->option);
 	}
 
 	return 0;
@@ -266,7 +266,7 @@ static int update_color(struct livebox *handle, struct block *block, int is_pd)
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
 	if (ops->update_color) {
-		ops->update_color(handle, block->id, block->part, block->data, block->option);
+		ops->update_color(handle, block->id, block->part, block->data);
 	}
 
 	return 0;
