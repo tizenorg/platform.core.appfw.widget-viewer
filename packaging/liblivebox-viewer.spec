@@ -2,7 +2,7 @@
 
 Name: liblivebox-viewer
 Summary: Library for developing the application
-Version: 0.30.1
+Version: 0.30.2
 Release: 1
 Group: HomeTF/Livebox
 License: Flora
@@ -29,12 +29,12 @@ BuildRequires: pkgconfig(xext)
 API for creating a new instance of the livebox and managing its life-cycle.
 
 %package devel
-Summary: Header and package configuration files for the livebox viewer development
+Summary: Livebox viewer development library (dev)
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
 %description devel
-Livebox viewer development library (dev)
+Header and package configuration files for the livebox viewer development
 
 %prep
 %setup -q
@@ -69,7 +69,8 @@ rm -rf %{buildroot}
 %make_install
 mkdir -p %{buildroot}/%{_datarootdir}/license
 
-%post
+%post -n liblivebox-viewer -p /sbin/ldconfig
+%postun -n liblivebox-viewer -p /sbin/ldconfig
 
 %files -n liblivebox-viewer
 %manifest %{name}.manifest
