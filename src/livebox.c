@@ -2671,7 +2671,7 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 	}
 
 	/*!
-	 * Must be short than 29 bytes.
+	 * Must be shorter than 29 bytes.
 	 */
 	switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
 	case CONTENT_EVENT_MOUSE_ENTER | CONTENT_EVENT_MOUSE_MASK:
@@ -2694,6 +2694,18 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 		break;
 	case CONTENT_EVENT_MOUSE_UNSET | CONTENT_EVENT_MOUSE_MASK:
 		strcpy(ptr, "_mouse_unset");
+		break;
+	case CONTENT_EVENT_ON_SCROLL | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_on_scroll");
+		break;
+	case CONTENT_EVENT_ON_HOLD | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_on_hold");
+		break;
+	case CONTENT_EVENT_OFF_SCROLL | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_off_scroll");
+		break;
+	case CONTENT_EVENT_OFF_HOLD | CONTENT_EVENT_MOUSE_MASK:
+		strcpy(ptr, "_mouse_off_hold");
 		break;
 	default:
 		ErrPrint("Invalid event type\n");
