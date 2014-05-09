@@ -1326,7 +1326,7 @@ struct livebox_common *lb_create_common_handle(struct livebox *handle, const cha
 	common->pd.type = _PD_TYPE_SCRIPT;
 
 	/* Used for handling the mouse event on a box */
-	common->lb.mouse_event = livebox_service_mouse_event(common->pkgname);
+	common->lb.mouse_event = 0;
 
 	/* Cluster infomration is not determined yet */
 	common->nr_of_sizes = 0x01;
@@ -4048,8 +4048,15 @@ int lb_set_group(struct livebox_common *common, const char *cluster, const char 
 
 void lb_set_size(struct livebox_common *common, int w, int h)
 {
+	int size_type;
+
 	common->lb.width = w;
 	common->lb.height = h;
+
+	size_type = livebox_service_size_type(w, h);
+	if (size_type != LB_SIZE_TYPE_UNKNOWN) {
+		common->lb.mouse_event = livebox_service_mouse_event(common->pkgname, size_type);
+	}
 }
 
 void lb_set_update_mode(struct livebox_common *common, int active_mode)
