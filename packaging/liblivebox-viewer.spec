@@ -25,6 +25,10 @@ BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(xext)
 %endif
 
+%if "%{sec_product_feature_livebox}" == "0"
+ExclusiveArch:
+%endif
+
 %description
 API for creating a new instance of the livebox and managing its life-cycle.
 
