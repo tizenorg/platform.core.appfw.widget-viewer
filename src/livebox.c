@@ -2527,7 +2527,7 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	switch (type & ~ACCESS_EVENT_PD_MASK) {
+	switch (type & ~(ACCESS_EVENT_PD_MASK | ACCESS_EVENT_LB_MASK)) {
 	case ACCESS_EVENT_HIGHLIGHT:
 		strcpy(ptr, "_access_hl");
 		break;
