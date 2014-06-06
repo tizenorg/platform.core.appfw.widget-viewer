@@ -2,7 +2,7 @@
 
 Name: liblivebox-viewer
 Summary: Library for developing the application
-Version: 0.31.0
+Version: 0.31.1
 Release: 1
 Group: HomeTF/Livebox
 License: Flora
@@ -23,6 +23,10 @@ BuildRequires: pkgconfig(vconf)
 %else
 BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(xext)
+%endif
+
+%if "%{sec_product_feature_livebox}" == "0"
+ExclusiveArch:
 %endif
 
 %description
