@@ -315,6 +315,8 @@ extern int livebox_init(void *disp);
  * @param[in] prevent_overwrite Overwrite flag (when the content of an image type livebox is updated, it will be overwriten (0) or not (1))
  * @param[in] event_filter If the next event comes in this period, ignore it. It is too fast to processing it in time // need to be elaborated
  * @param[in] use_thread Use the receive thread // need to be elaborated
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int Integer, Livebox status code
  * @retval LB_STATUS_SUCCESS if success
  * @see livebox_init
@@ -324,6 +326,8 @@ extern int livebox_init_with_options(void *disp, int prevent_overwrite, double e
 
 /**
  * @brief Finalizes the livebox system.
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_SUCCES if success
  * @retval LB_STATUS_ERROR_INVALID if livebox_init is not called
@@ -334,6 +338,8 @@ extern int livebox_fini(void);
 
 /**
  * @brief Notifies the status of a client ("it is paused") to the provider.
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_SUCCESS if success
  * @retval LB_STATUS_ERROR_FAULT if it failed to send state (paused) info
@@ -343,6 +349,8 @@ extern int livebox_client_paused(void);
 
 /**
  * @brief Notifies the status of client ("it is resumed") to the provider.
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_SUCCESS if success
  * @retval LB_STATUS_ERROR_FAULT if it failed to send state (resumed) info
@@ -362,6 +370,8 @@ extern int livebox_client_resumed(void);
  * @param[in] period Update period (if you set DEFAULT_PERIOD, the provider will use the default period which is described in the manifest)
  * @param[in] cb After send the request to the provider, its result will be passed
  * @param[in] data Data
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return handle
  * @retval NULL if it fails to add a new instance
  * @retval handle Livebox handle
@@ -409,6 +419,8 @@ extern struct livebox *livebox_add(const char *pkgname, const char *content, con
  * @param[in] type Size type (defined from liblivebox-service package)
  * @param[in] cb After the request is sent to the master provider, this callback will be called
  * @param[in] data This data will be passed to the callback
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return handle
  * @retval Handle Livebox handle but not yet initialized
  * @retval NULL if it fails to create a handle
@@ -424,6 +436,8 @@ extern struct livebox *livebox_add_with_size(const char *pkgname, const char *co
  * @param[in] handler Handler of a livebox instance
  * @param[in] cb Return callback
  * @param[in] data User data for return callback
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY Already in process
@@ -441,6 +455,8 @@ extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
  * @param[in] type Deletion type (LB_DELETE_PERMANENTLY or LB_DELETE_TEMPORARY)
  * @param[in] cb Return callback
  * @param[in] data User data for return callback
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY Already in process
@@ -456,6 +472,7 @@ extern int livebox_del_NEW(struct livebox *handler, int type, ret_cb_t cb, void 
  *    The callback will be called if there is any event from the provider.
  * @param[in] cb Event handler
  * @param[in] data User data for the event handler
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_SUCCESS If succeed to set event handler
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -467,6 +484,7 @@ extern int livebox_set_event_handler(int (*cb)(struct livebox *handler, enum liv
 /**
  * @brief Unsets the livebox event handler.
  * @param[in] cb Event handler
+ * @privlevel N/P
  * @return void * Event handler data
  * @retval pointer Pointer of 'data' which is used with the livebox_set_event_handler
  * @see livebox_set_event_handler
@@ -478,6 +496,7 @@ extern void *livebox_unset_event_handler(int (*cb)(struct livebox *handler, enum
  * @details Argument list: event, pkgname, filename, funcname.
  * @param[in] cb Event handler
  * @param[in] data Event handler data
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_SUCCESS If succeed to set fault event handler
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -489,6 +508,7 @@ extern int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const ch
 /**
  * @brief Unsets the livebox fault event handler.
  * @param[in] cb Event handler
+ * @privlevel N/P
  * @return void * Callback data which is set via livebox_set_fault_handler
  * @retval pointer Pointer of 'data' which is used with the livebox_set_fault_handler
  * @see livebox_set_fault_handler
@@ -503,7 +523,9 @@ extern void *livebox_unset_fault_handler(int (*cb)(enum livebox_fault_type, cons
  * @param[in] pkgname Package name which should be activated
  * @param[in] cb Result callback
  * @param[in] data Callback data
- * @return int
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
+ * @return int type
  * @retval LB_STATUS_SUCCESS Successfully sent a request
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Failed to make a request
@@ -539,7 +561,9 @@ extern int livebox_activate(const char *pkgname, ret_cb_t cb, void *data);
  * @param[in] type Type of a livebox size (e.g., LB_SIZE_TYPE_1x1, ...)
  * @param[in] cb Result callback of the resize operation
  * @param[in] data User data for return callback
- * @return int
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
+ * @return int type
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY Previous request of resize is in progress
  * @retval LB_STATUS_ERROR_ALREADY Already resized, there is no differences between current size and requested size
@@ -554,6 +578,8 @@ extern int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *
  * @param[in] handler Handler of a livebox instance
  * @param[in] x Rational X of the content width
  * @param[in] y Rational Y of the content height
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -568,6 +594,8 @@ extern int livebox_click(struct livebox *handler, double x, double y);
  * @param[in] category New category of a livebox
  * @param[in] cb Result callback for changing the cluster/category of a livebox
  * @param[in] data User data for the result callback
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_SUCCESS Request is successfully sent. the return callback will be called
  * @retval LB_STATUS_ERROR_BUSY Previous request is not finished yet
@@ -585,6 +613,7 @@ extern int livebox_set_group(struct livebox *handler, const char *cluster, const
  * @param[in] handler Handler of a livebox instance
  * @param[out] cluster Storage(memory) for containing the cluster name
  * @param[out] category Storage(memory) for containing the category name
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_SUCCESS Successfully done
@@ -596,6 +625,7 @@ extern int livebox_get_group(struct livebox *handler, const char **cluster, cons
  * @remarks If this function returns 0.0f, it means the livebox has no update period or the handle is not valid.
  *    This function only works after the return callback of livebox_create fucntion is called.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return double
  * @retval Current update period of a livebox
  * @retval 0.0f This means the box has no update period or the handles is not valid
@@ -608,6 +638,8 @@ extern double livebox_period(struct livebox *handler);
  * @param[in] period New update period of a livebox
  * @param[in] cb Result callback of changing the update period of this livebox
  * @param[in] data User data for the result callback
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_SUCCESS Successfully done
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -621,6 +653,7 @@ extern int livebox_set_period(struct livebox *handler, double period, ret_cb_t c
 /**
  * @brief Checks whether the given livebox is a text type or not.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return livebox_lb_type
  * @retval LB_TYPE_IMAGE Contents of a livebox is based on the image file
  * @retval LB_TYPE_BUFFER Contents of a livebox is based on canvas buffer(shared)
@@ -635,6 +668,7 @@ extern enum livebox_lb_type livebox_lb_type(struct livebox *handler);
  * @brief Checks if the given livebox is created by user or not.
  * @details If the livebox instance is created by a system this will return 0.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval 0 Automatically created livebox by the provider
@@ -648,6 +682,7 @@ extern int livebox_is_user(struct livebox *handler);
 /**
  * @brief Gets content information string of the given livebox.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return const char *
  * @retval content_info Livebox content info that can be used again via content_info argument of livebox_add or livebox_add_with_size
  * @see livebox_add
@@ -664,6 +699,7 @@ extern const char *livebox_content(struct livebox *handler);
  *  But it is just recomended to a homescreen.
  *  So, to read it or not depends on implementation of the homescreen.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return const char *
  * @retval sub Cluster name
  * @retval NULL
@@ -674,6 +710,7 @@ extern const char *livebox_category_title(struct livebox *handler);
  * @brief Gets the filename of the given livebox, if it is an IMAGE type livebox.
  * @details If the box is developed as image format to represent its contents, the homescreen should know its image file name.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return const char *
  * @retval filename If the livebox type is image this function will give you a abs-path of an image file (content is rendered)
  * @retval NULL If this has no image file or type is not image file.
@@ -683,6 +720,7 @@ extern const char *livebox_filename(struct livebox *handler);
 /**
  * @brief Gets the package name of the given livebox handler.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return const char *
  * @retval pkgname Package name
  * @retval NULL If the handler is not valid
@@ -692,6 +730,7 @@ extern const char *livebox_pkgname(struct livebox *handler);
 /**
  * @brief Gets the priority of a current content.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return double
  * @retval 0.0f Handler is NULL
  * @retval -1.0f Handler is not valid (not yet initialized)
@@ -702,6 +741,8 @@ extern double livebox_priority(struct livebox *handler);
 /**
  * @brief Acquires the buffer of a given livebox (only for the buffer type).
  * @param[in] handler Handler of a livebox instance
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return void *
  * @retval address Address of a FB
  * @retval NULL If it fails to get fb address
@@ -711,6 +752,8 @@ extern void *livebox_acquire_fb(struct livebox *handler);
 /**
  * @brief Releases the buffer of a livebox (only for the buffer type).
  * @param[in] buffer Buffer
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_SUCCESS Successfully done
@@ -721,6 +764,7 @@ extern int livebox_release_fb(void *buffer);
 /**
  * @brief Gets the reference count of Livebox buffer (only for the buffer type).
  * @param[in] buffer Buffer
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -732,6 +776,8 @@ extern int livebox_fb_refcnt(void *buffer);
 /**
  * @brief Acquires the buffer of a PD frame (only for the buffer type).
  * @param[in] handler Handler of a livebox instance
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval NULL
  * @retval adress Address of a buffer of PD
@@ -742,6 +788,8 @@ extern void *livebox_acquire_pdfb(struct livebox *handler);
 /**
  * @brief Releases the acquired buffer of the PD Frame (only for the buffer type).
  * @param[in] buffer Buffer
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_SUCCESS Successfully done
@@ -752,6 +800,7 @@ extern int livebox_release_pdfb(void *buffer);
 /**
  * @brief Gets the reference count of a given PD buffer (only for the buffer type).
  * @param[in] buffer Buffer
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -763,6 +812,7 @@ extern int livebox_pdfb_refcnt(void *buffer);
 /**
  * @brief Gets the size of the Livebox.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval LB_SIZE_TYPE_NxM
  * @retval LB_SIZE_TYPE_INVALID
@@ -774,7 +824,8 @@ extern int livebox_size(struct livebox *handler);
  * @param[in] handler Handler of a livebox instance
  * @param[out] w
  * @param[out] h
- * @return int
+ * @privlevel N/P
+ * @return int type
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_SUCCESS Successfully done
  */
@@ -785,7 +836,8 @@ extern int livebox_get_pdsize(struct livebox *handler, int *w, int *h);
  * @param[in] handler Handler of a livebox instance
  * @param[out] cnt
  * @param[out] size_list
- * @return int
+ * @privlevel N/P
+ * @return int type
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_SUCCESS Successfully done
  */
@@ -794,6 +846,7 @@ extern int livebox_get_supported_sizes(struct livebox *handler, int *cnt, int *s
 /**
  * @brief Gets BUFFER SIZE of the livebox if it is a buffer type.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval size Size of livebox buffer
@@ -803,6 +856,7 @@ extern int livebox_lbfb_bufsz(struct livebox *handler);
 /**
  * @brief Gets BUFFER SIZE of the progiressive disclosure if it is a buffer type.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval size Size of PD buffer
@@ -817,6 +871,8 @@ extern int livebox_pdfb_bufsz(struct livebox *handler);
  * @param[in] type Event type
  * @param[in] x Coordinates of X axis
  * @param[in] y Coordinates of Y axis
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY Previous operaion is not finished yet
@@ -834,6 +890,8 @@ extern int livebox_content_event(struct livebox *handler, enum content_event_typ
  * @param[in] type Event type
  * @param[in] x Coordinates of X axis
  * @param[in] y Coordinates of Y axis
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -853,6 +911,8 @@ extern int livebox_mouse_event(struct livebox *handler, enum content_event_type 
  * @param[in] y Coordinates of Y axsis
  * @param[in] cb Result callback function
  * @param[in] data Callback data
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -870,6 +930,8 @@ extern int livebox_access_event(struct livebox *handler, enum access_event_type 
  * @param[in] keycode Code of key
  * @param[in] cb Result callback
  * @param[in] data Callback data
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -890,6 +952,8 @@ extern int livebox_key_event(struct livebox *handler, enum content_event_type ty
  * @param[in] flag Pinup value
  * @param[in] cb Result callback
  * @param[in] data Callback data
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid parameters
  * @see ret_cb_t
@@ -901,6 +965,7 @@ extern int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, voi
 /**
  * @brief Checks the PIN-UP status of the given handler.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid parameters
  * @retval 1 Box is pinned up
@@ -912,6 +977,7 @@ extern int livebox_is_pinned_up(struct livebox *handler);
 /**
  * @brief Checks the availability of the PIN-UP feature for the given handler.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval 1 If the box support Pinup feature
@@ -924,6 +990,7 @@ extern int livebox_has_pinup(struct livebox *handler);
 /**
  * @brief Checks the existence of PD for the given handler.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval 1 If the box support the PD
@@ -936,6 +1003,8 @@ extern int livebox_has_pd(struct livebox *handler);
  * @param[in] handler Handler of a livebox instance
  * @param[in] cb Result callback
  * @param[in] data Callback data
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_SUCCESS Successfully done
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -955,6 +1024,8 @@ extern int livebox_create_pd(struct livebox *handler, ret_cb_t cb, void *data);
  * @param[in] y 0.0 ~ 1.0
  * @param[in] cb Result callback
  * @param[in] data Callback data
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_SUCCESS Successfully done
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -971,6 +1042,8 @@ extern int livebox_create_pd_with_position(struct livebox *handler, double x, do
  * @param[in] handler Handler of a livebox instance
  * @param[in] x 0.0 ~ 1.0
  * @param[in] y 0.0 ~ 1.0
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_SUCCESS If sending a request for updating position of the PD has been done successfully
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -983,6 +1056,8 @@ extern int livebox_move_pd(struct livebox *handler, double x, double y);
  * @param[in] handler Handler of a livebox instance
  * @param[in] cb
  * @param[in] data
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -994,6 +1069,7 @@ extern int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data);
 /**
  * @brief Checks the create status of the given livebox handler.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval 0 PD is not created
@@ -1004,6 +1080,7 @@ extern int livebox_pd_is_created(struct livebox *handler);
 /**
  * @brief Checks the content type of a progressive disclosure of the given handler.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval PD_TYPE_BUFFER Contents of a PD is based on canvas buffer(shared)
  * @retval PD_TYPE_TEXT Contents of a PD is based on formatted text file
@@ -1016,6 +1093,8 @@ extern enum livebox_pd_type livebox_pd_type(struct livebox *handler);
 /**
  * @brief Checks the existence of a livebox about the given package name.
  * @param[in] pkgname Package name
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.info
  * @return int
  * @retval 1 If the box exists
  * @retval 0 If the box does not exist
@@ -1026,6 +1105,7 @@ extern int livebox_is_exists(const char *pkgname);
  * @brief Sets a function table for parsing the text content of a livebox.
  * @param[in] handler Handler of a livebox instance
  * @param[in] ops
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_SUCCESS Successfully done
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -1037,6 +1117,7 @@ extern int livebox_set_text_handler(struct livebox *handler, struct livebox_scri
  * @brief Sets a function table for parsing the text content of a Progressive Disclosure.
  * @param[in] handler Handler of a livebox instance
  * @param[in] ops
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_SUCCESS Successfully done
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -1055,6 +1136,8 @@ extern int livebox_set_pd_text_handler(struct livebox *handler, struct livebox_s
  * @param[in] ey End Y
  * @param[in] cb Result callback
  * @param[in] data Callback data
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid parameters
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1067,6 +1150,7 @@ extern int livebox_emit_text_signal(struct livebox *handler, const char *emissio
  * @brief Sets a private data pointer to carry it using the given handler.
  * @param[in] handler Handler of a livebox instance
  * @param[in] data Data pointer
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_SUCCESS Successfully registered
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -1077,6 +1161,7 @@ extern int livebox_set_data(struct livebox *handler, void *data);
 /**
  * @brief Gets a private data pointer which is carried by a given handler.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return void *
  * @retval data Data pointer
  * @retval NULL If there is no data
@@ -1091,6 +1176,8 @@ extern void *livebox_get_data(struct livebox *handler);
  *   But you cannot modify their attributes (such as size, ...).
  * @param[in] cluster   Cluster ("*" can be used for subscribe all cluster's liveboxes event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe liveboxes events of all category(sub-cluster) in a given "cluster")
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval LB_STATUS_SUCCESS Successfully requested
@@ -1102,6 +1189,8 @@ extern int livebox_subscribe_group(const char *cluster, const char *category);
  * @brief Unsubscribes an event for the liveboxes, but you will receive already added liveboxes events.
  * @param[in] cluster Cluster("*" can be used for subscribe all cluster's liveboxes event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe all sub-cluster's liveboxes event in a given "cluster")
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval LB_STATUS_SUCCESS Successfully requested
@@ -1117,6 +1206,8 @@ extern int livebox_unsubscribe_group(const char *cluster, const char *category);
  * @param[in] cluster Cluster ID
  * @param[in] category Sub-cluster ID
  * @param[in] force 1 if the boxes should be updated even if they are paused
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1129,6 +1220,8 @@ extern int livebox_refresh_group(const char *cluster, const char *category, int 
  * @brief Refreshes a livebox.
  * @param[in] handler Handler of a livebox instance
  * @param[in] force 1 if the box should be updated even if it is paused
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1143,6 +1236,7 @@ extern int livebox_refresh(struct livebox *handler, int force);
  *   If the service provider destroyed the pixmap, you will not know about it.
  *   So you should validate it before accessing it.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval 0 If the pixmap is not created
  * @retval pixmap Pixmap Id need to be casted to (unsigned int) type
@@ -1156,6 +1250,7 @@ extern int livebox_lb_pixmap(const struct livebox *handler);
  *   If the service provider destroyed the pixmap, you will not know about it.
  *   So you should validate it before accessing it.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval 0 If the pixmap is not created
  * @retval pixmap Pixmap Id need to be casted to (unsigned int) type
@@ -1170,6 +1265,8 @@ extern int livebox_pd_pixmap(const struct livebox *handler);
  * @param[in] handler Handler of a livebox instance
  * @param[in] cb Result callback for acquiring request
  * @param[in] data Callback Data
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Failed to send a request to the service provider or there is critical error that is unrecoverable
@@ -1184,6 +1281,8 @@ extern int livebox_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void 
  * @brief Releases the acquired pixmap ID.
  * @param[in] handler Handler of a livebox instance
  * @param[in] pixmap Pixmap Id to release it
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1200,6 +1299,8 @@ extern int livebox_release_pd_pixmap(struct livebox *handler, int pixmap);
  * @param[in] handler Handler of a livebox instance
  * @param[in] cb Callback function which will be called with result of acquiring lb pixmap
  * @param[in] data Callback data
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1218,6 +1319,8 @@ extern int livebox_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void 
  *   If there is no user for a given pixmap, the pixmap will be destroyed.
  * @param[in] handler Handler of a livebox instance
  * @param[in] pixmap Pixmap Id of given livebox handler
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1232,6 +1335,8 @@ extern int livebox_release_lb_pixmap(struct livebox *handler, int pixmap);
  * @brief Updates a visible state of the livebox.
  * @param[in] handler Handler of a livebox instance
  * @param[in] state Configure the current visible state of a livebox
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY
@@ -1245,6 +1350,7 @@ extern int livebox_set_visibility(struct livebox *handler, enum livebox_visible_
 /**
  * @brief Gets the current visible state of a livebox.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return livebox_visible_state
  * @retval LB_SHOW Livebox is shown (Default state)
  * @retval LB_HIDE Livebox is hidden, Update timer is not frozen (but a user cannot receive any updated events; a user should refresh(reload) the content of a livebox when a user make this show again)
@@ -1262,6 +1368,8 @@ extern enum livebox_visible_state livebox_visibility(struct livebox *handler);
  * @param[in] active_update 1 means active update, 0 means passive update (default)
  * @param[in] cb Result callback function
  * @param[in] data Callback data
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_BUSY
@@ -1276,6 +1384,7 @@ extern int livebox_set_update_mode(struct livebox *handler, int active_update, r
 /**
  * @brief Checks the active update mode of the given livebox.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return int
  * @retval 0 If passive mode
  * @retval 1 If active mode or error code
@@ -1285,6 +1394,8 @@ extern int livebox_is_active_update(struct livebox *handler);
 /**
  * @brief Syncs manually
  * param[in] handler Handler of a livebox instance
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return void
  * @retval LB_STATUS_SUCCESS If success
  * @retval LB_STATUS_ERROR_INVALID Invalid handle
@@ -1297,6 +1408,8 @@ extern int livebox_sync_pd_fb(struct livebox *handler);
 /**
  * @brief Syncs manually
  * @param[in] handler Handler of a livebox instance
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return void
  * @retval LB_STATUS_SUCCESS If success
  * @retval LB_STATUS_ERROR_INVALID Invalid handle
@@ -1310,6 +1423,7 @@ extern int livebox_sync_lb_fb(struct livebox *handler);
  * @brief Gets an alternative icon of the given livebox instance.
  * @details If the box should be represented as a shortcut icon, this function will get the alternative icon.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return const char *
  * @retval address Absolute path of an alternative icon file
  * @retval NULL Livebox has no alternative icon file
@@ -1321,6 +1435,7 @@ extern const char *livebox_alt_icon(struct livebox *handler);
  * @brief Gets an alternative name of the given livebox instance.
  * @details If the box should be represented as a shortcut name, this function will get the alternative name.
  * @param[in] handler Handler of a livebox instance
+ * @privlevel N/P
  * @return const char *
  * @retval name Alternative name of a livebox
  * @retval NULL Livebox has no alternative name
@@ -1334,6 +1449,8 @@ extern const char *livebox_alt_name(struct livebox *handler);
  *   And the locking area should be short and must be released ASAP, or the render thread will be hanged.
  * @param[in] handler Handler of a livebox instance
  * @param[in] is_pd 1 for PD or 0
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -1347,6 +1464,8 @@ extern int livebox_acquire_fb_lock(struct livebox *handler, int is_pd);
  * @details This function should be called ASAP after acquiring a lock of FB, or the render process will be blocked.
  * @param[in] handler Handler of a livebox instance
  * @param[in] is_pd 1 for PD or 0
+ * @privlevel platform
+ * @privileve %http://developer.samsung.com/privilege/dynamicbox.viewer
  * @return int
  * @retval LB_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -1372,6 +1491,7 @@ extern int livebox_release_fb_lock(struct livebox *handler, int is_pd);
  *     Instead of creating a new instance, a viewer will provide an old instance with a new handle.
  * @param[in] option Option which will be affected by this call
  * @param[in] state New value for given option
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Unknown option
  * @retval LB_STATUS_ERROR_FAULT Failed to change the state of option
@@ -1385,6 +1505,7 @@ extern int livebox_set_option(enum livebox_option_type option, int state);
 /**
  * @brief Gets options of a livebox sub-system.
  * @param[in] option Type of option
+ * @privlevel N/P
  * @return int
  * @retval LB_STATUS_ERROR_INVALID Invalid option
  * @retval LB_STATUS_ERROR_FAULT Failed to get option
@@ -1399,6 +1520,7 @@ extern int livebox_option(enum livebox_option_type option);
  * @details If a user clicks a box, and the box uses auto-launch option, the launcher_handler will be called.
  * @param[in] launch_handler Handler for launching an app manually
  * @param[in] data Callback data which will be given a data for launch_handler
+ * @privlevel N/P
  * @return int type
  * @retval LB_STATUS_SUCCESS Succeed to set new handler. there is no other cases
  */
