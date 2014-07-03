@@ -1151,14 +1151,6 @@ static struct livebox_common *find_sharable_common_handle(const char *pkgname, c
 	return NULL;
 }
 
-/*!
- * Just wrapping the livebox_add_with_size function.
- */
-EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data)
-{
-	return livebox_add_with_size(pkgname, content, cluster, category, period, LB_SIZE_TYPE_UNKNOWN, cb, data);
-}
-
 static gboolean job_execute_cb(void *data)
 {
 	struct job_item *item;
@@ -1459,7 +1451,7 @@ static int lb_set_visibility(struct livebox *handler, enum livebox_visible_state
 	return ret;
 }
 
-EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data)
+EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data)
 {
 	char *lbid;
 	struct livebox *handler;

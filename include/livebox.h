@@ -274,7 +274,6 @@ struct livebox_script_operators {
  * @param[in] data Data for result callback
  * @return void
  * @see livebox_add()
- * @see livebox_add_with_size()
  * @see livebox_del()
  * @see livebox_activate()
  * @see livebox_resize()
@@ -360,28 +359,6 @@ extern int livebox_client_resumed(void);
 
 /**
  * @brief Adds a new livebox.
- * @remarks Even though you get the livebox handle from the return value of this function,
- *    it is not initialized before return_callback is called.
- *    You have to use the handle after getting return callback with "ret == #LB_STATUS_SUCCESS"
- * @param[in] pkgname Livebox Id
- * @param[in] content Contetns that will be passed to the livebox instance
- * @param[in] cluster Main group
- * @param[in] category Sub group
- * @param[in] period Update period (if you set @c DEFAULT_PERIOD, the provider will use the default period which is described in the manifest)
- * @param[in] cb After send the request to the provider, its result will be passed
- * @param[in] data Data
- * @privlevel platform
- * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
- * @return handle
- * @retval @c NULL if it fails to add a new instance
- * @retval handle Livebox handle
- * @see ret_cb_t
- * @see livebox_add_with_size()
- */
-extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data);
-
-/**
- * @brief Adds a new livebox.
  * @details If the screen size is "1280x720", the below size lists are used for default.
  * Or you can find the default sizes in pixel from /usr/share/data-provider-master/resolution.ini.
  * Size types are defined from the liblivebox-service package (livebox-service.h).
@@ -425,9 +402,8 @@ extern struct livebox *livebox_add(const char *pkgname, const char *content, con
  * @retval Handle Livebox handle but not yet initialized
  * @retval @c NULL if it fails to create a handle
  * @see ret_cb_t
- * @see livebox_add()
  */
-extern struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data);
+extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data);
 
 /**
  * @brief Deletes a livebox (deprecated).
@@ -672,9 +648,8 @@ extern enum livebox_lb_type livebox_lb_type(struct livebox *handler);
  * @return int
  * @retval #LB_STATUS_ERROR_INVALID Invalid argument
  * @retval 0 Automatically created livebox by the provider
- * @retval 1 Created by user via livebox_add or livebox_add_with_size
+ * @retval 1 Created by user via livebox_add()
  * @see livebox_add()
- * @see livebox_add_with_size()
  * @see livebox_set_event_handler()
  */
 extern int livebox_is_user(struct livebox *handler);
@@ -684,9 +659,8 @@ extern int livebox_is_user(struct livebox *handler);
  * @param[in] handler Handler of a livebox instance
  * @privlevel N/P
  * @return const char *
- * @retval content_info Livebox content info that can be used again via content_info argument of livebox_add or livebox_add_with_size
+ * @retval content_info Livebox content info that can be used again via content_info argument of livebox_add()
  * @see livebox_add()
- * @see livebox_add_with_size()
  */
 extern const char *livebox_content(struct livebox *handler);
 
