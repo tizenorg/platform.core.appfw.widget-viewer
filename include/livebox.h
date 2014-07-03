@@ -865,27 +865,6 @@ extern int livebox_pdfb_bufsz(struct livebox *handler);
 
 /**
  * @brief Sends a content event (for buffer type) to the provider (livebox).
- * @remarks DEPRECATED
- *  Use the livebox_mouse_event function instead.
- * @param[in] handler Handler of a livebox instance
- * @param[in] type Event type
- * @param[in] x Coordinates of X axis
- * @param[in] y Coordinates of Y axis
- * @privlevel platform
- * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
- * @return int
- * @retval #LB_STATUS_ERROR_INVALID Invalid argument
- * @retval #LB_STATUS_ERROR_BUSY Previous operaion is not finished yet
- * @retval #LB_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @retval #LB_STATUS_SUCCESS Successfully sent
- * @see livebox_mouse_event()
- * @see livebox_access_event()
- * @see livebox_key_event()
- */
-extern int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y);
-
-/**
- * @brief Sends a content event (for buffer type) to the provider (livebox).
  * @param[in] handler Handler of a livebox instance
  * @param[in] type Event type
  * @param[in] x Coordinates of X axis
@@ -897,7 +876,6 @@ extern int livebox_content_event(struct livebox *handler, enum content_event_typ
  * @retval #LB_STATUS_ERROR_BUSY Previous operation is not finished yet
  * @retval #LB_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #LB_STATUS_SUCCESS Successfully sent
- * @see livebox_content_event()
  * @see livebox_access_event()
  * @see livebox_key_event()
  */

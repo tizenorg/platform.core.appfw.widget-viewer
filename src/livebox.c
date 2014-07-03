@@ -2576,11 +2576,6 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	return ret;
 }
 
-EAPI int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y)
-{
-	return livebox_mouse_event(handler, type, x, y);
-}
-
 EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type type, double x, double y)
 {
 	int w = 1;
