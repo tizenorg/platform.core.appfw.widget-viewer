@@ -107,7 +107,7 @@ static inline void update_fb_size(struct fb_info *info)
 	info->bufsz = info->w * info->h * info->pixels;
 }
 
-static inline int sync_for_file(struct fb_info *info)
+static int sync_for_file(struct fb_info *info)
 {
 	int fd;
 	struct buffer *buffer;
@@ -165,7 +165,7 @@ static inline int sync_for_file(struct fb_info *info)
 	return LB_STATUS_SUCCESS;
 }
 
-static inline __attribute__((always_inline)) int sync_for_pixmap(struct fb_info *info)
+static int sync_for_pixmap(struct fb_info *info)
 {
 	struct buffer *buffer;
 	XShmSegmentInfo si;
