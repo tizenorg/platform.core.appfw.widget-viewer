@@ -1729,7 +1729,7 @@ static void job_del_cb(struct livebox *handle, int type, void *data)
 	}
 }
 
-EAPI int livebox_del_NEW(struct livebox *handler, int type, ret_cb_t cb, void *data)
+EAPI int livebox_del(struct livebox *handler, int type, ret_cb_t cb, void *data)
 {
 	struct cb_info *cbinfo;
 
@@ -1758,11 +1758,6 @@ EAPI int livebox_del_NEW(struct livebox *handler, int type, ret_cb_t cb, void *d
 	}
 
 	return LB_STATUS_SUCCESS;
-}
-
-EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
-{
-	return livebox_del_NEW(handler, LB_DELETE_PERMANENTLY, cb, data);
 }
 
 EAPI int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data)

@@ -406,24 +406,6 @@ extern int livebox_client_resumed(void);
 extern struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data);
 
 /**
- * @brief Deletes a livebox (deprecated).
- * @remarks If you call this with an uninitialized handle, the return callback will be called synchronously.
- *    So before returning from this function, the return callback will be called first.
- * @param[in] handler Handler of a livebox instance
- * @param[in] cb Return callback
- * @param[in] data User data for return callback
- * @privlevel platform
- * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.viewer
- * @return int
- * @retval #LB_STATUS_ERROR_INVALID Invalid argument
- * @retval #LB_STATUS_ERROR_BUSY Already in process
- * @retval #LB_STATUS_ERROR_FAULT Failed to create a request packet
- * @retval #LB_STATUS_SUCCESS Successfully sent, return callack will be called
- * @see ret_cb_t
- */
-extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
-
-/**
  * @brief Deletes a livebox (will replace livebox_del).
  * @remarks If you call this with an uninitialized handle, the return callback will be called synchronously.
  *    So before returning from this function, the return callback will be called first.
@@ -440,7 +422,7 @@ extern int livebox_del(struct livebox *handler, ret_cb_t cb, void *data);
  * @retval #LB_STATUS_SUCCESS Successfully sent, return callack will be called
  * @see ret_cb_t
  */
-extern int livebox_del_NEW(struct livebox *handler, int type, ret_cb_t cb, void *data);
+extern int livebox_del(struct livebox *handler, int type, ret_cb_t cb, void *data);
 
 /**
  * @brief Sets a livebox events callback.
