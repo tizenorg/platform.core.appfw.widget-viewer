@@ -64,14 +64,16 @@ enum lb_type { /*!< Must have to be sync with data-provider-master */
 	_LB_TYPE_SCRIPT,
 	_LB_TYPE_FILE,
 	_LB_TYPE_TEXT,
-	_LB_TYPE_BUFFER
+	_LB_TYPE_BUFFER,
+	_LB_TYPE_ELEMENTARY
 };
 
 enum pd_type { /*!< Must have to be sync with data-provider-master */
 	_PD_TYPE_NONE = 0x0,
 	_PD_TYPE_SCRIPT,
 	_PD_TYPE_TEXT,
-	_PD_TYPE_BUFFER
+	_PD_TYPE_BUFFER,
+	_PD_TYPE_ELEMENTARY
 };
 
 enum livebox_state {

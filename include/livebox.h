@@ -164,7 +164,7 @@ enum livebox_lb_type {
 	LB_TYPE_BUFFER = 0x02, /*!< Contents of a livebox is based on canvas buffer(shared) */
 	LB_TYPE_TEXT = 0x04, /*!< Contents of a livebox is based on formatted text file */
 	LB_TYPE_PIXMAP = 0x08, /*!< Contens of a livebox is shared by the pixmap(depends on X) */
-
+	LB_TYPE_ELEMENTARY = 0x10, /*!< Using Elementary for sharing content & event */
 	LB_TYPE_INVALID = 0xFF
 };
 
@@ -176,7 +176,7 @@ enum livebox_pd_type {
 	PD_TYPE_BUFFER = 0x01, /*!< Contents of a PD is based on canvas buffer(shared) */
 	PD_TYPE_TEXT = 0x02, /*!< Contents of a PD is based on formatted text file */
 	PD_TYPE_PIXMAP = 0x04, /*!< Contents of a livebox is shared by the pixmap(depends on X) */
-
+	PD_TYPE_ELEMENTARY = 0x08, /*!< Using Elementary for sharing content & event */
 	PD_TYPE_INVALID = 0xFF
 };
 
