@@ -3173,6 +3173,8 @@ EAPI enum livebox_lb_type livebox_lb_type(struct livebox *handler)
 		return LB_TYPE_BUFFER;
 	case _LB_TYPE_TEXT:
 		return LB_TYPE_TEXT;
+	case _LB_TYPE_ELEMENTARY:
+		return LB_TYPE_ELEMENTARY;
 	default:
 		break;
 	}
@@ -3210,6 +3212,8 @@ EAPI enum livebox_pd_type livebox_pd_type(struct livebox *handler)
 			}
 		}
 		return PD_TYPE_BUFFER;
+	case _PD_TYPE_ELEMENTARY:
+		return PD_TYPE_ELEMENTARY;
 	default:
 		break;
 	}

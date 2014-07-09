@@ -760,6 +760,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 					break;
 				}
 				break;
+			case _PD_TYPE_ELEMENTARY:
 			case _PD_TYPE_TEXT:
 			default:
 				break;
@@ -875,6 +876,7 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 			break;
 		}
 		break;
+	case _PD_TYPE_ELEMENTARY:
 	case _PD_TYPE_TEXT:
 	default:
 		break;
@@ -1350,6 +1352,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	common->is_pinned_up = is_pinned_up;
 
 	switch (lb_type) {
+	case _LB_TYPE_ELEMENTARY:
 	case _LB_TYPE_FILE:
 		break;
 	case _LB_TYPE_SCRIPT:
@@ -1415,6 +1418,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	case _PD_TYPE_TEXT:
 		lb_set_text_pd(common);
 		break;
+	case _PD_TYPE_ELEMENTARY:
 	default:
 		break;
 	}
