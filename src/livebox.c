@@ -1151,14 +1151,6 @@ static struct livebox_common *find_sharable_common_handle(const char *pkgname, c
 	return NULL;
 }
 
-/*!
- * Just wrapping the livebox_add_with_size function.
- */
-EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, ret_cb_t cb, void *data)
-{
-	return livebox_add_with_size(pkgname, content, cluster, category, period, LB_SIZE_TYPE_UNKNOWN, cb, data);
-}
-
 static gboolean job_execute_cb(void *data)
 {
 	struct job_item *item;
@@ -1459,7 +1451,7 @@ static int lb_set_visibility(struct livebox *handler, enum livebox_visible_state
 	return ret;
 }
 
-EAPI struct livebox *livebox_add_with_size(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data)
+EAPI struct livebox *livebox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, ret_cb_t cb, void *data)
 {
 	char *lbid;
 	struct livebox *handler;
@@ -1737,7 +1729,7 @@ static void job_del_cb(struct livebox *handle, int type, void *data)
 	}
 }
 
-EAPI int livebox_del_NEW(struct livebox *handler, int type, ret_cb_t cb, void *data)
+EAPI int livebox_del(struct livebox *handler, int type, ret_cb_t cb, void *data)
 {
 	struct cb_info *cbinfo;
 
@@ -1766,11 +1758,6 @@ EAPI int livebox_del_NEW(struct livebox *handler, int type, ret_cb_t cb, void *d
 	}
 
 	return LB_STATUS_SUCCESS;
-}
-
-EAPI int livebox_del(struct livebox *handler, ret_cb_t cb, void *data)
-{
-	return livebox_del_NEW(handler, LB_DELETE_PERMANENTLY, cb, data);
 }
 
 EAPI int livebox_set_fault_handler(int (*cb)(enum livebox_fault_type, const char *, const char *, const char *, void *), void *data)
@@ -2574,11 +2561,6 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	}
 
 	return ret;
-}
-
-EAPI int livebox_content_event(struct livebox *handler, enum content_event_type type, double x, double y)
-{
-	return livebox_mouse_event(handler, type, x, y);
 }
 
 EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type type, double x, double y)
