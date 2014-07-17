@@ -120,15 +120,15 @@ static int default_launch_handler(struct livebox *handler, const char *appid, vo
 	}
 
 /*
-	service_h service;
+	app_control_h service;
 
 	DbgPrint("AUTO_LAUNCH [%s]\n", handler->common->lb.auto_launch);
 
-	ret = service_create(&service);
-	if (ret == SERVICE_ERROR_NONE) {
-		service_set_package(service, handler->common->lb.auto_launch);
-		service_send_launch_request(service, NULL, NULL);
-		service_destroy(service);
+	ret = app_control_create(&service);
+	if (ret == APP_CONTROL_ERROR_NONE) {
+		app_control_set_package(service, handler->common->lb.auto_launch);
+		app_control_send_launch_request(service, NULL, NULL);
+		app_control_destroy(service);
 	} else {
 		ErrPrint("Failed to launch an app %s (%d)\n", handler->common->lb.auto_launch, ret);
 	}
