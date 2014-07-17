@@ -163,7 +163,7 @@ static void app_resume(void *data)
 	DbgPrint("resume");
 }
 
-static void app_reset(service_h service, void *data)
+static void app_control(app_control_h service, void *data)
 {
 	DbgPrint("reset");
 }
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 	event_callback.terminate = app_terminate;
 	event_callback.pause = app_pause;
 	event_callback.resume = app_resume;
-	event_callback.service = app_reset;
+	event_callback.app_control = app_control;
 	event_callback.low_memory = NULL;
 	event_callback.low_battery = NULL;
 	event_callback.device_orientation = NULL;
