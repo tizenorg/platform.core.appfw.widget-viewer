@@ -214,6 +214,8 @@ enum livebox_event_type { /**< livebox_event_handler_set Event list */
 
 	LB_EVENT_REQUEST_CLOSE_PD, /**< Livebox requests to close the PD */
 
+	LB_EVENT_EXTRA_INFO_UPDATED, /**< Extra information is updated */
+
 	LB_EVENT_IGNORED /**< Request is ignored */
 };
 
