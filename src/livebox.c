@@ -4286,10 +4286,9 @@ void lb_set_filename(struct livebox_common *common, const char *filename)
 	}
 }
 
-void lb_set_alt_info(struct livebox_common *common, const char *icon, const char *name)
+void lb_set_alt_icon(struct livebox_common *common, const char *icon)
 {
 	char *_icon = NULL;
-	char *_name = NULL;
 
 	if (icon && strlen(icon)) {
 		_icon = strdup(icon);
@@ -4298,15 +4297,20 @@ void lb_set_alt_info(struct livebox_common *common, const char *icon, const char
 		}
 	}
 
+	free(common->alt.icon);
+	common->alt.icon = _icon;
+}
+
+void lb_set_alt_name(struct livebox_common *common, const char *name)
+{
+	char *_name = NULL;
+
 	if (name && strlen(name)) {
 		_name = strdup(name);
 		if (!_name) {
 			ErrPrint("Heap: %s\n", strerror(errno));
 		}
 	}
-
-	free(common->alt.icon);
-	common->alt.icon = _icon;
 
 	free(common->alt.name);
 	common->alt.name = _name;

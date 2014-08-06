@@ -599,30 +599,27 @@ out:
 	return NULL;
 }
 
-static struct packet *master_lb_updated(pid_t pid, int handle, const struct packet *packet)
+static struct packet *master_extra_info(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
 	const char *id;
-	const char *fbfile;
 	const char *content;
 	const char *title;
-	const char *safe_file;
 	const char *icon;
 	const char *name;
-	struct livebox *handler;
-	struct livebox_common *common;
-	int lb_w;
-	int lb_h;
 	double priority;
 	int ret;
+	struct livebox *handler;
+	struct livebox_common *common;
+	struct dlist *l;
+	struct dlist *n;
 
-	ret = packet_get(packet, "sssiidsssss",
-				&pkgname, &id,
-				&fbfile, &lb_w, &lb_h,
-				&priority, &content, &title,
-				&safe_file, &icon, &name);
-	if (ret != 11) {
-		ErrPrint("Invalid argument\n");
+	ret = packet_get(packet, "ssssssd", &pkgname, &id,
+					&content, &title,
+					&icon, &name,
+					&priority);
+	if (ret != 7) {
+		ErrPrint("Invalid parameters\n");
 		goto out;
 	}
 
@@ -646,6 +643,51 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 	lb_set_priority(common, priority);
 	lb_set_content(common, content);
 	lb_set_title(common, title);
+	lb_set_alt_icon(common, icon);
+	lb_set_alt_name(common, name);
+
+	dlist_foreach_safe(common->livebox_list, l, n, handler) {
+		lb_invoke_event_handler(handler, LB_EVENT_EXTRA_INFO_UPDATED);
+	}
+out:
+	return NULL;
+}
+
+static struct packet *master_lb_updated(pid_t pid, int handle, const struct packet *packet)
+{
+	const char *pkgname;
+	const char *id;
+	const char *fbfile;
+	const char *safe_file;
+	struct livebox *handler;
+	struct livebox_common *common;
+	int lb_w;
+	int lb_h;
+	int ret;
+
+	ret = packet_get(packet, "ssssii", &pkgname, &id, &fbfile, &safe_file, &lb_w, &lb_h);
+	if (ret != 6) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	common = lb_find_common_handle(pkgname, id);
+	if (!common) {
+		ErrPrint("instance(%s) is not exists\n", id);
+		goto out;
+	}
+
+	if (common->state != CREATE) {
+		/*!
+		 * \note
+		 * Already deleted by the user.
+		 * Don't try to notice anything with this, Just ignore all events
+		 * Beacuse the user doesn't wants know about this anymore
+		 */
+		ErrPrint("(%s) is not exists, but updated\n", id);
+		goto out;
+	}
+
 	lb_set_size(common, lb_w, lb_h);
 	lb_set_filename(common, safe_file);
 
@@ -1513,6 +1555,10 @@ static struct method s_table[] = {
 	{
 		.cmd = "pd_updated", /* pkgname, id, descfile, pd_w, pd_h, ret */
 		.handler = master_pd_updated,
+	},
+	{
+		.cmd = "extra_info",
+		.handler = master_extra_info,
 	},
 	{
 		.cmd = "pd_created",
