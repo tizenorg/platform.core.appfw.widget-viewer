@@ -35,6 +35,7 @@ SET(BUILD_SOURCE
 	src/client.c
 	src/file_service.c
 	src/conf.c
+	src/dynamicbox.c
 )
 
 IF (X11_SUPPORT)
