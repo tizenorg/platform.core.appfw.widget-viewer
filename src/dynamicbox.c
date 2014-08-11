@@ -20,14 +20,9 @@
 
 #define EAPI __attribute__((visibility("default")))
 
-EAPI int dynamicbox_init_with_options(void *disp, int prevent_overwrite, double event_filter, int use_thread)
+EAPI int dynamicbox_init(void *disp, int prevent_overwrite, double event_filter, int use_thread)
 {
 	return livebox_init_with_options(disp, prevent_overwrite, event_filter, use_thread);
-}
-
-EAPI int dynamicbox_init(void *disp)
-{
-	return livebox_init(disp);
 }
 
 EAPI int dynamicbox_fini(void)
@@ -54,8 +49,6 @@ EAPI int dynamicbox_del(struct dynamicbox *handler, int type, dynamicbox_ret_cb_
 {
 	return livebox_del(((struct livebox*) handler), type, (ret_cb_t)cb, data);
 }
-
-
 
 EAPI int dynamicbox_set_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const char *, const char *, const char *, void *), void *data)
 {
@@ -110,22 +103,17 @@ EAPI int dynamicbox_has_pd(struct dynamicbox *handler)
 	return livebox_has_pd((struct livebox*)handler);
 }
 
-EAPI int dynamicbox_pd_is_created(struct dynamicbox *handler)
+EAPI int dynamicbox_gbar_is_created(struct dynamicbox *handler)
 {
 	return livebox_pd_is_created((struct livebox*)handler);
 }
 
-EAPI int dynamicbox_create_pd(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
-{
-	return livebox_create_pd((struct livebox*)handler, (ret_cb_t)cb, data);
-}
-
-EAPI int dynamicbox_create_pd_with_position(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_create_gbar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data)
 {
 	return livebox_create_pd_with_position((struct livebox*)handler, x, y, (ret_cb_t)cb, data);
 }
 
-EAPI int dynamicbox_move_pd(struct dynamicbox *handler, double x, double y)
+EAPI int dynamicbox_move_gbar(struct dynamicbox *handler, double x, double y)
 {
 	return livebox_move_pd((struct livebox*)handler, x, y);
 }
@@ -135,7 +123,7 @@ EAPI int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb_t cb, void *
 	return livebox_activate(pkgname, (ret_cb_t)cb, data);
 }
 
-EAPI int dynamicbox_destroy_pd(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_destroy_gbar(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
 {
 	return livebox_destroy_pd((struct livebox*)handler, (ret_cb_t)cb, data);
 }
@@ -160,7 +148,7 @@ EAPI const char *dynamicbox_filename(struct dynamicbox *handler)
 	return livebox_filename((struct livebox*)handler);
 }
 
-EAPI int dynamicbox_get_pdsize(struct dynamicbox *handler, int *w, int *h)
+EAPI int dynamicbox_get_gbar_size(struct dynamicbox *handler, int *w, int *h)
 {
 	return livebox_get_pdsize((struct livebox*) handler, w, h);
 }
@@ -207,97 +195,113 @@ EAPI int dynamicbox_delete_category(const char *cluster, const char *category, d
 }
 #endif
 
-EAPI enum dynamicbox_dbox_type dynamicbox_dbox_type(struct dynamicbox *handler)
+EAPI enum dynamicbox_type dynamicbox_type(struct dynamicbox *handler, int gbar)
 {
-	return livebox_lb_type((struct livebox*) handler);
+	enum dynamicbox_type type;
+
+	if (gbar) {
+		enum livebox_pd_type ptype;
+		ptype = livebox_pd_type((struct livebox *)handler);
+		switch (ptype) {
+		case PD_TYPE_BUFFER:
+			type = DBOX_TYPE_BUFFER;
+			break;
+		case PD_TYPE_TEXT:
+			type = DBOX_TYPE_TEXT;
+			break;
+		case PD_TYPE_PIXMAP:
+			type = DBOX_TYPE_RESOURCE_ID;
+			break;
+		case PD_TYPE_ELEMENTARY:
+			type = DBOX_TYPE_UIFW;
+			break;
+		case PD_TYPE_INVALID:
+		default:
+			type = DBOX_TYPE_INVALID;
+			break;
+		}
+	} else {
+		enum livebox_lb_type ltype;
+		ltype = livebox_lb_type((struct livebox *)handler);
+		type = (enum dynamicbox_type)ltype;
+	}
+
+	return type;
 }
 
-EAPI enum dynamicbox_pd_type dynamicbox_pd_type(struct dynamicbox *handler)
+EAPI int dynamicbox_set_text_handler(struct dynamicbox *handler, int gbar, struct dynamicbox_script_operators *ops)
 {
-	return livebox_pd_type((struct livebox*) handler);
+	if (gbar) {
+		return livebox_set_pd_text_handler((struct livebox*) handler, (struct livebox_script_operators*) ops);
+	} else {
+		return livebox_set_text_handler((struct livebox*) handler, (struct livebox_script_operators*) ops);
+	}
 }
 
-EAPI int dynamicbox_set_pd_text_handler(struct dynamicbox *handler, struct dynamicbox_script_operators *ops)
+EAPI unsigned int dynamicbox_acquire_resource_id(struct dynamicbox *handler, int gbar, dynamicbox_ret_cb_t cb, void *data)
 {
-	return livebox_set_pd_text_handler((struct livebox*) handler, (struct livebox_script_operators*) ops);
+	if (gbar) {
+		return (unsigned int)livebox_acquire_pd_pixmap((struct livebox*) handler, (ret_cb_t)cb, data);
+	} else {
+		return (unsigned int)livebox_acquire_lb_pixmap((struct livebox*) handler, (ret_cb_t)cb, data);
+	}
 }
 
-EAPI int dynamicbox_set_text_handler(struct dynamicbox *handler, struct dynamicbox_script_operators *ops)
+EAPI int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, unsigned int resource_id)
 {
-	return livebox_set_text_handler((struct livebox*) handler, (struct livebox_script_operators*) ops);
+	if (gbar) {
+		return livebox_release_pd_pixmap((struct livebox*) handler, (int)resource_id);
+	} else {
+		return livebox_release_lb_pixmap((struct livebox*) handler, (int)resource_id);
+	}
 }
 
-EAPI int dynamicbox_acquire_dbox_pixmap(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+EAPI unsigned int dynamicbox_resource_id(const struct dynamicbox *handler, int gbar)
 {
-	return livebox_acquire_lb_pixmap((struct livebox*) handler, (ret_cb_t)cb, data);
+	if (gbar) {
+		return (unsigned int)livebox_pd_pixmap((const struct livebox*) handler);
+	} else {
+		return (unsigned int)livebox_lb_pixmap((const struct livebox*) handler);
+	}
 }
 
-EAPI int dynamicbox_release_dbox_pixmap(struct dynamicbox *handler, int pixmap)
+EAPI void *dynamicbox_acquire_fb(struct dynamicbox *handler, int gbar)
 {
-	return livebox_release_lb_pixmap((struct livebox*) handler, pixmap);
+	if (gbar) {
+		return livebox_acquire_pdfb((struct livebox*) handler);
+	} else {
+		return livebox_acquire_fb((struct livebox*) handler);
+	}
 }
 
-EAPI int dynamicbox_acquire_pd_pixmap(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_release_fb(void *buffer, int gbar)
 {
-	return livebox_acquire_pd_pixmap((struct livebox*) handler, (ret_cb_t)cb, data);
+	if (gbar) {
+		return livebox_release_pdfb(buffer);
+	} else {
+		return livebox_release_fb(buffer);
+	}
 }
 
-EAPI int dynamicbox_pd_pixmap(const struct dynamicbox *handler)
+EAPI int dynamicbox_fb_refcnt(void *buffer, int gbar)
 {
-	return livebox_pd_pixmap((const struct livebox*) handler);
+	if (gbar) {
+		return livebox_pdfb_refcnt(buffer);
+	} else {
+		return livebox_fb_refcnt(buffer);
+	}
 }
 
-EAPI int dynamicbox_dbox_pixmap(const struct dynamicbox *handler)
+EAPI int dynamicbox_fb_bufsz(struct dynamicbox *handler, int gbar)
 {
-	return livebox_lb_pixmap((const struct livebox*) handler);
+	if (gbar) {
+		return livebox_pdfb_bufsz((struct livebox*) handler);
+	} else {
+		return livebox_lbfb_bufsz((struct livebox*) handler);
+	}
 }
 
-EAPI int dynamicbox_release_pd_pixmap(struct dynamicbox *handler, int pixmap)
-{
-	return livebox_release_pd_pixmap((struct livebox*) handler, pixmap);
-}
-
-EAPI void *dynamicbox_acquire_fb(struct dynamicbox *handler)
-{
-	return livebox_acquire_fb((struct livebox*) handler);
-}
-
-EAPI int dynamicbox_release_fb(void *buffer)
-{
-	return livebox_release_fb(buffer);
-}
-
-EAPI int dynamicbox_fb_refcnt(void *buffer)
-{
-	return livebox_fb_refcnt(buffer);
-}
-
-EAPI void *dynamicbox_acquire_pdfb(struct dynamicbox *handler)
-{
-	return livebox_acquire_pdfb((struct livebox*) handler);
-}
-
-EAPI int dynamicbox_release_pdfb(void *buffer)
-{
-	return livebox_release_pdfb(buffer);
-}
-
-EAPI int dynamicbox_pdfb_refcnt(void *buffer)
-{
-	return livebox_pdfb_refcnt(buffer);
-}
-
-EAPI int dynamicbox_pdfb_bufsz(struct dynamicbox *handler)
-{
-	return livebox_pdfb_bufsz((struct livebox*) handler);
-}
-
-EAPI int dynamicbox_lbfb_bufsz(struct dynamicbox *handler)
-{
-	return livebox_lbfb_bufsz((struct livebox*) handler);
-}
-
-EAPI int dynamicbox_is_user(struct dynamicbox *handler)
+EAPI int dynamicbox_is_created_by_user(struct dynamicbox *handler)
 {
 	return livebox_is_user((struct livebox*) handler);
 }
@@ -337,7 +341,7 @@ EAPI const char *dynamicbox_content(struct dynamicbox *handler)
 	return livebox_content((struct livebox*) handler);
 }
 
-EAPI const char *dynamicbox_category_title(struct dynamicbox *handler)
+EAPI const char *dynamicbox_title(struct dynamicbox *handler)
 {
 	return livebox_category_title((struct livebox*) handler);
 }
@@ -377,24 +381,23 @@ EAPI enum dynamicbox_visible_state dynamicbox_visibility(struct dynamicbox *hand
 	return livebox_visibility((struct livebox*) handler);
 }
 
-EAPI int dynamicbox_client_paused(void)
+EAPI int dynamicbox_viewer_set_paused(void)
 {
 	return livebox_client_paused();
 }
 
-EAPI int dynamicbox_client_resumed(void)
+EAPI int dynamicbox_viewer_set_resumed(void)
 {
 	return livebox_client_resumed();
 }
 
-EAPI int dynamicbox_sync_dbox_fb(struct dynamicbox *handler)
+EAPI int dynamicbox_sync_fb(struct dynamicbox *handler, int gbar)
 {
-	return livebox_sync_lb_fb((struct livebox*) handler);
-}
-
-EAPI int dynamicbox_sync_pd_fb(struct dynamicbox *handler)
-{
-	return livebox_sync_pd_fb((struct livebox*) handler);
+	if (gbar) {
+		return livebox_sync_pd_fb((struct livebox*) handler);
+	} else {
+		return livebox_sync_lb_fb((struct livebox*) handler);
+	}
 }
 
 EAPI const char *dynamicbox_alt_icon(struct dynamicbox *handler)
@@ -407,14 +410,14 @@ EAPI const char *dynamicbox_alt_name(struct dynamicbox *handler)
 	return livebox_alt_name((struct livebox*) handler);
 }
 
-EAPI int dynamicbox_acquire_fb_lock(struct dynamicbox *handler, int is_pd)
+EAPI int dynamicbox_acquire_fb_lock(struct dynamicbox *handler, int gbar)
 {
-	return livebox_acquire_fb_lock((struct livebox*) handler, is_pd);
+	return livebox_acquire_fb_lock((struct livebox*) handler, gbar);
 }
 
-EAPI int dynamicbox_release_fb_lock(struct dynamicbox *handler, int is_pd)
+EAPI int dynamicbox_release_fb_lock(struct dynamicbox *handler, int gbar)
 {
-	return livebox_release_fb_lock((struct livebox*) handler, is_pd);
+	return livebox_release_fb_lock((struct livebox*) handler, gbar);
 }
 
 EAPI int dynamicbox_set_option(enum dynamicbox_option_type option, int state)

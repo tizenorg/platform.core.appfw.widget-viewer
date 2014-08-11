@@ -977,8 +977,9 @@ static int send_mouse_event(struct livebox *handler, const char *event, int x, i
 	return master_rpc_request_only(handler, packet);
 }
 
-static void initialize_livebox(void *disp, int use_thread)
+static int initialize_livebox(void *disp, int use_thread)
 {
+	int ret;
 #if defined(FLOG)
 	char filename[BUFSIZ];
 	snprintf(filename, sizeof(filename), "/tmp/%d.box.log", getpid());
@@ -987,12 +988,26 @@ static void initialize_livebox(void *disp, int use_thread)
 		__file_log_fp = fdopen(1, "w+t");
 	}
 #endif
-	livebox_service_init();
-	fb_init(disp);
+	ret = livebox_service_init();
+	if (ret != LB_STATUS_SUCCESS) {
+		return ret;
+	}
 
-	client_init(use_thread);
+	ret = fb_init(disp);
+	if (ret != LB_STATUS_SUCCESS) {
+		livebox_service_fini();
+		return ret;
+	}
+
+	ret = client_init(use_thread);
+	if (ret != LB_STATUS_SUCCESS) {
+		fb_fini();
+		livebox_service_fini();
+		return ret;
+	}
 
 	s_info.init_count++;
+	return ret;
 }
 
 EAPI int livebox_init_with_options(void *disp, int prevent_overwrite, double event_filter, int use_thread)
@@ -1010,8 +1025,7 @@ EAPI int livebox_init_with_options(void *disp, int prevent_overwrite, double eve
 	s_info.prevent_overwrite = prevent_overwrite;
 	conf_set_event_filter(event_filter);
 
-	initialize_livebox(disp, use_thread);
-	return LB_STATUS_SUCCESS;
+	return initialize_livebox(disp, use_thread);
 }
 
 EAPI int livebox_init(void *disp)
@@ -1036,8 +1050,7 @@ EAPI int livebox_init(void *disp)
 		}
 	}
 
-	initialize_livebox(disp, 0);
-	return LB_STATUS_SUCCESS;
+	return initialize_livebox(disp, 0);
 }
 
 EAPI int livebox_fini(void)

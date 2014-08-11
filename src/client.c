@@ -1767,7 +1767,7 @@ int client_init(int use_thread)
 		s_info.client_addr = strdup(CLIENT_SOCKET);
 		if (!s_info.client_addr) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return -ENOMEM;
+			return LB_STATUS_ERROR_MEMORY;
 		}
 	}
 
@@ -1784,7 +1784,7 @@ int client_init(int use_thread)
 	}
 
 	master_started_cb(NULL, NULL);
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int client_fd(void)

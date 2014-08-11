@@ -71,7 +71,6 @@ make %{?jobs:-j%jobs}
 %install
 rm -rf %{buildroot}
 %make_install
-mkdir -p %{buildroot}/%{_datarootdir}/license
 
 %post -n liblivebox-viewer -p /sbin/ldconfig
 %postun -n liblivebox-viewer -p /sbin/ldconfig
@@ -86,6 +85,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/livebox-viewer/livebox.h
+%{_includedir}/dynamicbox_viewer/dynamicbox.h
 %{_libdir}/pkgconfig/*.pc
 
 # End of a file

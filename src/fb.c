@@ -86,7 +86,7 @@ int fb_init(void *disp)
 		s_info.visual = DefaultVisualOfScreen(screen);
 	}
 
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 int fb_fini(void)

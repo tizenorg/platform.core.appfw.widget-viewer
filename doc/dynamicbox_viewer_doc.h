@@ -19,25 +19,25 @@
  * @defgroup DYNAMICBOX_VIEWER_MODULE Dynamic Box Viewer
  * @brief API for dynamic box viewer (widget screen, home screen, ...)
  * @section DYNAMICBOX_VIEWER_MODULE_HEADER Required Header
- * \#include <livebox.h>
+ * \#include <dynamicbox.h>
  * @section DYNAMICBOX_VIEWER_MODULE_OVERVIEW Overview
- * Tizen homescreen S/W framework is supporing the live box. (aka widget which is similiar with the android widget)
+ * Tizen homescreen S/W framework is supporing the Dynamic Box. (aka widget which is similiar with the android widget)
  *
  * @image html front.jpg
  *
- * @subsection WhatIsTheLivebox 1. What is the Dynamic Box
- * The live box is the widget of the TIZEN.
+ * @subsection WhatIsTheDynamicBox 1. What is the Dynamic Box
+ * The Dynamic Box is the widget of the TIZEN.
  *
  * It works as a small application displayed on other applications' (such as homescreen, lockscreen, etc ...) view.
- * Each live box can have (not a mandatory option) a PD (progressive disclosure) in which more detailed information can be found.
- * The content of PD can be exposed when a certain gesture (e.g., flick-down) has been applied to the live box.
+ * Each Dynamic Box can have (not a mandatory option) a Glance Bar (progressive disclosure) in which more detailed information can be found.
+ * The content of Glance Bar can be exposed when a certain gesture (e.g., flick-down) has been applied to the Dynamic Box.
  * If you are interested in developing a dynamic box, there are things you should know prior to making any source code for the box.
- * To make your live box added to any live box viewer application (e.g., live panel in our case), then you need to create and prepare    
- * controller(SO file), layout script (EDJE for a PD if necessary), configuration files.
+ * To make your Dynamic Box added to any Dynamic Box viewer application (e.g., live panel in our case), then you need to create and prepare    
+ * controller(SO file), layout script (EDJE for a Glance Bar if necessary), configuration files.
  *
  * A dynamic box is managed by data provider, since each SO file of a dynamic box is loaded on and controlled by data provider using predefined ABI.
  * A viewer will receive any dynamic box's content in forms of "image file", "buffer" or "text" and display the content in various formats on its window.
- * A dynamic box developer needs to make sure that your live box generates desirable content in-time on a explicit update-request or periodic update.
+ * A dynamic box developer needs to make sure that your Dynamic Box generates desirable content in-time on a explicit update-request or periodic update.
  *
  * After a data provider loads a dynamic box's SO file, it then assigns a specific "file name" for the dynamic box via an argument of a dynamic box function.
  * Since then the dynamic box just generates content using then given file name.
@@ -48,7 +48,7 @@
  * The Progressive Dislcosure is only updated by the "buffer" type. so you should prepare the layout script for it.
  * If you didn't install any script file for progressive disclosure, the viewer will ignore the "flick down" event from your dynamic box.
  *
- * @subsubsection Livebox 1.1 Dynamic Box
+ * @subsubsection DynamicBox 1.1 Dynamic Box
  * Live box is a default content of your widget. It always displays on the screen and updated periodically.
  * It looks like below captured images.
  * @image html weather.png Weather Dynamic Box
@@ -58,7 +58,7 @@
  * @subsubsection ProgressiveDisclosure 1.2 Progressive Disclosure
  * @image html PD.png Progressive Disclosure
  * Progressive disclosure will be displayed when a user flicks down a dynamic box. (basically it depends on the implementation of the view applications)
- * To supports this, a developer should prepare the layout script (EDJE only for the moment) of the dynamic box's PD. (or you can use the buffer directly)
+ * To supports this, a developer should prepare the layout script (EDJE only for the moment) of the dynamic box's Glance Bar. (or you can use the buffer directly)
  * Data provider supports EDJE script but the developer can use various scripts if (which is BIG IF) their interpreters can be implemented based on evas & ecore.
  *
  * When a layout script has been installed, data provider can load and rendering the given layout on the buffer.
@@ -71,7 +71,7 @@
  * It is used for creating/destorying your dynamic box instance when the data provider receives any context event from the context engine.
  * You will only get "user,created" cluster and "default" category(sub cluster) info.
  *
- * @subsection LiveboxContent 2. How the dynamic box can draw contents for viewer?
+ * @subsection DynamicBoxContent 2. How the dynamic box can draw contents for viewer?
  * There are several ways to update the content of a dynamic box.
  *
  * @li Image file based content updating
@@ -84,7 +84,7 @@
  * This is the basic method for providing content of a dynamic box to the viewer application.
  * But this can be used only for the dynamic box. (Unavailable for the progressive disclosure).
  * When your dynamic box is created, the provider will assign an unique ID for your dynamic box(it would be a filename).
- * You should keep that ID until your dynamic box is running. The ID will be passed to you via livebox_create function.
+ * You should keep that ID until your dynamic box is running. The ID will be passed to you via dynamicbox_create function.
  * \image html image_format.png
  *
  * When you need to update the output of your dynamic box, you should generate the image file using given ID(filename).
@@ -96,7 +96,7 @@
  * When you develop your dynamic box, first design the layout of box content using script (edje is default)
  * Then the provider will load it to the content buffer and start rendering.
  * After the sciprt is loaded, you can fill it using description data format.
- * liblivebox defines description data handling functions.
+ * libdynamicbox defines description data handling functions.
  *
  * @subsubsection TextFormat 2.3 Via text data
  * @image html text_format.png
@@ -113,11 +113,11 @@
  *
  * @subsection PackageNTools 3. How can I get the development packages or tools?
  *
- * @subsection DevelopLivebox 4. How can I write a new dynamic box
+ * @subsection DevelopDynamicBox 4. How can I write a new dynamic box
  *
- * @subsection TestLivebox 5. How can I test my dynamic box
+ * @subsection TestDynamicBox 5. How can I test my dynamic box
  *
- * @subsection LiveboxDirectory 6. Dynamic Box directory hierachy
+ * @subsection DynamicBoxDirectory 6. Dynamic Box directory hierachy
  * @image html preload_folder.png
  * @image html download_folder.png
  */
