@@ -49,6 +49,14 @@
 FILE *__file_log_fp;
 #endif
 
+#define ACCESS_TYPE_DOWN 0
+#define ACCESS_TYPE_MOVE 1
+#define ACCESS_TYPE_UP 2
+#define ACCESS_TYPE_CUR 0
+#define ACCESS_TYPE_NEXT 1
+#define ACCESS_TYPE_PREV 2
+#define ACCESS_TYPE_OFF 3
+
 static int default_launch_handler(struct livebox *handler, const char *appid, void *data);
 
 enum event_state {
@@ -931,14 +939,14 @@ errout:
 	}
 }
 
-static int send_access_event(struct livebox *handler, const char *event, int x, int y)
+static int send_access_event(struct livebox *handler, const char *event, int x, int y, int type)
 {
 	struct packet *packet;
 	double timestamp;
 
 	timestamp = util_timestamp();
 
-	packet = packet_create(event, "ssdii", handler->common->pkgname, handler->common->id, timestamp, x, y);
+	packet = packet_create(event, "ssdiii", handler->common->pkgname, handler->common->id, timestamp, x, y, type);
 	if (!packet) {
 		ErrPrint("Failed to build packet\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -2487,6 +2495,7 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	char cmd[32] = { '\0', };
 	char *ptr = cmd;
 	int ret;
+	int type = 0;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2530,33 +2539,65 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 	switch (type & ~(ACCESS_EVENT_PD_MASK | ACCESS_EVENT_LB_MASK)) {
 	case ACCESS_EVENT_HIGHLIGHT:
 		strcpy(ptr, "_access_hl");
+		type = ACCESS_TYPE_CUR;
 		break;
 	case ACCESS_EVENT_HIGHLIGHT_NEXT:
-		strcpy(ptr, "_access_hl_next");
+		strcpy(ptr, "_access_hl");
+		type = ACCESS_TYPE_NEXT;
 		break;
 	case ACCESS_EVENT_HIGHLIGHT_PREV:
-		strcpy(ptr, "_access_hl_prev");
+		strcpy(ptr, "_access_hl");
+		type = ACCESS_TYPE_PREV;
+		break;
+	case ACCESS_EVENT_UNHIGHLIGHT:
+		strcpy(ptr, "_access_hl");
+		type = ACCESS_TYPE_OFF;
 		break;
 	case ACCESS_EVENT_ACTIVATE:
 		strcpy(ptr, "_access_activate");
 		break;
 	case ACCESS_EVENT_ACTION_DOWN:
-		strcpy(ptr, "_access_action_down");
+		strcpy(ptr, "_access_action");
+		type = ACCESS_TYPE_DOWN;
 		break;
 	case ACCESS_EVENT_ACTION_UP:
-		strcpy(ptr, "_access_action_up");
-		break;
-	case ACCESS_EVENT_UNHIGHLIGHT:
-		strcpy(ptr, "_access_unhighlight");
+		strcpy(ptr, "_access_action");
+		type = ACCESS_TYPE_UP;
 		break;
 	case ACCESS_EVENT_SCROLL_DOWN:
-		strcpy(ptr, "_access_scroll_down");
+		strcpy(ptr, "_access_scroll");
+		type = ACCESS_TYPE_DOWN;
 		break;
 	case ACCESS_EVENT_SCROLL_MOVE:
-		strcpy(ptr, "_access_scroll_move");
+		strcpy(ptr, "_access_scroll");
+		type = ACCESS_TYPE_MOVE;
 		break;
 	case ACCESS_EVENT_SCROLL_UP:
-		strcpy(ptr, "_access_scroll_up");
+		strcpy(ptr, "_access_scroll");
+		type = ACCESS_TYPE_UP;
+		break;
+	case ACCESS_EVENT_VALUE_CHANGE:
+		strcpy(ptr, "_access_value_change");
+		break;
+	case ACCESS_EVENT_MOUSE:
+		strcpy(ptr, "_access_mouse");
+		break;
+	case ACCESS_EVENT_BACK:
+		strcpy(ptr, "_access_back");
+		break;
+	case ACCESS_EVENT_OVER:
+		strcpy(ptr, "_access_over");
+		break;
+	case ACCESS_EVENT_READ:
+		strcpy(ptr, "_access_read");
+		break;
+	case ACCESS_EVENT_ENABLE:
+		strcpy(ptr, "_access_enable");
+		type = 1;
+		break;
+	case ACCESS_EVENT_DISABLE:
+		strcpy(ptr, "_access_enable");
+		type = 0;
 		break;
 	default:
 		return LB_STATUS_ERROR_INVALID;
@@ -2566,7 +2607,7 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 		cb = default_access_event_cb;
 	}
 
-	ret = send_access_event(handler, cmd, x * w, y * h);
+	ret = send_access_event(handler, cmd, x * w, y * h, type);
 	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.access_event.cb = cb;
 		handler->cbs.access_event.data = data;

@@ -133,6 +133,13 @@ enum access_event_type {
 	ACCESS_EVENT_SCROLL_DOWN	= 0x00100000, /**< LB accessibility scroll down */
 	ACCESS_EVENT_SCROLL_MOVE	= 0x00200000, /**< LB accessibility scroll move */
 	ACCESS_EVENT_SCROLL_UP		= 0x00400000, /**< LB accessibility scroll up */
+	ACCESS_EVENT_VALUE_CHANGE	= 0x00800000, /**< LB accessibility value change */
+	ACCESS_EVENT_MOUSE		= 0x01000000, /**< Give mouse event to highlight object */
+	ACCESS_EVENT_BACK		= 0x02000000, /**< Go back to a previous view ex: pop naviframe item */
+	ACCESS_EVENT_OVER		= 0x04000000, /**< Mouse over an object */
+	ACCESS_EVENT_READ		= 0x08000000, /**< Highlight an object */
+	ACCESS_EVENT_ENABLE		= 0x00000001, /**< Enable highlight and read ability */
+	ACCESS_EVENT_DISABLE		= 0x00000002, /**< Disable highlight and read ability */
 
 	LB_ACCESS_HIGHLIGHT		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT,	/**< Access event - Highlight an object in the livebox */
 	LB_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,	/**< Access event - Move highlight to the next object in a livebox */
@@ -144,6 +151,13 @@ enum access_event_type {
 	LB_ACCESS_SCROLL_DOWN		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_DOWN,	/**< Access event - scroll down */
 	LB_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_MOVE,	/**< Access event - scroll move */
 	LB_ACCESS_SCROLL_UP		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_SCROLL_UP,	/**< Access event - scroll up */
+	LB_ACCESS_VALUE_CHANGE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_VALUE_CHANGE,	/**< Access event - value change */
+	LB_ACCESS_MOUSE			= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_MOUSE,		/**< Access event - mouse */
+	LB_ACCESS_BACK			= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_BACK,		/**< Access event - back */
+	LB_ACCESS_OVER			= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_OVER,		/**< Access event - over */
+	LB_ACCESS_READ			= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_READ,		/**< Access event - read */
+	LB_ACCESS_ENABLE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_ENABLE,		/**< Access event - enable */
+	LB_ACCESS_DISABLE		= ACCESS_EVENT_LB_MASK | ACCESS_EVENT_DISABLE,		/**< Access event - disable */
 
 	PD_ACCESS_HIGHLIGHT		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT,	/**< Access event - Highlight an object in the PD */
 	PD_ACCESS_HIGHLIGHT_NEXT	= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_HIGHLIGHT_NEXT,	/**< Access event - Move highlight to the next object in a PD */
@@ -155,6 +169,13 @@ enum access_event_type {
 	PD_ACCESS_SCROLL_DOWN		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_DOWN,	/**< Access event - scroll down */
 	PD_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_MOVE,	/**< Access event - scroll move */
 	PD_ACCESS_SCROLL_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_UP		/**< Access event - scroll up */
+	PD_ACCESS_VALUE_CHANGE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_VALUE_CHANGE,	/**< Access event - value change */
+	PD_ACCESS_MOUSE			= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_MOUSE,		/**< Access event - mouse */
+	PD_ACCESS_BACK			= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_BACK,		/**< Access event - back */
+	PD_ACCESS_OVER			= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_OVER,		/**< Access event - over */
+	PD_ACCESS_READ			= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_READ,		/**< Access event - read */
+	PD_ACCESS_ENABLE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ENABLE,		/**< Access event - enable */
+	PD_ACCESS_DISABLE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_DISABLE		/**< Access event - disable */
 };
 
 /**
