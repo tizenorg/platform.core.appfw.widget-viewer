@@ -168,7 +168,7 @@ enum access_event_type {
 	PD_ACCESS_ACTION_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_ACTION_UP,	/**< Access event - up */
 	PD_ACCESS_SCROLL_DOWN		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_DOWN,	/**< Access event - scroll down */
 	PD_ACCESS_SCROLL_MOVE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_MOVE,	/**< Access event - scroll move */
-	PD_ACCESS_SCROLL_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_UP		/**< Access event - scroll up */
+	PD_ACCESS_SCROLL_UP		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_SCROLL_UP,	/**< Access event - scroll up */
 	PD_ACCESS_VALUE_CHANGE		= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_VALUE_CHANGE,	/**< Access event - value change */
 	PD_ACCESS_MOUSE			= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_MOUSE,		/**< Access event - mouse */
 	PD_ACCESS_BACK			= ACCESS_EVENT_PD_MASK | ACCESS_EVENT_BACK,		/**< Access event - back */
