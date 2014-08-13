@@ -103,17 +103,17 @@ EAPI int dynamicbox_has_pd(struct dynamicbox *handler)
 	return livebox_has_pd((struct livebox*)handler);
 }
 
-EAPI int dynamicbox_gbar_is_created(struct dynamicbox *handler)
+EAPI int dynamicbox_glance_bar_is_created(struct dynamicbox *handler)
 {
 	return livebox_pd_is_created((struct livebox*)handler);
 }
 
-EAPI int dynamicbox_create_gbar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data)
 {
 	return livebox_create_pd_with_position((struct livebox*)handler, x, y, (ret_cb_t)cb, data);
 }
 
-EAPI int dynamicbox_move_gbar(struct dynamicbox *handler, double x, double y)
+EAPI int dynamicbox_move_glance_bar(struct dynamicbox *handler, double x, double y)
 {
 	return livebox_move_pd((struct livebox*)handler, x, y);
 }
@@ -123,7 +123,7 @@ EAPI int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb_t cb, void *
 	return livebox_activate(pkgname, (ret_cb_t)cb, data);
 }
 
-EAPI int dynamicbox_destroy_gbar(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
 {
 	return livebox_destroy_pd((struct livebox*)handler, (ret_cb_t)cb, data);
 }
@@ -148,7 +148,7 @@ EAPI const char *dynamicbox_filename(struct dynamicbox *handler)
 	return livebox_filename((struct livebox*)handler);
 }
 
-EAPI int dynamicbox_get_gbar_size(struct dynamicbox *handler, int *w, int *h)
+EAPI int dynamicbox_get_glance_bar_size(struct dynamicbox *handler, int *w, int *h)
 {
 	return livebox_get_pdsize((struct livebox*) handler, w, h);
 }

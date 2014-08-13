@@ -54,21 +54,21 @@ struct dynamicbox;
  */
 enum dynamicbox_mouse_event_type {
 	DBOX_MOUSE_EVENT_MASK	= 0x20000000, /**< Mask value for mouse event */
-	DBOX_MOUSE_EVENT_GBAR_MASK		= 0x10000000, /**< Mask value for GBAR event */
-	DBOX_MOUSE_EVENT_DBOX_MASK		= 0x40000000, /**< Mask value for DBOX event */
+	DBOX_MOUSE_EVENT_GBAR_MASK		= 0x10000000, /**< Mask value for Glance Bar event */
+	DBOX_MOUSE_EVENT_DBOX_MASK		= 0x40000000, /**< Mask value for Dynamic Box event */
 
-	DBOX_MOUSE_EVENT_DOWN	= 0x00000001, /**< DBox mouse down event for dynamicbox */
-	DBOX_MOUSE_EVENT_UP		= 0x00000002, /**< DBox mouse up event for dynamicbox */
-	DBOX_MOUSE_EVENT_MOVE	= 0x00000004, /**< DBox mouse move event for dynamicbox */
-	DBOX_MOUSE_EVENT_ENTER	= 0x00000008, /**< DBox mouse enter event for dynamicbox */
-	DBOX_MOUSE_EVENT_LEAVE	= 0x00000010, /**< DBox mouse leave event for dynamicbox */
-	DBOX_MOUSE_EVENT_SET		= 0x00000020, /**< DBox mouse set auto event for dynamicbox */
-	DBOX_MOUSE_EVENT_UNSET	= 0x00000040, /**< DBox mouse unset auto event for dynamicbox */
+	DBOX_MOUSE_EVENT_DOWN	= 0x00000001, /**< Dynamic Box mouse down event for dynamicbox */
+	DBOX_MOUSE_EVENT_UP		= 0x00000002, /**< Dynamic Box mouse up event for dynamicbox */
+	DBOX_MOUSE_EVENT_MOVE	= 0x00000004, /**< Dynamic Box mouse move event for dynamicbox */
+	DBOX_MOUSE_EVENT_ENTER	= 0x00000008, /**< Dynamic Box mouse enter event for dynamicbox */
+	DBOX_MOUSE_EVENT_LEAVE	= 0x00000010, /**< Dynamic Box mouse leave event for dynamicbox */
+	DBOX_MOUSE_EVENT_SET		= 0x00000020, /**< Dynamic Box mouse set auto event for dynamicbox */
+	DBOX_MOUSE_EVENT_UNSET	= 0x00000040, /**< Dynamic Box mouse unset auto event for dynamicbox */
 
-	DBOX_MOUSE_EVENT_ON_SCROLL		= 0x00000080, /**< DBox On scrolling */
-	DBOX_MOUSE_EVENT_ON_HOLD		= 0x00000100, /**< DBox On holding */
-	DBOX_MOUSE_EVENT_OFF_SCROLL	= 0x00000200, /**< DBox Stop scrolling */
-	DBOX_MOUSE_EVENT_OFF_HOLD		= 0x00000400, /**< DBox Stop holding */
+	DBOX_MOUSE_EVENT_ON_SCROLL		= 0x00000080, /**< Dynamic Box On scrolling */
+	DBOX_MOUSE_EVENT_ON_HOLD		= 0x00000100, /**< Dynamic Box On holding */
+	DBOX_MOUSE_EVENT_OFF_SCROLL	= 0x00000200, /**< Dynamic Box Stop scrolling */
+	DBOX_MOUSE_EVENT_OFF_HOLD		= 0x00000400, /**< Dynamic Box Stop holding */
 
 	DBOX_MOUSE_ON_SCROLL	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ON_SCROLL, /**< Mouse event occurs while scrolling */
 	DBOX_MOUSE_ON_HOLD	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ON_HOLD, /**< Mouse event occurs on holding */
@@ -88,11 +88,11 @@ enum dynamicbox_mouse_event_type {
 	DBOX_GBAR_MOUSE_OFF_SCROLL	= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_OFF_SCROLL, /**< Scrolling stopped */
 	DBOX_GBAR_MOUSE_OFF_HOLD	= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_OFF_HOLD, /**< Holding stopped */
 
-	DBOX_GBAR_MOUSE_DOWN		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_DOWN, /**< Mouse down on the GBAR */
-	DBOX_GBAR_MOUSE_UP		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_UP, /**< Mouse up on the GBAR */
-	DBOX_GBAR_MOUSE_MOVE		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_MOVE, /**< Mouse move on the GBAR */
-	DBOX_GBAR_MOUSE_ENTER		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ENTER, /**< Mouse enter to the GBAR */
-	DBOX_GBAR_MOUSE_LEAVE		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_LEAVE, /**< Mouse leave from the GBAR */
+	DBOX_GBAR_MOUSE_DOWN		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_DOWN, /**< Mouse down on the Glance Bar */
+	DBOX_GBAR_MOUSE_UP		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_UP, /**< Mouse up on the Glance Bar */
+	DBOX_GBAR_MOUSE_MOVE		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_MOVE, /**< Mouse move on the Glance Bar */
+	DBOX_GBAR_MOUSE_ENTER		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ENTER, /**< Mouse enter to the Glance Bar */
+	DBOX_GBAR_MOUSE_LEAVE		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_LEAVE, /**< Mouse leave from the Glance Bar */
 	DBOX_GBAR_MOUSE_SET		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_SET, /**< Mouse event, start feeding event by master */
 	DBOX_GBAR_MOUSE_UNSET		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_UNSET, /**< Mouse event, stop feeding event by master */
 
@@ -101,53 +101,53 @@ enum dynamicbox_mouse_event_type {
 
 enum dynamicbox_key_event_type {
 	DBOX_KEY_EVENT_KEY_MASK		= 0x80000000, /**< Mask value for key event */
-	DBOX_KEY_EVENT_GBAR_MASK	= 0x10000000, /**< Mask value for GBAR event */
-	DBOX_KEY_EVENT_DBOX_MASK	= 0x40000000, /**< Mask value for DBOX event */
+	DBOX_KEY_EVENT_GBAR_MASK	= 0x10000000, /**< Mask value for Glance Bar event */
+	DBOX_KEY_EVENT_DBOX_MASK	= 0x40000000, /**< Mask value for Dynamic Box event */
 
-	DBOX_KEY_EVENT_KEY_DOWN		= 0x00000001, /**< DBox key press */
-	DBOX_KEY_EVENT_KEY_UP		= 0x00000002, /**< DBox key release */
-	DBOX_KEY_EVENT_KEY_FOCUS_IN	= 0x00000008, /**< DBox key focused in */
-	DBOX_KEY_EVENT_KEY_FOCUS_OUT	= 0x00000010, /**< DBox key focused out */
-	DBOX_KEY_EVENT_KEY_SET		= 0x00000020, /**< DBox Key, start feeding event by master */
-	DBOX_KEY_EVENT_KEY_UNSET	= 0x00000040, /**< DBox key, stop feeding event by master */
+	DBOX_KEY_EVENT_DOWN		= 0x00000001, /**< Dynamic Box key press */
+	DBOX_KEY_EVENT_UP		= 0x00000002, /**< Dynamic Box key release */
+	DBOX_KEY_EVENT_FOCUS_IN	= 0x00000008, /**< Dynamic Box key focused in */
+	DBOX_KEY_EVENT_FOCUS_OUT	= 0x00000010, /**< Dynamic Box key focused out */
+	DBOX_KEY_EVENT_SET		= 0x00000020, /**< Dynamic Box Key, start feeding event by master */
+	DBOX_KEY_EVENT_UNSET	= 0x00000040, /**< Dynamic Box key, stop feeding event by master */
 
-	DBOX_KEY_DOWN			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_DOWN, /**< Key down on the dynamicbox */
-	DBOX_KEY_UP			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_UP, /**< Key up on the dynamicbox */
-	DBOX_KEY_SET			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_SET, /**< Key event, start feeding event by master */
-	DBOX_KEY_UNSET			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_UNSET, /**< Key event, stop feeding event by master */
-	DBOX_KEY_FOCUS_IN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_FOCUS_IN, /**< Key event, focus in */
-	DBOX_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_FOCUS_OUT, /**< Key event, foucs out */
+	DBOX_KEY_DOWN			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
+	DBOX_KEY_UP			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
+	DBOX_KEY_SET			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
+	DBOX_KEY_UNSET			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
+	DBOX_KEY_FOCUS_IN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
+	DBOX_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, foucs out */
                                                                    
-	DBOX_GBAR_KEY_DOWN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_DOWN, /**< Key down on the dynamicbox */
-	DBOX_GBAR_KEY_UP		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_UP, /**< Key up on the dynamicbox */
-	DBOX_GBAR_KEY_SET		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_SET, /**< Key event, start feeding event by master */
-	DBOX_GBAR_KEY_UNSET		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_UNSET, /**< Key event, stop feeding event by master */
-	DBOX_GBAR_KEY_FOCUS_IN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_FOCUS_IN, /**< Key event, focus in */
-	DBOX_GBAR_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_FOCUS_OUT, /**< Key event, focus out */
+	DBOX_GBAR_KEY_DOWN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
+	DBOX_GBAR_KEY_UP		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
+	DBOX_GBAR_KEY_SET		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
+	DBOX_GBAR_KEY_UNSET		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
+	DBOX_GBAR_KEY_FOCUS_IN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
+	DBOX_GBAR_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, focus out */
 
 	DBOX_KEY_EVENT_MAX		= 0xFFFFFFFF /**< Unknown event */
 };
 
 /**
  * @internal
- * @brief Enumeration for Accessibility event for buffer type Dynamicbox or GBAR.
+ * @brief Enumeration for Accessibility event for buffer type Dynamic Box or Glance Bar.
  * @details These events are sync'd with Tizen accessibility event set.
  * @since_tizen 2.3
  */
 enum dynamicbox_access_event_type {
-	DBOX_ACCESS_EVENT_GBAR_MASK      = 0x10000000, /**< GBAR Accessibility event mask */
-	DBOX_ACCESS_EVENT_DBOX_MASK      = 0x20000000, /**< DBox Accessibility event mask */
+	DBOX_ACCESS_EVENT_GBAR_MASK      = 0x10000000, /**< Glance Bar Accessibilivent mask */
+	DBOX_ACCESS_EVENT_DBOX_MASK      = 0x20000000, /**< Dynamic Box Accessibility event mask */
 
-	DBOX_ACCESS_EVENT_HIGHLIGHT      = 0x00000100, /**< DBox accessibility: Hightlight a object */
-	DBOX_ACCESS_EVENT_HIGHLIGHT_NEXT = 0x00000200, /**< DBox accessibility: Set highlight to next object */
-	DBOX_ACCESS_EVENT_HIGHLIGHT_PREV = 0x00000400, /**< DBox accessibility: Set highlight to prev object */
-	DBOX_ACCESS_EVENT_UNHIGHLIGHT    = 0x00000800, /**< DBox accessibility unhighlight */
-	DBOX_ACCESS_EVENT_ACTIVATE       = 0x00001000, /**< DBox accessibility activate */
-	DBOX_ACCESS_EVENT_ACTION_DOWN    = 0x00010000, /**< DBox accessibility value changed */
-	DBOX_ACCESS_EVENT_ACTION_UP      = 0x00020000, /**< DBox accessibility value changed */
-	DBOX_ACCESS_EVENT_SCROLL_DOWN    = 0x00100000, /**< DBox accessibility scroll down */
-	DBOX_ACCESS_EVENT_SCROLL_MOVE    = 0x00200000, /**< DBox accessibility scroll move */
-	DBOX_ACCESS_EVENT_SCROLL_UP      = 0x00400000, /**< DBox accessibility scroll up */
+	DBOX_ACCESS_EVENT_HIGHLIGHT      = 0x00000100, /**< Dynamic Box accessibility: Hightlight a object */
+	DBOX_ACCESS_EVENT_HIGHLIGHT_NEXT = 0x00000200, /**< Dynamic Box accessibility: Set highlight to next object */
+	DBOX_ACCESS_EVENT_HIGHLIGHT_PREV = 0x00000400, /**< Dynamic Box accessibility: Set highlight to prev object */
+	DBOX_ACCESS_EVENT_UNHIGHLIGHT    = 0x00000800, /**< Dynamic Box accessibility unhighlight */
+	DBOX_ACCESS_EVENT_ACTIVATE       = 0x00001000, /**< Dynamic Box accessibility activate */
+	DBOX_ACCESS_EVENT_ACTION_DOWN    = 0x00010000, /**< Dynamic Box accessibility value changed */
+	DBOX_ACCESS_EVENT_ACTION_UP      = 0x00020000, /**< Dynamic Box accessibility value changed */
+	DBOX_ACCESS_EVENT_SCROLL_DOWN    = 0x00100000, /**< Dynamic Box accessibility scroll down */
+	DBOX_ACCESS_EVENT_SCROLL_MOVE    = 0x00200000, /**< Dynamic Box accessibility scroll move */
+	DBOX_ACCESS_EVENT_SCROLL_UP      = 0x00400000, /**< Dynamic Box accessibility scroll up */
 
 	DBOX_ACCESS_HIGHLIGHT            = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT,	/**< Access event - Highlight an object in the dynamicbox */
 	DBOX_ACCESS_HIGHLIGHT_NEXT       = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_NEXT,	/**< Access event - Move highlight to the next object in a dynamicbox */
@@ -160,10 +160,10 @@ enum dynamicbox_access_event_type {
 	DBOX_ACCESS_SCROLL_MOVE          = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_SCROLL_MOVE,	/**< Access event - scroll move */
 	DBOX_ACCESS_SCROLL_UP            = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_SCROLL_UP,	/**< Access event - scroll up */
 
-	DBOX_GBAR_ACCESS_HIGHLIGHT       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT,	/**< Access event - Highlight an object in the GBAR */
-	DBOX_GBAR_ACCESS_HIGHLIGHT_NEXT  = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_NEXT,	/**< Access event - Move highlight to the next object in a GBAR */
-	DBOX_GBAR_ACCESS_HIGHLIGHT_PREV  = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_PREV,	/**< Access event - Move highlight to the prev object in a GBAR */
-	DBOX_GBAR_ACCESS_UNHIGHLIGHT     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_UNHIGHLIGHT,	/**< Access event - Delet highlight from the GBAR */
+	DBOX_GBAR_ACCESS_HIGHLIGHT       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT,	/**< Access event - Highlight an object in the Glance Bar */
+	DBOX_GBAR_ACCESS_HIGHLIGHT_NEXT  = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_NEXT,	/**< Access event - Move highlight to the next object in a Glance Bar */
+	DBOX_GBAR_ACCESS_HIGHLIGHT_PREV  = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_PREV,	/**< Access event - Move highlight to the prev object in a Glance Bar */
+	DBOX_GBAR_ACCESS_UNHIGHLIGHT     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_UNHIGHLIGHT,	/**< Access event - Delet highlight from the Glance Bar */
 	DBOX_GBAR_ACCESS_ACTIVATE        = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTIVATE,		/**< Access event - Launch or activate the highlighted object */
 	DBOX_GBAR_ACCESS_ACTION_DOWN     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTION_DOWN,	/**< Access event - down */
 	DBOX_GBAR_ACCESS_ACTION_UP       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTION_UP,	/**< Access event - up */
@@ -175,7 +175,7 @@ enum dynamicbox_access_event_type {
 
 /**
  * @internal
- * @brief Enumeration for Dynamicbox DBox content type.
+ * @brief Enumeration for Dynamic Box content type.
  * @since_tizen 2.3
  */
 enum dynamicbox_type {
@@ -184,7 +184,7 @@ enum dynamicbox_type {
 	DBOX_TYPE_TEXT = 0x04, /**< Contents of a dynamicbox is based on formatted text file */
 	DBOX_TYPE_RESOURCE_ID = 0x08, /**< Contens of a dynamicbox is shared by the resource id(depends on window system) */
 	DBOX_TYPE_UIFW = 0x10, /**< Using UI F/W resource for sharing content & event */
-	DBOX_TYPE_INVALID = 0xFF /**< Unknown DBox type */
+	DBOX_TYPE_INVALID = 0xFF /**< Unknown Dynamic Box type */
 };
 
 /**
@@ -205,23 +205,23 @@ enum dynamicbox_event_type { /**< dynamicbox_event_handler_set Event list */
 	DBOX_EVENT_PERIOD_CHANGED, /**< Update period is changed */
 
 	DBOX_EVENT_DBOX_SIZE_CHANGED, /**< Dynamicbox size is changed */
-	DBOX_EVENT_GBAR_SIZE_CHANGED, /**< GBAR size is changed */
+	DBOX_EVENT_GBAR_SIZE_CHANGED, /**< Glance Bar size is changed */
 
-	DBOX_EVENT_GBAR_CREATED, /**< If a GBAR is created even if you didn't call the dynamicbox_create_gbar API */
-	DBOX_EVENT_GBAR_DESTROYED, /**< If a GBAR is destroyed even if you didn't call the dynamicbox_destroy_gbar API */
+	DBOX_EVENT_GBAR_CREATED, /**< If a Glance Bar is created even if you didn't call the dynamicbox_create_glance_bar API */
+	DBOX_EVENT_GBAR_DESTROYED, /**< If a Glance Bar is destroyed even if you didn't call the dynamicbox_destroy_glance_bar API */
 
 	DBOX_EVENT_HOLD_SCROLL, /**< If the screen should be freezed */
 	DBOX_EVENT_RELEASE_SCROLL, /**< If the screen can be scrolled */
 
-	DBOX_EVENT_DBOX_UPDATE_BEGIN, /**< Dynamicbox DBox content update is started */
-	DBOX_EVENT_DBOX_UPDATE_END, /**< Dynamicbox DBox content update is finished */
+	DBOX_EVENT_DBOX_UPDATE_BEGIN, /**< Dynamic Box content update is started */
+	DBOX_EVENT_DBOX_UPDATE_END, /**< Dynamic Box content update is finished */
 
-	DBOX_EVENT_GBAR_UPDATE_BEGIN, /**< Dynamicbox GBAR content update is started */
-	DBOX_EVENT_GBAR_UPDATE_END, /**< Dynamicbox GBAR content update is finished */
+	DBOX_EVENT_GBAR_UPDATE_BEGIN, /**< Glance Bar content update is started */
+	DBOX_EVENT_GBAR_UPDATE_END, /**< Glance Bar content update is finished */
 
-	DBOX_EVENT_UPDATE_MODE_CHANGED, /**< Dynamicbox Update mode is changed */
+	DBOX_EVENT_UPDATE_MODE_CHANGED, /**< Dynamic Box Update mode is changed */
 
-	DBOX_EVENT_REQUEST_CLOSE_GBAR, /**< Dynamicbox requests to close the Glance Bar */
+	DBOX_EVENT_REQUEST_CLOSE_GBAR, /**< Dynamic Box requests to close the Glance Bar */
 
 	DBOX_EVENT_EXTRA_INFO_UPDATED, /**< Extra information is updated */
 
@@ -338,8 +338,8 @@ struct dynamicbox_script_operators {
  * @see dynamicbox_set_period()
  * @see dynamicbox_access_event()
  * @see dynamicbox_set_pinup()
- * @see dynamicbox_create_gbar()
- * @see dynamicbox_destroy_gbar()
+ * @see dynamicbox_create_glance_bar()
+ * @see dynamicbox_destroy_glance_bar()
  * @see dynamicbox_emit_text_signal()
  * @see dynamicbox_acquire_resource_id()
  * @see dynamicbox_set_update_mode()
@@ -811,7 +811,6 @@ extern int dynamicbox_release_fb(void *buffer, int gbar);
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval refcnt Positive integer including ZERO
- * @see dynamicbox_gbar_fb_refcnt()
  */
 extern int dynamicbox_fb_refcnt(void *buffer, int gbar);
 
@@ -837,7 +836,7 @@ extern int dynamicbox_size(struct dynamicbox *handler);
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters are used
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  */
-extern int dynamicbox_get_gbar_size(struct dynamicbox *handler, int *w, int *h);
+extern int dynamicbox_get_glance_bar_size(struct dynamicbox *handler, int *w, int *h);
 
 /**
  * @internal
@@ -978,19 +977,19 @@ extern int dynamicbox_has_pinup(struct dynamicbox *handler);
 
 /**
  * @internal
- * @brief Checks the existence of GBAR for the given handler.
+ * @brief Checks the existence of Glance Bar for the given handler.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval 1 If the box support the GBAR
- * @retval 0 If the box has no GBAR
+ * @retval 1 If the box support the Glance Bar
+ * @retval 0 If the box has no Glance Bar
  */
-extern int dynamicbox_has_gbar(struct dynamicbox *handler);
+extern int dynamicbox_has_glance_bar(struct dynamicbox *handler);
 
 /**
  * @internal
- * @brief Creates GBAR of the given handler with the relative position from dynamicbox.
+ * @brief Creates Glance Bar of the given handler with the relative position from dynamicbox.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] x 0.0 ~ 1.0
@@ -1008,11 +1007,11 @@ extern int dynamicbox_has_gbar(struct dynamicbox *handler);
  * @see dynamicbox_destroy_gbar()
  * @see dynamicbox_move_gbar()
  */
-extern int dynamicbox_create_gbar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
- * @brief Updates a position of the given GBAR.
+ * @brief Updates a position of the given Glance Bar.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] x 0.0 ~ 1.0
@@ -1020,15 +1019,15 @@ extern int dynamicbox_create_gbar(struct dynamicbox *handler, double x, double y
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
- * @retval #DBOX_STATUS_ERROR_NONE If sending a request for updating position of the GBAR has been done successfully
+ * @retval #DBOX_STATUS_ERROR_NONE If sending a request for updating position of the Glance Bar has been done successfully
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  */
-extern int dynamicbox_move_gbar(struct dynamicbox *handler, double x, double y);
+extern int dynamicbox_move_glance_bar(struct dynamicbox *handler, double x, double y);
 
 /**
  * @internal
- * @brief Destroys the GBAR of the given handler if it is created.
+ * @brief Destroys the Glance Bar of the given handler if it is created.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] cb
@@ -1041,7 +1040,7 @@ extern int dynamicbox_move_gbar(struct dynamicbox *handler, double x, double y);
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @see dynamicbox_ret_cb_t
  */
-extern int dynamicbox_destroy_gbar(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -1050,10 +1049,10 @@ extern int dynamicbox_destroy_gbar(struct dynamicbox *handler, dynamicbox_ret_cb
  * @param[in] handler Handler of a dynamicbox instance
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval 0 GBAR is not created
- * @retval 1 GBAR is created
+ * @retval 0 Glance Bar is not created
+ * @retval 1 Glance Bar is created
  */
-extern int dynamicbox_gbar_is_created(struct dynamicbox *handler);
+extern int dynamicbox_glance_bar_is_created(struct dynamicbox *handler);
 
 /**
  * @internal
@@ -1338,7 +1337,6 @@ extern int dynamicbox_is_active_update(struct dynamicbox *handler);
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid handle
  * @see dynamicbox_set_manual_sync()
  * @see dynamicbox_manual_sync()
- * @see dynamicbox_sync_gbar_fb()
  */
 extern int dynamicbox_sync_fb(struct dynamicbox *handler, int gbar);
 
@@ -1427,8 +1425,7 @@ extern int dynamicbox_release_fb_lock(struct dynamicbox *handler, int gbar);
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to change the state of option
  * @retval #DBOX_STATUS_ERROR_NONE Successfully changed
  * @see dynamicbox_get_option()
- * @see dynamicbox_sync_gbar_fb()
- * @see dynamicbox_sync_dbox_fb()
+ * @see dynamicbox_sync_fb()
  */
 extern int dynamicbox_set_option(enum dynamicbox_option_type option, int state);
 
