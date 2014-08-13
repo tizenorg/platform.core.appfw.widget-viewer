@@ -128,19 +128,19 @@ EAPI int dynamicbox_destroy_gbar(struct dynamicbox *handler, dynamicbox_ret_cb_t
 	return livebox_destroy_pd((struct livebox*)handler, (ret_cb_t)cb, data);
 }
 
-EAPI int dynamicbox_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, double x, double y, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data)
 {
-	return livebox_access_event((struct livebox*)handler, type, x, y, (ret_cb_t)cb, data);
+	return livebox_access_event((struct livebox*)handler, (enum access_event_type)type, info->x, info->y, (ret_cb_t)cb, data);
 }
 
-EAPI int dynamicbox_mouse_event(struct dynamicbox *handler, enum dynamicbox_content_event_type type, double x, double y)
+EAPI int dynamicbox_mouse_event(struct dynamicbox *handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info)
 {
-	return livebox_mouse_event((struct livebox*)handler, type, x, y);
+	return livebox_mouse_event((struct livebox*)handler, (enum content_event_type)type, info->x, info->y);
 }
 
-EAPI int dynamicbox_key_event(struct dynamicbox *handler, enum dynamicbox_content_event_type type, unsigned int keycode, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data)
 {
-	return livebox_key_event((struct livebox*) handler, type, keycode, (ret_cb_t)cb, data);
+	return livebox_key_event((struct livebox*) handler, (enum content_event_type)type, info->keycode, (ret_cb_t)cb, data);
 }
 
 EAPI const char *dynamicbox_filename(struct dynamicbox *handler)

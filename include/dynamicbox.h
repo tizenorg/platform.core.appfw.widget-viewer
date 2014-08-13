@@ -34,7 +34,7 @@ extern "C" {
 
 /**
  * @internal
- * @brief Structure for a Dynamicbox instance.
+ * @brief Structure definition for a Dynamic Box instance.
  * @since_tizen 2.3
  */
 struct dynamicbox;
@@ -52,73 +52,80 @@ struct dynamicbox;
  * @details Viewer should send these events to dynamicbox.
  * @since_tizen 2.3
  */
-enum dynamicbox_content_event_type {
-	DBOX_CONTENT_EVENT_MOUSE_DOWN	= 0x00000001, /**< DBox mouse down event for dynamicbox */
-	DBOX_CONTENT_EVENT_MOUSE_UP		= 0x00000002, /**< DBox mouse up event for dynamicbox */
-	DBOX_CONTENT_EVENT_MOUSE_MOVE	= 0x00000004, /**< DBox mouse move event for dynamicbox */
-	DBOX_CONTENT_EVENT_MOUSE_ENTER	= 0x00000008, /**< DBox mouse enter event for dynamicbox */
-	DBOX_CONTENT_EVENT_MOUSE_LEAVE	= 0x00000010, /**< DBox mouse leave event for dynamicbox */
-	DBOX_CONTENT_EVENT_MOUSE_SET		= 0x00000020, /**< DBox mouse set auto event for dynamicbox */
-	DBOX_CONTENT_EVENT_MOUSE_UNSET	= 0x00000040, /**< DBox mouse unset auto event for dynamicbox */
+enum dynamicbox_mouse_event_type {
+	DBOX_MOUSE_EVENT_MASK	= 0x20000000, /**< Mask value for mouse event */
+	DBOX_MOUSE_EVENT_GBAR_MASK		= 0x10000000, /**< Mask value for GBAR event */
+	DBOX_MOUSE_EVENT_DBOX_MASK		= 0x40000000, /**< Mask value for DBOX event */
 
-	DBOX_CONTENT_EVENT_KEY_DOWN		= 0x00000001, /**< DBox key press */
-	DBOX_CONTENT_EVENT_KEY_UP		= 0x00000002, /**< DBox key release */
-	DBOX_CONTENT_EVENT_KEY_FOCUS_IN	= 0x00000008, /**< DBox key focused in */
-	DBOX_CONTENT_EVENT_KEY_FOCUS_OUT	= 0x00000010, /**< DBox key focused out */
-	DBOX_CONTENT_EVENT_KEY_SET		= 0x00000020, /**< DBox Key, start feeding event by master */
-	DBOX_CONTENT_EVENT_KEY_UNSET		= 0x00000040, /**< DBox key, stop feeding event by master */
+	DBOX_MOUSE_EVENT_DOWN	= 0x00000001, /**< DBox mouse down event for dynamicbox */
+	DBOX_MOUSE_EVENT_UP		= 0x00000002, /**< DBox mouse up event for dynamicbox */
+	DBOX_MOUSE_EVENT_MOVE	= 0x00000004, /**< DBox mouse move event for dynamicbox */
+	DBOX_MOUSE_EVENT_ENTER	= 0x00000008, /**< DBox mouse enter event for dynamicbox */
+	DBOX_MOUSE_EVENT_LEAVE	= 0x00000010, /**< DBox mouse leave event for dynamicbox */
+	DBOX_MOUSE_EVENT_SET		= 0x00000020, /**< DBox mouse set auto event for dynamicbox */
+	DBOX_MOUSE_EVENT_UNSET	= 0x00000040, /**< DBox mouse unset auto event for dynamicbox */
 
-	DBOX_CONTENT_EVENT_ON_SCROLL		= 0x00000080, /**< DBox On scrolling */
-	DBOX_CONTENT_EVENT_ON_HOLD		= 0x00000100, /**< DBox On holding */
-	DBOX_CONTENT_EVENT_OFF_SCROLL	= 0x00000200, /**< DBox Stop scrolling */
-	DBOX_CONTENT_EVENT_OFF_HOLD		= 0x00000400, /**< DBox Stop holding */
+	DBOX_MOUSE_EVENT_ON_SCROLL		= 0x00000080, /**< DBox On scrolling */
+	DBOX_MOUSE_EVENT_ON_HOLD		= 0x00000100, /**< DBox On holding */
+	DBOX_MOUSE_EVENT_OFF_SCROLL	= 0x00000200, /**< DBox Stop scrolling */
+	DBOX_MOUSE_EVENT_OFF_HOLD		= 0x00000400, /**< DBox Stop holding */
 
-	DBOX_CONTENT_EVENT_KEY_MASK		= 0x80000000, /**< Mask value for key event */
-	DBOX_CONTENT_EVENT_MOUSE_MASK	= 0x20000000, /**< Mask value for mouse event */
-	DBOX_CONTENT_EVENT_GBAR_MASK		= 0x10000000, /**< Mask value for GBAR event */
-	DBOX_CONTENT_EVENT_DBOX_MASK		= 0x40000000, /**< Mask value for DBOX event */
+	DBOX_MOUSE_ON_SCROLL	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ON_SCROLL, /**< Mouse event occurs while scrolling */
+	DBOX_MOUSE_ON_HOLD	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ON_HOLD, /**< Mouse event occurs on holding */
+	DBOX_MOUSE_OFF_SCROLL	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_OFF_SCROLL, /**< Scrolling stopped */
+	DBOX_MOUSE_OFF_HOLD	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_OFF_HOLD, /**< Holding stopped */
 
-	DBOX_MOUSE_ON_SCROLL	= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_ON_SCROLL, /**< Mouse event occurs while scrolling */
-	DBOX_MOUSE_ON_HOLD		= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_ON_HOLD, /**< Mouse event occurs on holding */
-	DBOX_MOUSE_OFF_SCROLL	= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_OFF_SCROLL, /**< Scrolling stopped */
-	DBOX_MOUSE_OFF_HOLD		= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_OFF_HOLD, /**< Holding stopped */
+	DBOX_MOUSE_DOWN		= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_DOWN, /**< Mouse down on the dynamicbox */
+	DBOX_MOUSE_UP		= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_UP, /**< Mouse up on the dynamicbox */
+	DBOX_MOUSE_MOVE		= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_MOVE, /**< Move move on the dynamicbox */
+	DBOX_MOUSE_ENTER	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ENTER, /**< Mouse enter to the dynamicbox */
+	DBOX_MOUSE_LEAVE	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_LEAVE, /**< Mouse leave from the dynamicbox */
+	DBOX_MOUSE_SET		= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_SET, /**< Mouse event, start feeding event by master */
+	DBOX_MOUSE_UNSET	= DBOX_MOUSE_EVENT_DBOX_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_UNSET, /**< Mouse event, stop feeding event by master */
 
-	DBOX_MOUSE_DOWN			= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_DOWN, /**< Mouse down on the dynamicbox */
-	DBOX_MOUSE_UP			= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_UP, /**< Mouse up on the dynamicbox */
-	DBOX_MOUSE_MOVE			= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_MOVE, /**< Move move on the dynamicbox */
-	DBOX_MOUSE_ENTER		= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_ENTER, /**< Mouse enter to the dynamicbox */
-	DBOX_MOUSE_LEAVE		= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_LEAVE, /**< Mouse leave from the dynamicbox */
-	DBOX_MOUSE_SET			= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_SET, /**< Mouse event, start feeding event by master */
-	DBOX_MOUSE_UNSET		= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_UNSET, /**< Mouse event, stop feeding event by master */
+	DBOX_GBAR_MOUSE_ON_SCROLL	= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ON_SCROLL, /**< Mouse event occurs while scrolling */
+	DBOX_GBAR_MOUSE_ON_HOLD		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ON_HOLD, /**< Mouse event occurs on holding */
+	DBOX_GBAR_MOUSE_OFF_SCROLL	= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_OFF_SCROLL, /**< Scrolling stopped */
+	DBOX_GBAR_MOUSE_OFF_HOLD	= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_OFF_HOLD, /**< Holding stopped */
 
-	DBOX_GBAR_MOUSE_ON_SCROLL	= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_ON_SCROLL, /**< Mouse event occurs while scrolling */
-	DBOX_GBAR_MOUSE_ON_HOLD		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_ON_HOLD, /**< Mouse event occurs on holding */
-	DBOX_GBAR_MOUSE_OFF_SCROLL	= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_OFF_SCROLL, /**< Scrolling stopped */
-	DBOX_GBAR_MOUSE_OFF_HOLD	= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_OFF_HOLD, /**< Holding stopped */
+	DBOX_GBAR_MOUSE_DOWN		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_DOWN, /**< Mouse down on the GBAR */
+	DBOX_GBAR_MOUSE_UP		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_UP, /**< Mouse up on the GBAR */
+	DBOX_GBAR_MOUSE_MOVE		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_MOVE, /**< Mouse move on the GBAR */
+	DBOX_GBAR_MOUSE_ENTER		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_ENTER, /**< Mouse enter to the GBAR */
+	DBOX_GBAR_MOUSE_LEAVE		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_LEAVE, /**< Mouse leave from the GBAR */
+	DBOX_GBAR_MOUSE_SET		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_SET, /**< Mouse event, start feeding event by master */
+	DBOX_GBAR_MOUSE_UNSET		= DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_UNSET, /**< Mouse event, stop feeding event by master */
 
-	DBOX_GBAR_MOUSE_DOWN		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_DOWN, /**< Mouse down on the GBAR */
-	DBOX_GBAR_MOUSE_UP		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_UP, /**< Mouse up on the GBAR */
-	DBOX_GBAR_MOUSE_MOVE		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_MOVE, /**< Mouse move on the GBAR */
-	DBOX_GBAR_MOUSE_ENTER		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_ENTER, /**< Mouse enter to the GBAR */
-	DBOX_GBAR_MOUSE_LEAVE		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_LEAVE, /**< Mouse leave from the GBAR */
-	DBOX_GBAR_MOUSE_SET		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_SET, /**< Mouse event, start feeding event by master */
-	DBOX_GBAR_MOUSE_UNSET		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_MOUSE_MASK | DBOX_CONTENT_EVENT_MOUSE_UNSET, /**< Mouse event, stop feeding event by master */
+	DBOX_MOUSE_EVENT_MAX		= 0xFFFFFFFF /**< Unknown event */
+};
 
-	DBOX_KEY_DOWN			= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_DOWN, /**< Key down on the dynamicbox */
-	DBOX_KEY_UP			= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_UP, /**< Key up on the dynamicbox */
-	DBOX_KEY_SET			= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_SET, /**< Key event, start feeding event by master */
-	DBOX_KEY_UNSET			= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_UNSET, /**< Key event, stop feeding event by master */
-	DBOX_KEY_FOCUS_IN		= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_FOCUS_IN, /**< Key event, focus in */
-	DBOX_KEY_FOCUS_OUT		= DBOX_CONTENT_EVENT_DBOX_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_FOCUS_OUT, /**< Key event, foucs out */
+enum dynamicbox_key_event_type {
+	DBOX_KEY_EVENT_KEY_MASK		= 0x80000000, /**< Mask value for key event */
+	DBOX_KEY_EVENT_GBAR_MASK	= 0x10000000, /**< Mask value for GBAR event */
+	DBOX_KEY_EVENT_DBOX_MASK	= 0x40000000, /**< Mask value for DBOX event */
 
-	DBOX_GBAR_KEY_DOWN		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_DOWN, /**< Key down on the dynamicbox */
-	DBOX_GBAR_KEY_UP		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_UP, /**< Key up on the dynamicbox */
-	DBOX_GBAR_KEY_SET		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_SET, /**< Key event, start feeding event by master */
-	DBOX_GBAR_KEY_UNSET		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_UNSET, /**< Key event, stop feeding event by master */
-	DBOX_GBAR_KEY_FOCUS_IN		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_FOCUS_IN, /**< Key event, focus in */
-	DBOX_GBAR_KEY_FOCUS_OUT		= DBOX_CONTENT_EVENT_GBAR_MASK | DBOX_CONTENT_EVENT_KEY_MASK | DBOX_CONTENT_EVENT_KEY_FOCUS_OUT, /**< Key event, focus out */
+	DBOX_KEY_EVENT_KEY_DOWN		= 0x00000001, /**< DBox key press */
+	DBOX_KEY_EVENT_KEY_UP		= 0x00000002, /**< DBox key release */
+	DBOX_KEY_EVENT_KEY_FOCUS_IN	= 0x00000008, /**< DBox key focused in */
+	DBOX_KEY_EVENT_KEY_FOCUS_OUT	= 0x00000010, /**< DBox key focused out */
+	DBOX_KEY_EVENT_KEY_SET		= 0x00000020, /**< DBox Key, start feeding event by master */
+	DBOX_KEY_EVENT_KEY_UNSET	= 0x00000040, /**< DBox key, stop feeding event by master */
 
-	DBOX_CONTENT_EVENT_MAX		= 0xFFFFFFFF /**< Unknown event */
+	DBOX_KEY_DOWN			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_DOWN, /**< Key down on the dynamicbox */
+	DBOX_KEY_UP			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_UP, /**< Key up on the dynamicbox */
+	DBOX_KEY_SET			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_SET, /**< Key event, start feeding event by master */
+	DBOX_KEY_UNSET			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_UNSET, /**< Key event, stop feeding event by master */
+	DBOX_KEY_FOCUS_IN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_FOCUS_IN, /**< Key event, focus in */
+	DBOX_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_KEY_FOCUS_OUT, /**< Key event, foucs out */
+                                                                   
+	DBOX_GBAR_KEY_DOWN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_DOWN, /**< Key down on the dynamicbox */
+	DBOX_GBAR_KEY_UP		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_UP, /**< Key up on the dynamicbox */
+	DBOX_GBAR_KEY_SET		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_SET, /**< Key event, start feeding event by master */
+	DBOX_GBAR_KEY_UNSET		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_UNSET, /**< Key event, stop feeding event by master */
+	DBOX_GBAR_KEY_FOCUS_IN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_FOCUS_IN, /**< Key event, focus in */
+	DBOX_GBAR_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_KEY_FOCUS_OUT, /**< Key event, focus out */
+
+	DBOX_KEY_EVENT_MAX		= 0xFFFFFFFF /**< Unknown event */
 };
 
 /**
@@ -162,7 +169,8 @@ enum dynamicbox_access_event_type {
 	DBOX_GBAR_ACCESS_ACTION_UP       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTION_UP,	/**< Access event - up */
 	DBOX_GBAR_ACCESS_SCROLL_DOWN     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_SCROLL_DOWN,	/**< Access event - scroll down */
 	DBOX_GBAR_ACCESS_SCROLL_MOVE     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_SCROLL_MOVE,	/**< Access event - scroll move */
-	DBOX_GBAR_ACCESS_SCROLL_UP       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_SCROLL_UP		/**< Access event - scroll up */
+	DBOX_GBAR_ACCESS_SCROLL_UP       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_SCROLL_UP,		/**< Access event - scroll up */
+	DBOX_ACCESS_EVENT_MAX = 0xFFFFFFFF
 };
 
 /**
@@ -217,7 +225,7 @@ enum dynamicbox_event_type { /**< dynamicbox_event_handler_set Event list */
 
 	DBOX_EVENT_EXTRA_INFO_UPDATED, /**< Extra information is updated */
 
-	DBOX_EVENT_IGNORED /**< Request is ignored */
+	DBOX_EVENT_IGNORED = 0xFF, /**< Request is ignored */
 };
 
 /**
@@ -226,9 +234,9 @@ enum dynamicbox_event_type { /**< dynamicbox_event_handler_set Event list */
  * @since_tizen 2.3
  */
 enum dynamicbox_option_type {
-	DBOX_OPTION_MANUAL_SYNC,			/**< Sync manually */
+	DBOX_OPTION_MANUAL_SYNC,		/**< Sync frame manually */
 	DBOX_OPTION_FRAME_DROP_FOR_RESIZE,	/**< Drop frames while resizing */
-	DBOX_OPTION_SHARED_CONTENT,		/**< Use only one real instance for multiple fake instances if user creates it using same content */
+	DBOX_OPTION_SHARED_CONTENT,		/**< Use only one real instance for multiple fake instances if user creates dbox for same content */
 
 	DBOX_OPTION_ERROR = 0xFFFFFFFF		/**< To specify the size of this enumeration type */
 };
@@ -240,7 +248,8 @@ enum dynamicbox_option_type {
  */
 enum dynamicbox_fault_type {
 	DBOX_FAULT_DEACTIVATED, /*!< Dynamicbox is deactivated by its fault operation */
-	DBOX_FAULT_PROVIDER_DISCONNECTED /*!< Provider is disconnected */
+	DBOX_FAULT_PROVIDER_DISCONNECTED, /*!< Provider is disconnected */
+	DBOX_FAULT_MAX = 0xFF
 };
 
 /**
@@ -255,7 +264,39 @@ enum dynamicbox_visible_state {
 
 	DBOX_HIDE_WITH_PAUSE = 0x02, /**< Dynamicbox is hidden, it will pause the update timer, but if a dynamicbox updates its contents, update event will be triggered */
 
-	DBOX_VISIBLE_ERROR = 0xFFFFFFFF /**< To specify the size of this enumeration type */
+	DBOX_VISIBLE_ERROR = 0xFF/**< To specify the size of this enumeration type */
+};
+
+/**
+ * @brief Accessibility Event Information
+ * @since_tizen 2.3
+ */
+struct dynamicbox_access_event_info {
+	double x; /**< X Coordinates that the event occurred */
+	double y; /**< Y Coordinates that the event occurred */
+	enum _dynamicbox_access_event_mouse {
+		DBOX_ACCESS_MOUSE_DOWN = 0x00,
+		DBOX_ACCESS_MOUSE_MOVE = 0x01,
+		DBOX_ACCESS_MOUSE_UP = 0x02
+	} mouse;
+	int info;
+};
+
+/**
+ * @brief Mouse Event Information
+ * @since_tizen 2.3
+ */
+struct dynamicbox_mouse_event_info {
+	double x;
+	double y;
+};
+
+/**
+ * @brief Key Event Information
+ * @since_tizen 2.3
+ */
+struct dynamicbox_key_event_info {
+	unsigned int keycode;
 };
 
 /**
@@ -841,7 +882,7 @@ extern int dynamicbox_fb_bufsz(struct dynamicbox *handler, int gbar);
  * @see dynamicbox_access_event()
  * @see dynamicbox_key_event()
  */
-extern int dynamicbox_mouse_event(struct dynamicbox *handler, enum dynamicbox_content_event_type type, double x, double y);
+extern int dynamicbox_mouse_event(struct dynamicbox *handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info);
 
 /**
  * @internal
@@ -863,7 +904,7 @@ extern int dynamicbox_mouse_event(struct dynamicbox *handler, enum dynamicbox_co
  * @see dynamicbox_mouse_event()
  * @see dynamicbox_key_event()
  */
-extern int dynamicbox_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, double x, double y, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -884,7 +925,7 @@ extern int dynamicbox_access_event(struct dynamicbox *handler, enum dynamicbox_a
  * @see dynamicbox_mouse_event()
  * @see dynamicbox_access_event()
  */
-extern int dynamicbox_key_event(struct dynamicbox *handler, enum dynamicbox_content_event_type type, unsigned int keycode, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
