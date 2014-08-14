@@ -30,8 +30,8 @@
 
 #include <com-core_packet.h>
 #include <packet.h>
-#include <livebox-service.h>
-#include <livebox-errno.h>
+#include <dynamicbox_service.h>
+#include <dynamicbox_errno.h>
 
 #include "debug.h"
 #include "fb.h"
