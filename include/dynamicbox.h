@@ -135,42 +135,42 @@ enum dynamicbox_key_event_type {
  * @since_tizen 2.3
  */
 enum dynamicbox_access_event_type {
-	DBOX_ACCESS_EVENT_GBAR_MASK      = 0x10000000, /**< Glance Bar Accessibilivent mask */
-	DBOX_ACCESS_EVENT_DBOX_MASK      = 0x20000000, /**< Dynamic Box Accessibility event mask */
+	DBOX_ACCESS_EVENT_GBAR_MASK    = 0x10000000, /**< Glance Bar Accessibilivent mask */
+	DBOX_ACCESS_EVENT_DBOX_MASK    = 0x20000000, /**< Dynamic Box Accessibility event mask */
 
-	DBOX_ACCESS_EVENT_HIGHLIGHT      = 0x00000100, /**< Dynamic Box accessibility: Hightlight a object */
-	DBOX_ACCESS_EVENT_HIGHLIGHT_NEXT = 0x00000200, /**< Dynamic Box accessibility: Set highlight to next object */
-	DBOX_ACCESS_EVENT_HIGHLIGHT_PREV = 0x00000400, /**< Dynamic Box accessibility: Set highlight to prev object */
-	DBOX_ACCESS_EVENT_UNHIGHLIGHT    = 0x00000800, /**< Dynamic Box accessibility unhighlight */
-	DBOX_ACCESS_EVENT_ACTIVATE       = 0x00001000, /**< Dynamic Box accessibility activate */
-	DBOX_ACCESS_EVENT_ACTION_DOWN    = 0x00010000, /**< Dynamic Box accessibility value changed */
-	DBOX_ACCESS_EVENT_ACTION_UP      = 0x00020000, /**< Dynamic Box accessibility value changed */
-	DBOX_ACCESS_EVENT_SCROLL_DOWN    = 0x00100000, /**< Dynamic Box accessibility scroll down */
-	DBOX_ACCESS_EVENT_SCROLL_MOVE    = 0x00200000, /**< Dynamic Box accessibility scroll move */
-	DBOX_ACCESS_EVENT_SCROLL_UP      = 0x00400000, /**< Dynamic Box accessibility scroll up */
+	DBOX_ACCESS_EVENT_HIGHLIGHT    = 0x00000100, /**< Dynamic Box accessibility: Hightlight a object, Next, Prev,Unhighlight */
+	DBOX_ACCESS_EVENT_ACTIVATE     = 0x00000200, /**< Dynamic Box accessibility activate */
+	DBOX_ACCESS_EVENT_ACTION       = 0x00000400, /**< Dynamic Box accessibility value changed, Up, Down */
+	DBOX_ACCESS_EVENT_SCROLL       = 0x00000800, /**< Dynamic Box accessibility scroll down, move, up */
+	DBOX_ACCESS_EVENT_VALUE_CHANGE = 0x00001000, /**< LB accessibility value change */
+	DBOX_ACCESS_EVENT_MOUSE        = 0x00002000, /**< Give mouse event to highlight object, down, move, up */
+	DBOX_ACCESS_EVENT_BACK         = 0x00004000, /**< Go back to a previous view ex: pop naviframe item */
+	DBOX_ACCESS_EVENT_OVER         = 0x00008000, /**< Mouse over an object */
+	DBOX_ACCESS_EVENT_READ         = 0x00010000, /**< Highlight an object */
+	DBOX_ACCESS_EVENT_ENABLE       = 0x00020000, /**< Disable highlight and read ability, disable, enable */
 
-	DBOX_ACCESS_HIGHLIGHT            = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT,	/**< Access event - Highlight an object in the dynamicbox */
-	DBOX_ACCESS_HIGHLIGHT_NEXT       = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_NEXT,	/**< Access event - Move highlight to the next object in a dynamicbox */
-	DBOX_ACCESS_HIGHLIGHT_PREV       = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_PREV,	/**< Access event - Move highlight to the prev object in a dynamicbox */
-	DBOX_ACCESS_UNHIGHLIGHT          = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_UNHIGHLIGHT,	/**< Access event - Delete highlight from the dynamicbox */
-	DBOX_ACCESS_ACTIVATE             = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_ACTIVATE,		/**< Access event - Launch or activate the highlighted object */
-	DBOX_ACCESS_ACTION_DOWN          = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_ACTION_DOWN,	/**< Access event - down */
-	DBOX_ACCESS_ACTION_UP            = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_ACTION_UP,	/**< Access event - up */
-	DBOX_ACCESS_SCROLL_DOWN          = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_SCROLL_DOWN,	/**< Access event - scroll down */
-	DBOX_ACCESS_SCROLL_MOVE          = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_SCROLL_MOVE,	/**< Access event - scroll move */
-	DBOX_ACCESS_SCROLL_UP            = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_SCROLL_UP,	/**< Access event - scroll up */
+	DBOX_ACCESS_HIGHLIGHT          = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT, /**< Access event - Highlight an object in the dynamicbox */
+	DBOX_ACCESS_ACTIVATE           = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_ACTIVATE,  /**< Access event - Launch or activate the highlighted object */
+	DBOX_ACCESS_ACTION             = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_ACTION,    /**< Access event - down */
+	DBOX_ACCESS_SCROLL             = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_SCROLL,    /**< Access event - scroll down */
+	DBOX_ACCESS_VALUE_CHANGE       = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_VALUE_CHANGE, /**< LB accessibility value change */
+	DBOX_ACCESS_MOUSE              = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_MOUSE,  /**< Give mouse event to highlight object */
+	DBOX_ACCESS_BACK               = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_BACK,   /**< Go back to a previous view ex: pop naviframe item */
+	DBOX_ACCESS_OVER               = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_OVER,   /**< Mouse over an object */
+	DBOX_ACCESS_READ               = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_READ,   /**< Highlight an object */
+	DBOX_ACCESS_ENABLE             = DBOX_ACCESS_EVENT_DBOX_MASK | DBOX_ACCESS_EVENT_ENABLE, /**< Enable highlight and read ability */
 
-	DBOX_GBAR_ACCESS_HIGHLIGHT       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT,	/**< Access event - Highlight an object in the Glance Bar */
-	DBOX_GBAR_ACCESS_HIGHLIGHT_NEXT  = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_NEXT,	/**< Access event - Move highlight to the next object in a Glance Bar */
-	DBOX_GBAR_ACCESS_HIGHLIGHT_PREV  = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT_PREV,	/**< Access event - Move highlight to the prev object in a Glance Bar */
-	DBOX_GBAR_ACCESS_UNHIGHLIGHT     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_UNHIGHLIGHT,	/**< Access event - Delet highlight from the Glance Bar */
-	DBOX_GBAR_ACCESS_ACTIVATE        = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTIVATE,		/**< Access event - Launch or activate the highlighted object */
-	DBOX_GBAR_ACCESS_ACTION_DOWN     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTION_DOWN,	/**< Access event - down */
-	DBOX_GBAR_ACCESS_ACTION_UP       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTION_UP,	/**< Access event - up */
-	DBOX_GBAR_ACCESS_SCROLL_DOWN     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_SCROLL_DOWN,	/**< Access event - scroll down */
-	DBOX_GBAR_ACCESS_SCROLL_MOVE     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_SCROLL_MOVE,	/**< Access event - scroll move */
-	DBOX_GBAR_ACCESS_SCROLL_UP       = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_SCROLL_UP,		/**< Access event - scroll up */
-	DBOX_ACCESS_EVENT_MAX = 0xFFFFFFFF
+	DBOX_GBAR_ACCESS_HIGHLIGHT     = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_HIGHLIGHT, /**< Access event - Highlight an object in the Glance Bar */
+	DBOX_GBAR_ACCESS_ACTIVATE      = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTIVATE,  /**< Access event - Launch or activate the highlighted object */
+	DBOX_GBAR_ACCESS_ACTION        = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ACTION,    /**< Access event - down */
+	DBOX_GBAR_ACCESS_SCROLL        = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_SCROLL,    /**< Access event - scroll down */
+	DBOX_GBAR_ACCESS_VALUE_CHANGE  = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_VALUE_CHANGE, /**< LB accessibility value change */
+	DBOX_GBAR_ACCESS_MOUSE         = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_MOUSE, /**< Give mouse event to highlight object */
+	DBOX_GBAR_ACCESS_BACK          = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_BACK, /**< Go back to a previous view ex: pop naviframe item */
+	DBOX_GBAR_ACCESS_OVER          = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_OVER, /**< Mouse over an object */
+	DBOX_GBAR_ACCESS_READ          = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_READ, /**< Highlight an object */
+	DBOX_GBAR_ACCESS_ENABLE        = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ENABLE, /**< Enable highlight and read ability */
+	DBOX_GBAR_ACCESS_EVENT_MAX     = 0xFFFFFFFF
 };
 
 /**
@@ -179,12 +179,12 @@ enum dynamicbox_access_event_type {
  * @since_tizen 2.3
  */
 enum dynamicbox_type {
-	DBOX_TYPE_IMAGE = 0x01, /**< Contents of a dynamicbox is based on the image file */
-	DBOX_TYPE_BUFFER = 0x02, /**< Contents of a dynamicbox is based on canvas buffer(shared) */
-	DBOX_TYPE_TEXT = 0x04, /**< Contents of a dynamicbox is based on formatted text file */
+	DBOX_TYPE_IMAGE       = 0x01, /**< Contents of a dynamicbox is based on the image file */
+	DBOX_TYPE_BUFFER      = 0x02, /**< Contents of a dynamicbox is based on canvas buffer(shared) */
+	DBOX_TYPE_TEXT        = 0x04, /**< Contents of a dynamicbox is based on formatted text file */
 	DBOX_TYPE_RESOURCE_ID = 0x08, /**< Contens of a dynamicbox is shared by the resource id(depends on window system) */
-	DBOX_TYPE_UIFW = 0x10, /**< Using UI F/W resource for sharing content & event */
-	DBOX_TYPE_INVALID = 0xFF /**< Unknown Dynamic Box type */
+	DBOX_TYPE_UIFW        = 0x10, /**< Using UI F/W resource for sharing content & event */
+	DBOX_TYPE_INVALID     = 0xFF /**< Unknown Dynamic Box type */
 };
 
 /**
@@ -259,12 +259,12 @@ enum dynamicbox_fault_type {
  * @since_tizen 2.3
  */
 enum dynamicbox_visible_state {
-	DBOX_SHOW = 0x00, /**< Dynamicbox is shown. Default state */
-	DBOX_HIDE = 0x01, /**< Dynamicbox is hidden, Update timer will not be freezed. but you cannot receive any updates events. */
+	DBOX_SHOW            = 0x00, /**< Dynamicbox is shown. Default state */
+	DBOX_HIDE            = 0x01, /**< Dynamicbox is hidden, Update timer will not be freezed. but you cannot receive any updates events. */
 
 	DBOX_HIDE_WITH_PAUSE = 0x02, /**< Dynamicbox is hidden, it will pause the update timer, but if a dynamicbox updates its contents, update event will be triggered */
 
-	DBOX_VISIBLE_ERROR = 0xFF/**< To specify the size of this enumeration type */
+	DBOX_VISIBLE_ERROR   = 0xFF/**< To specify the size of this enumeration type */
 };
 
 /**
@@ -274,11 +274,19 @@ enum dynamicbox_visible_state {
 struct dynamicbox_access_event_info {
 	double x; /**< X Coordinates that the event occurred */
 	double y; /**< Y Coordinates that the event occurred */
-	enum _dynamicbox_access_event_mouse {
-		DBOX_ACCESS_MOUSE_DOWN = 0x00,
-		DBOX_ACCESS_MOUSE_MOVE = 0x01,
-		DBOX_ACCESS_MOUSE_UP = 0x02
-	} mouse;
+	enum _dynamicbox_access_type {
+		DBOX_ACCESS_TYPE_DOWN = 0x00, /**< Mouse down */
+		DBOX_ACCESS_TYPE_MOVE = 0x01, /**< Mouse move */
+		DBOX_ACCESS_TYPE_UP   = 0x02, /**< Mouse up */
+
+		DBOX_ACCESS_TYPE_HIGHLIGHT      = 0x00, /**< Highlight */
+		DBOX_ACCESS_TYPE_HIGHLIGHT_NEXT = 0x01, /**< Highlight next */
+		DBOX_ACCESS_TYPE_HIGHLIGHT_PREV = 0x02, /**< Highlight prev */
+		DBOX_ACCESS_TYPE_UNHIGHLIGHT    = 0x03, /**< Unhighlight */
+
+		DBOX_ACCESS_TYPE_DISABLE = 0x00, /**< Disable */
+		DBOX_ACCESS_TYPE_ENABLE  = 0x01  /**< Enable */
+	} type;
 	int info;
 };
 
@@ -878,10 +886,10 @@ extern int dynamicbox_fb_bufsz(struct dynamicbox *handler, int gbar);
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent
- * @see dynamicbox_access_event()
- * @see dynamicbox_key_event()
+ * @see dynamicbox_feed_access_event()
+ * @see dynamicbox_feed_key_event()
  */
-extern int dynamicbox_mouse_event(struct dynamicbox *handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info);
+extern int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info);
 
 /**
  * @internal
@@ -900,10 +908,10 @@ extern int dynamicbox_mouse_event(struct dynamicbox *handler, enum dynamicbox_mo
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent
- * @see dynamicbox_mouse_event()
- * @see dynamicbox_key_event()
+ * @see dynamicbox_feed_mouse_event()
+ * @see dynamicbox_feed_key_event()
  */
-extern int dynamicbox_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -921,10 +929,10 @@ extern int dynamicbox_access_event(struct dynamicbox *handler, enum dynamicbox_a
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent
- * @see dynamicbox_mouse_event()
- * @see dynamicbox_access_event()
+ * @see dynamicbox_feed_mouse_event()
+ * @see dynamicbox_feed_access_event()
  */
-extern int dynamicbox_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -1003,9 +1011,9 @@ extern int dynamicbox_has_glance_bar(struct dynamicbox *handler);
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @see dynamicbox_create_gbar()
- * @see dynamicbox_destroy_gbar()
- * @see dynamicbox_move_gbar()
+ * @see dynamicbox_create_glance_bar()
+ * @see dynamicbox_destroy_glance_bar()
+ * @see dynamicbox_move_glance_bar()
  */
 extern int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data);
 
@@ -1053,19 +1061,6 @@ extern int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_
  * @retval 1 Glance Bar is created
  */
 extern int dynamicbox_glance_bar_is_created(struct dynamicbox *handler);
-
-/**
- * @internal
- * @brief Checks the existence of a dynamicbox about the given package name.
- * @since_tizen 2.3
- * @param[in] pkgname Package name
- * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
- * @return int
- * @retval 1 If the box exists
- * @retval 0 If the box does not exist
- */
-extern int dynamicbox_is_exists(const char *pkgname);
 
 /**
  * @internal
@@ -1127,7 +1122,7 @@ extern int dynamicbox_set_data(struct dynamicbox *handler, void *data);
  * @retval @c NULL If there is no data
  * @see dynamicbox_set_data()
  */
-extern void *dynamicbox_get_data(struct dynamicbox *handler);
+extern void *dynamicbox_data(struct dynamicbox *handler);
 
 /**
  * @internal
@@ -1136,7 +1131,7 @@ extern void *dynamicbox_get_data(struct dynamicbox *handler);
  *   you can receive the event of specific dynamicboxes which belong to a given cluster/category.
  *   But you cannot modify their attributes (such as size, ...).
  * @since_tizen 2.3
- * @param[in] cluster   Cluster ("*" can be used for subscribe all cluster's dynamicboxes event; If you use the "*", value in the category will be ignored)
+ * @param[in] cluster Cluster ("*" can be used for subscribe all cluster's dynamicboxes event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe dynamicboxes events of all category(sub-cluster) in a given "cluster")
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer

@@ -16,6 +16,7 @@
 
 #include "dynamicbox.h"
 #include "livebox.h"
+#include "livebox-errno.h"
 
 
 #define EAPI __attribute__((visibility("default")))
@@ -128,17 +129,168 @@ EAPI int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_re
 	return livebox_destroy_pd((struct livebox*)handler, (ret_cb_t)cb, data);
 }
 
-EAPI int dynamicbox_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data)
 {
-	return livebox_access_event((struct livebox*)handler, (enum access_event_type)type, info->x, info->y, (ret_cb_t)cb, data);
+	enum access_event_type _type;
+	switch (type) {
+	case DBOX_ACCESS_HIGHLIGHT:
+		switch (info->type) {
+		case DBOX_ACCESS_TYPE_HIGHLIGHT:
+			_type = LB_ACCESS_HIGHLIGHT;
+			break;
+		case DBOX_ACCESS_TYPE_HIGHLIGHT_NEXT:
+			_type = LB_ACCESS_HIGHLIGHT_NEXT;
+			break;
+		case DBOX_ACCESS_TYPE_HIGHLIGHT_PREV:
+			_type = LB_ACCESS_HIGHLIGHT_PREV;
+			break;
+		case DBOX_ACCESS_TYPE_UNHIGHLIGHT:
+			_type = LB_ACCESS_UNHIGHLIGHT;
+			break;
+		default:
+			return LB_STATUS_ERROR_INVALID; //DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	case DBOX_ACCESS_ACTIVATE:
+		_type = LB_ACCESS_ACTIVATE;
+		break;
+	case DBOX_ACCESS_ACTION:
+		switch (info->type) {
+		case DBOX_ACCESS_TYPE_UP:
+			_type = LB_ACCESS_ACTION_UP;
+			break;
+		case DBOX_ACCESS_TYPE_DOWN:
+			_type = LB_ACCESS_ACTION_DOWN;
+			break;
+		default:
+			return LB_STATUS_ERROR_INVALID; //DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	case DBOX_ACCESS_SCROLL:
+		switch (info->type) {
+		case DBOX_ACCESS_TYPE_UP:
+			_type = LB_ACCESS_SCROLL_UP;
+			break;
+		case DBOX_ACCESS_TYPE_MOVE:
+			_type = LB_ACCESS_SCROLL_MOVE;
+			break;
+		case DBOX_ACCESS_TYPE_DOWN:
+			_type = LB_ACCESS_SCROLL_DOWN;
+			break;
+		default:
+			return LB_STATUS_ERROR_INVALID; //DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	case DBOX_ACCESS_VALUE_CHANGE:
+		_type = LB_ACCESS_VALUE_CHANGE;
+		break;
+	case DBOX_ACCESS_MOUSE:
+		// DOWN, MOVE, UP is not supported from old version, it's a BUG!
+		_type = LB_ACCESS_MOUSE;
+		break;
+	case DBOX_ACCESS_BACK:
+		_type = LB_ACCESS_BACK;
+		break;
+	case DBOX_ACCESS_OVER:
+		_type = LB_ACCESS_OVER;
+		break;
+	case DBOX_ACCESS_READ:
+		_type = LB_ACCESS_READ;
+		break;
+	case DBOX_ACCESS_ENABLE:
+		if (info->type == DBOX_ACCESS_TYPE_DISABLE) {
+			_type = LB_ACCESS_DISABLE;
+		} else {
+			_type = LB_ACCESS_ENABLE;
+		}
+		break;
+	case DBOX_GBAR_ACCESS_HIGHLIGHT:
+		switch (info->type) {
+		case DBOX_ACCESS_TYPE_HIGHLIGHT:
+			_type = PD_ACCESS_HIGHLIGHT;
+			break;
+		case DBOX_ACCESS_TYPE_HIGHLIGHT_NEXT:
+			_type = PD_ACCESS_HIGHLIGHT_NEXT;
+			break;
+		case DBOX_ACCESS_TYPE_HIGHLIGHT_PREV:
+			_type = PD_ACCESS_HIGHLIGHT_PREV;
+			break;
+		case DBOX_ACCESS_TYPE_UNHIGHLIGHT:
+			_type = PD_ACCESS_UNHIGHLIGHT;
+			break;
+		default:
+			return LB_STATUS_ERROR_INVALID; //DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	case DBOX_GBAR_ACCESS_ACTIVATE:
+		_type = PD_ACCESS_ACTIVATE;
+		break;
+	case DBOX_GBAR_ACCESS_ACTION:
+		switch (info->type) {
+		case DBOX_ACCESS_TYPE_UP:
+			_type = PD_ACCESS_ACTION_UP;
+			break;
+		case DBOX_ACCESS_TYPE_DOWN:
+			_type = PD_ACCESS_ACTION_DOWN;
+			break;
+		default:
+			return LB_STATUS_ERROR_INVALID; //DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	case DBOX_GBAR_ACCESS_SCROLL:
+		switch (info->type) {
+		case DBOX_ACCESS_TYPE_UP:
+			_type = PD_ACCESS_SCROLL_UP;
+			break;
+		case DBOX_ACCESS_TYPE_MOVE:
+			_type = PD_ACCESS_SCROLL_MOVE;
+			break;
+		case DBOX_ACCESS_TYPE_DOWN:
+			_type = PD_ACCESS_SCROLL_DOWN;
+			break;
+		default:
+			return LB_STATUS_ERROR_INVALID; //DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+		break;
+	case DBOX_GBAR_ACCESS_VALUE_CHANGE:
+		_type = PD_ACCESS_VALUE_CHANGE;
+		break;
+	case DBOX_GBAR_ACCESS_MOUSE:
+		/* down, move, up is not supported, it's a BUG! */
+		_type = PD_ACCESS_MOUSE;
+		break;
+	case DBOX_GBAR_ACCESS_BACK:
+		_type = PD_ACCESS_BACK;
+		break;
+	case DBOX_GBAR_ACCESS_OVER:
+		_type = PD_ACCESS_OVER;
+		break;
+	case DBOX_GBAR_ACCESS_READ:
+		_type = PD_ACCESS_READ;
+		break;
+	case DBOX_GBAR_ACCESS_ENABLE:
+		break;
+	default:
+		if (info->type == DBOX_ACCESS_TYPE_DISABLE) {
+			_type = LB_ACCESS_DISABLE;
+		} else {
+			_type = LB_ACCESS_ENABLE;
+		}
+		break;
+	}
+
+	/*
+	 * Need to send event_type to the provider.
+	 */
+	return livebox_access_event((struct livebox*)handler, _type, info->x, info->y, (ret_cb_t)cb, data);
 }
 
-EAPI int dynamicbox_mouse_event(struct dynamicbox *handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info)
+EAPI int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info)
 {
 	return livebox_mouse_event((struct livebox*)handler, (enum content_event_type)type, info->x, info->y);
 }
 
-EAPI int dynamicbox_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data)
 {
 	return livebox_key_event((struct livebox*) handler, (enum content_event_type)type, info->keycode, (ret_cb_t)cb, data);
 }
@@ -326,14 +478,9 @@ EAPI int dynamicbox_set_data(struct dynamicbox *handler, void *data)
 	return livebox_set_data((struct livebox*) handler, data);
 }
 
-EAPI void *dynamicbox_get_data(struct dynamicbox *handler)
+EAPI void *dynamicbox_data(struct dynamicbox *handler)
 {
 	return livebox_get_data((struct livebox*) handler);
-}
-
-EAPI int dynamicbox_is_exists(const char *pkgname)
-{
-	return livebox_is_exists(pkgname);
 }
 
 EAPI const char *dynamicbox_content(struct dynamicbox *handler)
