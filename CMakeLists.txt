@@ -1,9 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-IF (DYNAMICBOX_ENABLED)
 PROJECT(dynamicbox_viewer C)
-ELSE (DYNAMICBOX_ENABLED)
-PROJECT(livebox-viewer C)
-ENDIF (DYNAMICBOX_ENABLED)
 
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "\${prefix}")
@@ -18,33 +14,17 @@ SET(CMAKE_SKIP_BUILD_RPATH true)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
 INCLUDE(FindPkgConfig)
-IF (DYNAMICBOX_ENABLED)
-	pkg_check_modules(pkgs REQUIRED
-		dlog
-		aul
-		glib-2.0
-		gio-2.0
-		com-core
-		sqlite3
-		db-util
-		dynamicbox_service
-		vconf
-	)
-ELSE (DYNAMICBOX_ENABLED)
-	pkg_check_modules(pkgs REQUIRED
-		dlog
-		aul
-		glib-2.0
-		gio-2.0
-		com-core
-		sqlite3
-		db-util
-		livebox-service
-		vconf
-	)
-ENDIF (DYNAMICBOX_ENABLED)
-
-
+pkg_check_modules(pkgs REQUIRED
+	dlog
+	aul
+	glib-2.0
+	gio-2.0
+	com-core
+	sqlite3
+	db-util
+	dynamicbox_service
+	vconf
+)
 
 IF (X11_SUPPORT)
 pkg_check_modules(pkgs_extra REQUIRED
@@ -101,11 +81,6 @@ SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${PROJECT_NAME}
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
 		
-IF (DYNAMICBOX_ENABLED)
-	INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox.h DESTINATION include/dynamicbox_viewer)
-ELSE (DYNAMICBOX_ENABLED)
-	INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/livebox.h DESTINATION include/${PROJECT_NAME})
-	INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox.h DESTINATION include/dynamicbox_viewer)
-ENDIF (DYNAMICBOX_ENABLED)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox.h DESTINATION include/${PROJECT_NAME})
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "lib${PROJECT_NAME}")

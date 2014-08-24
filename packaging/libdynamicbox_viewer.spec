@@ -2,9 +2,9 @@
 
 Name: libdynamicbox_viewer
 Summary: Library for developing the application
-Version: 0.31.5
+Version: 1.0.0
 Release: 1
-Group: HomeTF/Livebox
+Group: HomeTF/DynamicBox
 License: Flora
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
@@ -33,7 +33,7 @@ ExclusiveArch:
 API for creating a new instance of the dynamicbox and managing its life-cycle.
 
 %package devel
-Summary: Livebox viewer development library (dev)
+Summary: Development Library for Dynamic Box Viewer Application (dev)
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
@@ -72,10 +72,10 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 %make_install
 
-%post -n libdynamicbox_viewer -p /sbin/ldconfig
-%postun -n libdynamicbox_viewer -p /sbin/ldconfig
+%post -n %{name} -p /sbin/ldconfig
+%postun -n %{name} -p /sbin/ldconfig
 
-%files -n libdynamicbox_viewer
+%files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/*.so*
