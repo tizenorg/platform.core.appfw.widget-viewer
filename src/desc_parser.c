@@ -106,7 +106,7 @@ static int update_text(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block || !block->part || !block->data) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -123,7 +123,7 @@ static int update_image(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -140,7 +140,7 @@ static int update_script(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -157,7 +157,7 @@ static int update_signal(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -175,12 +175,12 @@ static int update_drag(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block || !block->data || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (sscanf(block->data, "%lfx%lf", &dx, &dy) != 2) {
 		ErrPrint("Invalid format of data\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -197,7 +197,7 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block || !block->part || !block->data) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -206,7 +206,7 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 
 		if (sscanf(block->data, "%dx%d", &w, &h) != 2) {
 			ErrPrint("Invalid format (%s)\n", block->data);
-			return LB_STATUS_ERROR_INVALID;
+			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
 		if (ops->update_info_size) {
@@ -227,7 +227,7 @@ static int update_access(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -244,7 +244,7 @@ static int operate_access(struct livebox *handle, struct block *block, int is_pd
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -261,7 +261,7 @@ static int update_color(struct livebox *handle, struct block *block, int is_pd)
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
@@ -416,7 +416,7 @@ int parse_desc(struct livebox_common *common, const char *filename, int is_pd)
 
 	filebuf = load_file(filename);
 	if (!filebuf) {
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
 	fileptr = filebuf;
@@ -660,7 +660,7 @@ int parse_desc(struct livebox_common *common, const char *filename, int is_pd)
 			block_list = dlist_remove(block_list, l);
 		}
 
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 		
@@ -691,7 +691,7 @@ int parse_desc(struct livebox_common *common, const char *filename, int is_pd)
 	}
 	ErrPrint("End: Set content for object\n");
 
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 /* End of a file */

@@ -30,14 +30,14 @@
 #include <packet.h>
 #include <com-core.h>
 #include <com-core_packet.h>
-#include <livebox-errno.h>
-#include <livebox-service.h>
+#include <dynamicbox_errno.h>
+#include <dynamicbox_service.h>
 #include <secure_socket.h>
 
 #include "debug.h"
 #include "client.h"
-#include "livebox.h"
-#include "livebox_internal.h"
+#include "dynamicbox.h"
+#include "dynamicbox_internal.h"
 #include "desc_parser.h"
 #include "fb.h"
 #include "util.h"
@@ -133,7 +133,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		goto out;
 	}
 
-	if (status == (int)LB_STATUS_SUCCESS) {
+	if (status == (int)DBOX_STATUS_ERROR_NONE) {
 		new_content = strdup(content);
 		if (new_content) {
 			free(common->content);
@@ -141,7 +141,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			common->is_pinned_up = pinup;
 		} else {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			status = LB_STATUS_ERROR_MEMORY;
+			status = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
 		}
 	}
 
@@ -160,7 +160,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			handler->cbs.pinup.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == (int)LB_STATUS_SUCCESS) {
+		} else if (status == (int)DBOX_STATUS_ERROR_NONE) {
 			lb_invoke_event_handler(handler, LB_EVENT_PINUP_CHANGED);
 		}
 	}
@@ -249,8 +249,8 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			handler->cbs.created.cb = NULL;
 			handler->cbs.created.data = NULL;
 
-			if (reason == (int)LB_STATUS_SUCCESS) {
-				reason = LB_STATUS_ERROR_CANCEL;
+			if (reason == (int)DBOX_STATUS_ERROR_NONE) {
+				reason = DBOX_STATUS_ERROR_CANCEL;
 			}
 
 			cb(handler, reason, cbdata);
@@ -324,7 +324,7 @@ static struct packet *master_lb_update_begin(pid_t pid, int handle, const struct
 
 		ret = lb_sync_lb_fb(common);
 
-		if (ret != (int)LB_STATUS_SUCCESS) {
+		if (ret != (int)DBOX_STATUS_ERROR_NONE) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
 		} else {
 			struct dlist *l;
@@ -370,7 +370,7 @@ static struct packet *master_pd_update_begin(pid_t pid, int handle, const struct
 		(void)lb_set_pd_fb(common, fbfile);
 
 		ret = lb_sync_pd_fb(common);
-		if (ret != (int)LB_STATUS_SUCCESS) {
+		if (ret != (int)DBOX_STATUS_ERROR_NONE) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
 		} else {
 			struct dlist *l;
@@ -711,24 +711,24 @@ static struct packet *master_lb_updated(pid_t pid, int handle, const struct pack
 		if (conf_frame_drop_for_resizing() && common->request.size_changed) {
 			/* Just for skipping the update event callback call, After request to resize buffer, update event will be discarded */
 			DbgPrint("Discards obsoloted update event\n");
-			ret = LB_STATUS_ERROR_BUSY;
+			ret = DBOX_STATUS_ERROR_BUSY;
 		} else {
 			(void)lb_set_lb_fb(common, fbfile);
 
 			if (!conf_manual_sync()) {
 				ret = lb_sync_lb_fb(common);
-				if (ret != (int)LB_STATUS_SUCCESS) {
+				if (ret != (int)DBOX_STATUS_ERROR_NONE) {
 					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 				}
 			} else {
-				ret = LB_STATUS_SUCCESS;
+				ret = DBOX_STATUS_ERROR_NONE;
 			}
 		}
 	} else {
-		ret = LB_STATUS_SUCCESS;
+		ret = DBOX_STATUS_ERROR_NONE;
 	}
 
-	if (ret == (int)LB_STATUS_SUCCESS) {
+	if (ret == (int)DBOX_STATUS_ERROR_NONE) {
 		struct dlist *l;
 		struct dlist *n;
 
@@ -778,7 +778,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
-	common->is_pd_created = (status == (int)LB_STATUS_SUCCESS);
+	common->is_pd_created = (status == (int)DBOX_STATUS_ERROR_NONE);
 	common->request.pd_created = 0;
 
 	if (common->is_pd_created) {
@@ -833,7 +833,7 @@ static struct packet *master_pd_created(pid_t pid, int handle, const struct pack
 			 * Because, in the create callback, user can call create_pd function again.
 			 */
 			cb(handler, status, cbdata);
-		} else if (status == (int)LB_STATUS_SUCCESS) {
+		} else if (status == (int)DBOX_STATUS_ERROR_NONE) {
 			lb_invoke_event_handler(handler, LB_EVENT_PD_CREATED);
 		} 
 	}
@@ -895,7 +895,7 @@ static struct packet *master_pd_destroyed(pid_t pid, int handle, const struct pa
 			 * Because, in the create callback, user can call destroy_pd function again.
 			 */
 			cb(handler, status, cbdata);
-		} else if (status == (int)LB_STATUS_SUCCESS) {
+		} else if (status == (int)DBOX_STATUS_ERROR_NONE) {
 			lb_invoke_event_handler(handler, LB_EVENT_PD_DESTROYED);
 		}
 	}
@@ -1034,7 +1034,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
-	if (status == (int)LB_STATUS_SUCCESS) {
+	if (status == (int)DBOX_STATUS_ERROR_NONE) {
 		lb_set_update_mode(common, active_mode);
 	}
 
@@ -1051,7 +1051,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 			handler->cbs.update_mode.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == (int)LB_STATUS_SUCCESS) {
+		} else if (status == (int)DBOX_STATUS_ERROR_NONE) {
 			lb_invoke_event_handler(handler, LB_EVENT_UPDATE_MODE_CHANGED);
 		}
 	}
@@ -1104,7 +1104,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		 * So the PD has no private resized event handler.
 		 * Notify it via global event handler only.
 		 */
-		if (status == (int)LB_STATUS_SUCCESS) {
+		if (status == (int)DBOX_STATUS_ERROR_NONE) {
 			struct dlist *l;
 
 			lb_set_pdsize(common, w, h);
@@ -1118,7 +1118,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		struct dlist *l;
 		struct dlist *n;
 
-		if (status == (int)LB_STATUS_SUCCESS) {
+		if (status == (int)DBOX_STATUS_ERROR_NONE) {
 			lb_set_size(common, w, h);
 
 			/*!
@@ -1155,7 +1155,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 				handler->cbs.size_changed.data = NULL;
 
 				cb(handler, status, cbdata);
-			} else if (status == (int)LB_STATUS_SUCCESS) {
+			} else if (status == (int)DBOX_STATUS_ERROR_NONE) {
 				lb_invoke_event_handler(handler, LB_EVENT_LB_SIZE_CHANGED);
 			}
 		}
@@ -1194,7 +1194,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
-	if (status == (int)LB_STATUS_SUCCESS) {
+	if (status == (int)DBOX_STATUS_ERROR_NONE) {
 		lb_set_period(common, period);
 	}
 
@@ -1212,7 +1212,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 			handler->cbs.period_changed.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == (int)LB_STATUS_SUCCESS) {
+		} else if (status == (int)DBOX_STATUS_ERROR_NONE) {
 			lb_invoke_event_handler(handler, LB_EVENT_PERIOD_CHANGED);
 		}
 	}
@@ -1256,7 +1256,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
-	if (status == (int)LB_STATUS_SUCCESS) {
+	if (status == (int)DBOX_STATUS_ERROR_NONE) {
 		(void)lb_set_group(common, cluster, category);
 	}
 
@@ -1274,7 +1274,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 			handler->cbs.group_changed.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == (int)LB_STATUS_SUCCESS) {
+		} else if (status == (int)DBOX_STATUS_ERROR_NONE) {
 			lb_invoke_event_handler(handler, LB_EVENT_GROUP_CHANGED);
 		}
 	}
@@ -1327,7 +1327,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			&lb_type, &pd_type, &period, &title, &is_pinned_up);
 	if (ret != 22) {
 		ErrPrint("Invalid argument\n");
-		ret = LB_STATUS_ERROR_INVALID;
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
@@ -1347,7 +1347,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		handler = lb_new_livebox(pkgname, id, timestamp, cluster, category);
 		if (!handler) {
 			ErrPrint("Failed to create a new livebox\n");
-			ret = LB_STATUS_ERROR_FAULT;
+			ret = DBOX_STATUS_ERROR_FAULT;
 			goto out;
 		}
 		common = handler->common;
@@ -1360,7 +1360,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 				 * This is not possible!!!
 				 */
 				ErrPrint("Invalid handler\n");
-				ret = LB_STATUS_ERROR_INVALID;
+				ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 				goto out;
 			}
 
@@ -1381,7 +1381,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 					content, cluster, category,
 					lb_fname, pd_fname);
 
-			ret = LB_STATUS_ERROR_ALREADY;
+			ret = DBOX_STATUS_ERROR_ALREADY;
 			goto out;
 		}
 
@@ -1523,7 +1523,7 @@ out:
 						 */
 					}
 				} else if (handler->state != DELETE) {
-					handler->cbs.created.cb(handler, LB_STATUS_ERROR_CANCEL, handler->cbs.created.data);
+					handler->cbs.created.cb(handler, DBOX_STATUS_ERROR_CANCEL, handler->cbs.created.data);
 					lb_unref(handler, 1);
 				}
 			} else {
@@ -1540,7 +1540,7 @@ out:
 		 * Do not clear this to use this from the deleted event callback.
 		 * if this value is not cleared when the deleted event callback check it,
 		 * it means that the created function is not called yet.
-		 * Then the call the deleted event callback with LB_STATUS_ERROR_CANCEL errno.
+		 * Then the call the deleted event callback with DBOX_STATUS_ERROR_CANCEL errno.
 		 */
 	}
 
@@ -1670,14 +1670,14 @@ static inline int make_connection(void)
 	s_info.fd = com_core_packet_client_init(client_addr(), 0, s_table);
 	if (s_info.fd < 0) {
 		ErrPrint("Try this again later\n");
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
 	packet = packet_create("acquire", "d", util_timestamp());
 	if (!packet) {
 		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 1, acquire_cb, NULL);
@@ -1685,10 +1685,10 @@ static inline int make_connection(void)
 		ErrPrint("Master RPC returns %d\n", ret);
 		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 static int connected_cb(int handle, void *data)
@@ -1706,7 +1706,7 @@ static void master_started_cb(keynode_t *node, void *data)
 	}
 
 	DbgPrint("Master state: %d\n", state);
-	if (state == 1 && make_connection() == (int)LB_STATUS_SUCCESS) {
+	if (state == 1 && make_connection() == (int)DBOX_STATUS_ERROR_NONE) {
 		int ret;
 		ret = vconf_ignore_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb);
 		if (ret < 0) {
@@ -1767,7 +1767,7 @@ int client_init(int use_thread)
 		s_info.client_addr = strdup(CLIENT_SOCKET);
 		if (!s_info.client_addr) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return LB_STATUS_ERROR_MEMORY;
+			return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
 		}
 	}
 
@@ -1784,7 +1784,7 @@ int client_init(int use_thread)
 	}
 
 	master_started_cb(NULL, NULL);
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int client_fd(void)
@@ -1814,7 +1814,7 @@ int client_fini(void)
 	s_info.fd = -1;
 	free(s_info.client_addr);
 	s_info.client_addr = NULL;
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 /* End of a file */

@@ -26,6 +26,17 @@ pkg_check_modules(pkgs REQUIRED
 	vconf
 )
 
+SET(BUILD_SOURCE
+	src/client.c
+	src/conf.c
+	src/desc_parser.c
+	src/dlist.c
+	src/dynamicbox.c
+	src/file_service.c
+	src/master_rpc.c
+	src/util.c
+)
+
 IF (X11_SUPPORT)
 pkg_check_modules(pkgs_extra REQUIRED
 	x11

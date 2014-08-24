@@ -799,7 +799,6 @@ extern void *dynamicbox_acquire_fb(struct dynamicbox *handler, int gbar);
  * @brief Releases the buffer of a dynamicbox (only for the buffer type).
  * @since_tizen 2.3
  * @param[in] buffer Buffer
- * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
@@ -807,20 +806,19 @@ extern void *dynamicbox_acquire_fb(struct dynamicbox *handler, int gbar);
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @see dynamicbox_acquire_fb()
  */
-extern int dynamicbox_release_fb(void *buffer, int gbar);
+extern int dynamicbox_release_fb(void *buffer);
 
 /**
  * @internal
  * @brief Gets the reference count of Dynamicbox buffer (only for the buffer type).
  * @since_tizen 2.3
  * @param[in] buffer Buffer
- * @param[in] gbar 1 for Glance Bar or 0
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval refcnt Positive integer including ZERO
  */
-extern int dynamicbox_fb_refcnt(void *buffer, int gbar);
+extern int dynamicbox_fb_refcnt(void *buffer);
 
 /**
  * @internal
