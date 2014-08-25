@@ -30,8 +30,8 @@
 #include <dynamicbox_service.h>
 
 #include "debug.h"
-#include "livebox.h"
-#include "livebox_internal.h"
+#include "dynamicbox.h"
+#include "dynamicbox_internal.h"
 #include "desc_parser.h"
 #include "dlist.h"
 #include "util.h"
@@ -100,16 +100,16 @@ struct block {
 	const char *filename;
 };
 
-static int update_text(struct livebox *handle, struct block *block, int is_pd)
+static int update_text(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block || !block->part || !block->data) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_text) {
 		ops->update_text(handle, (const char *)block->id, (const char *)block->part, (const char *)block->data);
 	}
@@ -117,16 +117,16 @@ static int update_text(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static int update_image(struct livebox *handle, struct block *block, int is_pd)
+static int update_image(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block || !block->part) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_image) {
 		ops->update_image(handle, block->id, block->part, block->data, block->option);
 	}
@@ -134,16 +134,16 @@ static int update_image(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static int update_script(struct livebox *handle, struct block *block, int is_pd)
+static int update_script(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block || !block->part) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_script) {
 		ops->update_script(handle, block->id, block->target, block->part, block->data, block->option);
 	}
@@ -151,16 +151,16 @@ static int update_script(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static int update_signal(struct livebox *handle, struct block *block, int is_pd)
+static int update_signal(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_signal) {
 		ops->update_signal(handle, block->id, block->data, block->part);
 	}
@@ -168,10 +168,10 @@ static int update_signal(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static int update_drag(struct livebox *handle, struct block *block, int is_pd)
+static int update_drag(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
 	double dx, dy;
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block || !block->data || !block->part) {
 		ErrPrint("Invalid argument\n");
@@ -183,7 +183,7 @@ static int update_drag(struct livebox *handle, struct block *block, int is_pd)
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_drag) {
 		ops->update_drag(handle, block->id, block->part, dx, dy);
 	}
@@ -191,16 +191,16 @@ static int update_drag(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static int update_info(struct livebox *handle, struct block *block, int is_pd)
+static int update_info(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block || !block->part || !block->data) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (!strcasecmp(block->part, INFO_SIZE)) {
 		int w, h;
 
@@ -221,16 +221,16 @@ static int update_info(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static int update_access(struct livebox *handle, struct block *block, int is_pd)
+static int update_access(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_access) {
 		ops->update_access(handle, block->id, block->part, block->data, block->option);
 	}
@@ -238,16 +238,16 @@ static int update_access(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static int operate_access(struct livebox *handle, struct block *block, int is_pd)
+static int operate_access(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->operate_access) {
 		ops->operate_access(handle, block->id, block->part, block->data, block->option);
 	}
@@ -255,16 +255,16 @@ static int operate_access(struct livebox *handle, struct block *block, int is_pd
 	return 0;
 }
 
-static int update_color(struct livebox *handle, struct block *block, int is_pd)
+static int update_color(struct dynamicbox *handle, struct block *block, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_color) {
 		ops->update_color(handle, block->id, block->part, block->data);
 	}
@@ -272,11 +272,11 @@ static int update_color(struct livebox *handle, struct block *block, int is_pd)
 	return 0;
 }
 
-static inline int update_begin(struct livebox *handle, int is_pd)
+static inline int update_begin(struct dynamicbox *handle, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_begin) {
 		ops->update_begin(handle);
 	}
@@ -284,11 +284,11 @@ static inline int update_begin(struct livebox *handle, int is_pd)
 	return 0;
 }
 
-static inline int update_end(struct livebox *handle, int is_pd)
+static inline int update_end(struct dynamicbox *handle, int is_gbar)
 {
-	struct livebox_script_operators *ops;
+	struct dynamicbox_script_operators *ops;
 
-	ops = is_pd ? &handle->cbs.pd_ops : &handle->cbs.lb_ops;
+	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
 	if (ops->update_end) {
 		ops->update_end(handle);
 	}
@@ -302,9 +302,9 @@ static inline void delete_block(struct block *block)
 	free(block);
 }
 
-static inline void consuming_parsed_block(struct livebox *handle, int is_pd, struct block *block)
+static inline void consuming_parsed_block(struct dynamicbox *handle, int is_gbar, struct block *block)
 {
-	typedef int (*update_function_t)(struct livebox *handle, struct block *block, int is_pd);
+	typedef int (*update_function_t)(struct dynamicbox *handle, struct block *block, int is_gbar);
 	static update_function_t updators[] = {
 		update_access,
 		operate_access,
@@ -319,7 +319,7 @@ static inline void consuming_parsed_block(struct livebox *handle, int is_pd, str
 	};
 
 	if (block->type >= 0 || block->type < TYPE_MAX) {
-		(void)updators[block->type](handle, block, is_pd);
+		(void)updators[block->type](handle, block, is_gbar);
 	} else {
 		ErrPrint("Block type[%d] is not valid\n", block->type);
 	}
@@ -390,7 +390,7 @@ errout:
 	return filebuf;
 }
 
-int parse_desc(struct livebox_common *common, const char *filename, int is_pd)
+int parse_desc(struct dynamicbox_common *common, const char *filename, int is_gbar)
 {
 	int type_idx = 0;
 	int type_len = 0;
@@ -404,7 +404,7 @@ int parse_desc(struct livebox_common *common, const char *filename, int is_pd)
 	struct dlist *l;
 	struct dlist *n;
 	struct dlist *handle_iterator;
-	struct livebox *handler;
+	struct dynamicbox *handler;
 	enum state {
 		BEGIN,
 		FIELD,
@@ -673,21 +673,21 @@ int parse_desc(struct livebox_common *common, const char *filename, int is_pd)
 	}
 
 	ErrPrint("Begin: Set content for object\n");
-	dlist_foreach(common->livebox_list, l, handler) {
-		update_begin(handler, is_pd);
+	dlist_foreach(common->dynamicbox_list, l, handler) {
+		update_begin(handler, is_gbar);
 	}
 
 	dlist_foreach_safe(block_list, l, n, block) {
-		dlist_foreach(common->livebox_list, handle_iterator, handler) {
-			consuming_parsed_block(handler, is_pd, block);
+		dlist_foreach(common->dynamicbox_list, handle_iterator, handler) {
+			consuming_parsed_block(handler, is_gbar, block);
 		}
 
 		block_list = dlist_remove(block_list, l);
 		delete_block(block);
 	}
 
-	dlist_foreach(common->livebox_list, l, handler) {
-		update_end(handler, is_pd);
+	dlist_foreach(common->dynamicbox_list, l, handler) {
+		update_end(handler, is_gbar);
 	}
 	ErrPrint("End: Set content for object\n");
 

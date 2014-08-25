@@ -32,6 +32,7 @@ SET(BUILD_SOURCE
 	src/desc_parser.c
 	src/dlist.c
 	src/dynamicbox.c
+	src/dynamicbox_internal.c
 	src/file_service.c
 	src/master_rpc.c
 	src/util.c

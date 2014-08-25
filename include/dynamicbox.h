@@ -100,7 +100,7 @@ enum dynamicbox_mouse_event_type {
 };
 
 enum dynamicbox_key_event_type {
-	DBOX_KEY_EVENT_KEY_MASK		= 0x80000000, /**< Mask value for key event */
+	DBOX_KEY_EVENT_MASK		= 0x80000000, /**< Mask value for key event */
 	DBOX_KEY_EVENT_GBAR_MASK	= 0x10000000, /**< Mask value for Glance Bar event */
 	DBOX_KEY_EVENT_DBOX_MASK	= 0x40000000, /**< Mask value for Dynamic Box event */
 
@@ -111,19 +111,19 @@ enum dynamicbox_key_event_type {
 	DBOX_KEY_EVENT_SET		= 0x00000020, /**< Dynamic Box Key, start feeding event by master */
 	DBOX_KEY_EVENT_UNSET	= 0x00000040, /**< Dynamic Box key, stop feeding event by master */
 
-	DBOX_KEY_DOWN			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
-	DBOX_KEY_UP			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
-	DBOX_KEY_SET			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
-	DBOX_KEY_UNSET			= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
-	DBOX_KEY_FOCUS_IN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
-	DBOX_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, foucs out */
-                                                                   
-	DBOX_GBAR_KEY_DOWN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
-	DBOX_GBAR_KEY_UP		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
-	DBOX_GBAR_KEY_SET		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
-	DBOX_GBAR_KEY_UNSET		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
-	DBOX_GBAR_KEY_FOCUS_IN		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
-	DBOX_GBAR_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_KEY_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, focus out */
+	DBOX_KEY_DOWN			= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
+	DBOX_KEY_UP			= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
+	DBOX_KEY_SET			= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
+	DBOX_KEY_UNSET			= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
+	DBOX_KEY_FOCUS_IN		= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
+	DBOX_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, foucs out */
+                                                               
+	DBOX_GBAR_KEY_DOWN		= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
+	DBOX_GBAR_KEY_UP		= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
+	DBOX_GBAR_KEY_SET		= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
+	DBOX_GBAR_KEY_UNSET		= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
+	DBOX_GBAR_KEY_FOCUS_IN		= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
+	DBOX_GBAR_KEY_FOCUS_OUT		= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, focus out */
 
 	DBOX_KEY_EVENT_MAX		= 0xFFFFFFFF /**< Unknown event */
 };
