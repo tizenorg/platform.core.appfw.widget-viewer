@@ -42,6 +42,7 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "conf.h"
+#include "provider_cmd_list.h"
 
 #define EAPI __attribute__((visibility("default")))
 
@@ -448,6 +449,7 @@ static int dbox_acquire_dbox_pixmap(struct dynamicbox *handler, dynamicbox_ret_c
 	struct packet *packet;
 	struct cb_info *cbinfo;
 	const char *id;
+	unsigned int cmd = CMD_LB_ACQUIRE_PIXMAP;
 	int ret;
 
 	id = fb_id(handler->common->dbox.fb);
@@ -455,7 +457,7 @@ static int dbox_acquire_dbox_pixmap(struct dynamicbox *handler, dynamicbox_ret_c
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	packet = packet_create("lb_acquire_pixmap", "ss", handler->common->pkgname, handler->common->id);
+	packet = packet_create((const char *)&cmd, "ss", handler->common->pkgname, handler->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -515,6 +517,7 @@ static int dbox_acquire_gbar_pixmap(struct dynamicbox *handler, dynamicbox_ret_c
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_PD_ACQUIRE_PIXMAP;
 	const char *id;
 	int ret;
 
@@ -523,7 +526,7 @@ static int dbox_acquire_gbar_pixmap(struct dynamicbox *handler, dynamicbox_ret_c
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	packet = packet_create("pd_acquire_pixmap", "ss", handler->common->pkgname, handler->common->id);
+	packet = packet_create((const char *)&cmd, "ss", handler->common->pkgname, handler->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -867,11 +870,12 @@ static int create_real_instance(struct dynamicbox *handler, dynamicbox_ret_cb_t 
 	struct cb_info *cbinfo;
 	struct packet *packet;
 	struct dynamicbox_common *common;
+	unsigned int cmd = CMD_NEW;
 	int ret;
 
 	common = handler->common;
 
-	packet = packet_create("new", "dssssdii",
+	packet = packet_create((const char *)&cmd, "dssssdii",
 				common->timestamp, common->pkgname, common->content,
 				common->cluster, common->category,
 				common->dbox.period, common->dbox.width, common->dbox.height);
@@ -951,6 +955,7 @@ static int dbox_set_visibility(struct dynamicbox *handler, enum dynamicbox_visib
 {
 	struct packet *packet;
 	int need_to_add_job = 0;
+	unsigned int cmd = CMD_CHANGE_VISIBILITY;
 	int ret;
 
 	if (handler->common->visible != DBOX_SHOW && state == DBOX_SHOW) {
@@ -973,7 +978,7 @@ static int dbox_set_visibility(struct dynamicbox *handler, enum dynamicbox_visib
 		return DBOX_STATUS_ERROR_NONE;
 	}
 
-	packet = packet_create_noack("change,visibility", "ssi", handler->common->pkgname, handler->common->id, (int)state);
+	packet = packet_create_noack((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, (int)state);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -1301,6 +1306,7 @@ EAPI double dynamicbox_period(struct dynamicbox *handler)
 EAPI int dynamicbox_set_period(struct dynamicbox *handler, double period, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_SET_PERIOD;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -1333,7 +1339,7 @@ EAPI int dynamicbox_set_period(struct dynamicbox *handler, double period, dynami
 		return DBOX_STATUS_ERROR_ALREADY;
 	}
 
-	packet = packet_create("set_period", "ssd", handler->common->pkgname, handler->common->id, period);
+	packet = packet_create((const char *)&cmd, "ssd", handler->common->pkgname, handler->common->id, period);
 	if (!packet) {
 		ErrPrint("Failed to build a packet %s\n", handler->common->pkgname);
 		return DBOX_STATUS_ERROR_FAULT;
@@ -1424,6 +1430,7 @@ EAPI void *dynamicbox_unset_event_handler(int (*dbox_cb)(struct dynamicbox *, en
 EAPI int dynamicbox_set_update_mode(struct dynamicbox *handler, int active_update, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_UPDATE_MODE;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -1454,7 +1461,7 @@ EAPI int dynamicbox_set_update_mode(struct dynamicbox *handler, int active_updat
 		return DBOX_STATUS_ERROR_PERMISSION_DENIED;
 	}
 
-	packet = packet_create("update_mode", "ssi", handler->common->pkgname, handler->common->id, active_update);
+	packet = packet_create((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, active_update);
 	if (!packet) {
 		return DBOX_STATUS_ERROR_FAULT;
 	}
@@ -1548,9 +1555,10 @@ EAPI int dynamicbox_resize(struct dynamicbox *handler, int type, dynamicbox_ret_
 
 	if (handler->common->refcnt <= 1) {
 		struct packet *packet;
+		unsigned int cmd = CMD_RESIZE;
 
 		/* Only 1 instance */
-		packet = packet_create("resize", "ssii", handler->common->pkgname, handler->common->id, w, h);
+		packet = packet_create((const char *)&cmd, "ssii", handler->common->pkgname, handler->common->id, w, h);
 		if (!packet) {
 			ErrPrint("Failed to build param\n");
 			return DBOX_STATUS_ERROR_FAULT;
@@ -1671,6 +1679,7 @@ EAPI int dynamicbox_click(struct dynamicbox *handler, double x, double y)
 {
 	struct packet *packet;
 	double timestamp;
+	unsigned int cmd = CMD_CLICKED;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -1700,7 +1709,7 @@ EAPI int dynamicbox_click(struct dynamicbox *handler, double x, double y)
 	timestamp = util_timestamp();
 	DbgPrint("CLICKED: %lf\n", timestamp);
 
-	packet = packet_create_noack("clicked", "sssddd", handler->common->pkgname, handler->common->id, "clicked", timestamp, x, y);
+	packet = packet_create_noack((const char *)&cmd, "sssddd", handler->common->pkgname, handler->common->id, "clicked", timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -1710,17 +1719,22 @@ EAPI int dynamicbox_click(struct dynamicbox *handler, double x, double y)
 
 	if (!handler->common->dbox.mouse_event && (handler->common->dbox.type == _DBOX_TYPE_BUFFER || handler->common->dbox.type == _DBOX_TYPE_SCRIPT)) {
 		int ret; /* Shadow variable */
-		ret = send_mouse_event(handler, "lb_mouse_down", x * handler->common->dbox.width, y * handler->common->dbox.height);
+		unsigned int cmd;
+
+		cmd = CMD_LB_MOUSE_DOWN;
+		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
 		if (ret < 0) {
 			ErrPrint("Failed to send Down: %d\n", ret);
 		}
 
-		ret = send_mouse_event(handler, "lb_mouse_move", x * handler->common->dbox.width, y * handler->common->dbox.height);
+		cmd = CMD_LB_MOUSE_MOVE;
+		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
 		if (ret < 0) {
 			ErrPrint("Failed to send Move: %d\n", ret);
 		}
 
-		ret = send_mouse_event(handler, "lb_mouse_up", x * handler->common->dbox.width, y * handler->common->dbox.height);
+		cmd = CMD_LB_MOUSE_UP;
+		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
 		if (ret < 0) {
 			ErrPrint("Failed to send Up: %d\n", ret);
 		}
@@ -1772,6 +1786,7 @@ EAPI int dynamicbox_glance_bar_is_created(struct dynamicbox *handler)
 EAPI int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_CREATE_PD;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -1813,7 +1828,7 @@ EAPI int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, doub
 		}
 	}
 
-	packet = packet_create("create_pd", "ssdd", handler->common->pkgname, handler->common->id, x, y);
+	packet = packet_create((const char *)&cmd, "ssdd", handler->common->pkgname, handler->common->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -1837,6 +1852,7 @@ EAPI int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, doub
 EAPI int dynamicbox_move_glance_bar(struct dynamicbox *handler, double x, double y)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_PD_MOVE;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -1858,7 +1874,7 @@ EAPI int dynamicbox_move_glance_bar(struct dynamicbox *handler, double x, double
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	packet = packet_create_noack("pd_move", "ssdd", handler->common->pkgname, handler->common->id, x, y);
+	packet = packet_create_noack((const char *)&cmd, "ssdd", handler->common->pkgname, handler->common->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -1871,13 +1887,14 @@ EAPI int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb_t cb, void *
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_ACTIVATE_PACKAGE;
 	int ret;
 
 	if (!pkgname) {
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	packet = packet_create("activate_package", "s", pkgname);
+	packet = packet_create((const char *)&cmd, "s", pkgname);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -1902,6 +1919,7 @@ EAPI int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_re
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_DESTROY_PD;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -1947,7 +1965,7 @@ EAPI int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_re
 
 	DbgPrint("[%s]\n", handler->common->pkgname);
 
-	packet = packet_create("destroy_pd", "ss", handler->common->pkgname, handler->common->id);
+	packet = packet_create((const char *)&cmd, "ss", handler->common->pkgname, handler->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -1977,8 +1995,7 @@ EAPI int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbo
 {
 	int w = 1;
 	int h = 1;
-	char cmd[32] = { '\0', };
-	char *ptr = cmd;
+	unsigned int cmd;
 	int ret = 0;	/* re-used for sending event type */
 
 	if (!handler || handler->state != CREATE) {
@@ -2006,57 +2023,94 @@ EAPI int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbo
 			ErrPrint("GBAR is not created\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
-		*ptr++ = 'p';
-		*ptr++ = 'd';
+
 		w = handler->common->gbar.width;
 		h = handler->common->gbar.height;
+
+		switch (type & ~(DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_DBOX_MASK)) {
+		case DBOX_ACCESS_EVENT_HIGHLIGHT:
+			cmd = CMD_PD_ACCESS_HL;
+			ret = (int)info->type;
+			break;
+		case DBOX_ACCESS_EVENT_ACTIVATE:
+			cmd = CMD_PD_ACCESS_ACTIVATE;
+			break;
+		case DBOX_ACCESS_EVENT_ACTION:
+			cmd = CMD_PD_ACCESS_ACTION;
+			ret = (int)info->type;
+			break;
+		case DBOX_ACCESS_EVENT_SCROLL:
+			cmd = CMD_PD_ACCESS_SCROLL;
+			ret = (int)info->type;
+			break;
+		case DBOX_ACCESS_EVENT_VALUE_CHANGE:
+			cmd = CMD_PD_ACCESS_VALUE_CHANGE;
+			break;
+		case DBOX_ACCESS_EVENT_MOUSE:
+			cmd = CMD_PD_ACCESS_MOUSE;
+			ret = (int)info->type;
+			break;
+		case DBOX_ACCESS_EVENT_BACK:
+			cmd = CMD_PD_ACCESS_BACK;
+			break;
+		case DBOX_ACCESS_EVENT_OVER:
+			cmd = CMD_PD_ACCESS_OVER;
+			break;
+		case DBOX_ACCESS_EVENT_READ:
+			cmd = CMD_PD_ACCESS_READ;
+			break;
+		case DBOX_ACCESS_EVENT_ENABLE:
+			cmd = CMD_PD_ACCESS_ENABLE;
+			ret = info->type;
+			break;
+		default:
+			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+
 	} else if (type & DBOX_ACCESS_EVENT_DBOX_MASK) {
-		*ptr++ = 'l';
-		*ptr++ = 'b';
 		w = handler->common->dbox.width;
 		h = handler->common->dbox.height;
+		switch (type & ~(DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_DBOX_MASK)) {
+		case DBOX_ACCESS_EVENT_HIGHLIGHT:
+			cmd = CMD_LB_ACCESS_HL;
+			ret = (int)info->type;
+			break;
+		case DBOX_ACCESS_EVENT_ACTIVATE:
+			cmd = CMD_LB_ACCESS_ACTIVATE;
+			break;
+		case DBOX_ACCESS_EVENT_ACTION:
+			cmd = CMD_LB_ACCESS_ACTION;
+			ret = (int)info->type;
+			break;
+		case DBOX_ACCESS_EVENT_SCROLL:
+			cmd = CMD_LB_ACCESS_SCROLL;
+			ret = (int)info->type;
+			break;
+		case DBOX_ACCESS_EVENT_VALUE_CHANGE:
+			cmd = CMD_LB_ACCESS_VALUE_CHANGE;
+			break;
+		case DBOX_ACCESS_EVENT_MOUSE:
+			cmd = CMD_LB_ACCESS_MOUSE;
+			ret = (int)info->type;
+			break;
+		case DBOX_ACCESS_EVENT_BACK:
+			cmd = CMD_LB_ACCESS_BACK;
+			break;
+		case DBOX_ACCESS_EVENT_OVER:
+			cmd = CMD_LB_ACCESS_OVER;
+			break;
+		case DBOX_ACCESS_EVENT_READ:
+			cmd = CMD_LB_ACCESS_READ;
+			break;
+		case DBOX_ACCESS_EVENT_ENABLE:
+			cmd = CMD_LB_ACCESS_ENABLE;
+			ret = info->type;
+			break;
+		default:
+			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
 	} else {
 		ErrPrint("Invalid event type\n");
-		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-	}
-
-	switch (type & ~(DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_DBOX_MASK)) {
-	case DBOX_ACCESS_EVENT_HIGHLIGHT:
-		strcpy(ptr, "_access_hl");
-		ret = (int)info->type;
-		break;
-	case DBOX_ACCESS_EVENT_ACTIVATE:
-		strcpy(ptr, "_access_activate");
-		break;
-	case DBOX_ACCESS_EVENT_ACTION:
-		strcpy(ptr, "_access_action");
-		ret = (int)info->type;
-		break;
-	case DBOX_ACCESS_EVENT_SCROLL:
-		strcpy(ptr, "_access_scroll");
-		ret = (int)info->type;
-		break;
-	case DBOX_ACCESS_EVENT_VALUE_CHANGE:
-		strcpy(ptr, "_access_value_change");
-		break;
-	case DBOX_ACCESS_EVENT_MOUSE:
-		strcpy(ptr, "_access_mouse");
-		ret = (int)info->type;
-		break;
-	case DBOX_ACCESS_EVENT_BACK:
-		strcpy(ptr, "_access_back");
-		break;
-	case DBOX_ACCESS_EVENT_OVER:
-		strcpy(ptr, "_access_over");
-		break;
-	case DBOX_ACCESS_EVENT_READ:
-		strcpy(ptr, "_access_read");
-		break;
-	case DBOX_ACCESS_EVENT_ENABLE:
-		strcpy(ptr, "_access_enable");
-		ret = info->type;
-		break;
-	default:
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -2064,7 +2118,7 @@ EAPI int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbo
 		cb = default_access_event_cb;
 	}
 
-	ret = send_access_event(handler, cmd, info->x * w, info->y * h, ret);
+	ret = send_access_event(handler, (const char *)&cmd, info->x * w, info->y * h, ret);
 	if (ret == (int)DBOX_STATUS_ERROR_NONE) {
 		handler->cbs.access_event.cb = cb;
 		handler->cbs.access_event.data = data;
@@ -2078,8 +2132,7 @@ EAPI int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox
 {
 	int w = 1;
 	int h = 1;
-	char cmd[32] = { '\0', };
-	char *ptr = cmd;
+	unsigned int cmd;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2128,8 +2181,46 @@ EAPI int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox
 			handler->common->gbar.x = info->x;
 			handler->common->gbar.y = info->y;
 		}
-		*ptr++ = 'p';
-		*ptr++ = 'd';
+
+		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
+		case DBOX_MOUSE_EVENT_ENTER | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_ENTER;
+			break;
+		case DBOX_MOUSE_EVENT_LEAVE | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_LEAVE;
+			break;
+		case DBOX_MOUSE_EVENT_UP | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_UP;
+			break;
+		case DBOX_MOUSE_EVENT_DOWN | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_DOWN;
+			break;
+		case DBOX_MOUSE_EVENT_MOVE | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_MOVE;
+			break;
+		case DBOX_MOUSE_EVENT_SET | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_SET;
+			break;
+		case DBOX_MOUSE_EVENT_UNSET | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_UNSET;
+			break;
+		case DBOX_MOUSE_EVENT_ON_SCROLL | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_ON_SCROLL;
+			break;
+		case DBOX_MOUSE_EVENT_ON_HOLD | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_ON_HOLD;
+			break;
+		case DBOX_MOUSE_EVENT_OFF_SCROLL | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_OFF_SCROLL;
+			break;
+		case DBOX_MOUSE_EVENT_OFF_HOLD | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_PD_MOUSE_OFF_HOLD;
+			break;
+		default:
+			ErrPrint("Invalid event type\n");
+			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+
 	} else if (type & DBOX_MOUSE_EVENT_DBOX_MASK) {
 		int flag = 1;
 
@@ -2156,63 +2247,57 @@ EAPI int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox
 			handler->common->dbox.x = info->x;
 			handler->common->dbox.y = info->y;
 		}
-		*ptr++ = 'l';
-		*ptr++ = 'b';
+
+		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
+		case DBOX_MOUSE_EVENT_ENTER | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_ENTER;
+			break;
+		case DBOX_MOUSE_EVENT_LEAVE | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_LEAVE;
+			break;
+		case DBOX_MOUSE_EVENT_UP | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_UP;
+			break;
+		case DBOX_MOUSE_EVENT_DOWN | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_DOWN;
+			break;
+		case DBOX_MOUSE_EVENT_MOVE | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_MOVE;
+			break;
+		case DBOX_MOUSE_EVENT_SET | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_SET;
+			break;
+		case DBOX_MOUSE_EVENT_UNSET | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_UNSET;
+			break;
+		case DBOX_MOUSE_EVENT_ON_SCROLL | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_ON_SCROLL;
+			break;
+		case DBOX_MOUSE_EVENT_ON_HOLD | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_ON_HOLD;
+			break;
+		case DBOX_MOUSE_EVENT_OFF_SCROLL | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_LB_MOUSE_OFF_SCROLL;
+			break;
+		case DBOX_MOUSE_EVENT_OFF_HOLD | DBOX_MOUSE_EVENT_MASK:
+			cmd = CMD_MOUSE_OFF_HOLD;
+			break;
+		default:
+			ErrPrint("Invalid event type\n");
+			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
 	} else {
 		ErrPrint("Invalid event type\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	/*!
-	 * Must be shorter than 29 bytes.
-	 */
-	switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
-	case DBOX_MOUSE_EVENT_ENTER | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_enter");
-		break;
-	case DBOX_MOUSE_EVENT_LEAVE | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_leave");
-		break;
-	case DBOX_MOUSE_EVENT_UP | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_up");
-		break;
-	case DBOX_MOUSE_EVENT_DOWN | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_down");
-		break;
-	case DBOX_MOUSE_EVENT_MOVE | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_move");
-		break;
-	case DBOX_MOUSE_EVENT_SET | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_set");
-		break;
-	case DBOX_MOUSE_EVENT_UNSET | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_unset");
-		break;
-	case DBOX_MOUSE_EVENT_ON_SCROLL | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_on_scroll");
-		break;
-	case DBOX_MOUSE_EVENT_ON_HOLD | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_on_hold");
-		break;
-	case DBOX_MOUSE_EVENT_OFF_SCROLL | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_off_scroll");
-		break;
-	case DBOX_MOUSE_EVENT_OFF_HOLD | DBOX_MOUSE_EVENT_MASK:
-		strcpy(ptr, "_mouse_off_hold");
-		break;
-	default:
-		ErrPrint("Invalid event type\n");
-		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-	}
-
-	return send_mouse_event(handler, cmd, info->x * w, info->y * h);
+	return send_mouse_event(handler, (const char *)&cmd, info->x * w, info->y * h);
 }
 
 EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data)
 {
-	char cmd[32] = { '\0', };
-	char *ptr = cmd;
 	int ret;
+	unsigned int cmd;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2262,8 +2347,33 @@ EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_k
 			 */
 		}
 
-		*ptr++ = 'p';
-		*ptr++ = 'd';
+		/*!
+		 * Must be short than 29 bytes.
+		 */
+		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
+		case DBOX_KEY_EVENT_FOCUS_IN | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_PD_KEY_FOCUS_IN;
+			break;
+		case DBOX_KEY_EVENT_FOCUS_OUT | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_PD_KEY_FOCUS_OUT;
+			break;
+		case DBOX_KEY_EVENT_UP | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_PD_KEY_UP;
+			break;
+		case DBOX_KEY_EVENT_DOWN | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_PD_KEY_DOWN;
+			break;
+		case DBOX_KEY_EVENT_SET | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_PD_KEY_SET;
+			break;
+		case DBOX_KEY_EVENT_UNSET | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_PD_KEY_UNSET;
+			break;
+		default:
+			ErrPrint("Invalid event type\n");
+			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+
 	} else if (type & DBOX_MOUSE_EVENT_DBOX_MASK) {
 		if (!handler->common->dbox.mouse_event) {
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
@@ -2285,36 +2395,30 @@ EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_k
 			 */
 		}
 
-		*ptr++ = 'l';
-		*ptr++ = 'b';
+		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
+		case DBOX_KEY_EVENT_FOCUS_IN | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_LB_KEY_FOCUS_IN;
+			break;
+		case DBOX_KEY_EVENT_FOCUS_OUT | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_LB_KEY_FOCUS_OUT;
+			break;
+		case DBOX_KEY_EVENT_UP | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_LB_KEY_UP;
+			break;
+		case DBOX_KEY_EVENT_DOWN | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_LB_KEY_DOWN;
+			break;
+		case DBOX_KEY_EVENT_SET | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_LB_KEY_SET;
+			break;
+		case DBOX_KEY_EVENT_UNSET | DBOX_KEY_EVENT_MASK:
+			cmd = CMD_LB_KEY_UNSET;
+			break;
+		default:
+			ErrPrint("Invalid event type\n");
+			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
 	} else {
-		ErrPrint("Invalid event type\n");
-		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-	}
-
-	/*!
-	 * Must be short than 29 bytes.
-	 */
-	switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
-	case DBOX_KEY_EVENT_FOCUS_IN | DBOX_KEY_EVENT_MASK:
-		strcpy(ptr, "_key_focus_in");
-		break;
-	case DBOX_KEY_EVENT_FOCUS_OUT | DBOX_KEY_EVENT_MASK:
-		strcpy(ptr, "_key_focus_out");
-		break;
-	case DBOX_KEY_EVENT_UP | DBOX_KEY_EVENT_MASK:
-		strcpy(ptr, "_key_up");
-		break;
-	case DBOX_KEY_EVENT_DOWN | DBOX_KEY_EVENT_MASK:
-		strcpy(ptr, "_key_down");
-		break;
-	case DBOX_KEY_EVENT_SET | DBOX_KEY_EVENT_MASK:
-		strcpy(ptr, "_key_set");
-		break;
-	case DBOX_KEY_EVENT_UNSET | DBOX_KEY_EVENT_MASK:
-		strcpy(ptr, "_key_unset");
-		break;
-	default:
 		ErrPrint("Invalid event type\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2323,7 +2427,7 @@ EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_k
 		cb = default_key_event_cb;
 	}
 
-	ret = send_key_event(handler, cmd, info->keycode);
+	ret = send_key_event(handler, (const char *)&cmd, info->keycode);
 	if (ret == (int)DBOX_STATUS_ERROR_NONE) {
 		handler->cbs.key_event.cb = cb;
 		handler->cbs.key_event.data = data;
@@ -2437,6 +2541,7 @@ EAPI int dynamicbox_size(struct dynamicbox *handler)
 EAPI int dynamicbox_set_group(struct dynamicbox *handler, const char *cluster, const char *category, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_CHANGE_GROUP;
 	int ret;
 
 	if (!handler) {
@@ -2474,7 +2579,7 @@ EAPI int dynamicbox_set_group(struct dynamicbox *handler, const char *cluster, c
 		return DBOX_STATUS_ERROR_ALREADY;
 	}
 
-	packet = packet_create("change_group", "ssss", handler->common->pkgname, handler->common->id, cluster, category);
+	packet = packet_create((const char *)&cmd, "ssss", handler->common->pkgname, handler->common->id, cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -2604,9 +2709,10 @@ EAPI int dynamicbox_delete_cluster(const char *cluster, dynamicbox_ret_cb_t cb, 
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_DELETE_CLUSTER;
 	int ret;
 
-	packet = packet_create("delete_cluster", "s", cluster);
+	packet = packet_create((const char *)&cmd, "s", cluster);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -2630,9 +2736,10 @@ EAPI int dynamicbox_delete_category(const char *cluster, const char *category, d
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_DELETE_CATEGORY;
 	int ret;
 
-	packet = packet_create("delete_category", "ss", cluster, category);
+	packet = packet_create((const char *)&cmd, "ss", cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -2803,7 +2910,7 @@ EAPI int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, un
 	struct packet *packet;
 	const char *pkgname;
 	const char *id;
-	const char *cmd;
+	unsigned int cmd;
 
 	if (resource_id == 0 /* || handler->state != CREATE */) {
 		ErrPrint("Pixmap is invalid [%d]\n", resource_id);
@@ -2849,7 +2956,7 @@ EAPI int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, un
 			id = handler->common->id;
 		}
 
-		cmd = "pd_release_pixmap";
+		cmd = CMD_PD_RELEASE_PIXMAP;
 	} else {
 		if (!handler) {
 			/*!
@@ -2889,10 +2996,10 @@ EAPI int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, un
 			id = handler->common->id;
 		}
 
-		cmd = "lb_release_pixmap";
+		cmd = CMD_LB_RELEASE_PIXMAP;
 	}
 
-	packet = packet_create_noack(cmd, "ssi", pkgname, id, resource_id);
+	packet = packet_create_noack((const char *)&cmd, "ssi", pkgname, id, resource_id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -3070,6 +3177,7 @@ EAPI int dynamicbox_is_created_by_user(struct dynamicbox *handler)
 EAPI int dynamicbox_set_pinup(struct dynamicbox *handler, int flag, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_PINUP_CHANGED;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -3097,7 +3205,7 @@ EAPI int dynamicbox_set_pinup(struct dynamicbox *handler, int flag, dynamicbox_r
 		return DBOX_STATUS_ERROR_ALREADY;
 	}
 
-	packet = packet_create("pinup_changed", "ssi", handler->common->pkgname, handler->common->id, flag);
+	packet = packet_create((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, flag);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -3222,6 +3330,7 @@ EAPI int dynamicbox_emit_text_signal(struct dynamicbox *handler, const char *emi
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_TEXT_SIGNAL;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -3247,7 +3356,7 @@ EAPI int dynamicbox_emit_text_signal(struct dynamicbox *handler, const char *emi
 		source = "";
 	}
 
-	packet = packet_create("text_signal", "ssssdddd",
+	packet = packet_create((const char *)&cmd, "ssssdddd",
 				handler->common->pkgname, handler->common->id, emission, source, sx, sy, ex, ey);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
@@ -3271,6 +3380,7 @@ EAPI int dynamicbox_emit_text_signal(struct dynamicbox *handler, const char *emi
 EAPI int dynamicbox_subscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_SUBSCRIBE;
 
 	/*!
 	 * \todo
@@ -3278,7 +3388,7 @@ EAPI int dynamicbox_subscribe_group(const char *cluster, const char *category)
 	 * If the group info is not valid, do not send this request
 	 */
 
-	packet = packet_create_noack("subscribe", "ss", cluster ? cluster : "", category ? category : "");
+	packet = packet_create_noack((const char *)&cmd, "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -3290,6 +3400,7 @@ EAPI int dynamicbox_subscribe_group(const char *cluster, const char *category)
 EAPI int dynamicbox_unsubscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_UNSUBSCRIBE;
 
 	/*!
 	 * \todo
@@ -3298,7 +3409,7 @@ EAPI int dynamicbox_unsubscribe_group(const char *cluster, const char *category)
 	 * AND Check the subscribed or not too
 	 */
 
-	packet = packet_create_noack("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
+	packet = packet_create_noack((const char *)&cmd, "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -3310,6 +3421,7 @@ EAPI int dynamicbox_unsubscribe_group(const char *cluster, const char *category)
 EAPI int dynamicbox_refresh(struct dynamicbox *handler, int force)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_UPDATE;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3326,7 +3438,7 @@ EAPI int dynamicbox_refresh(struct dynamicbox *handler, int force)
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	packet = packet_create_noack("update", "ssi", handler->common->pkgname, handler->common->id, force);
+	packet = packet_create_noack((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, force);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -3338,13 +3450,14 @@ EAPI int dynamicbox_refresh(struct dynamicbox *handler, int force)
 EAPI int dynamicbox_refresh_group(const char *cluster, const char *category, int force)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_REFRESH_GROUP;
 
 	if (!cluster || !category) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	packet = packet_create_noack("refresh_group", "ssi", cluster, category, force);
+	packet = packet_create_noack((const char *)&cmd, "ssi", cluster, category, force);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -3420,8 +3533,9 @@ EAPI enum dynamicbox_visible_state dynamicbox_visibility(struct dynamicbox *hand
 EAPI int dynamicbox_viewer_set_paused(void)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_CLIENT_PAUSED;
 
-	packet = packet_create_noack("client_paused", "d", util_timestamp());
+	packet = packet_create_noack((const char *)&cmd, "d", util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a pause packet\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -3433,8 +3547,9 @@ EAPI int dynamicbox_viewer_set_paused(void)
 EAPI int dynamicbox_viewer_set_resumed(void)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_CLIENT_RESUMED;
 
-	packet = packet_create_noack("client_resumed", "d", util_timestamp());
+	packet = packet_create_noack((const char *)&cmd, "d", util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a resume packet\n");
 		return DBOX_STATUS_ERROR_FAULT;

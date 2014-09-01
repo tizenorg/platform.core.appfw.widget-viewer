@@ -45,6 +45,7 @@
 #include "conf.h"
 #include "file_service.h"
 #include "dlist.h"
+#include "provider_cmd_list.h"
 
 int errno;
 
@@ -1561,20 +1562,52 @@ static struct method s_table[] = {
 		.handler = master_extra_info,
 	},
 	{
-		.cmd = "pd_created",
-		.handler = master_gbar_created,
-	},
-	{
-		.cmd = "pd_destroyed",
-		.handler = master_gbar_destroyed,
+		.cmd = "deleted", /* pkgname, id, timestamp, ret */
+		.handler = master_deleted,
 	},
 	{
 		.cmd = "fault_package", /* pkgname, id, function, ret */
 		.handler = master_fault_package,
 	},
 	{
-		.cmd = "deleted", /* pkgname, id, timestamp, ret */
-		.handler = master_deleted,
+		.cmd = "scroll",
+		.handler = master_hold_scroll,
+	},
+	{
+		.cmd = "lb_update_begin",
+		.handler = master_dbox_update_begin,
+	},
+	{
+		.cmd = "lb_update_end",
+		.handler = master_dbox_update_end,
+	},
+	{
+		.cmd = "pd_update_begin",
+		.handler = master_gbar_update_begin,
+	},
+	{
+		.cmd = "pd_update_end",
+		.handler = master_gbar_update_end,
+	},
+	{
+		.cmd = "access_status",
+		.handler = master_access_status,
+	},
+	{
+		.cmd = "key_status",
+		.handler = master_key_status,
+	},
+	{
+		.cmd = "close_pd",
+		.handler = master_request_close_gbar,
+	},
+	{
+		.cmd = "pd_created",
+		.handler = master_gbar_created,
+	},
+	{
+		.cmd = "pd_destroyed",
+		.handler = master_gbar_destroyed,
 	},
 	{
 		.cmd = "created", /* timestamp, pkgname, id, content, dbox_w, dbox_h, gbar_w, gbar_h, cluster, category, dbox_file, gbar_file, auto_launch, priority, size_list, is_user, pinup_supported, text_dbox, text_gbar, period, ret */
@@ -1596,47 +1629,11 @@ static struct method s_table[] = {
 		.cmd = "pinup",
 		.handler = master_pinup,
 	},
-	{
-		.cmd = "scroll",
-		.handler = master_hold_scroll,
-	},
 
 	{
 		.cmd = "update_mode",
 		.handler = master_update_mode,
 	},
-
-	{
-		.cmd = "lb_update_begin",
-		.handler = master_dbox_update_begin,
-	},
-	{
-		.cmd = "lb_update_end",
-		.handler = master_dbox_update_end,
-	},
-
-	{
-		.cmd = "pd_update_begin",
-		.handler = master_gbar_update_begin,
-	},
-	{
-		.cmd = "pd_update_end",
-		.handler = master_gbar_update_end,
-	},
-
-	{
-		.cmd = "access_status",
-		.handler = master_access_status,
-	},
-	{
-		.cmd = "key_status",
-		.handler = master_key_status,
-	},
-	{
-		.cmd = "close_pd",
-		.handler = master_request_close_gbar,
-	},
-
 	{
 		.cmd = NULL,
 		.handler = NULL,
@@ -1663,6 +1660,7 @@ static void acquire_cb(struct dynamicbox *handler, const struct packet *result, 
 static inline int make_connection(void)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_ACQUIRE;
 	int ret;
 
 	DbgPrint("Let's making connection!\n");
@@ -1673,7 +1671,7 @@ static inline int make_connection(void)
 		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
-	packet = packet_create("acquire", "d", util_timestamp());
+	packet = packet_create((const char *)&cmd, "d", util_timestamp());
 	if (!packet) {
 		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
