@@ -3724,6 +3724,12 @@ EAPI int dynamicbox_set_option(enum dynamicbox_option_type option, int state)
 	case DBOX_OPTION_SHARED_CONTENT:
 		conf_set_shared_content(state);
 		break;
+	case DBOX_OPTION_DIRECT_UPDATE:
+		if (s_info.init_count) {
+			DbgPrint("Already intialized, this option is not applied\n");
+		}
+		conf_set_direct_update(state);
+		break;
 	default:
 		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		break;
@@ -3745,6 +3751,9 @@ EAPI int dynamicbox_option(enum dynamicbox_option_type option)
 		break;
 	case DBOX_OPTION_SHARED_CONTENT:
 		ret = conf_shared_content();
+		break;
+	case LB_OPTION_DIRECT_UPDATE:
+		ret = conf_direct_update();
 		break;
 	default:
 		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;

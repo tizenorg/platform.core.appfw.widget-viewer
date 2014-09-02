@@ -237,6 +237,7 @@ enum dynamicbox_option_type {
 	DBOX_OPTION_MANUAL_SYNC,		/**< Sync frame manually */
 	DBOX_OPTION_FRAME_DROP_FOR_RESIZE,	/**< Drop frames while resizing */
 	DBOX_OPTION_SHARED_CONTENT,		/**< Use only one real instance for multiple fake instances if user creates dbox for same content */
+	DBOX_OPTION_DIRECT_UPDATE,		/**< Use the private socket for receiving updated event */
 
 	DBOX_OPTION_ERROR = 0xFFFFFFFF		/**< To specify the size of this enumeration type */
 };

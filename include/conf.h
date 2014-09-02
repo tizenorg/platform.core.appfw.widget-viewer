@@ -38,5 +38,7 @@ extern void conf_set_shared_content(int flag);
 extern int conf_shared_content(void);
 extern double conf_event_filter(void);
 extern void conf_set_event_filter(double filter);
+extern void conf_set_direct_update(int flag);
+extern int conf_direct_update(void);
 
 /* End of a file */

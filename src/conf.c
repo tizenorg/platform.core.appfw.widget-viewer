@@ -4,15 +4,27 @@ static struct info {
 	int manual_sync;
 	int frame_drop_for_resizing;
 	int shared_content;
+	int direct_update;
 
 	double event_filter;
 } s_info = {
 	.manual_sync = 0,
 	.frame_drop_for_resizing = 1,
 	.shared_content = 0,
+	.direct_update = 0,
 
 	.event_filter = 0.01f,
 };
+
+void conf_set_direct_update(int flag)
+{
+	s_info.direct_update = flag;
+}
+
+int conf_direct_update(void)
+{
+	return s_info.direct_update;
+}
 
 void conf_set_manual_sync(int flag)
 {
