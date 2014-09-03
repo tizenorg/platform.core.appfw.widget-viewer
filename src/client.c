@@ -1766,11 +1766,11 @@ static int disconnected_cb(int handle, void *data)
 static struct method s_direct_table[] = {
 	{
 		.cmd = "lb_updated", /* pkgname, id, lb_w, lb_h, priority, ret */
-		.handler = master_lb_updated,
+		.handler = master_dbox_updated,
 	},
 	{
 		.cmd = "pd_updated", /* pkgname, id, descfile, pd_w, pd_h, ret */
-		.handler = master_pd_updated,
+		.handler = master_gbar_updated,
 	},
 	{
 		.cmd = NULL,

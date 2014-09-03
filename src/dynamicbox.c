@@ -449,7 +449,7 @@ static int dbox_acquire_dbox_pixmap(struct dynamicbox *handler, dynamicbox_ret_c
 	struct packet *packet;
 	struct cb_info *cbinfo;
 	const char *id;
-	unsigned int cmd = CMD_LB_ACQUIRE_PIXMAP;
+	unsigned int cmd = CMD_DBOX_ACQUIRE_PIXMAP;
 	int ret;
 
 	id = fb_id(handler->common->dbox.fb);
@@ -517,7 +517,7 @@ static int dbox_acquire_gbar_pixmap(struct dynamicbox *handler, dynamicbox_ret_c
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
-	unsigned int cmd = CMD_PD_ACQUIRE_PIXMAP;
+	unsigned int cmd = CMD_GBAR_ACQUIRE_PIXMAP;
 	const char *id;
 	int ret;
 
@@ -1721,19 +1721,19 @@ EAPI int dynamicbox_click(struct dynamicbox *handler, double x, double y)
 		int ret; /* Shadow variable */
 		unsigned int cmd;
 
-		cmd = CMD_LB_MOUSE_DOWN;
+		cmd = CMD_DBOX_MOUSE_DOWN;
 		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
 		if (ret < 0) {
 			ErrPrint("Failed to send Down: %d\n", ret);
 		}
 
-		cmd = CMD_LB_MOUSE_MOVE;
+		cmd = CMD_DBOX_MOUSE_MOVE;
 		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
 		if (ret < 0) {
 			ErrPrint("Failed to send Move: %d\n", ret);
 		}
 
-		cmd = CMD_LB_MOUSE_UP;
+		cmd = CMD_DBOX_MOUSE_UP;
 		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
 		if (ret < 0) {
 			ErrPrint("Failed to send Up: %d\n", ret);
@@ -1786,7 +1786,7 @@ EAPI int dynamicbox_glance_bar_is_created(struct dynamicbox *handler)
 EAPI int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
-	unsigned int cmd = CMD_CREATE_PD;
+	unsigned int cmd = CMD_CREATE_GBAR;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -1852,7 +1852,7 @@ EAPI int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, doub
 EAPI int dynamicbox_move_glance_bar(struct dynamicbox *handler, double x, double y)
 {
 	struct packet *packet;
-	unsigned int cmd = CMD_PD_MOVE;
+	unsigned int cmd = CMD_GBAR_MOVE;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -1919,7 +1919,7 @@ EAPI int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_re
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
-	unsigned int cmd = CMD_DESTROY_PD;
+	unsigned int cmd = CMD_DESTROY_GBAR;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -2029,38 +2029,38 @@ EAPI int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbo
 
 		switch (type & ~(DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_DBOX_MASK)) {
 		case DBOX_ACCESS_EVENT_HIGHLIGHT:
-			cmd = CMD_PD_ACCESS_HL;
+			cmd = CMD_GBAR_ACCESS_HL;
 			ret = (int)info->type;
 			break;
 		case DBOX_ACCESS_EVENT_ACTIVATE:
-			cmd = CMD_PD_ACCESS_ACTIVATE;
+			cmd = CMD_GBAR_ACCESS_ACTIVATE;
 			break;
 		case DBOX_ACCESS_EVENT_ACTION:
-			cmd = CMD_PD_ACCESS_ACTION;
+			cmd = CMD_GBAR_ACCESS_ACTION;
 			ret = (int)info->type;
 			break;
 		case DBOX_ACCESS_EVENT_SCROLL:
-			cmd = CMD_PD_ACCESS_SCROLL;
+			cmd = CMD_GBAR_ACCESS_SCROLL;
 			ret = (int)info->type;
 			break;
 		case DBOX_ACCESS_EVENT_VALUE_CHANGE:
-			cmd = CMD_PD_ACCESS_VALUE_CHANGE;
+			cmd = CMD_GBAR_ACCESS_VALUE_CHANGE;
 			break;
 		case DBOX_ACCESS_EVENT_MOUSE:
-			cmd = CMD_PD_ACCESS_MOUSE;
+			cmd = CMD_GBAR_ACCESS_MOUSE;
 			ret = (int)info->type;
 			break;
 		case DBOX_ACCESS_EVENT_BACK:
-			cmd = CMD_PD_ACCESS_BACK;
+			cmd = CMD_GBAR_ACCESS_BACK;
 			break;
 		case DBOX_ACCESS_EVENT_OVER:
-			cmd = CMD_PD_ACCESS_OVER;
+			cmd = CMD_GBAR_ACCESS_OVER;
 			break;
 		case DBOX_ACCESS_EVENT_READ:
-			cmd = CMD_PD_ACCESS_READ;
+			cmd = CMD_GBAR_ACCESS_READ;
 			break;
 		case DBOX_ACCESS_EVENT_ENABLE:
-			cmd = CMD_PD_ACCESS_ENABLE;
+			cmd = CMD_GBAR_ACCESS_ENABLE;
 			ret = info->type;
 			break;
 		default:
@@ -2072,38 +2072,38 @@ EAPI int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbo
 		h = handler->common->dbox.height;
 		switch (type & ~(DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_DBOX_MASK)) {
 		case DBOX_ACCESS_EVENT_HIGHLIGHT:
-			cmd = CMD_LB_ACCESS_HL;
+			cmd = CMD_DBOX_ACCESS_HL;
 			ret = (int)info->type;
 			break;
 		case DBOX_ACCESS_EVENT_ACTIVATE:
-			cmd = CMD_LB_ACCESS_ACTIVATE;
+			cmd = CMD_DBOX_ACCESS_ACTIVATE;
 			break;
 		case DBOX_ACCESS_EVENT_ACTION:
-			cmd = CMD_LB_ACCESS_ACTION;
+			cmd = CMD_DBOX_ACCESS_ACTION;
 			ret = (int)info->type;
 			break;
 		case DBOX_ACCESS_EVENT_SCROLL:
-			cmd = CMD_LB_ACCESS_SCROLL;
+			cmd = CMD_DBOX_ACCESS_SCROLL;
 			ret = (int)info->type;
 			break;
 		case DBOX_ACCESS_EVENT_VALUE_CHANGE:
-			cmd = CMD_LB_ACCESS_VALUE_CHANGE;
+			cmd = CMD_DBOX_ACCESS_VALUE_CHANGE;
 			break;
 		case DBOX_ACCESS_EVENT_MOUSE:
-			cmd = CMD_LB_ACCESS_MOUSE;
+			cmd = CMD_DBOX_ACCESS_MOUSE;
 			ret = (int)info->type;
 			break;
 		case DBOX_ACCESS_EVENT_BACK:
-			cmd = CMD_LB_ACCESS_BACK;
+			cmd = CMD_DBOX_ACCESS_BACK;
 			break;
 		case DBOX_ACCESS_EVENT_OVER:
-			cmd = CMD_LB_ACCESS_OVER;
+			cmd = CMD_DBOX_ACCESS_OVER;
 			break;
 		case DBOX_ACCESS_EVENT_READ:
-			cmd = CMD_LB_ACCESS_READ;
+			cmd = CMD_DBOX_ACCESS_READ;
 			break;
 		case DBOX_ACCESS_EVENT_ENABLE:
-			cmd = CMD_LB_ACCESS_ENABLE;
+			cmd = CMD_DBOX_ACCESS_ENABLE;
 			ret = info->type;
 			break;
 		default:
@@ -2184,37 +2184,37 @@ EAPI int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox
 
 		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
 		case DBOX_MOUSE_EVENT_ENTER | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_ENTER;
+			cmd = CMD_GBAR_MOUSE_ENTER;
 			break;
 		case DBOX_MOUSE_EVENT_LEAVE | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_LEAVE;
+			cmd = CMD_GBAR_MOUSE_LEAVE;
 			break;
 		case DBOX_MOUSE_EVENT_UP | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_UP;
+			cmd = CMD_GBAR_MOUSE_UP;
 			break;
 		case DBOX_MOUSE_EVENT_DOWN | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_DOWN;
+			cmd = CMD_GBAR_MOUSE_DOWN;
 			break;
 		case DBOX_MOUSE_EVENT_MOVE | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_MOVE;
+			cmd = CMD_GBAR_MOUSE_MOVE;
 			break;
 		case DBOX_MOUSE_EVENT_SET | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_SET;
+			cmd = CMD_GBAR_MOUSE_SET;
 			break;
 		case DBOX_MOUSE_EVENT_UNSET | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_UNSET;
+			cmd = CMD_GBAR_MOUSE_UNSET;
 			break;
 		case DBOX_MOUSE_EVENT_ON_SCROLL | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_ON_SCROLL;
+			cmd = CMD_GBAR_MOUSE_ON_SCROLL;
 			break;
 		case DBOX_MOUSE_EVENT_ON_HOLD | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_ON_HOLD;
+			cmd = CMD_GBAR_MOUSE_ON_HOLD;
 			break;
 		case DBOX_MOUSE_EVENT_OFF_SCROLL | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_OFF_SCROLL;
+			cmd = CMD_GBAR_MOUSE_OFF_SCROLL;
 			break;
 		case DBOX_MOUSE_EVENT_OFF_HOLD | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_PD_MOUSE_OFF_HOLD;
+			cmd = CMD_GBAR_MOUSE_OFF_HOLD;
 			break;
 		default:
 			ErrPrint("Invalid event type\n");
@@ -2250,37 +2250,37 @@ EAPI int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox
 
 		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
 		case DBOX_MOUSE_EVENT_ENTER | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_ENTER;
+			cmd = CMD_DBOX_MOUSE_ENTER;
 			break;
 		case DBOX_MOUSE_EVENT_LEAVE | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_LEAVE;
+			cmd = CMD_DBOX_MOUSE_LEAVE;
 			break;
 		case DBOX_MOUSE_EVENT_UP | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_UP;
+			cmd = CMD_DBOX_MOUSE_UP;
 			break;
 		case DBOX_MOUSE_EVENT_DOWN | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_DOWN;
+			cmd = CMD_DBOX_MOUSE_DOWN;
 			break;
 		case DBOX_MOUSE_EVENT_MOVE | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_MOVE;
+			cmd = CMD_DBOX_MOUSE_MOVE;
 			break;
 		case DBOX_MOUSE_EVENT_SET | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_SET;
+			cmd = CMD_DBOX_MOUSE_SET;
 			break;
 		case DBOX_MOUSE_EVENT_UNSET | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_UNSET;
+			cmd = CMD_DBOX_MOUSE_UNSET;
 			break;
 		case DBOX_MOUSE_EVENT_ON_SCROLL | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_ON_SCROLL;
+			cmd = CMD_DBOX_MOUSE_ON_SCROLL;
 			break;
 		case DBOX_MOUSE_EVENT_ON_HOLD | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_ON_HOLD;
+			cmd = CMD_DBOX_MOUSE_ON_HOLD;
 			break;
 		case DBOX_MOUSE_EVENT_OFF_SCROLL | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_LB_MOUSE_OFF_SCROLL;
+			cmd = CMD_DBOX_MOUSE_OFF_SCROLL;
 			break;
 		case DBOX_MOUSE_EVENT_OFF_HOLD | DBOX_MOUSE_EVENT_MASK:
-			cmd = CMD_MOUSE_OFF_HOLD;
+			cmd = CMD_DBOX_MOUSE_OFF_HOLD;
 			break;
 		default:
 			ErrPrint("Invalid event type\n");
@@ -2352,22 +2352,22 @@ EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_k
 		 */
 		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
 		case DBOX_KEY_EVENT_FOCUS_IN | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_PD_KEY_FOCUS_IN;
+			cmd = CMD_GBAR_KEY_FOCUS_IN;
 			break;
 		case DBOX_KEY_EVENT_FOCUS_OUT | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_PD_KEY_FOCUS_OUT;
+			cmd = CMD_GBAR_KEY_FOCUS_OUT;
 			break;
 		case DBOX_KEY_EVENT_UP | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_PD_KEY_UP;
+			cmd = CMD_GBAR_KEY_UP;
 			break;
 		case DBOX_KEY_EVENT_DOWN | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_PD_KEY_DOWN;
+			cmd = CMD_GBAR_KEY_DOWN;
 			break;
 		case DBOX_KEY_EVENT_SET | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_PD_KEY_SET;
+			cmd = CMD_GBAR_KEY_SET;
 			break;
 		case DBOX_KEY_EVENT_UNSET | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_PD_KEY_UNSET;
+			cmd = CMD_GBAR_KEY_UNSET;
 			break;
 		default:
 			ErrPrint("Invalid event type\n");
@@ -2397,22 +2397,22 @@ EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_k
 
 		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
 		case DBOX_KEY_EVENT_FOCUS_IN | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_LB_KEY_FOCUS_IN;
+			cmd = CMD_DBOX_KEY_FOCUS_IN;
 			break;
 		case DBOX_KEY_EVENT_FOCUS_OUT | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_LB_KEY_FOCUS_OUT;
+			cmd = CMD_DBOX_KEY_FOCUS_OUT;
 			break;
 		case DBOX_KEY_EVENT_UP | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_LB_KEY_UP;
+			cmd = CMD_DBOX_KEY_UP;
 			break;
 		case DBOX_KEY_EVENT_DOWN | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_LB_KEY_DOWN;
+			cmd = CMD_DBOX_KEY_DOWN;
 			break;
 		case DBOX_KEY_EVENT_SET | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_LB_KEY_SET;
+			cmd = CMD_DBOX_KEY_SET;
 			break;
 		case DBOX_KEY_EVENT_UNSET | DBOX_KEY_EVENT_MASK:
-			cmd = CMD_LB_KEY_UNSET;
+			cmd = CMD_DBOX_KEY_UNSET;
 			break;
 		default:
 			ErrPrint("Invalid event type\n");
@@ -2956,7 +2956,7 @@ EAPI int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, un
 			id = handler->common->id;
 		}
 
-		cmd = CMD_PD_RELEASE_PIXMAP;
+		cmd = CMD_GBAR_RELEASE_PIXMAP;
 	} else {
 		if (!handler) {
 			/*!
@@ -2996,7 +2996,7 @@ EAPI int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, un
 			id = handler->common->id;
 		}
 
-		cmd = CMD_LB_RELEASE_PIXMAP;
+		cmd = CMD_DBOX_RELEASE_PIXMAP;
 	}
 
 	packet = packet_create_noack((const char *)&cmd, "ssi", pkgname, id, resource_id);
@@ -3752,7 +3752,7 @@ EAPI int dynamicbox_option(enum dynamicbox_option_type option)
 	case DBOX_OPTION_SHARED_CONTENT:
 		ret = conf_shared_content();
 		break;
-	case LB_OPTION_DIRECT_UPDATE:
+	case DBOX_OPTION_DIRECT_UPDATE:
 		ret = conf_direct_update();
 		break;
 	default:

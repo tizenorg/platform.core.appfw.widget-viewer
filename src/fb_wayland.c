@@ -28,7 +28,7 @@
 #include <sys/ipc.h>
 
 #include <dlog.h>
-#include <livebox-errno.h> /* For error code */
+#include <dynamicbox_errno.h> /* For error code */
 
 #include "debug.h"
 #include "util.h"
