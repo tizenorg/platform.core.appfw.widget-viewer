@@ -100,7 +100,7 @@ struct block {
 	const char *filename;
 };
 
-static int update_text(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int update_text(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -117,7 +117,7 @@ static int update_text(struct dynamicbox *handle, struct block *block, int is_gb
 	return 0;
 }
 
-static int update_image(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int update_image(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -134,7 +134,7 @@ static int update_image(struct dynamicbox *handle, struct block *block, int is_g
 	return 0;
 }
 
-static int update_script(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int update_script(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -151,7 +151,7 @@ static int update_script(struct dynamicbox *handle, struct block *block, int is_
 	return 0;
 }
 
-static int update_signal(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int update_signal(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -168,7 +168,7 @@ static int update_signal(struct dynamicbox *handle, struct block *block, int is_
 	return 0;
 }
 
-static int update_drag(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int update_drag(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	double dx, dy;
 	struct dynamicbox_script_operators *ops;
@@ -191,7 +191,7 @@ static int update_drag(struct dynamicbox *handle, struct block *block, int is_gb
 	return 0;
 }
 
-static int update_info(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int update_info(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -221,7 +221,7 @@ static int update_info(struct dynamicbox *handle, struct block *block, int is_gb
 	return 0;
 }
 
-static int update_access(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int update_access(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -238,7 +238,7 @@ static int update_access(struct dynamicbox *handle, struct block *block, int is_
 	return 0;
 }
 
-static int operate_access(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int operate_access(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -255,7 +255,7 @@ static int operate_access(struct dynamicbox *handle, struct block *block, int is
 	return 0;
 }
 
-static int update_color(struct dynamicbox *handle, struct block *block, int is_gbar)
+static int update_color(dynamicbox_h handle, struct block *block, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -272,7 +272,7 @@ static int update_color(struct dynamicbox *handle, struct block *block, int is_g
 	return 0;
 }
 
-static inline int update_begin(struct dynamicbox *handle, int is_gbar)
+static inline int update_begin(dynamicbox_h handle, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -284,7 +284,7 @@ static inline int update_begin(struct dynamicbox *handle, int is_gbar)
 	return 0;
 }
 
-static inline int update_end(struct dynamicbox *handle, int is_gbar)
+static inline int update_end(dynamicbox_h handle, int is_gbar)
 {
 	struct dynamicbox_script_operators *ops;
 
@@ -302,9 +302,9 @@ static inline void delete_block(struct block *block)
 	free(block);
 }
 
-static inline void consuming_parsed_block(struct dynamicbox *handle, int is_gbar, struct block *block)
+static inline void consuming_parsed_block(dynamicbox_h handle, int is_gbar, struct block *block)
 {
-	typedef int (*update_function_t)(struct dynamicbox *handle, struct block *block, int is_gbar);
+	typedef int (*update_function_t)(dynamicbox_h handle, struct block *block, int is_gbar);
 	static update_function_t updators[] = {
 		update_access,
 		operate_access,
@@ -404,7 +404,7 @@ int parse_desc(struct dynamicbox_common *common, const char *filename, int is_gb
 	struct dlist *l;
 	struct dlist *n;
 	struct dlist *handle_iterator;
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	enum state {
 		BEGIN,
 		FIELD,

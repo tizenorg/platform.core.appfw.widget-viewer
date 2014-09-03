@@ -86,7 +86,7 @@ static struct packet *master_fault_package(pid_t pid, int handle, const struct p
 static struct packet *master_hold_scroll(pid_t pid, int handle, const struct packet *packet)
 {
 	struct dynamicbox_common *common;
-	struct dynamicbox *dynamicbox;
+	dynamicbox_h dynamicbox;
 	const char *pkgname;
 	const char *id;
 	int seize;
@@ -120,7 +120,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 	const char *pkgname;
 	const char *id;
 	const char *content;
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dlist *l;
 	struct dlist *n;
 	struct dynamicbox_common *common;
@@ -182,7 +182,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	const char *pkgname;
 	const char *id;
 	double timestamp;
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	struct dlist *n;
@@ -289,7 +289,7 @@ out:
 
 static struct packet *master_dbox_update_begin(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	const char *pkgname;
 	const char *id;
@@ -350,7 +350,7 @@ out:
 
 static struct packet *master_gbar_update_begin(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	const char *pkgname;
 	const char *id;
@@ -396,7 +396,7 @@ out:
 
 static struct packet *master_dbox_update_end(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	const char *pkgname;
 	const char *id;
@@ -434,7 +434,7 @@ out:
 
 static struct packet *master_key_status(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	const char *pkgname;
@@ -483,7 +483,7 @@ out:
 
 static struct packet *master_request_close_gbar(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	const char *pkgname;
@@ -524,7 +524,7 @@ out:
 
 static struct packet *master_access_status(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	const char *pkgname;
@@ -570,7 +570,7 @@ out:
 
 static struct packet *master_gbar_update_end(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	const char *pkgname;
 	const char *id;
@@ -617,7 +617,7 @@ static struct packet *master_extra_info(pid_t pid, int handle, const struct pack
 	const char *name;
 	double priority;
 	int ret;
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	struct dlist *n;
@@ -667,7 +667,7 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 	const char *id;
 	const char *fbfile;
 	const char *safe_file;
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	int dbox_w;
 	int dbox_h;
@@ -751,7 +751,7 @@ out:
 
 static struct packet *master_gbar_created(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	const char *pkgname;
 	const char *id;
@@ -852,7 +852,7 @@ out:
 
 static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dlist *l;
 	struct dynamicbox_common *common;
 	const char *pkgname;
@@ -943,7 +943,7 @@ static struct packet *master_gbar_updated(pid_t pid, int handle, const struct pa
 	const char *descfile;
 	const char *fbfile;
 	int ret;
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	int gbar_w;
@@ -1010,7 +1010,7 @@ out:
 
 static struct packet *master_update_mode(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	struct dlist *n;
@@ -1070,7 +1070,7 @@ out:
 
 static struct packet *master_size_changed(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	const char *pkgname;
 	const char *id;
@@ -1175,7 +1175,7 @@ out:
 
 static struct packet *master_period_changed(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	struct dlist *n;
@@ -1231,7 +1231,7 @@ out:
 
 static struct packet *master_group_changed(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 	struct dlist *n;
@@ -1293,7 +1293,7 @@ out:
 
 static struct packet *master_created(pid_t pid, int handle, const struct packet *packet)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
 
@@ -1647,7 +1647,7 @@ static struct method s_table[] = {
 	},
 };
 
-static void acquire_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void acquire_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	if (!result) {
 		DbgPrint("Result packet is not valid\n");

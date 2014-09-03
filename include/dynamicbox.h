@@ -37,7 +37,7 @@ extern "C" {
  * @brief Structure definition for a Dynamic Box instance.
  * @since_tizen 2.3
  */
-struct dynamicbox;
+typedef struct dynamicbox *dynamicbox_h;
 
 /**
  * @internal
@@ -314,20 +314,20 @@ struct dynamicbox_key_event_info {
  * @since_tizen 2.3
  */
 struct dynamicbox_script_operators {
-	int (*update_begin)(struct dynamicbox *handle); /**< Content parser is started */
-	int (*update_end)(struct dynamicbox *handle); /**< Content parser is finished */
+	int (*update_begin)(dynamicbox_h handle); /**< Content parser is started */
+	int (*update_end)(dynamicbox_h handle); /**< Content parser is finished */
 
 	/* Listed functions will be called when parser meets each typed content */
-	int (*update_text)(struct dynamicbox *handle, const char *id, const char *part, const char *data); /**< Update text content */
-	int (*update_image)(struct dynamicbox *handle, const char *id, const char *part, const char *data, const char *option); /**< Update image content */
-	int (*update_script)(struct dynamicbox *handle, const char *id, const char *new_id, const char *part, const char *file, const char *group); /**< Update script content */
-	int (*update_signal)(struct dynamicbox *handle, const char *id, const char *emission, const char *signal); /**< Update signal */
-	int (*update_drag)(struct dynamicbox *handle, const char *id, const char *part, double dx, double dy); /**< Update drag info */
-	int (*update_info_size)(struct dynamicbox *handle, const char *id, int w, int h); /**< Update content size */
-	int (*update_info_category)(struct dynamicbox *handle, const char *id, const char *category); /**< Update content category info */
-	int (*update_access)(struct dynamicbox *handle, const char *id, const char *part, const char *text, const char *option); /**< Update access information */
-	int (*operate_access)(struct dynamicbox *handle, const char *id, const char *part, const char *operation, const char *option); /**< Update access operation */
-	int (*update_color)(struct dynamicbox *handle, const char *id, const char *part, const char *data); /**< Update color */
+	int (*update_text)(dynamicbox_h handle, const char *id, const char *part, const char *data); /**< Update text content */
+	int (*update_image)(dynamicbox_h handle, const char *id, const char *part, const char *data, const char *option); /**< Update image content */
+	int (*update_script)(dynamicbox_h handle, const char *id, const char *new_id, const char *part, const char *file, const char *group); /**< Update script content */
+	int (*update_signal)(dynamicbox_h handle, const char *id, const char *emission, const char *signal); /**< Update signal */
+	int (*update_drag)(dynamicbox_h handle, const char *id, const char *part, double dx, double dy); /**< Update drag info */
+	int (*update_info_size)(dynamicbox_h handle, const char *id, int w, int h); /**< Update content size */
+	int (*update_info_category)(dynamicbox_h handle, const char *id, const char *category); /**< Update content category info */
+	int (*update_access)(dynamicbox_h handle, const char *id, const char *part, const char *text, const char *option); /**< Update access information */
+	int (*operate_access)(dynamicbox_h handle, const char *id, const char *part, const char *operation, const char *option); /**< Update access operation */
+	int (*update_color)(dynamicbox_h handle, const char *id, const char *part, const char *data); /**< Update color */
 };
 
 /**
@@ -353,7 +353,7 @@ struct dynamicbox_script_operators {
  * @see dynamicbox_acquire_resource_id()
  * @see dynamicbox_set_update_mode()
  */
-typedef void (*dynamicbox_ret_cb_t)(struct dynamicbox *handle, int ret, void *data);
+typedef void (*dynamicbox_ret_cb_t)(dynamicbox_h handle, int ret, void *data);
 
 /**
  * @internal
@@ -463,7 +463,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  * @retval @c NULL if it fails to create a handle
  * @see dynamicbox_ret_cb_t
  */
-extern struct dynamicbox *dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, dynamicbox_ret_cb_t cb, void *data);
+extern dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -484,7 +484,7 @@ extern struct dynamicbox *dynamicbox_add(const char *pkgname, const char *conten
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent, return callack will be called
  * @see dynamicbox_ret_cb_t
  */
-extern int dynamicbox_del(struct dynamicbox *handler, int type, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_del(dynamicbox_h handler, int type, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -501,7 +501,7 @@ extern int dynamicbox_del(struct dynamicbox *handler, int type, dynamicbox_ret_c
  * @retval #DBOX_STATUS_ERROR_OUT_OF_MEMORY Not enough memory
  * @see dynamicbox_unset_event_handler()
  */
-extern int dynamicbox_set_event_handler(int (*cb)(struct dynamicbox *handler, enum dynamicbox_event_type event, void *data), void *data);
+extern int dynamicbox_set_event_handler(int (*cb)(dynamicbox_h handler, enum dynamicbox_event_type event, void *data), void *data);
 
 /**
  * @internal
@@ -512,7 +512,7 @@ extern int dynamicbox_set_event_handler(int (*cb)(struct dynamicbox *handler, en
  * @retval pointer Pointer of 'data' which is used with the dynamicbox_set_event_handler
  * @see dynamicbox_set_event_handler()
  */
-extern void *dynamicbox_unset_event_handler(int (*cb)(struct dynamicbox *handler, enum dynamicbox_event_type event, void *data));
+extern void *dynamicbox_unset_event_handler(int (*cb)(dynamicbox_h handler, enum dynamicbox_event_type event, void *data));
 
 /**
  * @internal
@@ -600,7 +600,7 @@ extern int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb_t cb, void
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to make a request
  * @see dynamicbox_ret_cb_t
  */
-extern int dynamicbox_resize(struct dynamicbox *handler, int type, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_resize(dynamicbox_h handler, int type, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -616,7 +616,7 @@ extern int dynamicbox_resize(struct dynamicbox *handler, int type, dynamicbox_re
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  */
-extern int dynamicbox_click(struct dynamicbox *handler, double x, double y);
+extern int dynamicbox_click(dynamicbox_h handler, double x, double y);
 
 /**
  * @internal
@@ -637,7 +637,7 @@ extern int dynamicbox_click(struct dynamicbox *handler, double x, double y);
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to make a request
  * @see dynamicbox_ret_cb_t
  */
-extern int dynamicbox_set_group(struct dynamicbox *handler, const char *cluster, const char *category, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_set_group(dynamicbox_h handler, const char *cluster, const char *category, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -652,7 +652,7 @@ extern int dynamicbox_set_group(struct dynamicbox *handler, const char *cluster,
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  */
-extern int dynamicbox_get_group(struct dynamicbox *handler, const char **cluster, const char **category);
+extern int dynamicbox_get_group(dynamicbox_h handler, const char **cluster, const char **category);
 
 /**
  * @internal
@@ -665,7 +665,7 @@ extern int dynamicbox_get_group(struct dynamicbox *handler, const char **cluster
  * @retval Current update period of a dynamicbox
  * @retval 0.0f This means the box has no update period or the handles is not valid
  */
-extern double dynamicbox_period(struct dynamicbox *handler);
+extern double dynamicbox_period(dynamicbox_h handler);
 
 /**
  * @internal
@@ -685,7 +685,7 @@ extern double dynamicbox_period(struct dynamicbox *handler);
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @see dynamicbox_ret_cb_t
  */
-extern int dynamicbox_set_period(struct dynamicbox *handler, double period, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -701,7 +701,7 @@ extern int dynamicbox_set_period(struct dynamicbox *handler, double period, dyna
  * @retval #DBOX_TYPE_INVALID Invalid type
  * @see dynamicbox_type()
  */
-extern enum dynamicbox_type dynamicbox_type(struct dynamicbox *handler, int gbar);
+extern enum dynamicbox_type dynamicbox_type(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -716,7 +716,7 @@ extern enum dynamicbox_type dynamicbox_type(struct dynamicbox *handler, int gbar
  * @see dynamicbox_add()
  * @see dynamicbox_set_event_handler()
  */
-extern int dynamicbox_is_created_by_user(struct dynamicbox *handler);
+extern int dynamicbox_is_created_by_user(dynamicbox_h handler);
 
 /**
  * @internal
@@ -727,7 +727,7 @@ extern int dynamicbox_is_created_by_user(struct dynamicbox *handler);
  * @retval content_info Dynamicbox content info that can be used again via content_info argument of dynamicbox_add()
  * @see dynamicbox_add()
  */
-extern const char *dynamicbox_content(struct dynamicbox *handler);
+extern const char *dynamicbox_content(dynamicbox_h handler);
 
 /**
  * @internal
@@ -744,7 +744,7 @@ extern const char *dynamicbox_content(struct dynamicbox *handler);
  * @retval sub Cluster name
  * @retval @c NULL
  */
-extern const char *dynamicbox_title(struct dynamicbox *handler);
+extern const char *dynamicbox_title(dynamicbox_h handler);
 
 /**
  * @internal
@@ -756,7 +756,7 @@ extern const char *dynamicbox_title(struct dynamicbox *handler);
  * @retval filename If the dynamicbox type is image this function will give you a abs-path of an image file (content is rendered)
  * @retval @c NULL If this has no image file or type is not image file.
  */
-extern const char *dynamicbox_filename(struct dynamicbox *handler);
+extern const char *dynamicbox_filename(dynamicbox_h handler);
 
 /**
  * @internal
@@ -767,7 +767,7 @@ extern const char *dynamicbox_filename(struct dynamicbox *handler);
  * @retval pkgname Package name
  * @retval @c NULL If the handler is not valid
  */
-extern const char *dynamicbox_pkgname(struct dynamicbox *handler);
+extern const char *dynamicbox_pkgname(dynamicbox_h handler);
 
 /**
  * @internal
@@ -779,7 +779,7 @@ extern const char *dynamicbox_pkgname(struct dynamicbox *handler);
  * @retval -1.0f Handler is not valid (not yet initialized)
  * @retval real Number between 0.0 and 1.0
  */
-extern double dynamicbox_priority(struct dynamicbox *handler);
+extern double dynamicbox_priority(dynamicbox_h handler);
 
 /**
  * @internal
@@ -793,7 +793,7 @@ extern double dynamicbox_priority(struct dynamicbox *handler);
  * @retval address Address of a Frame Buffer
  * @retval @c NULL If it fails to get fb address
  */
-extern void *dynamicbox_acquire_fb(struct dynamicbox *handler, int gbar);
+extern void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -830,7 +830,7 @@ extern int dynamicbox_fb_refcnt(void *buffer);
  * @retval #DBOX_SIZE_TYPE_NxM
  * @retval #DBOX_SIZE_TYPE_INVALID Invalid parameters are used
  */
-extern int dynamicbox_size(struct dynamicbox *handler);
+extern int dynamicbox_size(dynamicbox_h handler);
 
 /**
  * @internal
@@ -843,7 +843,7 @@ extern int dynamicbox_size(struct dynamicbox *handler);
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters are used
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  */
-extern int dynamicbox_get_glance_bar_size(struct dynamicbox *handler, int *w, int *h);
+extern int dynamicbox_get_glance_bar_size(dynamicbox_h handler, int *w, int *h);
 
 /**
  * @internal
@@ -856,7 +856,7 @@ extern int dynamicbox_get_glance_bar_size(struct dynamicbox *handler, int *w, in
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  */
-extern int dynamicbox_get_supported_sizes(struct dynamicbox *handler, int *cnt, int *size_list);
+extern int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, int *size_list);
 
 /**
  * @internal
@@ -868,7 +868,7 @@ extern int dynamicbox_get_supported_sizes(struct dynamicbox *handler, int *cnt, 
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval size Size of dynamicbox buffer
  */
-extern int dynamicbox_fb_bufsz(struct dynamicbox *handler, int gbar);
+extern int dynamicbox_fb_bufsz(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -888,7 +888,7 @@ extern int dynamicbox_fb_bufsz(struct dynamicbox *handler, int gbar);
  * @see dynamicbox_feed_access_event()
  * @see dynamicbox_feed_key_event()
  */
-extern int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info);
+extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info);
 
 /**
  * @internal
@@ -910,7 +910,7 @@ extern int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicb
  * @see dynamicbox_feed_mouse_event()
  * @see dynamicbox_feed_key_event()
  */
-extern int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -931,7 +931,7 @@ extern int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamic
  * @see dynamicbox_feed_mouse_event()
  * @see dynamicbox_feed_access_event()
  */
-extern int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -953,7 +953,7 @@ extern int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox
  * @see dynamicbox_set_visibility()
  * @see dynamicbox_is_pinned_up()
  */
-extern int dynamicbox_set_pinup(struct dynamicbox *handler, int flag, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_set_pinup(dynamicbox_h handler, int flag, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -966,7 +966,7 @@ extern int dynamicbox_set_pinup(struct dynamicbox *handler, int flag, dynamicbox
  * @retval 0 Box is not pinned up
  * @see dynamicbox_set_pinup()
  */
-extern int dynamicbox_is_pinned_up(struct dynamicbox *handler);
+extern int dynamicbox_is_pinned_up(dynamicbox_h handler);
 
 /**
  * @internal
@@ -980,7 +980,7 @@ extern int dynamicbox_is_pinned_up(struct dynamicbox *handler);
  * @see dynamicbox_is_pinned_up()
  * @see dynamicbox_set_pinup()
  */
-extern int dynamicbox_has_pinup(struct dynamicbox *handler);
+extern int dynamicbox_has_pinup(dynamicbox_h handler);
 
 /**
  * @internal
@@ -992,7 +992,7 @@ extern int dynamicbox_has_pinup(struct dynamicbox *handler);
  * @retval 1 If the box support the Glance Bar
  * @retval 0 If the box has no Glance Bar
  */
-extern int dynamicbox_has_glance_bar(struct dynamicbox *handler);
+extern int dynamicbox_has_glance_bar(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1014,7 +1014,7 @@ extern int dynamicbox_has_glance_bar(struct dynamicbox *handler);
  * @see dynamicbox_destroy_glance_bar()
  * @see dynamicbox_move_glance_bar()
  */
-extern int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_create_glance_bar(dynamicbox_h handler, double x, double y, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -1030,7 +1030,7 @@ extern int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, do
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  */
-extern int dynamicbox_move_glance_bar(struct dynamicbox *handler, double x, double y);
+extern int dynamicbox_move_glance_bar(dynamicbox_h handler, double x, double y);
 
 /**
  * @internal
@@ -1047,7 +1047,7 @@ extern int dynamicbox_move_glance_bar(struct dynamicbox *handler, double x, doub
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @see dynamicbox_ret_cb_t
  */
-extern int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_destroy_glance_bar(dynamicbox_h handler, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -1059,7 +1059,7 @@ extern int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_
  * @retval 0 Glance Bar is not created
  * @retval 1 Glance Bar is created
  */
-extern int dynamicbox_glance_bar_is_created(struct dynamicbox *handler);
+extern int dynamicbox_glance_bar_is_created(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1073,7 +1073,7 @@ extern int dynamicbox_glance_bar_is_created(struct dynamicbox *handler);
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see dynamicbox_set_gbar_text_handler()
  */
-extern int dynamicbox_set_text_handler(struct dynamicbox *handler, int gbar, struct dynamicbox_script_operators *ops);
+extern int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, struct dynamicbox_script_operators *ops);
 
 /**
  * @internal
@@ -1096,7 +1096,7 @@ extern int dynamicbox_set_text_handler(struct dynamicbox *handler, int gbar, str
  * @retval #DBOX_STATUS_ERROR_NONE Successfully emitted
  * @see dynamicbox_ret_cb_t
  */
-extern int dynamicbox_emit_text_signal(struct dynamicbox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -1109,7 +1109,7 @@ extern int dynamicbox_emit_text_signal(struct dynamicbox *handler, const char *e
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see dynamicbox_get_data()
  */
-extern int dynamicbox_set_data(struct dynamicbox *handler, void *data);
+extern int dynamicbox_set_data(dynamicbox_h handler, void *data);
 
 /**
  * @internal
@@ -1121,7 +1121,7 @@ extern int dynamicbox_set_data(struct dynamicbox *handler, void *data);
  * @retval @c NULL If there is no data
  * @see dynamicbox_set_data()
  */
-extern void *dynamicbox_data(struct dynamicbox *handler);
+extern void *dynamicbox_data(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1190,7 +1190,7 @@ extern int dynamicbox_refresh_group(const char *cluster, const char *category, i
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
  * @see dynamicbox_refresh_group()
  */
-extern int dynamicbox_refresh(struct dynamicbox *handler, int force);
+extern int dynamicbox_refresh(dynamicbox_h handler, int force);
 
 /**
  * @internal
@@ -1206,7 +1206,7 @@ extern int dynamicbox_refresh(struct dynamicbox *handler, int force);
  * @retval ResourceId Resource Id
  * @see dynamicbox_resource_id()
  */
-extern unsigned int dynamicbox_resource_id(const struct dynamicbox *handler, int gbar);
+extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -1229,7 +1229,7 @@ extern unsigned int dynamicbox_resource_id(const struct dynamicbox *handler, int
  * @see dynamicbox_release_resource_id()
  * @see dynamicbox_ret_cb_t
  */
-extern unsigned int dynamicbox_acquire_resource_id(struct dynamicbox *handler, int gbar, dynamicbox_ret_cb_t cb, void *data);
+extern unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -1249,7 +1249,7 @@ extern unsigned int dynamicbox_acquire_resource_id(struct dynamicbox *handler, i
  * @pre The Resource Id should be acquired by dynamicbox_acquire_resource_id
  * @see dynamicbox_acquire_resource_id()
  */
-extern int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, unsigned int resource_id);
+extern int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned int resource_id);
 
 /**
  * @internal
@@ -1267,7 +1267,7 @@ extern int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, 
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  */
-extern int dynamicbox_set_visibility(struct dynamicbox *handler, enum dynamicbox_visible_state state);
+extern int dynamicbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible_state state);
 
 /**
  * @internal
@@ -1281,7 +1281,7 @@ extern int dynamicbox_set_visibility(struct dynamicbox *handler, enum dynamicbox
  * @retval #DBOX_HIDE_WITH_PAUSE Dynamicbox is hidden, it will pause the update timer, but if a dynamicbox updates its contents, update event will occur
  * @retval #DBOX_VISIBLE_ERROR To enlarge the size of this enumeration type
  */
-extern enum dynamicbox_visible_state dynamicbox_visibility(struct dynamicbox *handler);
+extern enum dynamicbox_visible_state dynamicbox_visibility(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1305,7 +1305,7 @@ extern enum dynamicbox_visible_state dynamicbox_visibility(struct dynamicbox *ha
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @see dynamicbox_ret_cb_t
  */
-extern int dynamicbox_set_update_mode(struct dynamicbox *handler, int active_update, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_set_update_mode(dynamicbox_h handler, int active_update, dynamicbox_ret_cb_t cb, void *data);
 
 /**
  * @internal
@@ -1316,7 +1316,7 @@ extern int dynamicbox_set_update_mode(struct dynamicbox *handler, int active_upd
  * @retval 0 If passive mode
  * @retval 1 If active mode or error code
  */
-extern int dynamicbox_is_active_update(struct dynamicbox *handler);
+extern int dynamicbox_is_active_update(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1332,7 +1332,7 @@ extern int dynamicbox_is_active_update(struct dynamicbox *handler);
  * @see dynamicbox_set_manual_sync()
  * @see dynamicbox_manual_sync()
  */
-extern int dynamicbox_sync_fb(struct dynamicbox *handler, int gbar);
+extern int dynamicbox_sync_fb(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -1345,7 +1345,7 @@ extern int dynamicbox_sync_fb(struct dynamicbox *handler, int gbar);
  * @retval @c NULL Dynamicbox has no alternative icon file
  * @see dynamicbox_alt_name()
  */
-extern const char *dynamicbox_alt_icon(struct dynamicbox *handler);
+extern const char *dynamicbox_alt_icon(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1358,7 +1358,7 @@ extern const char *dynamicbox_alt_icon(struct dynamicbox *handler);
  * @retval @c NULL Dynamicbox has no alternative name
  * @see dynamicbox_alt_icon()
  */
-extern const char *dynamicbox_alt_name(struct dynamicbox *handler);
+extern const char *dynamicbox_alt_name(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1376,7 +1376,7 @@ extern const char *dynamicbox_alt_name(struct dynamicbox *handler);
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @see dynamicbox_release_fb_lock()
  */
-extern int dynamicbox_acquire_fb_lock(struct dynamicbox *handler, int gbar);
+extern int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -1393,7 +1393,7 @@ extern int dynamicbox_acquire_fb_lock(struct dynamicbox *handler, int gbar);
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @see dynamicbox_acquire_fb_lock()
  */
-extern int dynamicbox_release_fb_lock(struct dynamicbox *handler, int gbar);
+extern int dynamicbox_release_fb_lock(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -1447,7 +1447,7 @@ extern int dynamicbox_option(enum dynamicbox_option_type option);
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Succeed to set new handler. there is no other cases
  */
-extern int dynamicbox_set_auto_launch_handler(int (*launch_handler)(struct dynamicbox *handler, const char *appid, void *data), void *data);
+extern int dynamicbox_set_auto_launch_handler(int (*launch_handler)(dynamicbox_h handler, const char *appid, void *data), void *data);
 
 /**
  * @}

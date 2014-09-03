@@ -30,7 +30,7 @@ enum event_state {
 
 struct event_info {
 	int is_deleted;
-	int (*handler)(struct dynamicbox *handler, enum dynamicbox_event_type event, void *data);
+	int (*handler)(dynamicbox_h handler, enum dynamicbox_event_type event, void *data);
 	void *user_data;
 };
 
@@ -56,12 +56,12 @@ static struct info {
 	.fault_state = INFO_STATE_CALLBACK_IN_IDLE,
 };
 
-static inline void default_delete_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_delete_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default deleted event handler: %d\n", ret);
 }
 
-static void del_ret_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void del_ret_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	struct cb_info *info = data;
 	int ret;
@@ -174,7 +174,7 @@ int dbox_create_lock_file(struct dynamicbox_common *common, int is_gbar)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-struct dynamicbox_common *dbox_create_common_handle(struct dynamicbox *handle, const char *pkgname, const char *cluster, const char *category)
+struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const char *pkgname, const char *cluster, const char *category)
 {
 	struct dynamicbox_common *common;
 
@@ -264,7 +264,7 @@ int dbox_destroy_common_handle(struct dynamicbox_common *common)
 	return 0;
 }
 
-int dbox_common_ref(struct dynamicbox_common *common, struct dynamicbox *handle)
+int dbox_common_ref(struct dynamicbox_common *common, dynamicbox_h handle)
 {
 	common->dynamicbox_list = dlist_append(common->dynamicbox_list, handle);
 	common->refcnt++;
@@ -272,7 +272,7 @@ int dbox_common_ref(struct dynamicbox_common *common, struct dynamicbox *handle)
 	return common->refcnt;
 }
 
-int dbox_common_unref(struct dynamicbox_common *common, struct dynamicbox *handle)
+int dbox_common_unref(struct dynamicbox_common *common, dynamicbox_h handle)
 {
 	int refcnt;
 	dlist_remove_data(common->dynamicbox_list, handle);
@@ -369,7 +369,7 @@ void dbox_invoke_fault_handler(enum dynamicbox_fault_type event, const char *pkg
 	s_info.fault_state &= ~INFO_STATE_CALLBACK_IN_PROCESSING;
 }
 
-void dbox_invoke_event_handler(struct dynamicbox *handler, enum dynamicbox_event_type event)
+void dbox_invoke_event_handler(dynamicbox_h handler, enum dynamicbox_event_type event)
 {
 	struct dlist *l;
 	struct dlist *n;
@@ -434,9 +434,9 @@ struct dynamicbox_common *dbox_find_common_handle_by_timestamp(double timestamp)
 	return NULL;
 }
 
-struct dynamicbox *dbox_new_dynamicbox(const char *pkgname, const char *id, double timestamp, const char *cluster, const char *category)
+dynamicbox_h dbox_new_dynamicbox(const char *pkgname, const char *id, double timestamp, const char *cluster, const char *category)
 {
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 
 	handler = calloc(1, sizeof(*handler));
 	if (!handler) {
@@ -465,7 +465,7 @@ int dbox_delete_all(void)
 {
 	struct dlist *l;
 	struct dlist *n;
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 
 	dlist_foreach_safe(s_info.dynamicbox_list, l, n, handler) {
 		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
@@ -721,7 +721,7 @@ void dbox_set_period(struct dynamicbox_common *common, double period)
 	common->dbox.period = period;
 }
 
-struct dynamicbox *dbox_ref(struct dynamicbox *handler)
+dynamicbox_h dbox_ref(dynamicbox_h handler)
 {
 	if (!handler) {
 		return NULL;
@@ -731,7 +731,7 @@ struct dynamicbox *dbox_ref(struct dynamicbox *handler)
 	return handler;
 }
 
-struct dynamicbox *dbox_unref(struct dynamicbox *handler, int destroy_common)
+dynamicbox_h dbox_unref(dynamicbox_h handler, int destroy_common)
 {
 	if (!handler) {
 		return NULL;
@@ -826,7 +826,7 @@ struct dynamicbox *dbox_unref(struct dynamicbox *handler, int destroy_common)
 	return NULL;
 }
 
-int dbox_send_delete(struct dynamicbox *handler, int type, dynamicbox_ret_cb_t cb, void *data)
+int dbox_send_delete(dynamicbox_h handler, int type, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
@@ -1034,10 +1034,10 @@ struct dynamicbox_common *dbox_find_sharable_common_handle(const char *pkgname, 
 	return NULL;
 }
 
-struct dynamicbox *dbox_find_dbox_in_show(struct dynamicbox_common *common)
+dynamicbox_h dbox_find_dbox_in_show(struct dynamicbox_common *common)
 {
 	struct dlist *l;
-	struct dynamicbox *item;
+	dynamicbox_h item;
 
 	dlist_foreach(common->dynamicbox_list, l, item) {
 		if (item->visible == DBOX_SHOW) {
@@ -1049,9 +1049,9 @@ struct dynamicbox *dbox_find_dbox_in_show(struct dynamicbox_common *common)
 	return NULL;
 }
 
-struct dynamicbox *dbox_get_dbox_nth(struct dynamicbox_common *common, int nth)
+dynamicbox_h dbox_get_dbox_nth(struct dynamicbox_common *common, int nth)
 {
-	struct dynamicbox *item;
+	dynamicbox_h item;
 	struct dlist *l;
 
 	l = dlist_nth(common->dynamicbox_list, nth);
@@ -1060,7 +1060,7 @@ struct dynamicbox *dbox_get_dbox_nth(struct dynamicbox_common *common, int nth)
 	return item;
 }
 
-int dbox_add_event_handler(int (*dbox_cb)(struct dynamicbox *, enum dynamicbox_event_type, void *), void *data)
+int dbox_add_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_type, void *), void *data)
 {
 	struct event_info *info;
 	info = malloc(sizeof(*info));
@@ -1077,7 +1077,7 @@ int dbox_add_event_handler(int (*dbox_cb)(struct dynamicbox *, enum dynamicbox_e
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-void *dbox_remove_event_handler(int (*dbox_cb)(struct dynamicbox *, enum dynamicbox_event_type, void *))
+void *dbox_remove_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_type, void *))
 {
 	struct event_info *info;
 	struct dlist *l;

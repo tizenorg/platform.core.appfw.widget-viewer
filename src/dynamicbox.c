@@ -52,7 +52,7 @@ FILE *__file_log_fp;
 
 #define EAPI __attribute__((visibility("default")))
 
-static int default_launch_handler(struct dynamicbox *handler, const char *appid, void *data);
+static int default_launch_handler(dynamicbox_h handler, const char *appid, void *data);
 
 static struct info {
 	int init_count;
@@ -61,7 +61,7 @@ static struct info {
 	struct dlist *job_list;
 
 	struct launch {
-		int (*handler)(struct dynamicbox *handler, const char *appid, void *data);
+		int (*handler)(dynamicbox_h handler, const char *appid, void *data);
 		void *data;
 	} launch;
 } s_info = {
@@ -75,10 +75,10 @@ static struct info {
 	},
 };
 
-static void dbox_pixmap_acquired_cb(struct dynamicbox *handler, const struct packet *result, void *data);
-static void gbar_pixmap_acquired_cb(struct dynamicbox *handler, const struct packet *result, void *data);
+static void dbox_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data);
+static void gbar_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data);
 
-static int default_launch_handler(struct dynamicbox *handler, const char *appid, void *data)
+static int default_launch_handler(dynamicbox_h handler, const char *appid, void *data)
 {
 	int ret;
 
@@ -105,57 +105,57 @@ static int default_launch_handler(struct dynamicbox *handler, const char *appid,
 	return ret > 0 ? DBOX_STATUS_ERROR_NONE : DBOX_STATUS_ERROR_FAULT;
 }
 
-static inline void default_create_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_create_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default created event handler: %d\n", ret);
 }
 
-static inline void default_pinup_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_pinup_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default pinup event handler: %d\n", ret);
 }
 
-static inline void default_group_changed_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_group_changed_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default group changed event handler: %d\n", ret);
 }
 
-static inline void default_period_changed_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_period_changed_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default period changed event handler: %d\n", ret);
 }
 
-static inline void default_gbar_created_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_gbar_created_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default GBAR created event handler: %d\n", ret);
 }
 
-static inline void default_gbar_destroyed_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_gbar_destroyed_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default GBAR destroyed event handler: %d\n", ret);
 }
 
-static inline void default_dbox_size_changed_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_dbox_size_changed_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default DBOX size changed event handler: %d\n", ret);
 }
 
-static inline void default_update_mode_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_update_mode_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default update mode set event handler: %d\n", ret);
 }
 
-static inline void default_access_event_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_access_event_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default access event handler: %d\n", ret);
 }
 
-static inline void default_key_event_cb(struct dynamicbox *handler, int ret, void *data)
+static inline void default_key_event_cb(dynamicbox_h handler, int ret, void *data)
 {
 	DbgPrint("Default key event handler: %d\n", ret);
 }
 
-static void update_mode_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void update_mode_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -187,7 +187,7 @@ errout:
 	}
 }
 
-static void resize_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void resize_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -228,7 +228,7 @@ errout:
 	}
 }
 
-static void text_signal_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void text_signal_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 	void *cbdata;
@@ -252,7 +252,7 @@ static void text_signal_cb(struct dynamicbox *handler, const struct packet *resu
 	return;
 }
 
-static void set_group_ret_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void set_group_ret_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -283,7 +283,7 @@ errout:
 	}
 }
 
-static void period_ret_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void period_ret_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -314,7 +314,7 @@ errout:
 	}
 }
 
-static void gbar_create_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void gbar_create_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -345,7 +345,7 @@ errout:
 	}
 }
 
-static void activated_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void activated_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 	struct cb_info *info = data;
@@ -368,7 +368,7 @@ static void activated_cb(struct dynamicbox *handler, const struct packet *result
 	}
 }
 
-static void gbar_destroy_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void gbar_destroy_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 	dynamicbox_ret_cb_t cb;
@@ -400,7 +400,7 @@ static void gbar_destroy_cb(struct dynamicbox *handler, const struct packet *res
 	}
 }
 
-static void delete_cluster_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void delete_cluster_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	struct cb_info *info = data;
 	int ret;
@@ -422,7 +422,7 @@ static void delete_cluster_cb(struct dynamicbox *handler, const struct packet *r
 	}
 }
 
-static void delete_category_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void delete_category_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	struct cb_info *info = data;
 	int ret;
@@ -444,7 +444,7 @@ static void delete_category_cb(struct dynamicbox *handler, const struct packet *
 	}
 }
 
-static int dbox_acquire_dbox_pixmap(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+static int dbox_acquire_dbox_pixmap(dynamicbox_h handler, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
@@ -477,7 +477,7 @@ static int dbox_acquire_dbox_pixmap(struct dynamicbox *handler, dynamicbox_ret_c
 	return ret;
 }
 
-static void dbox_pixmap_acquired_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void dbox_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int pixmap;
 	int ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
@@ -513,7 +513,7 @@ static void dbox_pixmap_acquired_cb(struct dynamicbox *handler, const struct pac
 	}
 }
 
-static int dbox_acquire_gbar_pixmap(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+static int dbox_acquire_gbar_pixmap(dynamicbox_h handler, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
@@ -550,7 +550,7 @@ static int dbox_acquire_gbar_pixmap(struct dynamicbox *handler, dynamicbox_ret_c
 	return ret;
 }
 
-static void gbar_pixmap_acquired_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void gbar_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int pixmap;
 	int ret;
@@ -588,7 +588,7 @@ static void gbar_pixmap_acquired_cb(struct dynamicbox *handler, const struct pac
 	}
 }
 
-static void pinup_done_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void pinup_done_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -617,7 +617,7 @@ errout:
 	}
 }
 
-static void key_ret_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void key_ret_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -648,7 +648,7 @@ errout:
 	}
 }
 
-static void access_ret_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void access_ret_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 
@@ -680,7 +680,7 @@ errout:
 	}
 }
 
-static int send_access_event(struct dynamicbox *handler, const char *event, int x, int y, int type)
+static int send_access_event(dynamicbox_h handler, const char *event, int x, int y, int type)
 {
 	struct packet *packet;
 	double timestamp;
@@ -696,7 +696,7 @@ static int send_access_event(struct dynamicbox *handler, const char *event, int 
 	return master_rpc_async_request(handler, packet, 0, access_ret_cb, NULL);
 }
 
-static int send_key_event(struct dynamicbox *handler, const char *event, unsigned int keycode)
+static int send_key_event(dynamicbox_h handler, const char *event, unsigned int keycode)
 {
 	struct packet *packet;
 	double timestamp;
@@ -711,7 +711,7 @@ static int send_key_event(struct dynamicbox *handler, const char *event, unsigne
 	return master_rpc_async_request(handler, packet, 0, key_ret_cb, NULL);
 }
 
-static int send_mouse_event(struct dynamicbox *handler, const char *event, int x, int y)
+static int send_mouse_event(dynamicbox_h handler, const char *event, int x, int y)
 {
 	struct packet *packet;
 	double timestamp;
@@ -794,7 +794,7 @@ static gboolean job_execute_cb(void *data)
 	return TRUE;
 }
 
-static int job_add(struct dynamicbox *handle, dynamicbox_ret_cb_t job_cb, int ret, void *data)
+static int job_add(dynamicbox_h handle, dynamicbox_ret_cb_t job_cb, int ret, void *data)
 {
 	struct job_item *item;
 
@@ -826,7 +826,7 @@ static int job_add(struct dynamicbox *handle, dynamicbox_ret_cb_t job_cb, int re
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-static void new_ret_cb(struct dynamicbox *handler, const struct packet *result, void *data)
+static void new_ret_cb(dynamicbox_h handler, const struct packet *result, void *data)
 {
 	int ret;
 	struct cb_info *info = data;
@@ -865,7 +865,7 @@ static void new_ret_cb(struct dynamicbox *handler, const struct packet *result, 
 	dbox_unref(handler, 1);
 }
 
-static int create_real_instance(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+static int create_real_instance(dynamicbox_h handler, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct cb_info *cbinfo;
 	struct packet *packet;
@@ -906,7 +906,7 @@ static int create_real_instance(struct dynamicbox *handler, dynamicbox_ret_cb_t 
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-static void create_cb(struct dynamicbox *handle, int ret, void *data)
+static void create_cb(dynamicbox_h handle, int ret, void *data)
 {
 	struct cb_info *cbinfo = data;
 
@@ -923,7 +923,7 @@ static void create_cb(struct dynamicbox *handle, int ret, void *data)
 	dbox_invoke_event_handler(handle, DBOX_EVENT_DBOX_UPDATED);
 }
 
-static int create_fake_instance(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+static int create_fake_instance(dynamicbox_h handler, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct cb_info *cbinfo;
 
@@ -940,7 +940,7 @@ static int create_fake_instance(struct dynamicbox *handler, dynamicbox_ret_cb_t 
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-static void refresh_for_paused_updating_cb(struct dynamicbox *handle, int ret, void *data)
+static void refresh_for_paused_updating_cb(dynamicbox_h handle, int ret, void *data)
 {
 	if (handle->paused_updating == 0) {
 		DbgPrint("Paused updates are cleared\n");
@@ -951,7 +951,7 @@ static void refresh_for_paused_updating_cb(struct dynamicbox *handle, int ret, v
 	dbox_invoke_event_handler(handle, DBOX_EVENT_DBOX_UPDATED);
 }
 
-static int dbox_set_visibility(struct dynamicbox *handler, enum dynamicbox_visible_state state)
+static int dbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible_state state)
 {
 	struct packet *packet;
 	int need_to_add_job = 0;
@@ -1001,7 +1001,7 @@ static int dbox_set_visibility(struct dynamicbox *handler, enum dynamicbox_visib
 
 static void dbox_update_visibility(struct dynamicbox_common *old_common)
 {
-	struct dynamicbox *item;
+	dynamicbox_h item;
 
 	item = dbox_find_dbox_in_show(old_common);
 	if (!item) {
@@ -1021,7 +1021,7 @@ static void dbox_update_visibility(struct dynamicbox_common *old_common)
  * The second parameter should be the "return value",
  * But in this case, we will use it for "type of deleting instance".
  */
-static void job_del_cb(struct dynamicbox *handle, int type, void *data)
+static void job_del_cb(dynamicbox_h handle, int type, void *data)
 {
 	struct cb_info *cbinfo = data;
 	dynamicbox_ret_cb_t cb;
@@ -1074,7 +1074,7 @@ static void job_del_cb(struct dynamicbox *handle, int type, void *data)
 	}
 }
 
-static void resize_job_cb(struct dynamicbox *handler, int ret, void *data)
+static void resize_job_cb(dynamicbox_h handler, int ret, void *data)
 {
 	struct cb_info *info = data;
 
@@ -1091,7 +1091,7 @@ static void resize_job_cb(struct dynamicbox *handler, int ret, void *data)
 	dbox_invoke_event_handler(handler, DBOX_EVENT_DBOX_UPDATED);
 }
 
-static void turn_off_gbar_destroyed_flag_cb(struct dynamicbox *handler, int ret, void *data)
+static void turn_off_gbar_destroyed_flag_cb(dynamicbox_h handler, int ret, void *data)
 {
 	if (handler->common->request.gbar_destroyed) {
 		dynamicbox_ret_cb_t cb;
@@ -1110,7 +1110,7 @@ static void turn_off_gbar_destroyed_flag_cb(struct dynamicbox *handler, int ret,
 	}
 }
 
-static void turn_off_gbar_created_flag_cb(struct dynamicbox *handler, int ret, void *data)
+static void turn_off_gbar_created_flag_cb(dynamicbox_h handler, int ret, void *data)
 {
 	if (handler->common->request.gbar_created) {
 		dynamicbox_ret_cb_t cb;
@@ -1166,10 +1166,10 @@ EAPI int dynamicbox_fini(void)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI struct dynamicbox *dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, dynamicbox_ret_cb_t cb, void *data)
+EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, dynamicbox_ret_cb_t cb, void *data)
 {
 	char *dboxid;
-	struct dynamicbox *handler;
+	dynamicbox_h handler;
 	int w = 0;
 	int h = 0;
 
@@ -1283,7 +1283,7 @@ EAPI struct dynamicbox *dynamicbox_add(const char *pkgname, const char *content,
 	return handler;
 }
 
-EAPI double dynamicbox_period(struct dynamicbox *handler)
+EAPI double dynamicbox_period(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
@@ -1303,7 +1303,7 @@ EAPI double dynamicbox_period(struct dynamicbox *handler)
 	return handler->common->dbox.period;
 }
 
-EAPI int dynamicbox_set_period(struct dynamicbox *handler, double period, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_SET_PERIOD;
@@ -1359,7 +1359,7 @@ EAPI int dynamicbox_set_period(struct dynamicbox *handler, double period, dynami
 	return ret;
 }
 
-EAPI int dynamicbox_del(struct dynamicbox *handler, int type, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_del(dynamicbox_h handler, int type, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct cb_info *cbinfo;
 
@@ -1408,7 +1408,7 @@ EAPI void *dynamicbox_unset_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_t
 	return dbox_remove_fault_handler(dbox_cb);
 }
 
-EAPI int dynamicbox_set_event_handler(int (*dbox_cb)(struct dynamicbox *, enum dynamicbox_event_type, void *), void *data)
+EAPI int dynamicbox_set_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_type, void *), void *data)
 {
 	if (!dbox_cb) {
 		ErrPrint("Invalid argument dbox_cb is nil\n");
@@ -1418,7 +1418,7 @@ EAPI int dynamicbox_set_event_handler(int (*dbox_cb)(struct dynamicbox *, enum d
 	return dbox_add_event_handler(dbox_cb, data);
 }
 
-EAPI void *dynamicbox_unset_event_handler(int (*dbox_cb)(struct dynamicbox *, enum dynamicbox_event_type, void *))
+EAPI void *dynamicbox_unset_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_type, void *))
 {
 	if (!dbox_cb) {
 		return NULL;
@@ -1427,7 +1427,7 @@ EAPI void *dynamicbox_unset_event_handler(int (*dbox_cb)(struct dynamicbox *, en
 	return dbox_remove_event_handler(dbox_cb);
 }
 
-EAPI int dynamicbox_set_update_mode(struct dynamicbox *handler, int active_update, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_set_update_mode(dynamicbox_h handler, int active_update, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_UPDATE_MODE;
@@ -1480,7 +1480,7 @@ EAPI int dynamicbox_set_update_mode(struct dynamicbox *handler, int active_updat
 	return ret;
 }
 
-EAPI int dynamicbox_is_active_update(struct dynamicbox *handler)
+EAPI int dynamicbox_is_active_update(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is Invalid\n");
@@ -1499,7 +1499,7 @@ EAPI int dynamicbox_is_active_update(struct dynamicbox *handler)
 	return handler->common->is_active_update;
 }
 
-EAPI int dynamicbox_resize(struct dynamicbox *handler, int type, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_resize(dynamicbox_h handler, int type, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct dynamicbox_common *common;
 	int w;
@@ -1675,7 +1675,7 @@ EAPI int dynamicbox_resize(struct dynamicbox *handler, int type, dynamicbox_ret_
 	return ret;
 }
 
-EAPI int dynamicbox_click(struct dynamicbox *handler, double x, double y)
+EAPI int dynamicbox_click(dynamicbox_h handler, double x, double y)
 {
 	struct packet *packet;
 	double timestamp;
@@ -1743,7 +1743,7 @@ EAPI int dynamicbox_click(struct dynamicbox *handler, double x, double y)
 	return ret;
 }
 
-EAPI int dynamicbox_has_gbar(struct dynamicbox *handler)
+EAPI int dynamicbox_has_gbar(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -1763,7 +1763,7 @@ EAPI int dynamicbox_has_gbar(struct dynamicbox *handler)
 	return !!handler->common->gbar.fb;
 }
 
-EAPI int dynamicbox_glance_bar_is_created(struct dynamicbox *handler)
+EAPI int dynamicbox_glance_bar_is_created(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -1783,7 +1783,7 @@ EAPI int dynamicbox_glance_bar_is_created(struct dynamicbox *handler)
 	return handler->common->is_gbar_created;
 }
 
-EAPI int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, double y, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_create_glance_bar(dynamicbox_h handler, double x, double y, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_CREATE_GBAR;
@@ -1849,7 +1849,7 @@ EAPI int dynamicbox_create_glance_bar(struct dynamicbox *handler, double x, doub
 	return ret;
 }
 
-EAPI int dynamicbox_move_glance_bar(struct dynamicbox *handler, double x, double y)
+EAPI int dynamicbox_move_glance_bar(dynamicbox_h handler, double x, double y)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_GBAR_MOVE;
@@ -1915,7 +1915,7 @@ EAPI int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb_t cb, void *
 	return ret;
 }
 
-EAPI int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_destroy_glance_bar(dynamicbox_h handler, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
@@ -1991,7 +1991,7 @@ EAPI int dynamicbox_destroy_glance_bar(struct dynamicbox *handler, dynamicbox_re
 	return ret;
 }
 
-EAPI int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data)
 {
 	int w = 1;
 	int h = 1;
@@ -2128,7 +2128,7 @@ EAPI int dynamicbox_feed_access_event(struct dynamicbox *handler, enum dynamicbo
 	return ret;
 }
 
-EAPI int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info)
+EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info)
 {
 	int w = 1;
 	int h = 1;
@@ -2294,7 +2294,7 @@ EAPI int dynamicbox_feed_mouse_event(struct dynamicbox *handler, enum dynamicbox
 	return send_mouse_event(handler, (const char *)&cmd, info->x * w, info->y * h);
 }
 
-EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data)
 {
 	int ret;
 	unsigned int cmd;
@@ -2437,7 +2437,7 @@ EAPI int dynamicbox_feed_key_event(struct dynamicbox *handler, enum dynamicbox_k
 	return ret;
 }
 
-EAPI const char *dynamicbox_filename(struct dynamicbox *handler)
+EAPI const char *dynamicbox_filename(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2462,7 +2462,7 @@ EAPI const char *dynamicbox_filename(struct dynamicbox *handler)
 	return util_uri_to_path(handler->common->id);
 }
 
-EAPI int dynamicbox_get_glance_bar_size(struct dynamicbox *handler, int *w, int *h)
+EAPI int dynamicbox_get_glance_bar_size(dynamicbox_h handler, int *w, int *h)
 {
 	int _w;
 	int _h;
@@ -2500,7 +2500,7 @@ EAPI int dynamicbox_get_glance_bar_size(struct dynamicbox *handler, int *w, int 
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_size(struct dynamicbox *handler)
+EAPI int dynamicbox_size(dynamicbox_h handler)
 {
 	int w;
 	int h;
@@ -2538,7 +2538,7 @@ EAPI int dynamicbox_size(struct dynamicbox *handler)
 	return dynamicbox_service_size_type(w, h);
 }
 
-EAPI int dynamicbox_set_group(struct dynamicbox *handler, const char *cluster, const char *category, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_set_group(dynamicbox_h handler, const char *cluster, const char *category, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_CHANGE_GROUP;
@@ -2599,7 +2599,7 @@ EAPI int dynamicbox_set_group(struct dynamicbox *handler, const char *cluster, c
 	return ret;
 }
 
-EAPI int dynamicbox_get_group(struct dynamicbox *handler, const char **cluster, const char **category)
+EAPI int dynamicbox_get_group(dynamicbox_h handler, const char **cluster, const char **category)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -2626,7 +2626,7 @@ EAPI int dynamicbox_get_group(struct dynamicbox *handler, const char **cluster, 
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_get_supported_sizes(struct dynamicbox *handler, int *cnt, int *size_list)
+EAPI int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, int *size_list)
 {
 	register int i;
 	register int j;
@@ -2665,7 +2665,7 @@ EAPI int dynamicbox_get_supported_sizes(struct dynamicbox *handler, int *cnt, in
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI const char *dynamicbox_pkgname(struct dynamicbox *handler)
+EAPI const char *dynamicbox_pkgname(dynamicbox_h handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -2685,7 +2685,7 @@ EAPI const char *dynamicbox_pkgname(struct dynamicbox *handler)
 	return handler->common->pkgname;
 }
 
-EAPI double dynamicbox_priority(struct dynamicbox *handler)
+EAPI double dynamicbox_priority(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2759,7 +2759,7 @@ EAPI int dynamicbox_delete_category(const char *cluster, const char *category, d
 	return ret;
 }
 
-EAPI enum dynamicbox_type dynamicbox_type(struct dynamicbox *handler, int gbar)
+EAPI enum dynamicbox_type dynamicbox_type(dynamicbox_h handler, int gbar)
 {
 	enum dynamicbox_type type;
 
@@ -2827,7 +2827,7 @@ EAPI enum dynamicbox_type dynamicbox_type(struct dynamicbox *handler, int gbar)
 	return type;
 }
 
-EAPI int dynamicbox_set_text_handler(struct dynamicbox *handler, int gbar, struct dynamicbox_script_operators *ops)
+EAPI int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, struct dynamicbox_script_operators *ops)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -2848,7 +2848,7 @@ EAPI int dynamicbox_set_text_handler(struct dynamicbox *handler, int gbar, struc
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI unsigned int dynamicbox_acquire_resource_id(struct dynamicbox *handler, int gbar, dynamicbox_ret_cb_t cb, void *data)
+EAPI unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb_t cb, void *data)
 {
 	if (gbar) {
 		if (!handler || handler->state != CREATE) {
@@ -2905,7 +2905,7 @@ EAPI unsigned int dynamicbox_acquire_resource_id(struct dynamicbox *handler, int
  * if this function check the state of handles,
  * user cannot release the pixmap.
  */
-EAPI int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, unsigned int resource_id)
+EAPI int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned int resource_id)
 {
 	struct packet *packet;
 	const char *pkgname;
@@ -3008,7 +3008,7 @@ EAPI int dynamicbox_release_resource_id(struct dynamicbox *handler, int gbar, un
 	return master_rpc_request_only(handler, packet);
 }
 
-EAPI unsigned int dynamicbox_resource_id(const struct dynamicbox *handler, int gbar)
+EAPI unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
 {
 	const char *id;
 	int pixmap = 0;
@@ -3071,7 +3071,7 @@ EAPI unsigned int dynamicbox_resource_id(const struct dynamicbox *handler, int g
 	return pixmap;
 }
 
-EAPI void *dynamicbox_acquire_fb(struct dynamicbox *handler, int gbar)
+EAPI void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar)
 {
 	if (gbar) {
 		if (!handler || handler->state != CREATE) {
@@ -3130,7 +3130,7 @@ EAPI int dynamicbox_fb_refcnt(void *buffer)
 	return fb_refcnt(buffer);
 }
 
-EAPI int dynamicbox_fb_bufsz(struct dynamicbox *handler, int gbar)
+EAPI int dynamicbox_fb_bufsz(dynamicbox_h handler, int gbar)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3154,7 +3154,7 @@ EAPI int dynamicbox_fb_bufsz(struct dynamicbox *handler, int gbar)
 	}
 }
 
-EAPI int dynamicbox_is_created_by_user(struct dynamicbox *handler)
+EAPI int dynamicbox_is_created_by_user(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3174,7 +3174,7 @@ EAPI int dynamicbox_is_created_by_user(struct dynamicbox *handler)
 	return handler->common->is_user;
 }
 
-EAPI int dynamicbox_set_pinup(struct dynamicbox *handler, int flag, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_set_pinup(dynamicbox_h handler, int flag, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_PINUP_CHANGED;
@@ -3225,7 +3225,7 @@ EAPI int dynamicbox_set_pinup(struct dynamicbox *handler, int flag, dynamicbox_r
 	return ret;
 }
 
-EAPI int dynamicbox_is_pinned_up(struct dynamicbox *handler)
+EAPI int dynamicbox_is_pinned_up(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3245,7 +3245,7 @@ EAPI int dynamicbox_is_pinned_up(struct dynamicbox *handler)
 	return handler->common->is_pinned_up;
 }
 
-EAPI int dynamicbox_has_pinup(struct dynamicbox *handler)
+EAPI int dynamicbox_has_pinup(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3265,7 +3265,7 @@ EAPI int dynamicbox_has_pinup(struct dynamicbox *handler)
 	return handler->common->dbox.pinup_supported;
 }
 
-EAPI int dynamicbox_set_data(struct dynamicbox *handler, void *data)
+EAPI int dynamicbox_set_data(dynamicbox_h handler, void *data)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -3281,7 +3281,7 @@ EAPI int dynamicbox_set_data(struct dynamicbox *handler, void *data)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI void *dynamicbox_data(struct dynamicbox *handler)
+EAPI void *dynamicbox_data(dynamicbox_h handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -3296,7 +3296,7 @@ EAPI void *dynamicbox_data(struct dynamicbox *handler)
 	return handler->data;
 }
 
-EAPI const char *dynamicbox_content(struct dynamicbox *handler)
+EAPI const char *dynamicbox_content(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3311,7 +3311,7 @@ EAPI const char *dynamicbox_content(struct dynamicbox *handler)
 	return handler->common->content;
 }
 
-EAPI const char *dynamicbox_title(struct dynamicbox *handler)
+EAPI const char *dynamicbox_title(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3326,7 +3326,7 @@ EAPI const char *dynamicbox_title(struct dynamicbox *handler)
 	return handler->common->title;
 }
 
-EAPI int dynamicbox_emit_text_signal(struct dynamicbox *handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, dynamicbox_ret_cb_t cb, void *data)
+EAPI int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, dynamicbox_ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
@@ -3418,7 +3418,7 @@ EAPI int dynamicbox_unsubscribe_group(const char *cluster, const char *category)
 	return master_rpc_request_only(NULL, packet);
 }
 
-EAPI int dynamicbox_refresh(struct dynamicbox *handler, int force)
+EAPI int dynamicbox_refresh(dynamicbox_h handler, int force)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_UPDATE;
@@ -3466,7 +3466,7 @@ EAPI int dynamicbox_refresh_group(const char *cluster, const char *category, int
 	return master_rpc_request_only(NULL, packet);
 }
 
-EAPI int dynamicbox_set_visibility(struct dynamicbox *handler, enum dynamicbox_visible_state state)
+EAPI int dynamicbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible_state state)
 {
 	int old_state;
 	int ret;
@@ -3510,7 +3510,7 @@ EAPI int dynamicbox_set_visibility(struct dynamicbox *handler, enum dynamicbox_v
 	return ret;
 }
 
-EAPI enum dynamicbox_visible_state dynamicbox_visibility(struct dynamicbox *handler)
+EAPI enum dynamicbox_visible_state dynamicbox_visibility(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3558,7 +3558,7 @@ EAPI int dynamicbox_viewer_set_resumed(void)
 	return master_rpc_request_only(NULL, packet);
 }
 
-EAPI int dynamicbox_sync_fb(struct dynamicbox *handler, int gbar)
+EAPI int dynamicbox_sync_fb(dynamicbox_h handler, int gbar)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Invalid handle\n");
@@ -3582,7 +3582,7 @@ EAPI int dynamicbox_sync_fb(struct dynamicbox *handler, int gbar)
 	}
 }
 
-EAPI const char *dynamicbox_alt_icon(struct dynamicbox *handler)
+EAPI const char *dynamicbox_alt_icon(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handler);
@@ -3597,7 +3597,7 @@ EAPI const char *dynamicbox_alt_icon(struct dynamicbox *handler)
 	return handler->common->alt.icon;
 }
 
-EAPI const char *dynamicbox_alt_name(struct dynamicbox *handler)
+EAPI const char *dynamicbox_alt_name(dynamicbox_h handler)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handler);
@@ -3612,7 +3612,7 @@ EAPI const char *dynamicbox_alt_name(struct dynamicbox *handler)
 	return handler->common->alt.name;
 }
 
-EAPI int dynamicbox_acquire_fb_lock(struct dynamicbox *handler, int is_gbar)
+EAPI int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int is_gbar)
 {
 	int ret = DBOX_STATUS_ERROR_NONE;
 	int fd;
@@ -3661,7 +3661,7 @@ EAPI int dynamicbox_acquire_fb_lock(struct dynamicbox *handler, int is_gbar)
 	return ret == 0 ? DBOX_STATUS_ERROR_NONE : DBOX_STATUS_ERROR_FAULT;
 }
 
-EAPI int dynamicbox_release_fb_lock(struct dynamicbox *handler, int is_gbar)
+EAPI int dynamicbox_release_fb_lock(dynamicbox_h handler, int is_gbar)
 {
 	int ret = DBOX_STATUS_ERROR_NONE;
 	int fd;
@@ -3763,7 +3763,7 @@ EAPI int dynamicbox_option(enum dynamicbox_option_type option)
 	return ret;
 }
 
-EAPI int dynamicbox_set_auto_launch_handler(int (*dbox_launch_handler)(struct dynamicbox *handler, const char *appid, void *data), void *data)
+EAPI int dynamicbox_set_auto_launch_handler(int (*dbox_launch_handler)(dynamicbox_h handler, const char *appid, void *data), void *data)
 {
 	s_info.launch.handler = dbox_launch_handler;
 	s_info.launch.data = data;

@@ -41,8 +41,8 @@
 struct command {
 	int ttl;
 	struct packet *packet;
-	struct dynamicbox *handler;
-	void (*ret_cb)(struct dynamicbox *handler, const struct packet *result, void *data);
+	dynamicbox_h handler;
+	void (*ret_cb)(dynamicbox_h handler, const struct packet *result, void *data);
 	void *data;
 	enum {
 		TYPE_ACK,
@@ -77,7 +77,7 @@ static inline struct command *pop_command(void)
 	return command;
 }
 
-static inline struct command *create_command(struct dynamicbox *handler, struct packet *packet)
+static inline struct command *create_command(dynamicbox_h handler, struct packet *packet)
 {
 	struct command *command;
 
@@ -198,7 +198,7 @@ static inline void push_command(struct command *command)
  * \note
  * "handler" could be NULL
  */
-int master_rpc_async_request(struct dynamicbox *handler, struct packet *packet, int urgent, void (*ret_cb)(struct dynamicbox *handler, const struct packet *result, void *data), void *data)
+int master_rpc_async_request(dynamicbox_h handler, struct packet *packet, int urgent, void (*ret_cb)(dynamicbox_h handler, const struct packet *result, void *data), void *data)
 {
 	struct command *command;
 
@@ -224,7 +224,7 @@ int master_rpc_async_request(struct dynamicbox *handler, struct packet *packet, 
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-int master_rpc_request_only(struct dynamicbox *handler, struct packet *packet)
+int master_rpc_request_only(dynamicbox_h handler, struct packet *packet)
 {
 	struct command *command;
 
