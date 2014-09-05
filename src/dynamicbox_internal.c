@@ -1060,7 +1060,7 @@ dynamicbox_h dbox_get_dbox_nth(struct dynamicbox_common *common, int nth)
 	return item;
 }
 
-int dbox_add_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_type, void *), void *data)
+int dbox_add_event_handler(dynamicbox_event_handler_cb dbox_cb, void *data)
 {
 	struct event_info *info;
 	info = malloc(sizeof(*info));
@@ -1077,7 +1077,7 @@ int dbox_add_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_t
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-void *dbox_remove_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_type, void *))
+void *dbox_remove_event_handler(dynamicbox_event_handler_cb dbox_cb)
 {
 	struct event_info *info;
 	struct dlist *l;
@@ -1102,7 +1102,7 @@ void *dbox_remove_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_ev
 	return NULL;
 }
 
-int dbox_add_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const char *, const char *, const char *, void *), void *data)
+int dbox_add_fault_handler(dynamicbox_fault_handler_cb dbox_cb, void *data)
 {
 	struct fault_info *info;
 	info = malloc(sizeof(*info));
@@ -1119,7 +1119,7 @@ int dbox_add_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const char
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-void *dbox_remove_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const char *, const char *, const char *, void *))
+void *dbox_remove_fault_handler(dynamicbox_fault_handler_cb dbox_cb)
 {
 	struct fault_info *info;
 	struct dlist *l;

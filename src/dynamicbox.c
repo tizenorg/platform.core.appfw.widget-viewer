@@ -1390,7 +1390,7 @@ EAPI int dynamicbox_del(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, vo
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_set_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const char *, const char *, const char *, void *), void *data)
+EAPI int dynamicbox_set_fault_handler(dynamicbox_fault_handler_cb dbox_cb, void *data)
 {
 	if (!dbox_cb) {
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
@@ -1399,7 +1399,7 @@ EAPI int dynamicbox_set_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type,
 	return dbox_add_fault_handler(dbox_cb, data);
 }
 
-EAPI void *dynamicbox_unset_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const char *, const char *, const char *, void *))
+EAPI void *dynamicbox_unset_fault_handler(dynamicbox_fault_handler_cb dbox_cb)
 {
 	if (!dbox_cb) {
 		return NULL;
@@ -1408,7 +1408,7 @@ EAPI void *dynamicbox_unset_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_t
 	return dbox_remove_fault_handler(dbox_cb);
 }
 
-EAPI int dynamicbox_set_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_type, void *), void *data)
+EAPI int dynamicbox_set_event_handler(dynamicbox_event_handler_cb dbox_cb, void *data)
 {
 	if (!dbox_cb) {
 		ErrPrint("Invalid argument dbox_cb is nil\n");
@@ -1418,7 +1418,7 @@ EAPI int dynamicbox_set_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamic
 	return dbox_add_event_handler(dbox_cb, data);
 }
 
-EAPI void *dynamicbox_unset_event_handler(int (*dbox_cb)(dynamicbox_h , enum dynamicbox_event_type, void *))
+EAPI void *dynamicbox_unset_event_handler(dynamicbox_event_handler_cb dbox_cb)
 {
 	if (!dbox_cb) {
 		return NULL;
@@ -3130,7 +3130,7 @@ EAPI int dynamicbox_fb_refcnt(void *buffer)
 	return fb_refcnt(buffer);
 }
 
-EAPI int dynamicbox_fb_bufsz(dynamicbox_h handler, int gbar)
+EAPI int dynamicbox_fb_buffer_size(dynamicbox_h handler, int gbar)
 {
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");

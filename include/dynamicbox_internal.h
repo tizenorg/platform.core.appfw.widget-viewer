@@ -15,7 +15,7 @@
  */
 
 struct cb_info {
-	dynamicbox_ret_cb_t cb;
+	dynamicbox_ret_cb cb;
 	void *data;
 };
 
@@ -64,16 +64,16 @@ extern int dbox_fb_unlock(int fd);
 extern struct dynamicbox_common *dbox_find_sharable_common_handle(const char *pkgname, const char *content, int w, int h, const char *cluster, const char *category);
 extern struct dynamicbox *dbox_find_dbox_in_show(struct dynamicbox_common *common);
 extern struct dynamicbox *dbox_get_dbox_nth(struct dynamicbox_common *common, int nth);
-extern void *dbox_remove_event_handler(int (*dbox_cb)(struct dynamicbox *, enum dynamicbox_event_type, void *));
-extern int dbox_add_event_handler(int (*dbox_cb)(struct dynamicbox *, enum dynamicbox_event_type, void *), void *data);
-extern int dbox_add_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const char *, const char *, const char *, void *), void *data);
-extern void *dbox_remove_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const char *, const char *, const char *, void *));
-extern struct cb_info *dbox_create_cb_info(dynamicbox_ret_cb_t cb, void *data);
+extern void *dbox_remove_event_handler(dynamicbox_event_handler_cb dbox_cb);
+extern int dbox_add_event_handler(dynamicbox_event_handler_cb dbox_cb, void *data);
+extern int dbox_add_fault_handler(dynamicbox_fault_handler_cb dbox_cb, void *data);
+extern void *dbox_remove_fault_handler(dynamicbox_fault_handler_cb dbox_cb);
+extern struct cb_info *dbox_create_cb_info(dynamicbox_ret_cb cb, void *data);
 extern void dbox_destroy_cb_info(struct cb_info *info);
 
 extern struct dynamicbox *dbox_ref(struct dynamicbox *handler);
 extern struct dynamicbox *dbox_unref(struct dynamicbox *handler, int destroy_common);
-extern int dbox_send_delete(struct dynamicbox *handler, int type, dynamicbox_ret_cb_t cb, void *data);
+extern int dbox_send_delete(struct dynamicbox *handler, int type, dynamicbox_ret_cb cb, void *data);
 extern int dbox_delete_all(void);
 
 enum dbox_type { /*!< Must have to be sync with data-provider-master */
@@ -194,7 +194,7 @@ struct dynamicbox_common {
 
 struct job_item {
 	struct dynamicbox *handle;
-	dynamicbox_ret_cb_t cb;
+	dynamicbox_ret_cb cb;
 	int ret;
 	void *data;
 };
@@ -215,57 +215,57 @@ struct dynamicbox {
 		struct dynamicbox_script_operators gbar_ops;
 
 		struct created {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} created;
 
 		struct deleted {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} deleted;
 
 		struct pinup {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} pinup;
 
 		struct group_changed {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} group_changed;
 
 		struct period_changed {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} period_changed;
 
 		struct size_changed {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} size_changed;
 
 		struct gbar_created {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} gbar_created;
 
 		struct gbar_destroyed {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} gbar_destroyed;
 
 		struct update_mode {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} update_mode;
 
 		struct access_event {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} access_event;
 
 		struct key_event {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *data;
 		} key_event;
 	} cbs;
