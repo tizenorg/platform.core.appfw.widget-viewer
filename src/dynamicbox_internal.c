@@ -65,7 +65,7 @@ static void del_ret_cb(dynamicbox_h handler, const struct packet *result, void *
 {
 	struct cb_info *info = data;
 	int ret;
-	dynamicbox_ret_cb_t cb;
+	dynamicbox_ret_cb cb;
 	void *cbdata;
 
 	cb = info->cb;
@@ -826,7 +826,7 @@ dynamicbox_h dbox_unref(dynamicbox_h handler, int destroy_common)
 	return NULL;
 }
 
-int dbox_send_delete(dynamicbox_h handler, int type, dynamicbox_ret_cb_t cb, void *data)
+int dbox_send_delete(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
@@ -1144,7 +1144,7 @@ void *dbox_remove_fault_handler(int (*dbox_cb)(enum dynamicbox_fault_type, const
 	return NULL;
 }
 
-struct cb_info *dbox_create_cb_info(dynamicbox_ret_cb_t cb, void *data)
+struct cb_info *dbox_create_cb_info(dynamicbox_ret_cb cb, void *data)
 {
 	struct cb_info *info;
 

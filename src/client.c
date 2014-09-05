@@ -157,7 +157,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 
 	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
 		if (handler->cbs.pinup.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 
 			/* Make sure that user can call pinup API in its result callback */
@@ -228,7 +228,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 
 	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
 		if (handler->cbs.created.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 			/*!
 			 * \note
@@ -264,7 +264,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			cb(handler, reason, cbdata);
 		} else if (common->id) {
 			if (handler->cbs.deleted.cb) {
-				dynamicbox_ret_cb_t cb;
+				dynamicbox_ret_cb cb;
 				void *cbdata;
 
 				cb = handler->cbs.deleted.cb;
@@ -462,7 +462,7 @@ static struct packet *master_key_status(pid_t pid, int handle, const struct pack
 	common->request.key_event = 0;
 	dlist_foreach(common->dynamicbox_list, l, handler) {
 		if (handler->cbs.key_event.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 
 			cb = handler->cbs.key_event.cb;
@@ -552,7 +552,7 @@ static struct packet *master_access_status(pid_t pid, int handle, const struct p
 	common->request.access_event = 0;
 	dlist_foreach(common->dynamicbox_list, l, handler) {
 		if (handler->cbs.access_event.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 
 			cb = handler->cbs.access_event.cb;
@@ -826,7 +826,7 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 	DbgPrint("PERF_DBOX\n");
 	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
 		if (handler->cbs.gbar_created.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 
 			cb = handler->cbs.gbar_created.cb;
@@ -888,7 +888,7 @@ static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct 
 
 	dlist_foreach(common->dynamicbox_list, l, handler) {
 		if (handler->cbs.gbar_destroyed.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 
 			cb = handler->cbs.gbar_destroyed.cb;
@@ -1049,7 +1049,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 	common->request.update_mode = 0;
 	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
 		if (handler->cbs.update_mode.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 
 			cb = handler->cbs.update_mode.cb;
@@ -1153,7 +1153,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		 */
 		dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
 			if (handler->cbs.size_changed.cb) {
-				dynamicbox_ret_cb_t cb;
+				dynamicbox_ret_cb cb;
 				void *cbdata;
 
 				cb = handler->cbs.size_changed.cb;
@@ -1210,7 +1210,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 
 	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
 		if (handler->cbs.period_changed.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 
 			cb = handler->cbs.period_changed.cb;
@@ -1272,7 +1272,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 
 	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
 		if (handler->cbs.group_changed.cb) {
-			dynamicbox_ret_cb_t cb;
+			dynamicbox_ret_cb cb;
 			void *cbdata;
 
 			cb = handler->cbs.group_changed.cb;
@@ -1499,7 +1499,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			 */
 
 			if (handler->cbs.created.cb) {
-				dynamicbox_ret_cb_t cb;
+				dynamicbox_ret_cb cb;
 				void *cbdata;
 
 				cb = handler->cbs.created.cb;

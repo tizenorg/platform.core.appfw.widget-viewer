@@ -106,10 +106,10 @@ enum dynamicbox_key_event_type {
 
 	DBOX_KEY_EVENT_DOWN		= 0x00000001, /**< Dynamic Box key press */
 	DBOX_KEY_EVENT_UP		= 0x00000002, /**< Dynamic Box key release */
-	DBOX_KEY_EVENT_FOCUS_IN	= 0x00000008, /**< Dynamic Box key focused in */
+	DBOX_KEY_EVENT_FOCUS_IN		= 0x00000008, /**< Dynamic Box key focused in */
 	DBOX_KEY_EVENT_FOCUS_OUT	= 0x00000010, /**< Dynamic Box key focused out */
 	DBOX_KEY_EVENT_SET		= 0x00000020, /**< Dynamic Box Key, start feeding event by master */
-	DBOX_KEY_EVENT_UNSET	= 0x00000040, /**< Dynamic Box key, stop feeding event by master */
+	DBOX_KEY_EVENT_UNSET		= 0x00000040, /**< Dynamic Box key, stop feeding event by master */
 
 	DBOX_KEY_DOWN			= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
 	DBOX_KEY_UP			= DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
@@ -248,8 +248,8 @@ enum dynamicbox_option_type {
  * @since_tizen 2.3
  */
 enum dynamicbox_fault_type {
-	DBOX_FAULT_DEACTIVATED, /*!< Dynamicbox is deactivated by its fault operation */
-	DBOX_FAULT_PROVIDER_DISCONNECTED, /*!< Provider is disconnected */
+	DBOX_FAULT_DEACTIVATED, /**< Dynamicbox is deactivated by its fault operation */
+	DBOX_FAULT_PROVIDER_DISCONNECTED, /**< Provider is disconnected */
 	DBOX_FAULT_MAX = 0xFF
 };
 
@@ -353,7 +353,7 @@ struct dynamicbox_script_operators {
  * @see dynamicbox_acquire_resource_id()
  * @see dynamicbox_set_update_mode()
  */
-typedef void (*dynamicbox_ret_cb_t)(dynamicbox_h handle, int ret, void *data);
+typedef void (*dynamicbox_ret_cb)(dynamicbox_h handle, int ret, void *data);
 
 /**
  * @internal
@@ -365,7 +365,7 @@ typedef void (*dynamicbox_ret_cb_t)(dynamicbox_h handle, int ret, void *data);
  * @param[in] disp Display (if @a disp is @c NULL, the library will try to acquire a new connection with X)
  * @param[in] prevent_overwrite Overwrite flag (when the content of an image type dynamicbox is updated, it will be overwriten (0) or not (1))
  * @param[in] event_filter If the next event comes in this period, ignore it. It is too fast to processing it in time // need to be elaborated
- * @param[in] use_thread Use the receive thread // need to be elaborated
+ * @param[in] use_thread User can choose the communication method, if this value is true, the viewer library will create a thread to communicate with master service
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int Integer, Dynamicbox status code
@@ -461,9 +461,9 @@ extern int dynamicbox_viewer_set_resumed(void);
  * @return handle
  * @retval Handle Dynamicbox handle but not yet initialized
  * @retval @c NULL if it fails to create a handle
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, dynamicbox_ret_cb_t cb, void *data);
+extern dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -482,9 +482,9 @@ extern dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, con
  * @retval #DBOX_STATUS_ERROR_BUSY Already in process
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to create a request packet
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent, return callack will be called
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_del(dynamicbox_h handler, int type, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_del(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -556,9 +556,9 @@ extern void *dynamicbox_unset_fault_handler(int (*cb)(enum dynamicbox_fault_type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent a request
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to make a request
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -598,9 +598,9 @@ extern int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb_t cb, void
  * @retval #DBOX_STATUS_ERROR_ALREADY Already resized, there is no differences between current size and requested size
  * @retval #DBOX_STATUS_ERROR_PERMISSION_DENIED Permission denied, you only have view the content of this box
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to make a request
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_resize(dynamicbox_h handler, int type, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_resize(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -635,9 +635,9 @@ extern int dynamicbox_click(dynamicbox_h handler, double x, double y);
  * @retval #DBOX_STATUS_ERROR_ALREADY Group name is same with current one
  * @retval #DBOX_STATUS_ERROR_PERMISSION_DENIED You have no permission to change property of this dynamicbox instance
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to make a request
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_set_group(dynamicbox_h handler, const char *cluster, const char *category, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_set_group(dynamicbox_h handler, const char *cluster, const char *category, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -683,9 +683,9 @@ extern double dynamicbox_period(dynamicbox_h handler);
  * @retval #DBOX_STATUS_ERROR_BUSY
  * @retval #DBOX_STATUS_ERROR_ALREADY
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -910,7 +910,7 @@ extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mou
  * @see dynamicbox_feed_mouse_event()
  * @see dynamicbox_feed_key_event()
  */
-extern int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -931,7 +931,7 @@ extern int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_ac
  * @see dynamicbox_feed_mouse_event()
  * @see dynamicbox_feed_access_event()
  */
-extern int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -949,11 +949,11 @@ extern int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_e
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  * @see dynamicbox_set_visibility()
  * @see dynamicbox_is_pinned_up()
  */
-extern int dynamicbox_set_pinup(dynamicbox_h handler, int flag, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_set_pinup(dynamicbox_h handler, int flag, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1014,7 +1014,7 @@ extern int dynamicbox_has_glance_bar(dynamicbox_h handler);
  * @see dynamicbox_destroy_glance_bar()
  * @see dynamicbox_move_glance_bar()
  */
-extern int dynamicbox_create_glance_bar(dynamicbox_h handler, double x, double y, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_create_glance_bar(dynamicbox_h handler, double x, double y, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1045,9 +1045,9 @@ extern int dynamicbox_move_glance_bar(dynamicbox_h handler, double x, double y);
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_destroy_glance_bar(dynamicbox_h handler, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_destroy_glance_bar(dynamicbox_h handler, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1094,9 +1094,9 @@ extern int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, struct dy
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully emitted
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1227,9 +1227,9 @@ extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
  * @pre Dynamicbox service system should support the PIXMAP type buffer.
  *   The dynamicbox should be designed to use the buffer (script type).
  * @see dynamicbox_release_resource_id()
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb_t cb, void *data);
+extern unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1303,9 +1303,9 @@ extern enum dynamicbox_visible_state dynamicbox_visibility(dynamicbox_h handler)
  * @retval #DBOX_STATUS_ERROR_ALREADY
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
- * @see dynamicbox_ret_cb_t
+ * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_set_update_mode(dynamicbox_h handler, int active_update, dynamicbox_ret_cb_t cb, void *data);
+extern int dynamicbox_set_update_mode(dynamicbox_h handler, int active_update, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
