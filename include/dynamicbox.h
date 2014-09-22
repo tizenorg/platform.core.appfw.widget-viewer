@@ -28,7 +28,7 @@ extern "C" {
  */
 
 /**
- * @addtogroup CAPI_DYNAMIC_VIEWER_MODULE
+ * @addtogroup CAPI_DYNAMICBOX_VIEWER_MODULE
  * @{
  */
 
