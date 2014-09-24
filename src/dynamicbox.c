@@ -1716,30 +1716,6 @@ EAPI int dynamicbox_click(dynamicbox_h handler, double x, double y)
 	}
 
 	ret = master_rpc_request_only(handler, packet);
-
-	if (!handler->common->dbox.mouse_event && (handler->common->dbox.type == _DBOX_TYPE_BUFFER || handler->common->dbox.type == _DBOX_TYPE_SCRIPT)) {
-		int ret; /* Shadow variable */
-		unsigned int cmd;
-
-		cmd = CMD_DBOX_MOUSE_DOWN;
-		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
-		if (ret < 0) {
-			ErrPrint("Failed to send Down: %d\n", ret);
-		}
-
-		cmd = CMD_DBOX_MOUSE_MOVE;
-		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
-		if (ret < 0) {
-			ErrPrint("Failed to send Move: %d\n", ret);
-		}
-
-		cmd = CMD_DBOX_MOUSE_UP;
-		ret = send_mouse_event(handler, (const char *)&cmd, x * handler->common->dbox.width, y * handler->common->dbox.height);
-		if (ret < 0) {
-			ErrPrint("Failed to send Up: %d\n", ret);
-		}
-	}
-
 	return ret;
 }
 
@@ -2224,10 +2200,6 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse
 	} else if (type & DBOX_MOUSE_EVENT_DBOX_MASK) {
 		int flag = 1;
 
-		if (!handler->common->dbox.mouse_event) {
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
 		if (!handler->common->dbox.fb) {
 			ErrPrint("Handler is not valid\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
@@ -2262,12 +2234,21 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse
 			cmd = CMD_DBOX_MOUSE_DOWN;
 			break;
 		case DBOX_MOUSE_EVENT_MOVE | DBOX_MOUSE_EVENT_MASK:
+			if (!handler->common->dbox.mouse_event) {
+				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+			}
 			cmd = CMD_DBOX_MOUSE_MOVE;
 			break;
 		case DBOX_MOUSE_EVENT_SET | DBOX_MOUSE_EVENT_MASK:
+			if (!handler->common->dbox.mouse_event) {
+				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+			}
 			cmd = CMD_DBOX_MOUSE_SET;
 			break;
 		case DBOX_MOUSE_EVENT_UNSET | DBOX_MOUSE_EVENT_MASK:
+			if (!handler->common->dbox.mouse_event) {
+				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+			}
 			cmd = CMD_DBOX_MOUSE_UNSET;
 			break;
 		case DBOX_MOUSE_EVENT_ON_SCROLL | DBOX_MOUSE_EVENT_MASK:
@@ -2375,10 +2356,6 @@ EAPI int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_eve
 		}
 
 	} else if (type & DBOX_MOUSE_EVENT_DBOX_MASK) {
-		if (!handler->common->dbox.mouse_event) {
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
 		if (!handler->common->dbox.fb) {
 			ErrPrint("Handler is not valid\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
