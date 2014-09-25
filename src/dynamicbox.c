@@ -32,6 +32,7 @@
 #include <packet.h>
 #include <dynamicbox_service.h>
 #include <dynamicbox_errno.h>
+#include <dynamicbox_cmd_list.h>
 
 #include "debug.h"
 #include "fb.h"
@@ -42,7 +43,6 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "conf.h"
-#include "provider_cmd_list.h"
 
 #define EAPI __attribute__((visibility("default")))
 

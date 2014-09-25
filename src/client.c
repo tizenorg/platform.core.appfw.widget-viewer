@@ -33,6 +33,7 @@
 #include <com-core_packet.h>
 #include <dynamicbox_errno.h>
 #include <dynamicbox_service.h>
+#include <dynamicbox_cmd_list.h>
 #include <secure_socket.h>
 
 #include "debug.h"
@@ -46,7 +47,6 @@
 #include "conf.h"
 #include "file_service.h"
 #include "dlist.h"
-#include "provider_cmd_list.h"
 
 int errno;
 
