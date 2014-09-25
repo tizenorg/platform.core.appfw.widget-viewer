@@ -9,6 +9,7 @@
 
 #include <dynamicbox_errno.h>
 #include <dynamicbox_service.h>
+#include <dynamicbox_buffer.h>
 
 #include <packet.h>
 
@@ -225,7 +226,7 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
 	common->dbox.lock = NULL;
 	common->dbox.lock_fd = -1;
 
-	common->state = CREATE;
+	common->state = DBOX_STATE_CREATE;
 	common->visible = DBOX_SHOW;
 
 	s_info.dynamicbox_common_list = dlist_append(s_info.dynamicbox_common_list, common);
@@ -236,7 +237,7 @@ int dbox_destroy_common_handle(struct dynamicbox_common *common)
 {
 	dlist_remove_data(s_info.dynamicbox_common_list, common);
 
-	common->state = DESTROYED;
+	common->state = DBOX_STATE_DESTROYED;
 
 	if (common->filename) {
 		(void)util_unlink(common->filename);
@@ -454,7 +455,7 @@ dynamicbox_h dbox_new_dynamicbox(const char *pkgname, const char *id, double tim
 	dbox_common_ref(handler->common, handler);
 	dbox_set_id(handler->common, id);
 	handler->common->timestamp = timestamp;
-	handler->common->state = CREATE;
+	handler->common->state = DBOX_STATE_CREATE;
 	handler->visible = DBOX_SHOW;
 	s_info.dynamicbox_list = dlist_append(s_info.dynamicbox_list, handler);
 
@@ -643,7 +644,7 @@ int dbox_set_gbar_fb(struct dynamicbox_common *common, const char *filename)
 {
 	struct fb_info *fb;
 
-	if (!common || common->state != CREATE) {
+	if (!common || common->state != DBOX_STATE_CREATE) {
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -810,7 +811,7 @@ dynamicbox_h dbox_unref(dynamicbox_h handler, int destroy_common)
 
 	dlist_remove_data(s_info.dynamicbox_list, handler);
 
-	handler->state = DESTROYED;
+	handler->state = DBOX_STATE_DESTROYED;
 	if (dbox_common_unref(handler->common, handler) == 0) {
 		if (destroy_common) {
 			/*!
@@ -886,7 +887,7 @@ int dbox_sync_dbox_fb(struct dynamicbox_common *common)
 {
 	int ret;
 
-	if (fb_type(dbox_get_dbox_fb(common)) == BUFFER_TYPE_FILE && common->dbox.lock_fd >= 0) {
+	if (fb_type(dbox_get_dbox_fb(common)) == DBOX_FB_TYPE_FILE && common->dbox.lock_fd >= 0) {
 		(void)dbox_fb_lock(common->dbox.lock_fd);
 		ret = fb_sync(dbox_get_dbox_fb(common));
 		(void)dbox_fb_unlock(common->dbox.lock_fd);
@@ -901,7 +902,7 @@ int dbox_sync_gbar_fb(struct dynamicbox_common *common)
 {
 	int ret;
 
-	if (fb_type(dbox_get_gbar_fb(common)) == BUFFER_TYPE_FILE && common->gbar.lock_fd >= 0) {
+	if (fb_type(dbox_get_gbar_fb(common)) == DBOX_FB_TYPE_FILE && common->gbar.lock_fd >= 0) {
 		(void)dbox_fb_lock(common->gbar.lock_fd);
 		ret = fb_sync(dbox_get_gbar_fb(common));
 		(void)dbox_fb_unlock(common->gbar.lock_fd);
@@ -969,7 +970,7 @@ struct dynamicbox_common *dbox_find_sharable_common_handle(const char *pkgname, 
 	}
 
 	dlist_foreach(s_info.dynamicbox_common_list, l, common) {
-		if (common->state != CREATE) {
+		if (common->state != DBOX_STATE_CREATE) {
 			continue;
 		}
 

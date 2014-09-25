@@ -94,9 +94,9 @@ enum gbar_type { /*!< Must have to be sync with data-provider-master */
 };
 
 enum dynamicbox_state {
-	CREATE = 0xBEEFbeef,
-	DELETE = 0xDEADdead, /* Delete only for this client */
-	DESTROYED = 0x00DEAD00
+	DBOX_STATE_CREATE = 0xBEEFbeef,
+	DBOX_STATE_DELETE = 0xDEADdead, /* Delete only for this client */
+	DBOX_STATE_DESTROYED = 0x00DEAD00
 };
 
 struct dynamicbox_common {

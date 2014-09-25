@@ -29,6 +29,7 @@
 
 #include <dlog.h>
 #include <dynamicbox_errno.h> /* For error code */
+#include <dynamicbox_buffer.h>
 
 #include "debug.h"
 #include "util.h"
@@ -45,17 +46,6 @@ struct fb_info {
 
 	int pixels;
 	int handle;
-};
-
-struct buffer { /*!< Must has to be sync with slave & provider */
-	enum {
-		CREATED = 0x00beef00,
-		DESTROYED = 0x00dead00
-	} state;
-	enum buffer_type type;
-	int refcnt;
-	void *info;
-	char data[];
 };
 
 static struct {
@@ -93,7 +83,7 @@ static inline int sync_for_file(struct fb_info *info)
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (buffer->type != BUFFER_TYPE_FILE) {
+	if (buffer->type != DBOX_BUFFER_TYPE_FILE) {
 		ErrPrint("Invalid buffer\n");
 		return DBOX_STATUS_ERROR_NONE;
 	}
@@ -267,7 +257,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 				return NULL;
 			}
 
-			buffer->type = BUFFER_TYPE_FILE;
+			buffer->type = DBOX_BUFFER_TYPE_FILE;
 			buffer->refcnt = 0;
 			buffer->state = CREATED;
 			buffer->info = info;
@@ -291,10 +281,10 @@ void *fb_acquire_buffer(struct fb_info *info)
 	buffer = info->buffer;
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_FILE:
+	case DBOX_BUFFER_TYPE_FILE:
 		buffer->refcnt++;
 		break;
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
 		DbgPrint("Unknwon FP: %d\n", buffer->type);
 		break;
@@ -320,18 +310,18 @@ int fb_release_buffer(void *data)
 	}
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_SHM:
+	case DBOX_BUFFER_TYPE_SHM:
 		if (shmdt(buffer) < 0) {
 			ErrPrint("shmdt: %s\n", strerror(errno));
 		}
 		break;
-	case BUFFER_TYPE_FILE:
+	case DBOX_BUFFER_TYPE_FILE:
 		buffer->refcnt--;
 		if (buffer->refcnt == 0) {
 			struct fb_info *info;
 			info = buffer->info;
 
-			buffer->state = DESTROYED;
+			buffer->state = DBOX_FB_STATE_DESTROYED;
 			free(buffer);
 
 			if (info && info->buffer == buffer) {
@@ -339,7 +329,7 @@ int fb_release_buffer(void *data)
 			}
 		}
 		break;
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
 		ErrPrint("Unknwon buffer type\n");
 		break;
@@ -366,7 +356,7 @@ int fb_refcnt(void *data)
 	}
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_SHM:
+	case DBOX_BUFFER_TYPE_SHM:
 		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
 			ErrPrint("Error: %s\n", strerror(errno));
 			return DBOX_STATUS_ERROR_FAULT;
@@ -374,10 +364,10 @@ int fb_refcnt(void *data)
 
 		ret = buf.shm_nattch;
 		break;
-	case BUFFER_TYPE_FILE:
+	case DBOX_BUFFER_TYPE_FILE:
 		ret = buffer->refcnt;
 		break;
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
 		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		break;
@@ -419,23 +409,23 @@ int fb_type(struct fb_info *info)
 	struct buffer *buffer;
 
 	if (!info) {
-		return BUFFER_TYPE_ERROR;
+		return DBOX_BUFFER_TYPE_ERROR;
 	}
 
 	buffer = info->buffer;
 	if (!buffer) {
-		int type = BUFFER_TYPE_ERROR;
+		int type = DBOX_BUFFER_TYPE_ERROR;
 		/*!
 		 * \note
 		 * Try to get this from SCHEMA
 		 */
 		if (info->id) {
 			if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
-				type = BUFFER_TYPE_FILE;
+				type = DBOX_BUFFER_TYPE_FILE;
 			} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 				/* Unsupported type */
 			} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
-				type = BUFFER_TYPE_SHM;
+				type = DBOX_BUFFER_TYPE_SHM;
 			}
 		}
 

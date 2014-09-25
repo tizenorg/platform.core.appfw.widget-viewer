@@ -34,6 +34,7 @@
 #include <dynamicbox_errno.h>
 #include <dynamicbox_service.h>
 #include <dynamicbox_cmd_list.h>
+#include <dynamicbox_buffer.h>
 #include <secure_socket.h>
 
 #include "debug.h"
@@ -205,8 +206,8 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	}
 
 	/*!< Check validity of this "handler" */
-	if (common->state != CREATE) {
-		if (common->state != DELETE) {
+	if (common->state != DBOX_STATE_CREATE) {
+		if (common->state != DBOX_STATE_DELETE) {
 			/*!
 			 * \note
 			 * This is not possible
@@ -224,7 +225,7 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 	 * Then we will get panic.
 	 * To prevent it, we should change its state first.
 	 */
-	common->state = DELETE;
+	common->state = DBOX_STATE_DELETE;
 
 	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
 		if (handler->cbs.created.cb) {
@@ -311,7 +312,7 @@ static struct packet *master_dbox_update_begin(pid_t pid, int handle, const stru
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("(%s) is not created\n", id);
 		goto out;
 	}
@@ -369,7 +370,7 @@ static struct packet *master_gbar_update_begin(pid_t pid, int handle, const stru
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
@@ -414,7 +415,7 @@ static struct packet *master_dbox_update_end(pid_t pid, int handle, const struct
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
@@ -454,7 +455,7 @@ static struct packet *master_key_status(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
@@ -503,7 +504,7 @@ static struct packet *master_request_close_gbar(pid_t pid, int handle, const str
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
@@ -544,7 +545,7 @@ static struct packet *master_access_status(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
@@ -588,7 +589,7 @@ static struct packet *master_gbar_update_end(pid_t pid, int handle, const struct
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("[%s] is not created\n", id);
 		goto out;
 	}
@@ -637,7 +638,7 @@ static struct packet *master_extra_info(pid_t pid, int handle, const struct pack
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		/*!
 		 * \note
 		 * Already deleted by the user.
@@ -685,7 +686,7 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		/*!
 		 * \note
 		 * Already deleted by the user.
@@ -776,7 +777,7 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Instance(%s) is not created\n", id);
 		goto out;
 	}
@@ -800,12 +801,12 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 			case _GBAR_TYPE_SCRIPT:
 			case _GBAR_TYPE_BUFFER:
 				switch (fb_type(dbox_get_gbar_fb(common))) {
-				case BUFFER_TYPE_FILE:
-				case BUFFER_TYPE_SHM:
+				case DBOX_FB_TYPE_FILE:
+				case DBOX_FB_TYPE_SHM:
 					dbox_create_lock_file(common, 1);
 					break;
-				case BUFFER_TYPE_PIXMAP:
-				case BUFFER_TYPE_ERROR:
+				case DBOX_FB_TYPE_PIXMAP:
+				case DBOX_FB_TYPE_ERROR:
 				default:
 					break;
 				}
@@ -873,7 +874,7 @@ static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Instance(%s) is not created\n", id);
 		goto out;
 	}
@@ -916,12 +917,12 @@ static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct 
 	case _GBAR_TYPE_SCRIPT:
 	case _GBAR_TYPE_BUFFER:
 		switch (fb_type(dbox_get_gbar_fb(common))) {
-		case BUFFER_TYPE_FILE:
-		case BUFFER_TYPE_SHM:
+		case DBOX_FB_TYPE_FILE:
+		case DBOX_FB_TYPE_SHM:
 			dbox_destroy_lock_file(common, 1);
 			break;
-		case BUFFER_TYPE_PIXMAP:
-		case BUFFER_TYPE_ERROR:
+		case DBOX_FB_TYPE_PIXMAP:
+		case DBOX_FB_TYPE_ERROR:
 		default:
 			break;
 		}
@@ -965,7 +966,7 @@ static struct packet *master_gbar_updated(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		/*!
 		 * \note
 		 * This handler is already deleted by the user.
@@ -1037,7 +1038,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Livebox(%s) is not created yet\n", id);
 		goto out;
 	}
@@ -1098,7 +1099,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Livebox(%s) is not created yet\n", id);
 		goto out;
 	}
@@ -1197,7 +1198,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Livebox(%s) is not created\n", id);
 		goto out;
 	}
@@ -1254,7 +1255,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
-	if (common->state != CREATE) {
+	if (common->state != DBOX_STATE_CREATE) {
 		/*!
 		 * \note
 		 * Do no access this handler,
@@ -1322,7 +1323,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	double period;
 	int is_pinned_up;
 
-	int old_state = DESTROYED;
+	int old_state = DBOX_STATE_DESTROYED;
 
 	int ret;
 
@@ -1361,8 +1362,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		common = handler->common;
 		old_state = common->state;
 	} else {
-		if (common->state != CREATE) {
-			if (common->state != DELETE) {
+		if (common->state != DBOX_STATE_CREATE) {
+			if (common->state != DBOX_STATE_DELETE) {
 				/*!
 				 * \note
 				 * This is not possible!!!
@@ -1415,16 +1416,16 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		/*!
 		 * \note
 		 * Livebox should create the lock file from here.
-		 * Even if the old_state == DELETE,
+		 * Even if the old_state == DBOX_STATE_DELETE,
 		 * the lock file will be deleted from deleted event callback.
 		 */
 		switch (fb_type(dbox_get_dbox_fb(common))) {
-		case BUFFER_TYPE_FILE:
-		case BUFFER_TYPE_SHM:
+		case DBOX_FB_TYPE_FILE:
+		case DBOX_FB_TYPE_SHM:
 			dbox_create_lock_file(common, 0);
 			break;
-		case BUFFER_TYPE_PIXMAP:
-		case BUFFER_TYPE_ERROR:
+		case DBOX_FB_TYPE_PIXMAP:
+		case DBOX_FB_TYPE_ERROR:
 		default:
 			break;
 		}
@@ -1490,7 +1491,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 	ret = 0;
 
-	if (common->state == CREATE) {
+	if (common->state == DBOX_STATE_CREATE) {
 		dlist_foreach(common->dynamicbox_list, l, handler) {
 			/*!
 			 * \note
@@ -1516,7 +1517,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	}
 
 out:
-	if (ret == 0 && old_state == DELETE) {
+	if (ret == 0 && old_state == DBOX_STATE_DELETE) {
 		struct dlist *n;
 
 		DbgPrint("Take place an unexpected case [%d]\n", common->refcnt);
@@ -1530,7 +1531,7 @@ out:
 						 * Callback will be called in any cases
 						 */
 					}
-				} else if (handler->state != DELETE) {
+				} else if (handler->state != DBOX_STATE_DELETE) {
 					handler->cbs.created.cb(handler, DBOX_STATUS_ERROR_CANCEL, handler->cbs.created.data);
 					dbox_unref(handler, 1);
 				}

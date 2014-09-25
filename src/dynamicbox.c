@@ -33,6 +33,7 @@
 #include <dynamicbox_service.h>
 #include <dynamicbox_errno.h>
 #include <dynamicbox_cmd_list.h>
+#include <dynamicbox_buffer.h>
 
 #include "debug.h"
 #include "fb.h"
@@ -1034,7 +1035,7 @@ static void job_del_cb(dynamicbox_h handle, int type, void *data)
 	data = cbinfo->data;
 	dbox_destroy_cb_info(cbinfo);
 
-	if (handle->common->state != CREATE) {
+	if (handle->common->state != DBOX_STATE_CREATE) {
 		DbgPrint("[%s] %d\n", handle->common->pkgname, handle->refcnt);
 		if (cb) {
 			cb(handle, DBOX_STATUS_ERROR_NONE, data);
@@ -1045,7 +1046,7 @@ static void job_del_cb(dynamicbox_h handle, int type, void *data)
 
 	if (handle->common->refcnt == 1) {
 		handle->common->delete_type = type;
-		handle->common->state = DELETE;
+		handle->common->state = DBOX_STATE_DELETE;
 
 		if (!handle->common->id) {
 			/*!
@@ -1273,7 +1274,7 @@ EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const
 	}
 
 	handler->visible = DBOX_SHOW;
-	handler->state = CREATE;
+	handler->state = DBOX_STATE_CREATE;
 	handler = dbox_ref(handler);
 
 	if (handler->common->visible != DBOX_SHOW) {
@@ -1285,12 +1286,12 @@ EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const
 
 EAPI double dynamicbox_period(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return 0.0f;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return 0.0f;
 	}
@@ -1309,12 +1310,12 @@ EAPI int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox_r
 	unsigned int cmd = CMD_SET_PERIOD;
 	int ret;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1368,12 +1369,12 @@ EAPI int dynamicbox_del(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, vo
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (handler->state != CREATE) {
+	if (handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is already deleted\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	handler->state = DELETE;
+	handler->state = DBOX_STATE_DELETE;
 
 	cbinfo = dbox_create_cb_info(cb, data);
 	if (!cbinfo) {
@@ -1433,12 +1434,12 @@ EAPI int dynamicbox_set_update_mode(dynamicbox_h handler, int active_update, dyn
 	unsigned int cmd = CMD_UPDATE_MODE;
 	int ret;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is Invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is Invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1482,12 +1483,12 @@ EAPI int dynamicbox_set_update_mode(dynamicbox_h handler, int active_update, dyn
 
 EAPI int dynamicbox_is_active_update(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is Invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is Invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1512,12 +1513,12 @@ EAPI int dynamicbox_resize(dynamicbox_h handler, int type, dynamicbox_ret_cb cb,
 	 * Create a new instance or find another linkable instance.
 	 */
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1682,12 +1683,12 @@ EAPI int dynamicbox_click(dynamicbox_h handler, double x, double y)
 	unsigned int cmd = CMD_CLICKED;
 	int ret;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1721,12 +1722,12 @@ EAPI int dynamicbox_click(dynamicbox_h handler, double x, double y)
 
 EAPI int dynamicbox_has_gbar(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1741,12 +1742,12 @@ EAPI int dynamicbox_has_gbar(dynamicbox_h handler)
 
 EAPI int dynamicbox_glance_bar_is_created(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1765,12 +1766,12 @@ EAPI int dynamicbox_create_glance_bar(dynamicbox_h handler, double x, double y, 
 	unsigned int cmd = CMD_CREATE_GBAR;
 	int ret;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1830,12 +1831,12 @@ EAPI int dynamicbox_move_glance_bar(dynamicbox_h handler, double x, double y)
 	struct packet *packet;
 	unsigned int cmd = CMD_GBAR_MOVE;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1898,12 +1899,12 @@ EAPI int dynamicbox_destroy_glance_bar(dynamicbox_h handler, dynamicbox_ret_cb c
 	unsigned int cmd = CMD_DESTROY_GBAR;
 	int ret;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -1974,12 +1975,12 @@ EAPI int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_acce
 	unsigned int cmd;
 	int ret = 0;	/* re-used for sending event type */
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2110,12 +2111,12 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse
 	int h = 1;
 	unsigned int cmd;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2280,12 +2281,12 @@ EAPI int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_eve
 	int ret;
 	unsigned int cmd;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2416,12 +2417,12 @@ EAPI int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_eve
 
 EAPI const char *dynamicbox_filename(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return NULL;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return NULL;
 	}
@@ -2444,12 +2445,12 @@ EAPI int dynamicbox_get_glance_bar_size(dynamicbox_h handler, int *w, int *h)
 	int _w;
 	int _h;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2482,12 +2483,12 @@ EAPI int dynamicbox_size(dynamicbox_h handler)
 	int w;
 	int h;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2526,12 +2527,12 @@ EAPI int dynamicbox_set_group(dynamicbox_h handler, const char *cluster, const c
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!cluster || !category || handler->state != CREATE) {
+	if (!cluster || !category || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2583,12 +2584,12 @@ EAPI int dynamicbox_get_group(dynamicbox_h handler, const char **cluster, const 
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!cluster || !category || handler->state != CREATE) {
+	if (!cluster || !category || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid argument\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2613,12 +2614,12 @@ EAPI int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, int *siz
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!cnt || handler->state != CREATE) {
+	if (!cnt || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2649,12 +2650,12 @@ EAPI const char *dynamicbox_pkgname(dynamicbox_h handler)
 		return NULL;
 	}
 
-	if (handler->state != CREATE) {
+	if (handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -2664,12 +2665,12 @@ EAPI const char *dynamicbox_pkgname(dynamicbox_h handler)
 
 EAPI double dynamicbox_priority(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return -1.0f;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return -1.0f;
 	}
@@ -2740,12 +2741,12 @@ EAPI enum dynamicbox_type dynamicbox_type(dynamicbox_h handler, int gbar)
 {
 	enum dynamicbox_type type;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_TYPE_INVALID;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_TYPE_INVALID;
 	}
@@ -2811,7 +2812,7 @@ EAPI int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, struct dyna
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (handler->state != CREATE) {
+	if (handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2828,12 +2829,12 @@ EAPI int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, struct dyna
 EAPI unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb cb, void *data)
 {
 	if (gbar) {
-		if (!handler || handler->state != CREATE) {
+		if (!handler || handler->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (!handler->common || handler->common->state != CREATE) {
+		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
@@ -2850,12 +2851,12 @@ EAPI unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar,
 
 		return dbox_acquire_gbar_pixmap(handler, cb, data);
 	} else {
-		if (!handler || handler->state != CREATE) {
+		if (!handler || handler->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (!handler->common || handler->common->state != CREATE) {
+		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
@@ -2889,7 +2890,7 @@ EAPI int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned
 	const char *id;
 	unsigned int cmd;
 
-	if (resource_id == 0 /* || handler->state != CREATE */) {
+	if (resource_id == 0 /* || handler->state != DBOX_STATE_CREATE */) {
 		ErrPrint("Pixmap is invalid [%d]\n", resource_id);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -2914,7 +2915,7 @@ EAPI int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned
 			 * Master will try to find the buffer handler using given resource_id. if the pkgname and id is not valid.
 			 */
 		} else {
-			if (!handler->common /* || handler-common->state != CREATE */) {
+			if (!handler->common /* || handler-common->state != DBOX_STATE_CREATE */) {
 				ErrPrint("Handler is invalid\n");
 				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 			}
@@ -2954,7 +2955,7 @@ EAPI int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned
 			 * Master will try to find the buffer handler using given resource_id. if the pkgname and id is not valid.
 			 */
 		} else {
-			if (!handler->common /* || handler->common->state != CREATE */) {
+			if (!handler->common /* || handler->common->state != DBOX_STATE_CREATE */) {
 				ErrPrint("Handler is invalid\n");
 				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 			}
@@ -2991,12 +2992,12 @@ EAPI unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
 	int pixmap = 0;
 
 	if (gbar) {
-		if (!handler || handler->state != CREATE) {
+		if (!handler || handler->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return 0;
 		}
 
-		if (!handler->common || handler->common->state != CREATE) {
+		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return 0;
 		}
@@ -3017,12 +3018,12 @@ EAPI unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
 			return 0;
 		}
 	} else {
-		if (!handler || handler->state != CREATE) {
+		if (!handler || handler->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return 0;
 		}
 
-		if (!handler->common || handler->common->state != CREATE) {
+		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return 0;
 		}
@@ -3051,12 +3052,12 @@ EAPI unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
 EAPI void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar)
 {
 	if (gbar) {
-		if (!handler || handler->state != CREATE) {
+		if (!handler || handler->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return NULL;
 		}
 
-		if (!handler->common || handler->common->state != CREATE) {
+		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return NULL;
 		}
@@ -3073,12 +3074,12 @@ EAPI void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar)
 
 		return fb_acquire_buffer(handler->common->gbar.fb);
 	} else {
-		if (!handler || handler->state != CREATE) {
+		if (!handler || handler->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return NULL;
 		}
 
-		if (!handler->common || handler->common->state != CREATE) {
+		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
 			return NULL;
 		}
@@ -3109,12 +3110,12 @@ EAPI int dynamicbox_fb_refcnt(void *buffer)
 
 EAPI int dynamicbox_fb_buffer_size(dynamicbox_h handler, int gbar)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3133,12 +3134,12 @@ EAPI int dynamicbox_fb_buffer_size(dynamicbox_h handler, int gbar)
 
 EAPI int dynamicbox_is_created_by_user(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3157,12 +3158,12 @@ EAPI int dynamicbox_set_pinup(dynamicbox_h handler, int flag, dynamicbox_ret_cb 
 	unsigned int cmd = CMD_PINUP_CHANGED;
 	int ret;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3204,12 +3205,12 @@ EAPI int dynamicbox_set_pinup(dynamicbox_h handler, int flag, dynamicbox_ret_cb 
 
 EAPI int dynamicbox_is_pinned_up(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3224,12 +3225,12 @@ EAPI int dynamicbox_is_pinned_up(dynamicbox_h handler)
 
 EAPI int dynamicbox_has_pinup(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3249,7 +3250,7 @@ EAPI int dynamicbox_set_data(dynamicbox_h handler, void *data)
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (handler->state != CREATE) {
+	if (handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3265,7 +3266,7 @@ EAPI void *dynamicbox_data(dynamicbox_h handler)
 		return NULL;
 	}
 
-	if (handler->state != CREATE) {
+	if (handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return NULL;
 	}
@@ -3275,12 +3276,12 @@ EAPI void *dynamicbox_data(dynamicbox_h handler)
 
 EAPI const char *dynamicbox_content(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return NULL;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return NULL;
 	}
@@ -3290,12 +3291,12 @@ EAPI const char *dynamicbox_content(dynamicbox_h handler)
 
 EAPI const char *dynamicbox_title(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return NULL;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return NULL;
 	}
@@ -3310,12 +3311,12 @@ EAPI int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission,
 	unsigned int cmd = CMD_TEXT_SIGNAL;
 	int ret;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3400,12 +3401,12 @@ EAPI int dynamicbox_refresh(dynamicbox_h handler, int force)
 	struct packet *packet;
 	unsigned int cmd = CMD_UPDATE;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3448,12 +3449,12 @@ EAPI int dynamicbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible
 	int old_state;
 	int ret;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3489,12 +3490,12 @@ EAPI int dynamicbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible
 
 EAPI enum dynamicbox_visible_state dynamicbox_visibility(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
 		return DBOX_VISIBLE_ERROR;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_VISIBLE_ERROR;
 	}
@@ -3537,12 +3538,12 @@ EAPI int dynamicbox_viewer_set_resumed(void)
 
 EAPI int dynamicbox_sync_fb(dynamicbox_h handler, int gbar)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3561,12 +3562,12 @@ EAPI int dynamicbox_sync_fb(dynamicbox_h handler, int gbar)
 
 EAPI const char *dynamicbox_alt_icon(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handler);
 		return NULL;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -3576,12 +3577,12 @@ EAPI const char *dynamicbox_alt_icon(dynamicbox_h handler)
 
 EAPI const char *dynamicbox_alt_name(dynamicbox_h handler)
 {
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handler);
 		return NULL;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return NULL;
 	}
@@ -3594,12 +3595,12 @@ EAPI int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int is_gbar)
 	int ret = DBOX_STATUS_ERROR_NONE;
 	int fd;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handler);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3615,7 +3616,7 @@ EAPI int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int is_gbar)
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (fb_type(dbox_get_gbar_fb(handler->common)) == BUFFER_TYPE_FILE) {
+		if (fb_type(dbox_get_gbar_fb(handler->common)) == DBOX_FB_TYPE_FILE) {
 			return DBOX_STATUS_ERROR_NONE;
 		}
 
@@ -3626,7 +3627,7 @@ EAPI int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int is_gbar)
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (fb_type(dbox_get_dbox_fb(handler->common)) == BUFFER_TYPE_FILE) {
+		if (fb_type(dbox_get_dbox_fb(handler->common)) == DBOX_FB_TYPE_FILE) {
 			return DBOX_STATUS_ERROR_NONE;
 		}
 
@@ -3643,12 +3644,12 @@ EAPI int dynamicbox_release_fb_lock(dynamicbox_h handler, int is_gbar)
 	int ret = DBOX_STATUS_ERROR_NONE;
 	int fd;
 
-	if (!handler || handler->state != CREATE) {
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!handler->common || handler->common->state != CREATE) {
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
@@ -3664,7 +3665,7 @@ EAPI int dynamicbox_release_fb_lock(dynamicbox_h handler, int is_gbar)
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (fb_type(dbox_get_gbar_fb(handler->common)) == BUFFER_TYPE_FILE) {
+		if (fb_type(dbox_get_gbar_fb(handler->common)) == DBOX_FB_TYPE_FILE) {
 			return DBOX_STATUS_ERROR_NONE;
 		}
 
@@ -3675,7 +3676,7 @@ EAPI int dynamicbox_release_fb_lock(dynamicbox_h handler, int is_gbar)
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (fb_type(dbox_get_dbox_fb(handler->common)) == BUFFER_TYPE_FILE) {
+		if (fb_type(dbox_get_dbox_fb(handler->common)) == DBOX_FB_TYPE_FILE) {
 			return DBOX_STATUS_ERROR_NONE;
 		}
 
