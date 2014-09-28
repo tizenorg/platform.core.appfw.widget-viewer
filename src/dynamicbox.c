@@ -1167,7 +1167,7 @@ EAPI int dynamicbox_fini(void)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, int type, dynamicbox_ret_cb cb, void *data)
+EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, enum dynamicbox_size_type type, dynamicbox_ret_cb cb, void *data)
 {
 	char *dboxid;
 	dynamicbox_h handler;
@@ -1360,7 +1360,7 @@ EAPI int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox_r
 	return ret;
 }
 
-EAPI int dynamicbox_del(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_del(dynamicbox_h handler, enum dynamicbox_delete_type type, dynamicbox_ret_cb cb, void *data)
 {
 	struct cb_info *cbinfo;
 
@@ -1500,7 +1500,7 @@ EAPI int dynamicbox_is_active_update(dynamicbox_h handler)
 	return handler->common->is_active_update;
 }
 
-EAPI int dynamicbox_resize(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_resize(dynamicbox_h handler, enum dynamicbox_size_type type, dynamicbox_ret_cb cb, void *data)
 {
 	struct dynamicbox_common *common;
 	int w;

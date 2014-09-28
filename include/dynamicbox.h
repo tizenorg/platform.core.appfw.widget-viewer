@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <dynamicbox_service.h>
+
 #ifndef __DYNAMICBOX_H
 #define __DYNAMICBOX_H
 
@@ -506,7 +508,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  * @retval @c NULL if it fails to create a handle
  * @see dynamicbox_ret_cb
  */
-extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, const char *cluster, const char *category, double period, int type, dynamicbox_ret_cb cb, void *data);
+extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, const char *cluster, const char *category, double period, enum dynamicbox_size_type type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -529,7 +531,7 @@ extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, con
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent, return callack will be called
  * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_del(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_del(dynamicbox_h handler, enum dynamicbox_delete_type type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -649,7 +651,7 @@ extern int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb cb, void *
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to make a request
  * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_resize(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_resize(dynamicbox_h handler, enum dynamicbox_size_type type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
