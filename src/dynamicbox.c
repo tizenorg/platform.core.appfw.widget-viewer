@@ -2502,8 +2502,8 @@ EAPI int dynamicbox_size(dynamicbox_h handler)
 	h = handler->common->dbox.height;
 
 	switch (handler->common->dbox.type) {
-	case _DBOX_TYPE_BUFFER:
-	case _DBOX_TYPE_SCRIPT:
+	case DBOX_TYPE_BUFFER:
+	case DBOX_TYPE_SCRIPT:
 		if (!fb_is_created(handler->common->dbox.fb)) {
 			w = 0;
 			h = 0;
@@ -2743,63 +2743,63 @@ EAPI enum dynamicbox_type dynamicbox_type(dynamicbox_h handler, int gbar)
 
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return DBOX_TYPE_INVALID;
+		return DBOX_CONTENT_TYPE_INVALID;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return DBOX_TYPE_INVALID;
+		return DBOX_CONTENT_TYPE_INVALID;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return DBOX_TYPE_INVALID;
+		return DBOX_CONTENT_TYPE_INVALID;
 	}
 
 	if (gbar) {
 		switch (handler->common->gbar.type) {
-		case _GBAR_TYPE_TEXT:
-			return DBOX_TYPE_TEXT;
-		case _GBAR_TYPE_BUFFER:
-		case _GBAR_TYPE_SCRIPT:
+		case GBAR_TYPE_TEXT:
+			return DBOX_CONTENT_TYPE_TEXT;
+		case GBAR_TYPE_BUFFER:
+		case GBAR_TYPE_SCRIPT:
 			{
 				const char *id;
 				id = fb_id(handler->common->gbar.fb);
 				if (id && !strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-					return DBOX_TYPE_RESOURCE_ID;
+					return DBOX_CONTENT_TYPE_RESOURCE_ID;
 				}
 			}
-			return DBOX_TYPE_BUFFER;
-		case _GBAR_TYPE_ELEMENTARY:
-			return DBOX_TYPE_UIFW;
+			return DBOX_CONTENT_TYPE_BUFFER;
+		case GBAR_TYPE_UIFW:
+			return DBOX_CONTENT_TYPE_UIFW;
 		default:
 			break;
 		}
 
-		return DBOX_TYPE_INVALID;
+		return DBOX_CONTENT_TYPE_INVALID;
 	} else {
 		switch (handler->common->dbox.type) {
-		case _DBOX_TYPE_FILE:
-			return DBOX_TYPE_IMAGE;
-		case _DBOX_TYPE_BUFFER:
-		case _DBOX_TYPE_SCRIPT:
+		case DBOX_TYPE_FILE:
+			return DBOX_CONTENT_TYPE_IMAGE;
+		case DBOX_TYPE_BUFFER:
+		case DBOX_TYPE_SCRIPT:
 			{
 				const char *id;
 				id = fb_id(handler->common->dbox.fb);
 				if (id && !strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-					return DBOX_TYPE_RESOURCE_ID;
+					return DBOX_CONTENT_TYPE_RESOURCE_ID;
 				}
 			}
-			return DBOX_TYPE_BUFFER;
-		case _DBOX_TYPE_TEXT:
-			return DBOX_TYPE_TEXT;
-		case _DBOX_TYPE_ELEMENTARY:
-			return DBOX_TYPE_UIFW;
+			return DBOX_CONTENT_TYPE_BUFFER;
+		case DBOX_TYPE_TEXT:
+			return DBOX_CONTENT_TYPE_TEXT;
+		case DBOX_TYPE_UIFW:
+			return DBOX_CONTENT_TYPE_UIFW;
 		default:
 			break;
 		}
 
-		return DBOX_TYPE_INVALID;
+		return DBOX_CONTENT_TYPE_INVALID;
 	}
 
 	return type;
@@ -2844,7 +2844,7 @@ EAPI unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar,
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (handler->common->gbar.type != _GBAR_TYPE_SCRIPT && handler->common->gbar.type != _GBAR_TYPE_BUFFER) {
+		if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
@@ -2866,7 +2866,7 @@ EAPI unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar,
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (handler->common->dbox.type != _DBOX_TYPE_SCRIPT && handler->common->dbox.type != _DBOX_TYPE_BUFFER) {
+		if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
@@ -2925,7 +2925,7 @@ EAPI int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned
 				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 			}
 
-			if (handler->common->gbar.type != _GBAR_TYPE_SCRIPT && handler->common->gbar.type != _GBAR_TYPE_BUFFER) {
+			if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
 				ErrPrint("Handler is not valid type\n");
 				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 			}
@@ -2965,7 +2965,7 @@ EAPI int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned
 				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 			}
 
-			if (handler->common->dbox.type != _DBOX_TYPE_SCRIPT && handler->common->dbox.type != _DBOX_TYPE_BUFFER) {
+			if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
 				ErrPrint("Handler is not valid type\n");
 				return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 			}
@@ -3007,7 +3007,7 @@ EAPI unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
 			return 0;
 		}
 
-		if (handler->common->gbar.type != _GBAR_TYPE_SCRIPT && handler->common->gbar.type != _GBAR_TYPE_BUFFER) {
+		if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Invalid handler\n");
 			return 0;
 		}
@@ -3033,7 +3033,7 @@ EAPI unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
 			return 0;
 		}
 
-		if (handler->common->dbox.type != _DBOX_TYPE_SCRIPT && handler->common->dbox.type != _DBOX_TYPE_BUFFER) {
+		if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
 			ErrPrint("Invalid handler\n");
 			return 0;
 		}
@@ -3067,7 +3067,7 @@ EAPI void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar)
 			return NULL;
 		}
 
-		if (handler->common->gbar.type != _GBAR_TYPE_SCRIPT && handler->common->gbar.type != _GBAR_TYPE_BUFFER) {
+		if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
 			return NULL;
 		}
@@ -3089,7 +3089,7 @@ EAPI void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar)
 			return NULL;
 		}
 
-		if (handler->common->dbox.type != _DBOX_TYPE_SCRIPT && handler->common->dbox.type != _DBOX_TYPE_BUFFER) {
+		if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
 			return NULL;
 		}
@@ -3321,7 +3321,7 @@ EAPI int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission,
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if ((handler->common->dbox.type != _DBOX_TYPE_TEXT && handler->common->gbar.type != _GBAR_TYPE_TEXT) || !handler->common->id) {
+	if ((handler->common->dbox.type != DBOX_TYPE_TEXT && handler->common->gbar.type != GBAR_TYPE_TEXT) || !handler->common->id) {
 		ErrPrint("Handler is not valid\n");
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}

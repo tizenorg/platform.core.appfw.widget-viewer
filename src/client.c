@@ -795,8 +795,8 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 			(void)dbox_set_gbar_fb(common, buf_id);
 
 			switch (common->gbar.type) {
-			case _GBAR_TYPE_SCRIPT:
-			case _GBAR_TYPE_BUFFER:
+			case GBAR_TYPE_SCRIPT:
+			case GBAR_TYPE_BUFFER:
 				switch (fb_type(dbox_get_gbar_fb(common))) {
 				case DBOX_FB_TYPE_FILE:
 				case DBOX_FB_TYPE_SHM:
@@ -808,8 +808,8 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 					break;
 				}
 				break;
-			case _GBAR_TYPE_ELEMENTARY:
-			case _GBAR_TYPE_TEXT:
+			case GBAR_TYPE_UIFW:
+			case GBAR_TYPE_TEXT:
 			default:
 				break;
 			}
@@ -911,8 +911,8 @@ static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct 
 	 * Lock file should be deleted after all callbacks are processed.
 	 */
 	switch (common->gbar.type) {
-	case _GBAR_TYPE_SCRIPT:
-	case _GBAR_TYPE_BUFFER:
+	case GBAR_TYPE_SCRIPT:
+	case GBAR_TYPE_BUFFER:
 		switch (fb_type(dbox_get_gbar_fb(common))) {
 		case DBOX_FB_TYPE_FILE:
 		case DBOX_FB_TYPE_SHM:
@@ -924,8 +924,8 @@ static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct 
 			break;
 		}
 		break;
-	case _GBAR_TYPE_ELEMENTARY:
-	case _GBAR_TYPE_TEXT:
+	case GBAR_TYPE_UIFW:
+	case GBAR_TYPE_TEXT:
 	default:
 		break;
 	}
@@ -1311,8 +1311,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	int size_list;
 	int user;
 	int pinup_supported;
-	enum dbox_type dbox_type;
-	enum gbar_type gbar_type;
+	enum dynamicbox_dbox_type dbox_type;
+	enum dynamicbox_gbar_type gbar_type;
 	double period;
 	int is_pinned_up;
 
@@ -1396,11 +1396,11 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	common->is_pinned_up = is_pinned_up;
 
 	switch (dbox_type) {
-	case _DBOX_TYPE_ELEMENTARY:
-	case _DBOX_TYPE_FILE:
+	case DBOX_TYPE_UIFW:
+	case DBOX_TYPE_FILE:
 		break;
-	case _DBOX_TYPE_SCRIPT:
-	case _DBOX_TYPE_BUFFER:
+	case DBOX_TYPE_SCRIPT:
+	case DBOX_TYPE_BUFFER:
 		if (!strlen(dbox_fname)) {
 			break;
 		}
@@ -1428,7 +1428,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
 		}
 		break;
-	case _DBOX_TYPE_TEXT:
+	case DBOX_TYPE_TEXT:
 		dbox_set_text_dbox(common);
 		break;
 	default:
@@ -1439,8 +1439,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	dbox_set_gbarsize(common, gbar_w, gbar_h);
 	dbox_set_default_gbarsize(common, gbar_w, gbar_h);
 	switch (gbar_type) {
-	case _GBAR_TYPE_SCRIPT:
-	case _GBAR_TYPE_BUFFER:
+	case GBAR_TYPE_SCRIPT:
+	case GBAR_TYPE_BUFFER:
 		if (!strlen(gbar_fname)) {
 			break;
 		}
@@ -1459,10 +1459,10 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		 */
 
 		break;
-	case _GBAR_TYPE_TEXT:
+	case GBAR_TYPE_TEXT:
 		dbox_set_text_gbar(common);
 		break;
-	case _GBAR_TYPE_ELEMENTARY:
+	case GBAR_TYPE_UIFW:
 	default:
 		break;
 	}

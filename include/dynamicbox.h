@@ -179,12 +179,12 @@ enum dynamicbox_access_event_type {
  * @since_tizen 2.3
  */
 enum dynamicbox_type {
-    DBOX_TYPE_IMAGE       = 0x01, /**< Contents of a dynamicbox is based on the image file */
-    DBOX_TYPE_BUFFER      = 0x02, /**< Contents of a dynamicbox is based on canvas buffer(shared) */
-    DBOX_TYPE_TEXT        = 0x04, /**< Contents of a dynamicbox is based on formatted text file */
-    DBOX_TYPE_RESOURCE_ID = 0x08, /**< Contens of a dynamicbox is shared by the resource id(depends on window system) */
-    DBOX_TYPE_UIFW        = 0x10, /**< Using UI F/W resource for sharing content & event */
-    DBOX_TYPE_INVALID     = 0xFF /**< Unknown Dynamic Box type */
+    DBOX_CONTENT_TYPE_IMAGE       = 0x01, /**< Contents of a dynamicbox is based on the image file */
+    DBOX_CONTENT_TYPE_BUFFER      = 0x02, /**< Contents of a dynamicbox is based on canvas buffer(shared) */
+    DBOX_CONTENT_TYPE_TEXT        = 0x04, /**< Contents of a dynamicbox is based on formatted text file */
+    DBOX_CONTENT_TYPE_RESOURCE_ID = 0x08, /**< Contens of a dynamicbox is shared by the resource id(depends on window system) */
+    DBOX_CONTENT_TYPE_UIFW        = 0x10, /**< Using UI F/W resource for sharing content & event */
+    DBOX_CONTENT_TYPE_INVALID     = 0xFF /**< Unknown Dynamic Box type */
 };
 
 /**

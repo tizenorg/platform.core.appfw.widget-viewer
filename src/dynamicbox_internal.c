@@ -209,8 +209,8 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
 	}
 
 	/* Data provider will set this */
-	common->dbox.type = _DBOX_TYPE_FILE;
-	common->gbar.type = _GBAR_TYPE_SCRIPT;
+	common->dbox.type = DBOX_TYPE_FILE;
+	common->gbar.type = GBAR_TYPE_SCRIPT;
 
 	/* Used for handling the mouse event on a box */
 	common->dbox.mouse_event = 0;
@@ -557,7 +557,7 @@ void dbox_set_id(struct dynamicbox_common *common, const char *id)
 void dbox_set_filename(struct dynamicbox_common *common, const char *filename)
 {
 	if (common->filename) {
-		if (common->dbox.type == _DBOX_TYPE_FILE || common->dbox.type == _DBOX_TYPE_TEXT) {
+		if (common->dbox.type == DBOX_TYPE_FILE || common->dbox.type == DBOX_TYPE_TEXT) {
 			if (common->filename[0] && unlink(common->filename) < 0) {
 				ErrPrint("unlink: %s (%s)\n", strerror(errno), common->filename);
 			}
@@ -699,22 +699,22 @@ void dbox_set_pinup(struct dynamicbox_common *common, int pinup_supported)
 
 void dbox_set_text_dbox(struct dynamicbox_common *common)
 {
-	common->dbox.type = _DBOX_TYPE_TEXT;
+	common->dbox.type = DBOX_TYPE_TEXT;
 }
 
 void dbox_set_text_gbar(struct dynamicbox_common *common)
 {
-	common->gbar.type = _GBAR_TYPE_TEXT;
+	common->gbar.type = GBAR_TYPE_TEXT;
 }
 
 int dbox_text_dbox(struct dynamicbox_common *common)
 {
-	return common->dbox.type == _DBOX_TYPE_TEXT;
+	return common->dbox.type == DBOX_TYPE_TEXT;
 }
 
 int dbox_text_gbar(struct dynamicbox_common *common)
 {
-	return common->gbar.type == _GBAR_TYPE_TEXT;
+	return common->gbar.type == GBAR_TYPE_TEXT;
 }
 
 void dbox_set_period(struct dynamicbox_common *common, double period)

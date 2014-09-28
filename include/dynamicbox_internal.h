@@ -76,23 +76,6 @@ extern struct dynamicbox *dbox_unref(struct dynamicbox *handler, int destroy_com
 extern int dbox_send_delete(struct dynamicbox *handler, int type, dynamicbox_ret_cb cb, void *data);
 extern int dbox_delete_all(void);
 
-enum dbox_type { /*!< Must have to be sync with data-provider-master */
-	_DBOX_TYPE_NONE = 0x0,
-	_DBOX_TYPE_SCRIPT,
-	_DBOX_TYPE_FILE,
-	_DBOX_TYPE_TEXT,
-	_DBOX_TYPE_BUFFER,
-	_DBOX_TYPE_ELEMENTARY
-};
-
-enum gbar_type { /*!< Must have to be sync with data-provider-master */
-	_GBAR_TYPE_NONE = 0x0,
-	_GBAR_TYPE_SCRIPT,
-	_GBAR_TYPE_TEXT,
-	_GBAR_TYPE_BUFFER,
-	_GBAR_TYPE_ELEMENTARY
-};
-
 enum dynamicbox_state {
 	DBOX_STATE_CREATE = 0xBEEFbeef,
 	DBOX_STATE_DELETE = 0xDEADdead, /* Delete only for this client */
@@ -131,7 +114,7 @@ struct dynamicbox_common {
 	enum dynamicbox_visible_state visible;
 
 	struct {
-		enum dbox_type type;
+		enum dynamicbox_dbox_type type;
 		struct fb_info *fb;
 
 		int size_list;
@@ -154,7 +137,7 @@ struct dynamicbox_common {
 	} dbox;
 
 	struct {
-		enum gbar_type type;
+		enum dynamicbox_gbar_type type;
 		struct fb_info *fb;
 
 		int width;
