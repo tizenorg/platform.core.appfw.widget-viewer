@@ -670,12 +670,10 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 	const char *safe_file;
 	dynamicbox_h handler;
 	struct dynamicbox_common *common;
-	int dbox_w;
-	int dbox_h;
 	int ret;
 
-	ret = packet_get(packet, "ssssii", &pkgname, &id, &fbfile, &safe_file, &dbox_w, &dbox_h);
-	if (ret != 6) {
+	ret = packet_get(packet, "ssssiiii", &pkgname, &id, &fbfile, &safe_file, &common->dbox.last_damage.x, &common->dbox.last_damage.y, &common->dbox.last_damage.w, &common->dbox.last_damage.h);
+	if (ret != 8) {
 		ErrPrint("Invalid argument\n");
 		goto out;
 	}
@@ -697,7 +695,6 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
-	dbox_set_size(common, dbox_w, dbox_h);
 	dbox_set_filename(common, safe_file);
 
 	if (dbox_text_dbox(common)) {
@@ -947,19 +944,17 @@ static struct packet *master_gbar_updated(pid_t pid, int handle, const struct pa
 	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
-	int gbar_w;
-	int gbar_h;
 
-	ret = packet_get(packet, "ssssii",
+	ret = packet_get(packet, "ssssiiii",
 				&pkgname, &id,
 				&descfile, &fbfile,
-				&gbar_w, &gbar_h);
-	if (ret != 6) {
+				&common->gbar.last_damage.x, &common->gbar.last_damage.y,
+				&common->gbar.last_damage.w, &common->gbar.last_damage.h);
+	if (ret != 8) {
 		ErrPrint("Invalid argument\n");
 		goto out;
 	}
 
-	DbgPrint("[%s]\n", pkgname);
 	common = dbox_find_common_handle(pkgname, id);
 	if (!common) {
 		ErrPrint("Instance(%s) is not exists\n", id);
@@ -976,8 +971,6 @@ static struct packet *master_gbar_updated(pid_t pid, int handle, const struct pa
 		ErrPrint("Instance(%s) is not created\n", id);
 		goto out;
 	}
-
-	dbox_set_gbarsize(common, gbar_w, gbar_h);
 
 	if (dbox_text_gbar(common)) {
 		(void)parse_desc(common, descfile, 1);

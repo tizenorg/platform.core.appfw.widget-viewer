@@ -150,6 +150,7 @@ struct dynamicbox_common {
 		double y;
 		char *lock;
 		int lock_fd;
+		struct dynamicbox_damage_region last_damage;
 	} dbox;
 
 	struct {
@@ -167,6 +168,7 @@ struct dynamicbox_common {
 		double y;
 		char *lock;
 		int lock_fd;
+		struct dynamicbox_damage_region last_damage;
 	} gbar;
 
 	int nr_of_sizes;

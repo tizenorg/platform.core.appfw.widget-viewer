@@ -291,6 +291,13 @@ struct dynamicbox_access_event_info {
     int info;
 };
 
+typedef struct dynamicbox_damage_region {
+	int x;
+	int y;
+	int w;
+	int h;
+} dynamicbox_damage_region_t;
+
 /**
  * @brief Mouse Event Information
  * @since_tizen 2.3
@@ -1380,13 +1387,26 @@ extern int dynamicbox_is_active_update(dynamicbox_h handler);
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
- * @return void
+ * @return int
  * @retval #DBOX_STATUS_ERROR_NONE If success
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid handle
  * @see dynamicbox_set_manual_sync()
  * @see dynamicbox_manual_sync()
  */
 extern int dynamicbox_sync_fb(dynamicbox_h handler, int gbar);
+
+/**
+ * @internal
+ * @brief Getting the damaged region info
+ * @since_tizen 2.3
+ * @param[in] handler Handler of a dynamicbox instance
+ * @param[in] gbar 1 for Glance Bar or 0
+ * @param[out] region Readonly information for damaged area
+ * @return int
+ * @retval #DBOX_STATUS_ERROR_NONE if success
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid handle
+ */
+extern int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dynamicbox_damage_region_t *region);
 
 /**
  * @internal
@@ -1502,6 +1522,19 @@ extern int dynamicbox_option(enum dynamicbox_option_type option);
  * @retval #DBOX_STATUS_ERROR_NONE Succeed to set new handler. there is no other cases
  */
 extern int dynamicbox_set_auto_launch_handler(dynamicbox_auto_launch_handler_cb cb, void *data);
+
+/**
+ * @internal
+ * @brief get a damaged region from handler if a handler has buffer type dbox or gbar
+ * @since_tizen 2.3
+ * @param[in] handler Handler of a dbox
+ * @param[in] gbar 1 if you want to get a damaged region of glance bar or 0
+ * @param[out] region Region information, x, y, w, h
+ * @return int
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #DBOX_STATUS_ERROR_NONE If sucess
+ */
+extern int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dynamicbox_damage_region_t *region);
 
 /**
  * @}

@@ -3749,4 +3749,30 @@ EAPI int dynamicbox_set_auto_launch_handler(int (*dbox_launch_handler)(dynamicbo
 	return DBOX_STATUS_ERROR_NONE;
 }
 
+EAPI int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dynamicbox_damage_region_t *region)
+{
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
+		ErrPrint("Invalid handle\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
+		ErrPrint("Invalid handle\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler->common->id) {
+		ErrPrint("Handler is not valid[%p]\n", handler);
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (gbar) {
+		region = &handler->common->dbox.last_damage;
+	} else {
+		region = &handler->common->gbar.last_damage;
+	}
+
+	return DBOX_STATUS_ERROR_NONE;
+}
+
 /* End of a file */

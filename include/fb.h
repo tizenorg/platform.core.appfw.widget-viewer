@@ -20,7 +20,7 @@ extern int fb_init(void *disp);
 extern int fb_fini(void);
 extern const char *fb_id(struct fb_info *info);
 extern int fb_get_size(struct fb_info *info, int *w, int *h);
-extern int fb_sync(struct fb_info *info);
+extern int fb_sync(struct fb_info *info, int x, int y, int w, int h);
 extern int fb_size(struct fb_info *info);
 extern int fb_refcnt(void *data);
 extern int fb_is_created(struct fb_info *info);

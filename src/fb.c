@@ -97,7 +97,7 @@ static inline void update_fb_size(struct fb_info *info)
 	info->bufsz = info->w * info->h * info->pixels;
 }
 
-static int sync_for_file(struct fb_info *info)
+static int sync_for_file(struct fb_info *info, int x, int y, int w, int h)
 {
 	int fd;
 	dynamicbox_fb_t buffer;
@@ -123,8 +123,8 @@ static int sync_for_file(struct fb_info *info)
 		ErrPrint("Failed to open a file (%s) because of (%s)\n",
 					util_uri_to_path(info->id), strerror(errno));
 
-		/*!
-		 * \note
+		/**
+		 * @note
 		 * But return ZERO, even if we couldn't get a buffer file,
 		 * the viewer can draw empty screen.
 		 *
@@ -133,20 +133,64 @@ static int sync_for_file(struct fb_info *info)
 		return DBOX_STATUS_ERROR_NONE;
 	}
 
-	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
-		ErrPrint("read: %s\n", strerror(errno));
-		if (close(fd) < 0) {
-			ErrPrint("close: %s\n", strerror(errno));
-		}
+	/**
+	 * @note
+	 * Could we get some advantage if we load a part of file instead of loading all of them?
+	 */
+	if (x != 0 || y != 0 || info->w != w || info->h != h) {
+		int iy;
+		register int index;
+		register int width;
 
-		/*!
-		 * \note
-		 * But return ZERO, even if we couldn't get a buffer file,
-		 * the viewer can draw empty screen.
-		 *
-		 * and then update it after it gots update events
-		 */
-		return DBOX_STATUS_ERROR_NONE;
+		for (iy = y; iy < h; iy++) {
+			index = iy * info->w + x;
+			width = w * info->pixels;
+
+			if (lseek(fd, index * info->pixels, SEEK_SET) != index * info->pixels) {
+				ErrPrint("lseek: %s\n", strerror(errno));
+				if (close(fd) < 0) {
+					ErrPrint("close: %s\n", strerror(errno));
+				}
+				/**
+				 * @note
+				 * But return ZERO, even if we couldn't get a buffer file,
+				 * the viewer can draw empty screen.
+				 *
+				 * and then update it after it gots update events
+				 */
+				return DBOX_STATUS_ERROR_NONE;
+			}
+
+			if (read(fd, ((unsigned int *)buffer->data) + index, width) != width) {
+				if (close(fd) < 0) {
+					ErrPrint("close: %s\n", strerror(errno));
+				}
+				/**
+				 * @note
+				 * But return ZERO, even if we couldn't get a buffer file,
+				 * the viewer can draw empty screen.
+				 *
+				 * and then update it after it gots update events
+				 */
+				return DBOX_STATUS_ERROR_NONE;
+			}
+		}
+	} else {
+		if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
+			ErrPrint("read: %s\n", strerror(errno));
+			if (close(fd) < 0) {
+				ErrPrint("close: %s\n", strerror(errno));
+			}
+
+			/**
+			 * @note
+			 * But return ZERO, even if we couldn't get a buffer file,
+			 * the viewer can draw empty screen.
+			 *
+			 * and then update it after it gots update events
+			 */
+			return DBOX_STATUS_ERROR_NONE;
+		}
 	}
 
 	if (close(fd) < 0) {
@@ -155,7 +199,7 @@ static int sync_for_file(struct fb_info *info)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-static int sync_for_pixmap(struct fb_info *info)
+static int sync_for_pixmap(struct fb_info *info, int x, int y, int w, int h)
 {
 	dynamicbox_fb_t buffer;
 	XShmSegmentInfo si;
@@ -251,7 +295,20 @@ static int sync_for_pixmap(struct fb_info *info)
 	XShmGetImage(s_info.disp, info->handle, xim, 0, 0, 0xFFFFFFFF);
 	XSync(s_info.disp, False);
 
-	memcpy(buffer->data, xim->data, info->bufsz);
+	if (x != 0 || y != 0 || info->w != w || info->h != h) {
+		int ix;
+		int iy;
+		register int index;
+
+		for (iy = y; iy < h; iy++) {
+			for (ix = x; ix < w; ix++) {
+				index = iy * info->w + x;
+				*(((unsigned int *)buffer->data) + index) = *(((unsigned int *)xim->data) + index);
+			}
+		}
+	} else {
+		memcpy(buffer->data, xim->data, info->bufsz);
+	}
 
 	XShmDetach(s_info.disp, &si);
 	XDestroyImage(xim);
@@ -267,7 +324,7 @@ static int sync_for_pixmap(struct fb_info *info)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-int fb_sync(struct fb_info *info)
+int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 {
 	if (!info) {
 		ErrPrint("FB Handle is not valid\n");
@@ -280,9 +337,9 @@ int fb_sync(struct fb_info *info)
 	}
 
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
-		return sync_for_file(info);
+		return sync_for_file(info, x, y, w, h);
 	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-		return sync_for_pixmap(info);
+		return sync_for_pixmap(info, x, y, w, h);
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		/* No need to do sync */ 
 		return DBOX_STATUS_ERROR_NONE;
@@ -404,7 +461,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 			 * \note
 			 * Just update from here.
 			 */
-			sync_for_pixmap(info);
+			sync_for_pixmap(info, 0, 0, info->w, info->h);
 		} else if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 			update_fb_size(info);
 
@@ -421,7 +478,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 			buffer->info = info;
 			info->buffer = buffer;
 
-			sync_for_file(info);
+			sync_for_file(info, 0, 0, info->w, info->h);
 		} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 			buffer = shmat(info->handle, NULL, 0);
 			if (buffer == (void *)-1) {

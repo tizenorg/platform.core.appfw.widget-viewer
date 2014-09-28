@@ -125,7 +125,7 @@ static inline int sync_for_file(struct fb_info *info)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-int fb_sync(struct fb_info *info)
+int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 {
 	if (!info) {
 		ErrPrint("FB Handle is not valid\n");

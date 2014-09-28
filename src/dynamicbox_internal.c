@@ -889,10 +889,10 @@ int dbox_sync_dbox_fb(struct dynamicbox_common *common)
 
 	if (fb_type(dbox_get_dbox_fb(common)) == DBOX_FB_TYPE_FILE && common->dbox.lock_fd >= 0) {
 		(void)dbox_fb_lock(common->dbox.lock_fd);
-		ret = fb_sync(dbox_get_dbox_fb(common));
+		ret = fb_sync(dbox_get_dbox_fb(common), common->dbox.last_damage.x, common->dbox.last_damage.y, common->dbox.last_damage.w, common->dbox.last_damage.h);
 		(void)dbox_fb_unlock(common->dbox.lock_fd);
 	} else {
-		ret = fb_sync(dbox_get_dbox_fb(common));
+		ret = fb_sync(dbox_get_dbox_fb(common), common->dbox.last_damage.x, common->dbox.last_damage.y, common->dbox.last_damage.w, common->dbox.last_damage.h);
 	}
 
 	return ret;
@@ -904,10 +904,10 @@ int dbox_sync_gbar_fb(struct dynamicbox_common *common)
 
 	if (fb_type(dbox_get_gbar_fb(common)) == DBOX_FB_TYPE_FILE && common->gbar.lock_fd >= 0) {
 		(void)dbox_fb_lock(common->gbar.lock_fd);
-		ret = fb_sync(dbox_get_gbar_fb(common));
+		ret = fb_sync(dbox_get_gbar_fb(common), common->gbar.last_damage.x, common->gbar.last_damage.y, common->gbar.last_damage.w, common->gbar.last_damage.h);
 		(void)dbox_fb_unlock(common->gbar.lock_fd);
 	} else {
-		ret = fb_sync(dbox_get_gbar_fb(common));
+		ret = fb_sync(dbox_get_gbar_fb(common), common->gbar.last_damage.x, common->gbar.last_damage.y, common->gbar.last_damage.w, common->gbar.last_damage.h);
 	}
 
 	return ret;
