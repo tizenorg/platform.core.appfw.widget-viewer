@@ -16,8 +16,8 @@
 
 #include <dynamicbox_service.h>
 
-#ifndef __DYNAMICBOX_H
-#define __DYNAMICBOX_H
+#ifndef __DYNAMICBOX_VIEWER_H
+#define __DYNAMICBOX_VIEWER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -1169,7 +1169,7 @@ extern int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emissio
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE Successfully registered
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @see dynamicbox_get_data()
+ * @see dynamicbox_data()
  */
 extern int dynamicbox_set_data(dynamicbox_h handler, void *data);
 
@@ -1548,4 +1548,4 @@ extern int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dy
 }
 #endif
 
-#endif
+#endif // __DYNAMICBOX_VIEWER_H
