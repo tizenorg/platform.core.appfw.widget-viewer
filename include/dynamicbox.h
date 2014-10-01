@@ -278,6 +278,8 @@ struct dynamicbox_access_event_info {
     double x;                                   /**< X Coordinates that the event occurred */
     double y;                                   /**< Y Coordinates that the event occurred */
     enum _dynamicbox_access_type {
+	DBOX_ACCESS_TYPE_NONE = 0x00,		/**< Initialized */
+
         DBOX_ACCESS_TYPE_DOWN = 0x00,           /**< Mouse down */
         DBOX_ACCESS_TYPE_MOVE = 0x01,           /**< Mouse move */
         DBOX_ACCESS_TYPE_UP   = 0x02,           /**< Mouse up */
