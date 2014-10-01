@@ -1551,88 +1551,88 @@ out:
 
 static struct method s_table[] = {
 	{
-		.cmd = "lb_updated", /* pkgname, id, dbox_w, dbox_h, priority, ret */
+		.cmd = CMD_STR_DBOX_UPDATED, /* pkgname, id, dbox_w, dbox_h, priority, ret */
 		.handler = master_dbox_updated,
 	},
 	{
-		.cmd = "pd_updated", /* pkgname, id, descfile, pd_w, pd_h, ret */
+		.cmd = CMD_STR_GBAR_UPDATED, /* pkgname, id, descfile, pd_w, pd_h, ret */
 		.handler = master_gbar_updated,
 	},
 	{
-		.cmd = "extra_info",
+		.cmd = CMD_STR_EXTRA_INFO,
 		.handler = master_extra_info,
 	},
 	{
-		.cmd = "deleted", /* pkgname, id, timestamp, ret */
+		.cmd = CMD_STR_DELETED, /* pkgname, id, timestamp, ret */
 		.handler = master_deleted,
 	},
 	{
-		.cmd = "fault_package", /* pkgname, id, function, ret */
+		.cmd = CMD_STR_FAULT_PACKAGE, /* pkgname, id, function, ret */
 		.handler = master_fault_package,
 	},
 	{
-		.cmd = "scroll",
+		.cmd = CMD_STR_SCROLL,
 		.handler = master_hold_scroll,
 	},
 	{
-		.cmd = "lb_update_begin",
+		.cmd = CMD_STR_DBOX_UPDATE_BEGIN,
 		.handler = master_dbox_update_begin,
 	},
 	{
-		.cmd = "lb_update_end",
+		.cmd = CMD_STR_DBOX_UPDATE_END,
 		.handler = master_dbox_update_end,
 	},
 	{
-		.cmd = "pd_update_begin",
+		.cmd = CMD_STR_GBAR_UPDATE_BEGIN,
 		.handler = master_gbar_update_begin,
 	},
 	{
-		.cmd = "pd_update_end",
+		.cmd = CMD_STR_GBAR_UPDATE_END,
 		.handler = master_gbar_update_end,
 	},
 	{
-		.cmd = "access_status",
+		.cmd = CMD_STR_ACCESS_STATUS,
 		.handler = master_access_status,
 	},
 	{
-		.cmd = "key_status",
+		.cmd = CMD_STR_KEY_STATUS,
 		.handler = master_key_status,
 	},
 	{
-		.cmd = "close_pd",
+		.cmd = CMD_STR_CLOSE_GBAR,
 		.handler = master_request_close_gbar,
 	},
 	{
-		.cmd = "pd_created",
+		.cmd = CMD_STR_GBAR_CREATED,
 		.handler = master_gbar_created,
 	},
 	{
-		.cmd = "pd_destroyed",
+		.cmd = CMD_STR_GBAR_DESTROYED,
 		.handler = master_gbar_destroyed,
 	},
 	{
-		.cmd = "created", /* timestamp, pkgname, id, content, dbox_w, dbox_h, gbar_w, gbar_h, cluster, category, dbox_file, gbar_file, auto_launch, priority, size_list, is_user, pinup_supported, text_dbox, text_gbar, period, ret */
+		.cmd = CMD_STR_CREATED, /* timestamp, pkgname, id, content, dbox_w, dbox_h, gbar_w, gbar_h, cluster, category, dbox_file, gbar_file, auto_launch, priority, size_list, is_user, pinup_supported, text_dbox, text_gbar, period, ret */
 		.handler = master_created,
 	},
 	{
-		.cmd = "group_changed",
+		.cmd = CMD_STR_GROUP_CHANGED,
 		.handler = master_group_changed,
 	},
 	{
-		.cmd = "period_changed",
+		.cmd = CMD_STR_PERIOD_CHANGED,
 		.handler = master_period_changed,
 	},
 	{
-		.cmd = "size_changed",
+		.cmd = CMD_STR_SIZE_CHANGED,
 		.handler = master_size_changed,
 	},
 	{
-		.cmd = "pinup",
+		.cmd = CMD_STR_PINUP,
 		.handler = master_pinup,
 	},
 
 	{
-		.cmd = "update_mode",
+		.cmd = CMD_STR_UPDATE_MODE,
 		.handler = master_update_mode,
 	},
 	{
