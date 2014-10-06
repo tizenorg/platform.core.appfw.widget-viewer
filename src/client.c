@@ -671,8 +671,14 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	int ret;
+	int x;
+	int y;
+	int w;
+	int h;
 
-	ret = packet_get(packet, "ssssiiii", &pkgname, &id, &fbfile, &safe_file, &common->dbox.last_damage.x, &common->dbox.last_damage.y, &common->dbox.last_damage.w, &common->dbox.last_damage.h);
+	DbgPrint("Updated: %X (%d)\n", *((unsigned int *)packet_command(packet)), pid);
+
+	ret = packet_get(packet, "ssssiiii", &pkgname, &id, &fbfile, &safe_file, &x, &y, &w, &h);
 	if (ret != 8) {
 		ErrPrint("Invalid argument\n");
 		goto out;
@@ -683,6 +689,11 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 		ErrPrint("instance(%s) is not exists\n", id);
 		goto out;
 	}
+
+	common->dbox.last_damage.x = x;
+	common->dbox.last_damage.y = y;
+	common->dbox.last_damage.w = w;
+	common->dbox.last_damage.h = h;
 
 	if (common->state != DBOX_STATE_CREATE) {
 		/*!
@@ -944,12 +955,16 @@ static struct packet *master_gbar_updated(pid_t pid, int handle, const struct pa
 	dynamicbox_h handler;
 	struct dynamicbox_common *common;
 	struct dlist *l;
+	int x;
+	int y;
+	int w;
+	int h;
 
 	ret = packet_get(packet, "ssssiiii",
 				&pkgname, &id,
 				&descfile, &fbfile,
-				&common->gbar.last_damage.x, &common->gbar.last_damage.y,
-				&common->gbar.last_damage.w, &common->gbar.last_damage.h);
+				&x, &y,
+				&w, &h);
 	if (ret != 8) {
 		ErrPrint("Invalid argument\n");
 		goto out;
@@ -960,6 +975,11 @@ static struct packet *master_gbar_updated(pid_t pid, int handle, const struct pa
 		ErrPrint("Instance(%s) is not exists\n", id);
 		goto out;
 	}
+
+	common->gbar.last_damage.x = x;
+	common->gbar.last_damage.y = y;
+	common->gbar.last_damage.w = w;
+	common->gbar.last_damage.h = h;
 
 	if (common->state != DBOX_STATE_CREATE) {
 		/*!
@@ -1759,11 +1779,11 @@ static int disconnected_cb(int handle, void *data)
 
 static struct method s_direct_table[] = {
 	{
-		.cmd = "lb_updated", /* pkgname, id, lb_w, lb_h, priority, ret */
+		.cmd = CMD_STR_DBOX_UPDATED, /* pkgname, id, lb_w, lb_h, priority, ret */
 		.handler = master_dbox_updated,
 	},
 	{
-		.cmd = "pd_updated", /* pkgname, id, descfile, pd_w, pd_h, ret */
+		.cmd = CMD_STR_GBAR_UPDATED, /* pkgname, id, descfile, pd_w, pd_h, ret */
 		.handler = master_gbar_updated,
 	},
 	{
