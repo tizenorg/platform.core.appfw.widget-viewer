@@ -2152,9 +2152,9 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse
 			flag = 0;
 		}
 
+		w = handler->common->gbar.width;
+		h = handler->common->gbar.height;
 		if (flag) {
-			w = handler->common->gbar.width;
-			h = handler->common->gbar.height;
 			handler->common->gbar.x = info->x;
 			handler->common->gbar.y = info->y;
 		}
@@ -2214,9 +2214,9 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse
 			flag = 0;
 		}
 
+		w = handler->common->dbox.width;
+		h = handler->common->dbox.height;
 		if (flag) {
-			w = handler->common->dbox.width;
-			h = handler->common->dbox.height;
 			handler->common->dbox.x = info->x;
 			handler->common->dbox.y = info->y;
 		}
