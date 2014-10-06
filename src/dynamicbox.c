@@ -1720,7 +1720,7 @@ EAPI int dynamicbox_click(dynamicbox_h handler, double x, double y)
 	return ret;
 }
 
-EAPI int dynamicbox_has_gbar(dynamicbox_h handler)
+EAPI int dynamicbox_has_glance_bar(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");

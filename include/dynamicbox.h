@@ -406,6 +406,7 @@ typedef int (*dynamicbox_auto_launch_handler_cb)(dynamicbox_h handler, const cha
  * @details dynamicbox_init function uses environment value to initiate some configurable values.
  *          But some applications do not want to use the env value.
  *          For them, this API will give a chance to set default options using given arguments.
+ *          @a disp is a Display object which is used to hold a connection with a Graphic 
  * @since_tizen 2.3
  * @param[in] disp Display, If @a disp is @c NULL, the library will try to acquire a new connection to display server
  * @param[in] prevent_overwrite Overwrite flag (when the content of an image type dynamicbox is updated, it will be overwriten (0) or not (1))
