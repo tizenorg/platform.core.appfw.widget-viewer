@@ -2478,24 +2478,24 @@ EAPI int dynamicbox_get_glance_bar_size(dynamicbox_h handler, int *w, int *h)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_size(dynamicbox_h handler)
+EAPI enum dynamicbox_size_type dynamicbox_size(dynamicbox_h handler)
 {
 	int w;
 	int h;
 
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		return DBOX_SIZE_TYPE_UNKNOWN;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		return DBOX_SIZE_TYPE_UNKNOWN;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		return DBOX_SIZE_TYPE_UNKNOWN;
 	}
 
 	w = handler->common->dbox.width;

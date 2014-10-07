@@ -102,32 +102,32 @@ enum dynamicbox_mouse_event_type {
 };
 
 enum dynamicbox_key_event_type {
-    DBOX_KEY_EVENT_MASK      = 0x80000000, /**< Mask value for key event */
-    DBOX_KEY_EVENT_GBAR_MASK = 0x10000000, /**< Mask value for Glance Bar event */
-    DBOX_KEY_EVENT_DBOX_MASK = 0x40000000, /**< Mask value for Dynamic Box event */
+    DBOX_KEY_EVENT_MASK         = 0x80000000, /**< Mask value for key event */
+    DBOX_KEY_EVENT_GBAR_MASK    = 0x10000000, /**< Mask value for Glance Bar event */
+    DBOX_KEY_EVENT_DBOX_MASK    = 0x40000000, /**< Mask value for Dynamic Box event */
 
-    DBOX_KEY_EVENT_DOWN      = 0x00000001, /**< Dynamic Box key press */
-    DBOX_KEY_EVENT_UP        = 0x00000002, /**< Dynamic Box key release */
-    DBOX_KEY_EVENT_FOCUS_IN  = 0x00000008, /**< Dynamic Box key focused in */
-    DBOX_KEY_EVENT_FOCUS_OUT = 0x00000010, /**< Dynamic Box key focused out */
-    DBOX_KEY_EVENT_SET       = 0x00000020, /**< Dynamic Box Key, start feeding event by master */
-    DBOX_KEY_EVENT_UNSET     = 0x00000040, /**< Dynamic Box key, stop feeding event by master */
+    DBOX_KEY_EVENT_DOWN         = 0x00000001, /**< Dynamic Box key press */
+    DBOX_KEY_EVENT_UP           = 0x00000002, /**< Dynamic Box key release */
+    DBOX_KEY_EVENT_FOCUS_IN     = 0x00000008, /**< Dynamic Box key focused in */
+    DBOX_KEY_EVENT_FOCUS_OUT    = 0x00000010, /**< Dynamic Box key focused out */
+    DBOX_KEY_EVENT_SET          = 0x00000020, /**< Dynamic Box Key, start feeding event by master */
+    DBOX_KEY_EVENT_UNSET        = 0x00000040, /**< Dynamic Box key, stop feeding event by master */
 
-    DBOX_KEY_DOWN            = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
-    DBOX_KEY_UP              = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
-    DBOX_KEY_SET             = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
-    DBOX_KEY_UNSET           = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
-    DBOX_KEY_FOCUS_IN        = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
-    DBOX_KEY_FOCUS_OUT       = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, foucs out */
+    DBOX_KEY_DOWN               = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
+    DBOX_KEY_UP                 = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
+    DBOX_KEY_SET                = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
+    DBOX_KEY_UNSET              = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
+    DBOX_KEY_FOCUS_IN           = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
+    DBOX_KEY_FOCUS_OUT          = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_DBOX_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, foucs out */
                                                                
-    DBOX_GBAR_KEY_DOWN       = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
-    DBOX_GBAR_KEY_UP         = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
-    DBOX_GBAR_KEY_SET        = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
-    DBOX_GBAR_KEY_UNSET      = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
-    DBOX_GBAR_KEY_FOCUS_IN   = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
-    DBOX_GBAR_KEY_FOCUS_OUT  = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, focus out */
+    DBOX_GBAR_KEY_DOWN          = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_DOWN, /**< Key down on the dynamicbox */
+    DBOX_GBAR_KEY_UP            = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UP, /**< Key up on the dynamicbox */
+    DBOX_GBAR_KEY_SET           = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_SET, /**< Key event, start feeding event by master */
+    DBOX_GBAR_KEY_UNSET         = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_UNSET, /**< Key event, stop feeding event by master */
+    DBOX_GBAR_KEY_FOCUS_IN      = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_IN, /**< Key event, focus in */
+    DBOX_GBAR_KEY_FOCUS_OUT     = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, focus out */
 
-    DBOX_KEY_EVENT_MAX       = 0xFFFFFFFF /**< Unknown event */
+    DBOX_KEY_EVENT_MAX          = 0xFFFFFFFF /**< Unknown event */
 };
 
 /**
@@ -271,6 +271,7 @@ enum dynamicbox_visible_state {
 };
 
 /**
+ * @internal
  * @brief Accessibility Event Information
  * @since_tizen 2.3
  */
@@ -278,7 +279,7 @@ struct dynamicbox_access_event_info {
     double x;                                   /**< X Coordinates that the event occurred */
     double y;                                   /**< Y Coordinates that the event occurred */
     enum _dynamicbox_access_type {
-	DBOX_ACCESS_TYPE_NONE = 0x00,		/**< Initialized */
+	DBOX_ACCESS_TYPE_NONE = 0x00,           /**< Initialized */
 
         DBOX_ACCESS_TYPE_DOWN = 0x00,           /**< Mouse down */
         DBOX_ACCESS_TYPE_MOVE = 0x01,           /**< Mouse move */
@@ -292,26 +293,33 @@ struct dynamicbox_access_event_info {
         DBOX_ACCESS_TYPE_DISABLE = 0x00,        /**< Disable */
         DBOX_ACCESS_TYPE_ENABLE  = 0x01         /**< Enable */
     } type;
-    int info;
+    int info;                                   /**< Extra information for this event */
 };
 
+/**
+ * @internal
+ * @brief Damaged Region representation
+ * @since_tizen 2.3
+ */
 typedef struct dynamicbox_damage_region {
-	int x;
-	int y;
-	int w;
-	int h;
+	int x;                                  /**< Coordinates X of Left-Top corner */
+	int y;                                  /**< Coordinates Y of Left-Top corner */
+	int w;                                  /**< Damage'd Width */
+	int h;                                  /**< Damage'd Height */
 } dynamicbox_damage_region_t;
 
 /**
+ * @internal
  * @brief Mouse Event Information
  * @since_tizen 2.3
  */
 typedef struct dynamicbox_mouse_event_info {
-    double x; /**< X coordinates of Mouse Event */
-    double y; /**< Y coordinates of Mouse Event */
+    double x;                                   /**< X coordinates of Mouse Event */
+    double y;                                   /**< Y coordinates of Mouse Event */
 } *dynamicbox_mouse_event_info_t;
 
 /**
+ * @internal
  * @brief Key Event Information
  * @since_tizen 2.3
  */
@@ -367,6 +375,7 @@ typedef struct dynamicbox_script_operators {
 typedef void (*dynamicbox_ret_cb)(dynamicbox_h handle, int ret, void *data);
 
 /**
+ * @internal
  * @brief Fault event handler
  * @param[in] type Type of fault event.
  * @param[in] dbox_id Faulted DynamicBox Id
@@ -380,6 +389,7 @@ typedef void (*dynamicbox_ret_cb)(dynamicbox_h handle, int ret, void *data);
 typedef int (*dynamicbox_fault_handler_cb)(enum dynamicbox_fault_type type, const char *dbox_id, const char *file, const char *func, void *data);
 
 /**
+ * @internal
  * @brief Event handler
  * @since_tizen 2.3
  * @param[in] handler Dynamic Box Event handler
@@ -392,6 +402,7 @@ typedef int (*dynamicbox_fault_handler_cb)(enum dynamicbox_fault_type type, cons
 typedef int (*dynamicbox_event_handler_cb)(dynamicbox_h handler, enum dynamicbox_event_type event, void *data);
 
 /**
+ * @internal
  * @brief Auto launch handler
  * @since_tizen 2.3
  * @param[in] handler DynamicBox Handler
@@ -754,11 +765,12 @@ extern int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @return dynamicbox_type
- * @retval #DBOX_TYPE_IMAGE Contents of a dynamicbox is based on the image file
- * @retval #DBOX_TYPE_BUFFER Contents of a dynamicbox is based on canvas buffer(shared)
- * @retval #DBOX_TYPE_TEXT Contents of a dynamicbox is based on formatted text file
- * @retval #DBOX_TYPE_PIXMAP Contens of a dynamicbox is shared by the resource id(depends on X)
- * @retval #DBOX_TYPE_INVALID Invalid type
+ * @retval #DBOX_CONTENT_TYPE_IMAGE Contents of a dynamicbox is based on the image file
+ * @retval #DBOX_CONTENT_TYPE_BUFFER Contents of a dynamicbox is based on canvas buffer(shared)
+ * @retval #DBOX_CONTENT_TYPE_TEXT Contents of a dynamicbox is based on formatted text file
+ * @retval #DBOX_CONTENT_TYPE_RESOURCE_ID Contens of a dynamicbox is shared by the resource id (depends on the Window system, eg, Xorg)
+ * @retval #DBOX_CONTENT_TYPE_UIFW UI F/W supported content type for dynamic box
+ * @retval #DBOX_CONTENT_TYPE_INVALID Invalid type
  * @see dynamicbox_type()
  */
 extern enum dynamicbox_type dynamicbox_type(dynamicbox_h handler, int gbar);
@@ -796,9 +808,9 @@ extern const char *dynamicbox_content(dynamicbox_h handler);
  *  Each box should set their content as a string to be read by TTS.
  *  So if the box has focused on the homescreen, the homescreen will read text using this API.
  * @since_tizen 2.3
- * @remarks The title returned by this API is read by TTS.
- *  But it is just recomended to a homescreen.
- *  So, to read it or not depends on implementation of the homescreen.
+ * @remarks The title returned by this API can be read by TTS.
+ *  But it is just recomendation for the homescreen.
+ *  So, to read it or not depends on its implementation.
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
  * @retval sub Cluster name
@@ -809,7 +821,7 @@ extern const char *dynamicbox_title(dynamicbox_h handler);
 /**
  * @internal
  * @brief Gets the filename of the given dynamicbox, if it is an IMAGE type dynamicbox.
- * @details If the box is developed as image format to represent its contents, the homescreen should know its image file name.
+ * @details If the box is developed as an image format to represent its contents, the homescreen should know its image file name.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -877,7 +889,7 @@ extern int dynamicbox_release_fb(void *buffer);
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @retval refcnt Positive integer including ZERO
+ * @retval refcnt Positive integer value including ZERO
  */
 extern int dynamicbox_fb_refcnt(void *buffer);
 
@@ -886,11 +898,11 @@ extern int dynamicbox_fb_refcnt(void *buffer);
  * @brief Gets the size of the Dynamicbox.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
- * @return int
- * @retval #DBOX_SIZE_TYPE_NxM
- * @retval #DBOX_SIZE_TYPE_INVALID Invalid parameters are used
+ * @return enum dynamicbox_size_type
+ * @retval #DBOX_SIZE_TYPE_NxM N by M size
+ * @retval #DBOX_SIZE_TYPE_UNKNOWN Invalid handler or size type is not defined yet
  */
-extern int dynamicbox_size(dynamicbox_h handler);
+extern enum dynamicbox_size_type dynamicbox_size(dynamicbox_h handler);
 
 /**
  * @internal
@@ -926,7 +938,7 @@ extern int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, int *s
  * @param[in] gbar 1 for Glance Bar or 0
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval size Size of dynamicbox buffer
+ * @retval size Size in bytes of the dynamicbox buffer
  */
 extern int dynamicbox_fb_buffer_size(dynamicbox_h handler, int gbar);
 
@@ -1287,7 +1299,7 @@ extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
- * @pre Dynamicbox service system should support the PIXMAP type buffer.
+ * @pre Dynamicbox service system should support the ResourceId type buffer.
  *   The dynamicbox should be designed to use the buffer (script type).
  * @see dynamicbox_release_resource_id()
  * @see dynamicbox_ret_cb
