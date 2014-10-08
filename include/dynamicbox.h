@@ -417,19 +417,20 @@ typedef int (*dynamicbox_auto_launch_handler_cb)(dynamicbox_h handler, const cha
  * @details dynamicbox_init function uses environment value to initiate some configurable values.
  *          But some applications do not want to use the env value.
  *          For them, this API will give a chance to set default options using given arguments.
- *          @a disp is a Display object which is used to hold a connection with a Graphic 
+ *          @a disp is a Display object which is used to hold a connection with a display server (eg, Xorg)
  * @since_tizen 2.3
  * @param[in] disp Display, If @a disp is @c NULL, the library will try to acquire a new connection to display server
  * @param[in] prevent_overwrite Overwrite flag (when the content of an image type dynamicbox is updated, it will be overwriten (0) or not (1))
- * @param[in] event_filter If the next event comes in this period, ignore it. It is too fast to processing it in time // need to be elaborated
- * @param[in] use_thread User can choose the communication method, if this value is true, the viewer library will create a thread to communicate with master service
+ * @param[in] event_filter If the dynamicbox_feed_mouse_event() is called again in this secs, it will be ignored and the dynamicbox_feed_mouse_event() will returns DBOX_STATUS_ERROR_BUSY status code
+ * @param[in] use_thread If this value has true, the viewer library will create a new thread to communicate with master service
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int Integer, Dynamicbox status code
- * @retval #DBOX_STATUS_ERROR_NONE if success
- * @retval #DBOX_STATUS_ERROR_OUT_OF_MEMORY If there is not enough memory to do this
- * @retval #DBOX_STATUS_ERROR_IO_ERROR If fails to access dynamicbox database
+ * @retval #DBOX_STATUS_ERROR_NONE if successfully initialized.
+ * @retval #DBOX_STATUS_ERROR_OUT_OF_MEMORY If a memory is not enough to do this operation.
+ * @retval #DBOX_STATUS_ERROR_IO_ERROR If fails to access dynamicbox database.
  * @see dynamicbox_fini()
+ * @see dynamicbox_feed_mouse_event()
  */
 extern int dynamicbox_init(void *disp, int prevent_overwrite, double event_filter, int use_thread);
 
@@ -443,7 +444,6 @@ extern int dynamicbox_init(void *disp, int prevent_overwrite, double event_filte
  * @retval #DBOX_STATUS_SUCCES if success
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER if dynamicbox_init is not called
  * @see dynamicbox_init()
- * @see dynamicbox_init_with_options()
  */
 extern int dynamicbox_fini(void);
 
@@ -456,7 +456,7 @@ extern int dynamicbox_fini(void);
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE if success
  * @retval #DBOX_STATUS_ERROR_FAULT if it failed to send state (paused) info
- * @see dynamicbox_client_resumed()
+ * @see dynamicbox_client_set_resumed()
  */
 extern int dynamicbox_viewer_set_paused(void);
 
@@ -469,7 +469,7 @@ extern int dynamicbox_viewer_set_paused(void);
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE if success
  * @retval #DBOX_STATUS_ERROR_FAULT if it failed to send state (resumed) info
- * @see dynamicbox_client_paused()
+ * @see dynamicbox_client_set_paused()
  */
 extern int dynamicbox_viewer_set_resumed(void);
 
@@ -610,7 +610,7 @@ extern void *dynamicbox_unset_fault_handler(dynamicbox_fault_handler_cb cb);
  *    So you have to check the return callback and its "ret" argument.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
- * @param[in] pkgname Package name which should be activated
+ * @param[in] dbox_id Package name which should be activated
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel public
@@ -621,7 +621,7 @@ extern void *dynamicbox_unset_fault_handler(dynamicbox_fault_handler_cb cb);
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to make a request
  * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_activate(const char *pkgname, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_activate(const char *dbox_id, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1093,8 +1093,8 @@ extern int dynamicbox_create_glance_bar(dynamicbox_h handler, double x, double y
  * @brief Updates a position of the given Glance Bar.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
- * @param[in] x 0.0 ~ 1.0
- * @param[in] y 0.0 ~ 1.0
+ * @param[in] x 0.0 ~ 1.0, 0.0 indicates the coordinate X of left of dynamicbox
+ * @param[in] y 0.0 ~ 1.0, 0.0 indicates the coordinate Y of top of dynamicbox
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
@@ -1109,8 +1109,8 @@ extern int dynamicbox_move_glance_bar(dynamicbox_h handler, double x, double y);
  * @brief Destroys the Glance Bar of the given handler if it is created.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
- * @param[in] cb
- * @param[in] data
+ * @param[in] cb Callback function
+ * @param[in] data Callback data
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
@@ -1526,7 +1526,6 @@ extern int dynamicbox_set_option(enum dynamicbox_option_type option, int state);
  * @see dynamicbox_set_option()
  */
 extern int dynamicbox_option(enum dynamicbox_option_type option);
-
 
 /**
  * @internal

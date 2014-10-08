@@ -3741,7 +3741,7 @@ EAPI int dynamicbox_option(enum dynamicbox_option_type option)
 	return ret;
 }
 
-EAPI int dynamicbox_set_auto_launch_handler(int (*dbox_launch_handler)(dynamicbox_h handler, const char *appid, void *data), void *data)
+EAPI int dynamicbox_set_auto_launch_handler(dynamicbox_auto_launch_handler_cb dbox_launch_handler, void *data)
 {
 	s_info.launch.handler = dbox_launch_handler;
 	s_info.launch.data = data;
