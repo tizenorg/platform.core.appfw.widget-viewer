@@ -1,0 +1,80 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+// Use this
+/*
+#define FONT_BLD       "HelveticaNeueBld"
+#define FONT_MED       "HelveticaNeueMed"
+#define FONT_ROM       "HelveticaNeueRom"
+#define FONT_LIG       "HelveticaNeueLig"
+*/
+
+#define FONT_BLD       "Tizen:style=Bold"
+#define FONT_MED       "Tizen:style=Medium"
+#define FONT_ROM       "Tizen:style=Roman"
+#define FONT_LIG       "Tizen:style=Roman"
+
+collections {
+#include "groups/access.edc"
+#include "groups/button.edc"
+#include "groups/multibuttonentry.edc"
+#include "groups/gengrid_customized_theme.edc"
+#include "groups/genlist.edc"
+#include "groups/genlist_progress_style.edc"
+#include "groups/genlist_variable_size.edc"
+#include "groups/genlist_color.edc"
+#include "groups/genlist_externals.edc"
+#include "groups/genlist_swipe.edc"
+#include "groups/index.edc"
+#include "groups/label.edc"
+#include "groups/controlbar.edc"
+#include "groups/fonttest.edc"
+#include "groups/fonteffecttest.edc"
+#include "groups/entry.edc"
+#include "groups/progressbar_default.edc"
+#include "groups/progressbar_custom.edc"
+#include "groups/check.edc"
+#include "groups/radio.edc"
+#include "groups/radio_custom.edc"
+#include "groups/transit.edc"
+#include "groups/slider_default.edc"
+#include "groups/slider_volume.edc"
+#include "groups/slider_custom.edc"
+#include "groups/dayselector.edc"
+#include "groups/popup_custom.edc"
+#include "groups/style_button.edc"
+#include "groups/style_popup.edc"
+#include "groups/style_ctxpopup_imageeditor.edc"
+#include "groups/style_ctxpopup_camera.edc"
+#include "groups/nocontents.edc"
+#include "groups/ctxpopup.edc"
+#include "groups/colorselector.edc"
+#include "groups/colorpalette.edc"
+#include "groups/calendar.edc"
+#include "groups/autoscroll.edc"
+#include "groups/multitouch.edc"
+#include "groups/segmentcontrol.edc"
+#include "groups/style_navibar.edc"
+#include "groups/datefield.edc"
+#include "groups/video.edc"
+#include "groups/naviframe.edc"
+#include "groups/tickernoti.edc"
+#include "groups/vi.edc"
+#include "groups/floating.edc"
+#include "groups/colorplane.edc"
+#include "groups/dnd.edc"
+}

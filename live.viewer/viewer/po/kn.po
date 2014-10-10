@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "ಅನ್ವಹಿಸುವಿಕೆಗಳು"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "ವಿಜೆಟ್"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "ಕದಲಿಸಲು ಅಸಮರ್ಥ."
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "ಅದನ್ನು ಕದಲಿಸಲು ಒಂದು ವಿಜೆಟ್‌ನ್ನು ತಟ್ಟಿ ಮತ್ತು ಹಿಡಿಯಿರಿ."
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "ಹೋಮ್ ಸ್ಕ್ರೀನ್ ಬದಲಾಯಿಸಲಾಗಿದೆ."
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "ಲೋಡಿಂಗ್..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "ಡೇಟಾ ಲೋಡ್ ಮಾಡಲು ಅಸಮರ್ಥ. ಮರುಪ್ರಯತ್ನಿಸಲು ಒತ್ತಿ."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "ಅನ್ವಹಿಸುವಿಕೆ ಸೇರಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ಹೋಮ್‌ ಸ್ಕ್ರೀನ್‌ನಲ್ಲಿ ಇನ್ನು ಕೊಠಡಿಗಳು ಇಲ್ಲ."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "ವಿಜೆಟ್ ಸೇರಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ಹೋಮ್‌ ಸ್ಕ್ರೀನ್‌ನಲ್ಲಿ ಇನ್ನು ಕೊಠಡಿಗಳು ಇಲ್ಲ."
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "ಅನ್ವಹಿಸುವಿಕೆ ಈಗಾಗಲೇ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ."
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "ವಿಜೆಟ್ ಈಗಾಗಲೇ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ."
+

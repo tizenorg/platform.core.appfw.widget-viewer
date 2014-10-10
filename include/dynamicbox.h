@@ -181,12 +181,12 @@ enum dynamicbox_access_event_type {
  * @since_tizen 2.3
  */
 enum dynamicbox_type {
-    DBOX_CONTENT_TYPE_IMAGE       = 0x01, /**< Contents of a dynamicbox is based on the image file */
-    DBOX_CONTENT_TYPE_BUFFER      = 0x02, /**< Contents of a dynamicbox is based on canvas buffer(shared) */
-    DBOX_CONTENT_TYPE_TEXT        = 0x04, /**< Contents of a dynamicbox is based on formatted text file */
-    DBOX_CONTENT_TYPE_RESOURCE_ID = 0x08, /**< Contens of a dynamicbox is shared by the resource id(depends on window system) */
-    DBOX_CONTENT_TYPE_UIFW        = 0x10, /**< Using UI F/W resource for sharing content & event */
-    DBOX_CONTENT_TYPE_INVALID     = 0xFF /**< Unknown Dynamic Box type */
+    DBOX_CONTENT_TYPE_IMAGE       = 0x01,       /**< Contents of a dynamicbox is based on the image file */
+    DBOX_CONTENT_TYPE_BUFFER      = 0x02,       /**< Contents of a dynamicbox is based on canvas buffer(shared) */
+    DBOX_CONTENT_TYPE_TEXT        = 0x04,       /**< Contents of a dynamicbox is based on formatted text file */
+    DBOX_CONTENT_TYPE_RESOURCE_ID = 0x08,       /**< Contens of a dynamicbox is shared by the resource id(depends on window system) */
+    DBOX_CONTENT_TYPE_UIFW        = 0x10,       /**< Using UI F/W resource for sharing content & event */
+    DBOX_CONTENT_TYPE_INVALID     = 0xFF        /**< Unknown Dynamic Box type */
 };
 
 /**
@@ -195,39 +195,39 @@ enum dynamicbox_type {
  * @details These events will be sent from the provider.
  * @since_tizen 2.3
  */
-enum dynamicbox_event_type {        /**< dynamicbox_event_handler_set Event list */
-    DBOX_EVENT_DBOX_UPDATED,        /**< Contents of the given dynamicbox is updated */
-    DBOX_EVENT_GBAR_UPDATED,        /**< Contents of the given pd is updated */
+enum dynamicbox_event_type {                    /**< dynamicbox_event_handler_set Event list */
+    DBOX_EVENT_DBOX_UPDATED,                    /**< Contents of the given dynamicbox is updated */
+    DBOX_EVENT_GBAR_UPDATED,                    /**< Contents of the given pd is updated */
 
-    DBOX_EVENT_CREATED,             /**< A new dynamicbox is created */
-    DBOX_EVENT_DELETED,             /**< A dynamicbox is deleted */
+    DBOX_EVENT_CREATED,                         /**< A new dynamicbox is created */
+    DBOX_EVENT_DELETED,                         /**< A dynamicbox is deleted */
 
-    DBOX_EVENT_GROUP_CHANGED,       /**< Group (Cluster/Sub-cluster) information is changed */
-    DBOX_EVENT_PINUP_CHANGED,       /**< PINUP status is changed */
-    DBOX_EVENT_PERIOD_CHANGED,      /**< Update period is changed */
+    DBOX_EVENT_GROUP_CHANGED,                   /**< Group (Cluster/Sub-cluster) information is changed */
+    DBOX_EVENT_PINUP_CHANGED,                   /**< PINUP status is changed */
+    DBOX_EVENT_PERIOD_CHANGED,                  /**< Update period is changed */
 
-    DBOX_EVENT_DBOX_SIZE_CHANGED,   /**< Dynamicbox size is changed */
-    DBOX_EVENT_GBAR_SIZE_CHANGED,   /**< Glance Bar size is changed */
+    DBOX_EVENT_DBOX_SIZE_CHANGED,               /**< Dynamicbox size is changed */
+    DBOX_EVENT_GBAR_SIZE_CHANGED,               /**< Glance Bar size is changed */
 
-    DBOX_EVENT_GBAR_CREATED,        /**< If a Glance Bar is created even if you didn't call the dynamicbox_create_glance_bar API */
-    DBOX_EVENT_GBAR_DESTROYED,      /**< If a Glance Bar is destroyed even if you didn't call the dynamicbox_destroy_glance_bar API */
+    DBOX_EVENT_GBAR_CREATED,                    /**< If a Glance Bar is created even if you didn't call the dynamicbox_create_glance_bar API */
+    DBOX_EVENT_GBAR_DESTROYED,                  /**< If a Glance Bar is destroyed even if you didn't call the dynamicbox_destroy_glance_bar API */
 
-    DBOX_EVENT_HOLD_SCROLL,         /**< If the screen should be freezed */
-    DBOX_EVENT_RELEASE_SCROLL,      /**< If the screen can be scrolled */
+    DBOX_EVENT_HOLD_SCROLL,                     /**< If the screen should be freezed */
+    DBOX_EVENT_RELEASE_SCROLL,                  /**< If the screen can be scrolled */
 
-    DBOX_EVENT_DBOX_UPDATE_BEGIN,   /**< Dynamic Box content update is started */
-    DBOX_EVENT_DBOX_UPDATE_END,     /**< Dynamic Box content update is finished */
+    DBOX_EVENT_DBOX_UPDATE_BEGIN,               /**< Dynamic Box content update is started */
+    DBOX_EVENT_DBOX_UPDATE_END,                 /**< Dynamic Box content update is finished */
 
-    DBOX_EVENT_GBAR_UPDATE_BEGIN,   /**< Glance Bar content update is started */
-    DBOX_EVENT_GBAR_UPDATE_END,     /**< Glance Bar content update is finished */
+    DBOX_EVENT_GBAR_UPDATE_BEGIN,               /**< Glance Bar content update is started */
+    DBOX_EVENT_GBAR_UPDATE_END,                 /**< Glance Bar content update is finished */
 
-    DBOX_EVENT_UPDATE_MODE_CHANGED, /**< Dynamic Box Update mode is changed */
+    DBOX_EVENT_UPDATE_MODE_CHANGED,             /**< Dynamic Box Update mode is changed */
 
-    DBOX_EVENT_REQUEST_CLOSE_GBAR,  /**< Dynamic Box requests to close the Glance Bar */
+    DBOX_EVENT_REQUEST_CLOSE_GBAR,              /**< Dynamic Box requests to close the Glance Bar */
 
-    DBOX_EVENT_EXTRA_INFO_UPDATED,  /**< Extra information is updated */
+    DBOX_EVENT_EXTRA_INFO_UPDATED,              /**< Extra information is updated */
 
-    DBOX_EVENT_IGNORED = 0xFF       /**< Request is ignored */
+    DBOX_EVENT_IGNORED = 0xFF                   /**< Request is ignored */
 };
 
 /**
@@ -236,12 +236,12 @@ enum dynamicbox_event_type {        /**< dynamicbox_event_handler_set Event list
  * @since_tizen 2.3
  */
 enum dynamicbox_option_type {
-    DBOX_OPTION_MANUAL_SYNC,           /**< Sync frame manually */
-    DBOX_OPTION_FRAME_DROP_FOR_RESIZE, /**< Drop frames while resizing */
-    DBOX_OPTION_SHARED_CONTENT,        /**< Use only one real instance for multiple fake instances if user creates dbox for same content */
-    DBOX_OPTION_DIRECT_UPDATE,         /**< Use the private socket for receiving updated event */
+    DBOX_OPTION_MANUAL_SYNC,                    /**< Sync frame manually */
+    DBOX_OPTION_FRAME_DROP_FOR_RESIZE,          /**< Drop frames while resizing */
+    DBOX_OPTION_SHARED_CONTENT,                 /**< Use only one real instance for multiple fake instances if user creates dbox for same content */
+    DBOX_OPTION_DIRECT_UPDATE,                  /**< Use the private socket for receiving updated event */
 
-    DBOX_OPTION_ERROR = 0xFFFFFFFF     /**< To specify the size of this enumeration type */
+    DBOX_OPTION_ERROR = 0xFFFFFFFF              /**< To specify the size of this enumeration type */
 };
 
 /**
@@ -250,9 +250,9 @@ enum dynamicbox_option_type {
  * @since_tizen 2.3
  */
 enum dynamicbox_fault_type {
-    DBOX_FAULT_DEACTIVATED,           /**< Dynamicbox is deactivated by its fault operation */
-    DBOX_FAULT_PROVIDER_DISCONNECTED, /**< Provider is disconnected */
-    DBOX_FAULT_MAX = 0xFF             /**< To specify the size of this enumeration type, some compiler enjoy of this kind of notation */
+    DBOX_FAULT_DEACTIVATED,                     /**< Dynamicbox is deactivated by its fault operation */
+    DBOX_FAULT_PROVIDER_DISCONNECTED,           /**< Provider is disconnected */
+    DBOX_FAULT_MAX = 0xFF                       /**< To specify the size of this enumeration type, some compiler enjoy of this kind of notation */
 };
 
 /**
@@ -262,12 +262,12 @@ enum dynamicbox_fault_type {
  * @since_tizen 2.3
  */
 enum dynamicbox_visible_state {
-    DBOX_SHOW            = 0x00, /**< Dynamicbox is shown. Default state */
-    DBOX_HIDE            = 0x01, /**< Dynamicbox is hidden, Update timer will not be freezed. but you cannot receive any updates events. */
+    DBOX_SHOW            = 0x00,                /**< Dynamicbox is shown. Default state */
+    DBOX_HIDE            = 0x01,                /**< Dynamicbox is hidden, Update timer will not be freezed. but you cannot receive any updates events. */
 
-    DBOX_HIDE_WITH_PAUSE = 0x02, /**< Dynamicbox is hidden, it will pause the update timer, but if a dynamicbox updates its contents, update event will be triggered */
+    DBOX_HIDE_WITH_PAUSE = 0x02,                /**< Dynamicbox is hidden, it will pause the update timer, but if a dynamicbox updates its contents, update event will be triggered */
 
-    DBOX_VISIBLE_ERROR   = 0xFF  /**< To specify the size of this enumeration type */
+    DBOX_VISIBLE_ERROR   = 0xFF                 /**< To specify the size of this enumeration type */
 };
 
 /**
@@ -324,7 +324,7 @@ typedef struct dynamicbox_mouse_event_info {
  * @since_tizen 2.3
  */
 typedef struct dynamicbox_key_event_info {
-    unsigned int keycode; /**< Key code */
+    unsigned int keycode;                       /**< Key code */
 } *dynamicbox_key_event_info_t;
 
 /**
@@ -1529,8 +1529,9 @@ extern int dynamicbox_option(enum dynamicbox_option_type option);
 
 /**
  * @internal
- * @brief Set a handler for launching an app for auto-launch feature
- * @details If a user clicks a box, and the box uses auto-launch option, the launcher_handler will be called.
+ * @brief Set a handler for launching an app by auto-launch feature
+ * @details If a user clicks a box, which box enabled auto-launch option, the launcher_handler will be called.
+ *          From that callback, you should launch an app using given ui-app id.
  * @since_tizen 2.3
  * @param[in] launch_handler Handler for launching an app manually
  * @param[in] data Callback data which will be given a data for launch_handler

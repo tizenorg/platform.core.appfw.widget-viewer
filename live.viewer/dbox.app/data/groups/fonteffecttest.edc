@@ -1,0 +1,263 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+group {
+   styles
+   {
+      style { name: "textblock_effect_test";
+         //base: "font=Tizen:style=Regular font_size=28 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium font_size=30 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium font_size=25 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium,Italic font_size=25 align=left color=#000000 wrap=char";
+         base: "font=Arial:style=Italic font_size=25 align=left color=#000000 wrap=char text_class=tizen";
+         tag:  "br" "\n";
+         tag:  "hilight" "+ font=Tizen:style=Bold";
+         tag:  "b" "+ font=Tizen:style=Bold";
+         tag:  "tab" "\t";
+      }
+      style { name: "textblock_effect_test2";
+         //base: "font=Tizen:style=Regular,Italic font_size=28 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium,Italic font_size=30 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Regular,Italic font_size=30 align=left color=#000000 wrap=char";
+         base: "font=Georgia:style=Italic font_size=30 align=left color=#000000 wrap=char text_class=tizen";
+         tag:  "br" "\n";
+         tag:  "hilight" "+ font=Tizen:style=Bold";
+         tag:  "b" "+ font=Tizen:style=Bold";
+         tag:  "tab" "\t";
+      }
+      style { name: "textblock_effect_test3";
+         //base: "font=Tizen:style=Regular font_size=28 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium font_size=30 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium font_size=35 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Regular,Italic font_size=35 align=left color=#000000 wrap=char";
+         base: "font=Tizen:style=Bold,Italic font_size=35 align=left color=#000000 wrap=char text_class=tizen";
+         tag:  "br" "\n";
+         tag:  "hilight" "+ font=Tizen:style=Bold";
+         tag:  "b" "+ font=Tizen:style=Bold";
+         tag:  "tab" "\t";
+      }
+      style { name: "textblock_effect_test4";
+         //base: "font=Tizen:style=Regular,Italic font_size=28 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium,Italic font_size=30 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium,Italic font_size=40 align=left color=#000000 wrap=char";
+         //base: "font=Tizen:style=Medium font_size=40 align=left color=#000000 wrap=char";
+         base: "font=Times:style=Italic font_size=40 align=left color=#000000 wrap=char text_class=tizen";
+         tag:  "br" "\n";
+         tag:  "hilight" "+ font=Tizen:style=Bold";
+         tag:  "b" "+ font=Tizen:style=Bold";
+         tag:  "tab" "\t";
+      }
+      style { name: "strike_textblock_effect";
+         base: "font=Tizen:style=Roman,Italic font_size=35 align=left color=#000000 wrap=char text_class=tizen";
+         tag:  "br" "\n";
+         tag:  "hilight" "+ font=Tizen:style=Bold";
+         tag:  "b" "+ font=Tizen:style=Bold";
+         tag:  "tab" "\t";
+         tag:  "strike" "+ strikethrough=on strikethrough_color=#FF0000";
+      }
+   }
+
+   name: "group_fonteffecttest";
+   parts {
+      part { name: "background";
+         type: RECT;
+         mouse_events: 0;
+         description { state: "default" 0.0;
+         }
+      }
+      // 1st item
+      part { name: "text1";
+         type: TEXT;
+         scale: 1;
+         description {
+            state: "default" 0.0;
+            min: 0 60;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 0.0; }
+            rel2 { relative: 1.0 0.0; }
+            text {
+               //font: "Tizen:style=Regular,Italic";
+               //font: "Tizen:style=Medium,Italic";
+               font: "Arial:style=Italic";
+               //size: 28;
+               size: 30;
+               min: 1 1;
+               align: 0 0.5;
+               text_class: "tizen";
+            }
+         color: 0 0 0 255;
+         }
+      }
+      // 2nd item
+      part { name: "text2";
+         type: TEXT;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 60;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 1.0; to_y: "text1"; }
+            rel2 { relative: 1.0 1.0; to_y: "text1"; }
+            text {
+               //font: "Tizen:style=Regular";
+               //font: "Tizen:style=Medium";
+               //font: "Tizen:style=Regular,Italic";
+               font: "Georgia:style=Italic";
+               //size: 28;
+               //size: 30;
+               size: 35;
+               min: 1 1;
+               align: 0 0.5;
+               text_class: "tizen";
+            }
+            color: 0 0 0 255;
+         }
+      }
+      // 3rd item
+      part { name: "text3";
+         type: TEXT;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 60;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 1.0; to_y: "text2"; }
+            rel2 { relative: 1.0 1.0; to_y: "text2"; }
+            text {
+               //font: "Tizen:style=Medium,Italic";
+               font: "Tizen:style=Bold,Italic";
+               //font: "Tizen:style=Regular,Italic";
+               //size: 28;
+               //size: 30;
+               size: 40;
+               min: 1 1;
+               align: 0 0.5;
+               text_class: "tizen";
+            }
+            color: 0 0 0 255;
+         }
+      }
+      // 1st textblock item
+      part { name: "textblock1";
+         type: TEXTBLOCK;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 30;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 1.0; to_y: "text3"; }
+            rel2 { relative: 1.0 1.0; to_y: "text3"; }
+            text {
+               style: textblock_effect_test;
+               min: 1 1;
+            }
+         }
+      }
+      // 2nd textblock item
+      part { name: "textblock2";
+         type: TEXTBLOCK;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 30;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 1.0; to_y: "textblock1"; }
+            rel2 { relative: 1.0 1.0; to_y: "textblock1"; }
+            text {
+               style: textblock_effect_test2;
+               min: 1 1;
+            }
+         }
+      }
+      // 3rd textblock item
+      part { name: "textblock3";
+         type: TEXTBLOCK;
+ //        scale: 1;
+         description { state: "default" 0.0;
+            min: 0 30;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 1.0; to_y: "textblock2"; }
+            rel2 { relative: 1.0 1.0; to_y: "textblock2"; }
+            text {
+               style: textblock_effect_test3;
+               min: 1 1;
+            }
+         }
+      }
+      // 4th textblock item
+      part { name: "textblock4";
+         type: TEXTBLOCK;
+//         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 30;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 1.0; to_y: "textblock3"; }
+            rel2 { relative: 1.0 1.0; to_y: "textblock3"; }
+            text {
+               style: textblock_effect_test4;
+               min: 1 1;
+            }
+         }
+      }
+      // 1st strike
+      part { name: "strike1";
+         type: TEXTBLOCK;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 30;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 1.0; to_y: "textblock4"; }
+            rel2 { relative: 1.0 1.0; to_y: "textblock4"; }
+            text {
+               style: strike_textblock_effect;
+               min: 1 1;
+            }
+         }
+      }
+      // 2nd strike
+      part { name: "strike2";
+         type: TEXTBLOCK;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 30;
+            fixed: 0 1;
+            align: 0.5 0;
+            rel1 { relative: 0.05 1.0; to_y: "strike1"; }
+            rel2 { relative: 1.0 1.0; to_y: "strike1"; }
+            text {
+               style: strike_textblock_effect;
+               min: 1 1;
+            }
+         }
+      }
+
+      part { name: "bottom_padding";
+         type: RECT;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 30;
+            visible: 0;
+            rel1 { relative: 0 1; to_y: "strike2"; }
+            align: 0.5 1.0;
+         }
+      }
+   }
+}

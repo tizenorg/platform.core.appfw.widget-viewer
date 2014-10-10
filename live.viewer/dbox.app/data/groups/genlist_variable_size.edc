@@ -1,0 +1,87 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+#include "genlist_macro.edc"
+
+   styles {
+      style { name: "textblock_style_variable_height";
+         base: "font=Tizen:style=Bold font_size=35 align=left color=#00FF00FF ellipsis=1.0 text_class=tizen";
+         tag:  "br" "\n";
+         tag:  "hilight" "+ font=Tizen:style=Bold";
+         tag:  "b" "+ font=Tizen:style=Bold";
+         tag:  "tab" "\t";
+      }
+   }
+
+   group { name: "elm/genlist/item/variable_height/default/default";
+
+      data.item: "texts" "elm.text";
+      data.item: "contents" "elm.icon";
+      data.item: "treesize" 0;
+
+      parts {
+         GENLIST_PART_BASE
+         GENLIST_PART_BG_NORMAL
+         GENLIST_PART_BOTTOM_LINE
+         GENLIST_PART_PADDING_LEFT
+         GENLIST_PART_PADDING_RIGHT
+         GENLIST_PART_PADDING_TOP
+         GENLIST_PART_PADDING_BOTTOM
+
+         part { name: "elm.text";
+            type: TEXTBLOCK;
+            mouse_events: 0;
+            scale: 1;
+            description { state: "default" 0.0;
+               align: 0.5 0.5;
+               rel1 {
+                  relative: 1 1;
+                  to_x: "elm.padding.left";
+                  to_y: "elm.padding.top";
+               }
+               rel2 {
+                  relative: 0 0;
+                  to_x: "elm.padding.right";
+                  to_y: "elm.padding.bottom";
+               }
+               text {
+                  style: textblock_style_variable_height;
+                  min: 1 1;
+                  align: 0.5 0.5;
+               }
+            }
+         }
+         part { name: "elm.icon";
+            type: SWALLOW;
+            mouse_events: 1;
+            scale: 1;
+            description { state: "default" 0.0;
+               align: 0.5 0.5;
+               rel1 {
+                  relative: 1 1;
+                  to_x: "elm.padding.left";
+                  to_y: "elm.padding.top";
+               }
+               rel2 {
+                  relative: 0 0;
+                  to_x: "elm.padding.right";
+                  to_y: "elm.padding.bottom";
+               }
+            }
+         }
+      }
+   }

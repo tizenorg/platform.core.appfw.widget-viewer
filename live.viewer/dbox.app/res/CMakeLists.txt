@@ -1,0 +1,5 @@
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/brick.png DESTINATION ${RESDIR})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/entry.png DESTINATION ${RESDIR})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ocean.png DESTINATION ${RESDIR})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/app.png DESTINATION "/usr/share/icons/default/small" RENAME "com.samsung.w-add-viewer.clock.png")
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/app.png DESTINATION "/usr/share/icons/default/small" RENAME "com.samsung.w-add-viewer.app.png")

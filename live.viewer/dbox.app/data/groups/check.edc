@@ -1,0 +1,268 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+#define CHECK_PADDING_WIDTH 170.0
+#define CHECK_PADDING_HEIGHT 22.0
+   group {
+      name: "elmdemo-test/check";
+      parts {
+         part {
+            name: "top_padding";
+            type: RECT;
+            scale: 1; //allow scaling
+            description {
+               state: "default" 0.0;
+               min : CHECK_PADDING_WIDTH 30; //minimum size for gap filler
+               fixed: 0 1;
+               visible: 0;
+               rel2.relative: 1 0;
+               align: 0 0;
+            }
+         }
+         part {
+            name: "check1";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "top_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "top_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part {
+            name: "check1_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               min : CHECK_PADDING_WIDTH CHECK_PADDING_HEIGHT;
+               max : CHECK_PADDING_WIDTH CHECK_PADDING_HEIGHT;
+               fixed: 1 1;
+               visible: 0;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "check1";
+               }
+               rel2.to_y: "check1";
+            }
+         }
+         part {
+            name: "check2";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "check1_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "check1_bottom_padding";
+               }
+               align: 0.5 0.0;
+            }
+         }
+         part {
+            name: "check2_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               min : CHECK_PADDING_WIDTH CHECK_PADDING_HEIGHT;
+               max : CHECK_PADDING_WIDTH CHECK_PADDING_HEIGHT;
+               fixed: 1 1;
+               visible: 0;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "check2";
+               }
+               rel2.to_y: "check2";
+            }
+         }
+         part {
+            name: "check3";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "check2_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "check2_bottom_padding";
+               }
+               align: 0.5 0.0;
+            }
+         }
+         part {
+            name: "check3_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               min : CHECK_PADDING_WIDTH CHECK_PADDING_HEIGHT;
+               max : CHECK_PADDING_WIDTH CHECK_PADDING_HEIGHT;
+               fixed: 1 1;
+               visible: 0;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "check3";
+               }
+               rel2.to_y: "check3";
+            }
+         }
+         part {
+            name: "check4";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "check3_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "check3_bottom_padding";
+               }
+               align: 0.5 0.0;
+            }
+         }
+         part {
+            name: "bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               min : 0 CHECK_PADDING_HEIGHT;
+               visible: 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "check4";
+               }
+               align: 0.5 1;
+            }
+         }
+      } //end parts
+   } //end group
+
+   group {
+      name: "elmdemo-test/check-extended";
+      parts {
+         part {
+            name: "top_padding";
+            type: RECT;
+            scale: 1; //allow scaling
+            description {
+               state: "default" 0.0;
+               min : CHECK_PADDING_WIDTH 30; //minimum size for gap filler
+               fixed: 0 1;
+               rel2.relative: 1 0;
+               color:  0 0 0 0;
+               align: 0 0;
+            }
+         }
+         part {
+            name: "check1";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "top_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "top_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part {
+            name: "check1_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               min : CHECK_PADDING_WIDTH CHECK_PADDING_HEIGHT;
+               max : CHECK_PADDING_WIDTH CHECK_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "check1";
+               }
+               rel2.to_y: "check1";
+               color: 0 255 0 0;
+            }
+         }
+         part {
+            name: "check2";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "check1_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "check1_bottom_padding";
+               }
+               align: 0.5 0.0;
+            }
+         }
+         part {
+            name: "bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               min : 0 CHECK_PADDING_HEIGHT;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "check2";
+               }
+               color: 0 0 0 0;
+               align: 0.5 1.0;
+            }
+         }
+      } //end parts
+   } //end group
+#undef CHECK_PADDING_WIDTH
+#undef CHECK_PADDING_HEIGHT

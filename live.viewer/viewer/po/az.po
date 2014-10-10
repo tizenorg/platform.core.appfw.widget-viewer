@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "Proqramlar"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "Qurğu"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "Silmək mümkün deyil."
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "Yerini dəyişmək üçün piktoqrama vurub saxlayın."
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "Əsas ekran dəyişib."
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "Yüklənir..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "Məlumatları yükləmək mümkün deyil. Yenidən cəhd etmək üçün vurun"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "Proqram əlavə etmək mümkün olmadı. Əsas ekranda artıq yer yoxdur."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "Piktoqram əlavə etmək mümkün olmadı. Əsas ekranda artıq yer yoxdur."
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "Proqram artıq mövcuddur."
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "Piktoqram artıq mövcuddur."
+

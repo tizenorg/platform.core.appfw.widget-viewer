@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "アプリ"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "ウィジェット"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "移動することができません。"
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "移動するには、ウィジェットを長押しします。"
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "ホーム画面が変更されました。"
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "読み込み中..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "データをロードできません。タップして再度実行してください。"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "アプリケーションを追加できません。ホーム画面にスペースがありません。"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "ウィジェットを追加できません。ホーム画面にスペースがありません。"
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "アプリケーションは既に存在します。"
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "ウィジェットは既に存在します。"
+

@@ -1,0 +1,5 @@
+Name=Elm Demo TIZEN
+Type=Application
+Exec=/opt/usr/apps/com.samsung.elm-demo-tizen/bin/elm_demo_tizen
+Icon=com.samsung.elm-demo-tizen.png
+Comment=Elementary Demo TIZEN Utility

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://tizen.org/ns/packages" package="com.samsung.w-add-viewer" version="0.1.5" install-location="internal-only">
+	<label>Add Viewer</label>
+	<author email="gildong.hong@samsung.com" href="www.samsung.com">GilDong Hong</author>
+	<description>w-add-viewer Application</description>
+
+	<!-- This should be comes first to detected by WMS as a clock app -->
+	<ui-application appid="com.samsung.w-add-viewer.dbox.clock" exec="/usr/apps/com.samsung.w-add-viewer/bin/provider.dbox.app" nodisplay="true" multiple="false" type="capp" taskmanage="false">
+		<category name="com.samsung.wmanager.WATCH_CLOCK"></category>
+		<label>DBox Clock Sample</label>
+		<icon>com.samsung.w-add-viewer.dbox.clock</icon>
+	</ui-application>
+
+	<ui-application appid="com.samsung.w-add-viewer.app" exec="/usr/apps/com.samsung.w-add-viewer/bin/provider.dbox.app" nodisplay="true" multiple="false" type="capp" taskmanage="false">
+		<label>DBox Sample App</label>
+		<icon>com.samsung.w-add-viewer.dbox.app</icon>
+	</ui-application>
+
+	<!-- Main application -->
+	<ui-application appid="com.samsung.w-add-viewer" exec="/usr/apps/com.samsung.w-add-viewer/bin/w-add-viewer" nodisplay="false" multiple="false" type="capp" taskmanage="true">
+		<label>Add Viewer</label>
+		<icon>com.samsung.w-add-viewer</icon>
+	</ui-application>
+
+	<dynamicbox appid="com.samsung.calendar.icon" primary="false" network="false" timeout="60" period="60" libexec="/usr/apps/com.samsung.w-add-viewer/libexec/libcom.samsung.w-add-viewer.dbox.calendar.so" nodisplay="false" script="edje" pinup="false" secured="false" abi="c">
+		<label>Calendar DBox</label>
+		<label xml:lang="ko-kr">캘린더</label>
+		<content>This is a default calendar data</content>
+		<icon>/usr/share/icons/default/small/com.samsung.calendar.icon.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="image" mouse_event="false" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="REPLACE_THIS_WITH_PREVIEW_IMAGE_FILE">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.dbox" primary="false" network="false" timeout="60" period="0" libexec="/usr/apps/com.samsung.w-add-viewer/libexec/libcom.samsung.w-add-viewer.dbox.so" nodisplay="false" script="edje" pinup="false" secured="false" abi="c">
+		<label>Buffer DBox</label>
+		<label xml:lang="ko-kr">REPLACE_THIS_WITH_YOUR_LIVEBOX_APPNAME_IN_KR</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.dbox.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="buffer" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="REPLACE_THIS_WITH_PREVIEW_IMAGE_FILE">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.img" primary="false" network="false" timeout="60" period="5" libexec="/usr/apps/com.samsung.w-add-viewer/libexec/libcom.samsung.w-add-viewer.dbox.img.so" nodisplay="false" script="edje" pinup="false" secured="false" abi="c">
+		<label>Image DBox</label>
+		<label xml:lang="ko-kr">이미지샘플</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.img.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="image" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="REPLACE_THIS_WITH_PREVIEW_IMAGE_FILE">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.video" primary="false" network="false" timeout="60" period="0" libexec="/usr/apps/com.samsung.w-add-viewer/libexec/libcom.samsung.w-add-viewer.dbox.video.so" nodisplay="false" script="edje" pinup="false" secured="false" abi="c">
+		<label>Video DBox</label>
+		<label xml:lang="ko-kr">비디오샘플</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.video.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="buffer" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="REPLACE_THIS_WITH_PREVIEW_IMAGE_FILE">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.scroller" primary="false" network="false" timeout="60" period="0" libexec="/usr/apps/com.samsung.w-add-viewer/libexec/libcom.samsung.w-add-viewer.dbox.scroller.so" nodisplay="false" script="edje" pinup="false" secured="false" abi="c">
+		<label>Winset DBox</label>
+		<label xml:lang="ko-kr">윈셋샘플</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.scroller.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="buffer" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="REPLACE_THIS_WITH_PREVIEW_IMAGE_FILE">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.simple" primary="false" network="false" timeout="60" period="0" libexec="/usr/apps/com.samsung.w-add-viewer/libexec/libcom.samsung.w-add-viewer.dbox.simple.so" nodisplay="false" script="edje" pinup="false" secured="false" abi="c">
+		<label>Simple DBox</label>
+		<label xml:lang="ko-kr">심플박스</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.simple.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="buffer" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="REPLACE_THIS_WITH_PREVIEW_IMAGE_FILE">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.transit" primary="false" network="false" timeout="60" period="0" libexec="/usr/apps/com.samsung.w-add-viewer/libexec/libcom.samsung.w-add-viewer.dbox.transit.so" nodisplay="false" script="edje" pinup="false" secured="false" abi="c">
+		<label>Transit DBox</label>
+		<label xml:lang="ko-kr">트랜지션샘플</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.transit.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="buffer" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="REPLACE_THIS_WITH_PREVIEW_IMAGE_FILE">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.app" primary="false" network="false" timeout="60" period="0" nodisplay="false" script="edje" pinup="false" secured="false" abi="app">
+		<label>Standalone DBox</label>
+		<label xml:lang="ko-kr">앱DBox</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.app.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="buffer" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="/usr/share/icons/default/small/com.samsung.w-add-viewer.dbox.app.png">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.clock" primary="true" network="false" timeout="60" period="0" nodisplay="true" script="edje" pinup="false" secured="false" abi="app">
+		<label>Clock DBox</label>
+		<category name="com.samsung.wmanager.WATCH_CLOCK"></category>
+		<label xml:lang="ko-kr">샘플시계</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.clock.png</icon>
+		<box type="buffer" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="/usr/share/icons/default/small/com.samsung.w-add-viewer.dbox.clock.png">4x4</size>
+		</box>
+	</dynamicbox>
+	<dynamicbox appid="com.samsung.w-add-viewer.text" primary="false" network="false" timeout="60" period="10" libexec="/usr/apps/com.samsung.w-add-viewer/libexec/libcom.samsung.w-add-viewer.dbox.text.so" nodisplay="false" script="dali" pinup="false" secured="false" abi="c">
+		<label>Text(script) DBox</label>
+		<label xml:lang="ko-kr">텍스트박스</label>
+		<icon>/usr/share/icons/default/small/com.samsung.w-add-viewer.text.png</icon>
+		<category name="http://tizen.org/dynamicbox/default"></category>
+		<box type="text" mouse_event="true" touch_effect="false">
+			<!-- Please update this. Update the supported size list for your box -->
+			<size preview="REPLACE_THIS_WITH_PREVIEW_IMAGE_FILE">4x4</size>
+			<script src="/usr/apps/com.samsung.w-add-viewer/shared/script/text.dali" group="default" />
+		</box>
+	</dynamicbox>
+</manifest>

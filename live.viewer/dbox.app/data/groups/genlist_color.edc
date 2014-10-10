@@ -1,0 +1,245 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+#include "genlist_macro.edc"
+
+group { name: "elm/genlist/item/elm_demo_tizen/dynamic_text_style_change/default";
+
+   data.item: "selectraise" "on";
+   data.item: "texts" "elm.text elm.text.sub";
+   data.item: "contents" "elm.thumbnail elm.swallow.color.bg elm.swallow.end";
+   images {
+      image: "00_list_bar_press_1x80.png" COMP;
+      image: "00_list_thumbnail_bg.png" COMP;
+   }
+   script {
+      public g_text_color_changed_state = 0;
+   }
+   parts {
+      GENLIST_PART_BASE
+      GENLIST_PART_BG_NORMAL
+      GENLIST_PART_BOTTOM_LINE
+      GENLIST_PART_PADDING_LEFT
+      GENLIST_PART_PADDING_RIGHT
+      GENLIST_PART_PADDING_TOP
+      GENLIST_PART_PADDING_BOTTOM
+
+      part { name: "elm.swallow.color.bg";
+         type: SWALLOW;
+         description { state: "default" 0.0;
+         }
+      }
+
+      part { name: "elm.swallow.end";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "defualt" 0.0;
+            min: 190 0;
+            fixed: 1 0;
+            align: 1.0 0.5;
+            aspect: 1.0 1.0;
+            aspect_preference: VERTICAL;
+            rel1 {
+               relative: 0.0 0.5;
+               to_x : "elm.padding.right";
+               to_y : "base";
+            }
+            rel2 {
+               relative: 0.0 0.5;
+               to_x : "elm.padding.right";
+               to_y: "base";
+            }
+         }
+      }
+      part { name: "elm.thumbnail";
+         type: SWALLOW;
+         description { state: "default" 0.0;
+            rel1.to: "elm.thumbnail.bg";
+            rel2.to: "elm.thumbnail.bg";
+         }
+      }
+      part { name: "elm.thumbnail.bg";
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 100 100;
+            fixed: 1 0;
+            align: 0.0 0.5;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "elm.padding.left";
+               to_y: "elm.padding.top";
+            }
+            rel2 {
+               relative: 1.0 0.0;
+               to_x: "elm.padding.left";
+               to_y: "elm.padding.bottom";
+            }
+            image {
+               normal: "00_list_thumbnail_bg.png";
+               border: 1 1 1 1;
+               border_scale: 1;
+               middle: NONE;
+            }
+         }
+      }
+      part { name: "elm.padding.thumbnail.right";
+         type: RECT;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 15 0;
+            fixed: 1 0;
+            visible: 0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "elm.thumbnail";
+               to_y: "elm.padding.top";
+            }
+            rel2 {
+               relative: 1.0 0.0;
+               to_x: "elm.thumbnail";
+               to_y: "elm.padding.bottom";
+            }
+            align: 0.0 0.5;
+         }
+      }
+      part { name: "elm.text";
+         type: TEXT;
+         mouse_events: 0;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 40;
+            fixed: 0 1;
+            align: 0 0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "elm.padding.thumbnail.right";
+               to_y: "elm.padding.top";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "elm.swallow.end";
+               to_y: "elm.padding.top";
+            }
+            color: 0 0 0 255;
+            text {
+               font: "Tizen:style=Roman";
+               size: 32;
+               min: 0 1;
+               align: 0.0 0.5;
+            }
+         }
+         description { state: "selected" 0.0;
+            inherit: "default" 0.0;
+            color: 255 255 255 255;
+         }
+         description { state: "color_changed" 0.0;
+            inherit: "default" 0.0;
+            text {
+               font: "Tizen:style=Bold";
+            }
+            color: 0 0 255 255;
+         }
+      }
+      part { name: "elm.text.sub";
+         type: TEXT;
+         mouse_events: 0;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 30;
+            fixed: 0 1;
+            align: 0.0 0.0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "elm.padding.thumbnail.right";
+               to_y: "elm.text";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               offset: 0 0;
+               to_x: "elm.swallow.end";
+               to_y: "elm.text";
+            }
+            color: 0 0 0 255;
+            text {
+               font: "Tizen:style=Medium";
+               size: 22;
+               min: 0 1;
+               align: 0.0 0.5;
+            }
+         }
+         description { state: "selected" 0.0;
+            inherit: "default" 0.0;
+            color: 255 255 255 255;
+         }
+         description { state: "color_changed" 0.0;
+            inherit: "default" 0.0;
+            text {
+               font: "Tizen:style=Bold";
+            }
+            color: 255 0 0 255;
+         }
+      }
+   }
+   programs {
+      program { name: "go_active";
+         signal: "elm,state,selected";
+         source: "elm";
+         action: STATE_SET "selected" 0.0;
+         target: "bg";
+         target: "elm.text";
+         target: "elm.text.sub";
+      }
+      program { name: "go_passive";
+         signal: "elm,state,unselected";
+         source: "elm";
+         script {
+            if (get_int(g_text_color_changed_state) == 1) {
+               set_state(PART:"bg", "default", 0.0);
+               set_state(PART:"elm.text", "color_changed", 0.0);
+               set_state(PART:"elm.text.sub", "color_changed", 0.0);
+            }
+            else {
+               set_state(PART:"bg", "default", 0.0);
+               set_state(PART:"elm.text", "default", 0.0);
+               set_state(PART:"elm.text.sub", "default", 0.0);
+            }
+         }
+         transition: LINEAR 0.1;
+      }
+      program { name: "change_label_color";
+         signal: "elm,state,change_label_color";
+         source: "elm";
+         script {
+            set_int (g_text_color_changed_state, 1);
+            set_state(PART:"elm.text", "color_changed", 0.0);
+            set_state(PART:"elm.text.sub", "color_changed", 0.0);
+         }
+
+      }
+      program { name: "change_label_color_default";
+         signal: "elm,state,change_label_color_default";
+         source: "elm";
+         script {
+            set_int (g_text_color_changed_state, 0);
+            set_state(PART:"bg", "default", 0.0);
+            set_state(PART:"elm.text", "default", 0.0);
+            set_state(PART:"elm.text.sub", "default", 0.0);
+         }
+      }
+   }
+}
+

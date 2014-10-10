@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "应用程序"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "桌面小组件"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "无法移除。"
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "点击并按住小组件以进行移动。"
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "主屏已更改。"
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "载入中…"
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "无法载入数据。轻敲以重试。"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "无法添加应用程序。主屏幕无更多空间。"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "无法添加小组件。主屏幕无更多空间。"
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "应用程序已存在。"
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "小组件已存在。"
+

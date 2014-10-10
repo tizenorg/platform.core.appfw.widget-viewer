@@ -1,0 +1,157 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+   group {
+      name: "elmdemo-test/tickernoti";
+      parts {
+         part { name: "bg";
+            mouse_events: 0;
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               visible: 1;
+               rel1 { relative: 0.0 0.0;}
+               rel2 { relative: 1.0 1.0;}
+               color: 0 0 0 0;
+            }
+         }
+
+         part { name: "top_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min: 0 50;
+               fixed: 0 1;
+               rel1 { relative: 0.0 0.0; to: "bg";}
+               rel2 { relative: 1.0 0.0; to: "bg";}
+               color: 0 0 0 0;
+               align: 0.0 0.0;
+            }
+         }
+
+         part {
+            name: "btn_tickernoti_show";
+            type: SWALLOW;
+            mouse_events: 1;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               min: 250 80;
+               max: 250 80;
+               rel1 { relative: 0.0 1.0; to: "top_padding"; }
+               rel2 { relative: 1.0 1.0; to: "top_padding"; }
+               align: 0.5 0.0;
+            }
+         }
+
+
+         part { name: "top_padding_2";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min: 0 50;
+               fixed: 0 1;
+               rel1 { relative: 0.0 1.0; to: "btn_tickernoti_show";}
+               rel2 { relative: 1.0 1.0; to: "btn_tickernoti_show";}
+               color: 0 0 0 0;
+               align: 0.0 0.0;
+            }
+         }
+
+         part {
+            name: "btn_tickernoti_show2";
+            type: SWALLOW;
+            mouse_events: 1;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               min: 250 80;
+               max: 250 80;
+               rel1 { relative: 0.0 1.0; to: "top_padding_2"; }
+               rel2 { relative: 1.0 1.0; to: "top_padding_2"; }
+               align: 0.5 0.0;
+            }
+         }
+      }
+   }
+
+   group { name: "tickernoti_layout";
+      parts {
+         part {
+             name: "bg";
+             type: RECT;
+             scale: 1;
+             description { state: "default" 0.0;
+                rel1.relative: 0.0 0.0;
+                rel2.relative: 1.0 1.0;
+                color: 0 0 0 0;
+             }
+         }
+         part { name: "top_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min: 50 50;
+               fixed: 0 1;
+               rel1 { relative: 0.0 0.0; to: "bg";}
+               rel2 { relative: 1.0 0.0; to: "bg";}
+               color: 0 0 0 0;
+               align: 0.0 0.0;
+            }
+         }
+         part {
+             name: "btn1";
+             type: SWALLOW;
+             scale: 1;
+             description { state: "default" 0.0;
+                fixed: 1 1;
+                min: 550 80;
+                max: 550 80;
+                rel1 { relative: 0.0 1.0; to: "top_padding"; }
+                rel2 { relative: 1.0 1.0; to: "top_padding"; }
+                align: 0.5 0.0;
+             }
+         }
+         part { name: "top_padding_2";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min: 50 50;
+               fixed: 0 1;
+               rel1 { relative: 0.0 1.0; to: "btn1";}
+               rel2 { relative: 1.0 1.0; to: "btn1";}
+               color: 0 0 0 0;
+               align: 0.0 0.0;
+            }
+         }
+         part {
+             name: "btn2";
+             type: SWALLOW;
+             scale: 1;
+             description { state: "default" 0.0;
+                fixed: 1 1;
+                min: 550 80;
+                max: 550 80;
+                rel1 { relative: 0.0 1.0; to: "top_padding_2"; }
+                rel2 { relative: 1.0 1.0; to: "top_padding_2"; }
+                align: 0.5 0.0;
+             }
+         }
+      }
+   }

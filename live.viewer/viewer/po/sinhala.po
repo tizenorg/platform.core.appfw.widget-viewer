@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "යෙදුම්"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "වි‍ජෙට්ටුව"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "ඉවත් කළ නොහැක."
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "විජෙට්ටුව චලනය කිරීමට ඊට තට්ටු කර තබා ගන්න."
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "මුල් පිටු තිරය වෙනස් කෙරිණි."
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "පූරණය කරමින්..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "දත්ත ප්‍රවේශනය කිරීමට නොහැකිය. යළි උත්සාහ කිරීමට තට්ටු කරන්න"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "යෙදුම එක් කිරීමට නොහැකි විය. මුල්පිටු තිරය මත තවත් ඉඩ නැත."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "විජෙට්ටුවක් එක් කළ නොහැක. මුල්පිටු තිරය මත තවත් ඉඩ නැත."
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "යෙදුම දැනටමත් තිබේ."
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "විජට්ටුව දැනටමත් පවතී."
+

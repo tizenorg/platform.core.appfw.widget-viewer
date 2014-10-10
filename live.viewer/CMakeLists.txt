@@ -1,48 +1,47 @@
-PROJECT(live-viewer C)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT(w-add-viewer C)
 
-INCLUDE(FindPkgConfig)
-pkg_check_modules(pkgs REQUIRED
-	capi-appfw-application
-	capi-appfw-app-manager
-	ail
-	bundle
-	dlog
-	elementary
-	ecore-x
-	appcore-efl
-	livebox-viewer
-	livebox-service
-)
+SET(PACKAGE ${PROJECT_NAME})
+SET(VENDOR "samsung")
+SET(PKGNAME "com.${VENDOR}.${PACKAGE}")
+SET(PREFIX "/usr/apps/${PKGNAME}")
+SET(BINDIR "${PREFIX}/bin")
+SET(RESDIR "${PREFIX}/res")
+SET(USRDATADIR "/usr/apps/com.${VENDOR}.${PACKAGE}/data")
+SET(DATADIR "/opt/usr/apps/com.${VENDOR}.${PACKAGE}/data")
+SET(LOCALEDIR "${RESDIR}/locale")
+#SET(ICONDIR "/usr/share/icons/default/small")
+SET(IMAGEDIR "${RESDIR}/images/${PACKAGE}")
+SET(SOUNDDIR "${RESDIR}/sound/${PACKAGE}")
+SET(EDJDIR "${RESDIR}/edje")
+SET(LIBEXECDIR "${PREFIX}/libexec")
 
-FOREACH(flag ${pkgs_CFLAGS})
-	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
-ENDFOREACH(flag)
-
-SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -Wall -Werror -Winline -g")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
-
-SET(PKGROOT "/opt/usr/apps/live.viewer")
+ADD_DEFINITIONS("-DRESDIR=\"${RESDIR}\"")
 ADD_DEFINITIONS("-DNDEBUG")
-ADD_DEFINITIONS("-DPKGROOT=\"${PKGROOT}\"")
-#ADD_DEFINITIONS("-DFLOG")
-ADD_DEFINITIONS("-DLOG_TAG=\"${PROJECT_NAME}\"")
-ADD_DEFINITIONS(${pkgs_CFLAGS})
-ADD_DEFINITIONS(${pkgs_LDFLAGS})
+ADD_DEFINITIONS("-DPATH_MAX=256")
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+FIND_PROGRAM(UNAME NAMES uname)
+EXEC_PROGRAM("${UNAME}" ARGS "-m" OUTPUT_VARIABLE "ARCH")
 
-ADD_EXECUTABLE(${PROJECT_NAME}
-	src/main.c
-	src/dlist.c
-	src/live_scroller.c
-	src/util.c
-	src/scroller.c
-	src/lb.c
-)
+IF("${ARCH}" STREQUAL "arm")
+	ADD_DEFINITIONS("-DTARGET")
+	MESSAGE("add -DTARGET")
+ENDIF("${ARCH}" STREQUAL "arm")
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pkgs_LDFLAGS})
-INSTALL(TARGETS ${PROJECT_NAME} DESTINATION ${PKGROOT}/bin)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/live.viewer.xml DESTINATION /opt/share/packages)
+ADD_SUBDIRECTORY(dbox.calendar)
+ADD_SUBDIRECTORY(viewer)
+ADD_SUBDIRECTORY(dbox.app)
+ADD_SUBDIRECTORY(dbox.video)
+ADD_SUBDIRECTORY(dbox.scroller)
+ADD_SUBDIRECTORY(dbox.app-dbox.only)
+ADD_SUBDIRECTORY(dbox.text)
+ADD_SUBDIRECTORY(dbox.transit)
+ADD_SUBDIRECTORY(dbox.image)
+ADD_SUBDIRECTORY(dbox.simple)
+ADD_SUBDIRECTORY(dbox.win)
+#ADD_SUBDIRECTORY(dbox.app-template)
 
-ADD_SUBDIRECTORY(res)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME ${PKGNAME})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${PKGNAME}.xml DESTINATION /usr/share/packages)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${PKGNAME}.rule DESTINATION /etc/smack/accesses2.d)
+
