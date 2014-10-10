@@ -2664,9 +2664,9 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 			flag = 0;
 		}
 
+		w = handler->common->pd.width;
+		h = handler->common->pd.height;
 		if (flag) {
-			w = handler->common->pd.width;
-			h = handler->common->pd.height;
 			handler->common->pd.x = x;
 			handler->common->pd.y = y;
 		}
@@ -2692,9 +2692,9 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 			flag = 0;
 		}
 
+		w = handler->common->lb.width;
+		h = handler->common->lb.height;
 		if (flag) {
-			w = handler->common->lb.width;
-			h = handler->common->lb.height;
 			handler->common->lb.x = x;
 			handler->common->lb.y = y;
 		}
