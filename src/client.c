@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/types.h>
 
 #include <dlog.h>
 #include <glib.h>
@@ -45,17 +46,24 @@
 #include "conf.h"
 #include "file_service.h"
 #include "dlist.h"
+#include "provider_cmd_list.h"
 
 int errno;
 
+#define MAX_DIRECT_ADDR 256
+
 static struct info {
 	int fd;
+	int direct_fd;
 	guint timer_id;
 	char *client_addr;
+	char *direct_addr;
 } s_info = {
 	.fd = -1,
+	.direct_fd = -1,
 	.timer_id = 0,
 	.client_addr = NULL,
+	.direct_addr = NULL,
 };
 
 static struct packet *master_fault_package(pid_t pid, int handle, const struct packet *packet)
@@ -1561,20 +1569,54 @@ static struct method s_table[] = {
 		.handler = master_extra_info,
 	},
 	{
-		.cmd = "pd_created",
-		.handler = master_pd_created,
-	},
-	{
-		.cmd = "pd_destroyed",
-		.handler = master_pd_destroyed,
+		.cmd = "deleted", /* pkgname, id, timestamp, ret */
+		.handler = master_deleted,
 	},
 	{
 		.cmd = "fault_package", /* pkgname, id, function, ret */
 		.handler = master_fault_package,
 	},
 	{
-		.cmd = "deleted", /* pkgname, id, timestamp, ret */
-		.handler = master_deleted,
+		.cmd = "scroll",
+		.handler = master_hold_scroll,
+	},
+	{
+		.cmd = "lb_update_begin",
+		.handler = master_lb_update_begin,
+	},
+	{
+		.cmd = "lb_update_end",
+		.handler = master_lb_update_end,
+	},
+
+	{
+		.cmd = "pd_update_begin",
+		.handler = master_pd_update_begin,
+	},
+	{
+		.cmd = "pd_update_end",
+		.handler = master_pd_update_end,
+	},
+	{
+		.cmd = "access_status",
+		.handler = master_access_status,
+	},
+	{
+		.cmd = "key_status",
+		.handler = master_key_status,
+	},
+	{
+		.cmd = "close_pd",
+		.handler = master_request_close_pd,
+	},
+
+	{
+		.cmd = "pd_created",
+		.handler = master_pd_created,
+	},
+	{
+		.cmd = "pd_destroyed",
+		.handler = master_pd_destroyed,
 	},
 	{
 		.cmd = "created", /* timestamp, pkgname, id, content, lb_w, lb_h, pd_w, pd_h, cluster, category, lb_file, pd_file, auto_launch, priority, size_list, is_user, pinup_supported, text_lb, text_pd, period, ret */
@@ -1596,45 +1638,10 @@ static struct method s_table[] = {
 		.cmd = "pinup",
 		.handler = master_pinup,
 	},
-	{
-		.cmd = "scroll",
-		.handler = master_hold_scroll,
-	},
 
 	{
 		.cmd = "update_mode",
 		.handler = master_update_mode,
-	},
-
-	{
-		.cmd = "lb_update_begin",
-		.handler = master_lb_update_begin,
-	},
-	{
-		.cmd = "lb_update_end",
-		.handler = master_lb_update_end,
-	},
-
-	{
-		.cmd = "pd_update_begin",
-		.handler = master_pd_update_begin,
-	},
-	{
-		.cmd = "pd_update_end",
-		.handler = master_pd_update_end,
-	},
-
-	{
-		.cmd = "access_status",
-		.handler = master_access_status,
-	},
-	{
-		.cmd = "key_status",
-		.handler = master_key_status,
-	},
-	{
-		.cmd = "close_pd",
-		.handler = master_request_close_pd,
 	},
 
 	{
@@ -1664,6 +1671,7 @@ static inline int make_connection(void)
 {
 	struct packet *packet;
 	int ret;
+	unsigned int cmd = CMD_ACQUIRE;
 
 	DbgPrint("Let's making connection!\n");
 
@@ -1673,7 +1681,7 @@ static inline int make_connection(void)
 		return LB_STATUS_ERROR_IO;
 	}
 
-	packet = packet_create("acquire", "d", util_timestamp());
+	packet = packet_create((const char *)&cmd, "ds", util_timestamp(), client_direct_addr());
 	if (!packet) {
 		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
@@ -1758,6 +1766,51 @@ static int disconnected_cb(int handle, void *data)
 	return 0;
 }
 
+static struct method s_direct_table[] = {
+	{
+		.cmd = "lb_updated", /* pkgname, id, lb_w, lb_h, priority, ret */
+		.handler = master_lb_updated,
+	},
+	{
+		.cmd = "pd_updated", /* pkgname, id, descfile, pd_w, pd_h, ret */
+		.handler = master_pd_updated,
+	},
+	{
+		.cmd = NULL,
+		.handler = NULL,
+	},
+};
+
+static void prepare_direct_update(void)
+{
+	char path[MAX_DIRECT_ADDR];
+
+	if (!conf_direct_update()) {
+		return;
+	}
+
+	if (!strncmp(s_info.client_addr, COM_CORE_REMOTE_SCHEME, strlen(COM_CORE_REMOTE_SCHEME))) {
+		ErrPrint("Remote model is not support this\n");
+		return;
+	}
+
+	snprintf(path, sizeof(path) - 1, "/tmp/.%d.%lf.dbox.viewer", getpid(), util_timestamp());
+
+	s_info.direct_addr = strdup(path);
+	if (!s_info.direct_addr) {
+		ErrPrint("strdup: %s\n", strerror(errno));
+		return;
+	}
+
+	s_info.direct_fd = com_core_packet_server_init(client_direct_addr(), s_direct_table);
+	if (s_info.direct_fd < 0) {
+		ErrPrint("Failed to prepare server: %s\n", client_direct_addr());
+		return;
+	}
+
+	DbgPrint("Direct update is prepared: %s - %d\n", client_direct_addr(), client_direct_fd());
+}
+
 int client_init(int use_thread)
 {
 	com_core_packet_use_thread(use_thread);
@@ -1777,6 +1830,15 @@ int client_init(int use_thread)
 
 	com_core_add_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_add_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
+
+	/**
+	 * @note
+	 * Before creating a connection with master,
+	 * Initiate the private channel for getting the updated event from providers
+	 * How could we propagates the our address to every providers?
+	 */
+	prepare_direct_update();
+
 	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0) {
 		ErrPrint("Failed to add vconf for service state\n");
 	} else {
@@ -1797,6 +1859,16 @@ const char *client_addr(void)
 	return s_info.client_addr;
 }
 
+const char *client_direct_addr(void)
+{
+	return s_info.direct_addr;
+}
+
+int client_direct_fd(void)
+{
+	return s_info.direct_fd;
+}
+
 int client_fini(void)
 {
 	int ret;
@@ -1810,10 +1882,20 @@ int client_fini(void)
 
 	com_core_del_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_del_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
+
 	com_core_packet_client_fini(s_info.fd);
 	s_info.fd = -1;
+
+	if (s_info.direct_fd >= 0) {
+		com_core_packet_server_fini(s_info.direct_fd);
+		s_info.direct_fd = -1;
+	}
+
 	free(s_info.client_addr);
 	s_info.client_addr = NULL;
+
+	free(s_info.direct_addr);
+	s_info.direct_addr = NULL;
 	return LB_STATUS_SUCCESS;
 }
 

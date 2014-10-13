@@ -42,6 +42,7 @@
 #include "master_rpc.h"
 #include "client.h"
 #include "conf.h"
+#include "provider_cmd_list.h"
 
 #define EAPI __attribute__((visibility("default")))
 
@@ -711,13 +712,14 @@ static int lb_acquire_lb_pixmap(struct livebox *handler, ret_cb_t cb, void *data
 	struct cb_info *cbinfo;
 	const char *id;
 	int ret;
+	unsigned int cmd = CMD_LB_ACQUIRE_PIXMAP;
 
 	id = fb_id(handler->common->lb.fb);
 	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	packet = packet_create("lb_acquire_pixmap", "ss", handler->common->pkgname, handler->common->id);
+	packet = packet_create((const char *)&cmd, "ss", handler->common->pkgname, handler->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -779,13 +781,14 @@ static int lb_acquire_pd_pixmap(struct livebox *handler, ret_cb_t cb, void *data
 	struct cb_info *cbinfo;
 	const char *id;
 	int ret;
+	unsigned int cmd = CMD_PD_ACQUIRE_PIXMAP;
 
 	id = fb_id(handler->common->pd.fb);
 	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	packet = packet_create("pd_acquire_pixmap", "ss", handler->common->pkgname, handler->common->id);
+	packet = packet_create((const char *)&cmd, "ss", handler->common->pkgname, handler->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -1233,10 +1236,11 @@ static int create_real_instance(struct livebox *handler, ret_cb_t cb, void *data
 	struct packet *packet;
 	struct livebox_common *common;
 	int ret;
+	unsigned int cmd = CMD_NEW;
 
 	common = handler->common;
 
-	packet = packet_create("new", "dssssdii",
+	packet = packet_create((const char *)&cmd, "dssssdii",
 				common->timestamp, common->pkgname, common->content,
 				common->cluster, common->category,
 				common->lb.period, common->lb.width, common->lb.height);
@@ -1424,6 +1428,7 @@ static int lb_set_visibility(struct livebox *handler, enum livebox_visible_state
 	struct packet *packet;
 	int need_to_add_job = 0;
 	int ret;
+	unsigned int cmd = CMD_CHANGE_VISIBILITY;
 
 	if (handler->common->visible != LB_SHOW && state == LB_SHOW) {
 		need_to_add_job = !!handler->paused_updating;
@@ -1451,7 +1456,7 @@ static int lb_set_visibility(struct livebox *handler, enum livebox_visible_state
 		return LB_STATUS_SUCCESS;
 	}
 
-	packet = packet_create_noack("change,visibility", "ssi", handler->common->pkgname, handler->common->id, (int)state);
+	packet = packet_create_noack((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, (int)state);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -1613,6 +1618,7 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 {
 	struct packet *packet;
 	int ret;
+	unsigned int cmd = CMD_SET_PERIOD;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is not valid\n");
@@ -1644,7 +1650,7 @@ EAPI int livebox_set_period(struct livebox *handler, double period, ret_cb_t cb,
 		return LB_STATUS_ERROR_ALREADY;
 	}
 
-	packet = packet_create("set_period", "ssd", handler->common->pkgname, handler->common->id, period);
+	packet = packet_create((const char *)&cmd, "ssd", handler->common->pkgname, handler->common->id, period);
 	if (!packet) {
 		ErrPrint("Failed to build a packet %s\n", handler->common->pkgname);
 		return LB_STATUS_ERROR_FAULT;
@@ -1880,6 +1886,7 @@ EAPI int livebox_set_update_mode(struct livebox *handler, int active_update, ret
 {
 	struct packet *packet;
 	int ret;
+	unsigned int cmd = CMD_UPDATE_MODE;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is Invalid\n");
@@ -1909,7 +1916,7 @@ EAPI int livebox_set_update_mode(struct livebox *handler, int active_update, ret
 		return LB_STATUS_ERROR_PERMISSION;
 	}
 
-	packet = packet_create("update_mode", "ssi", handler->common->pkgname, handler->common->id, active_update);
+	packet = packet_create((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, active_update);
 	if (!packet) {
 		return LB_STATUS_ERROR_FAULT;
 	}
@@ -2020,9 +2027,10 @@ EAPI int livebox_resize(struct livebox *handler, int type, ret_cb_t cb, void *da
 
 	if (handler->common->refcnt <= 1) {
 		struct packet *packet;
+		unsigned int cmd = CMD_RESIZE;
 
 		/* Only 1 instance */
-		packet = packet_create("resize", "ssii", handler->common->pkgname, handler->common->id, w, h);
+		packet = packet_create((const char *)&cmd, "ssii", handler->common->pkgname, handler->common->id, w, h);
 		if (!packet) {
 			ErrPrint("Failed to build param\n");
 			return LB_STATUS_ERROR_FAULT;
@@ -2144,6 +2152,7 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	struct packet *packet;
 	double timestamp;
 	int ret;
+	unsigned int cmd = CMD_CLICKED;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2172,31 +2181,13 @@ EAPI int livebox_click(struct livebox *handler, double x, double y)
 	timestamp = util_timestamp();
 	DbgPrint("CLICKED: %lf\n", timestamp);
 
-	packet = packet_create_noack("clicked", "sssddd", handler->common->pkgname, handler->common->id, "clicked", timestamp, x, y);
+	packet = packet_create_noack((const char *)&cmd, "sssddd", handler->common->pkgname, handler->common->id, "clicked", timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return LB_STATUS_ERROR_FAULT;
 	}
 
 	ret = master_rpc_request_only(handler, packet);
-
-	if (!handler->common->lb.mouse_event && (handler->common->lb.type == _LB_TYPE_BUFFER || handler->common->lb.type == _LB_TYPE_SCRIPT)) {
-		int ret; /* Shadow variable */
-		ret = send_mouse_event(handler, "lb_mouse_down", x * handler->common->lb.width, y * handler->common->lb.height);
-		if (ret < 0) {
-			ErrPrint("Failed to send Down: %d\n", ret);
-		}
-
-		ret = send_mouse_event(handler, "lb_mouse_move", x * handler->common->lb.width, y * handler->common->lb.height);
-		if (ret < 0) {
-			ErrPrint("Failed to send Move: %d\n", ret);
-		}
-
-		ret = send_mouse_event(handler, "lb_mouse_up", x * handler->common->lb.width, y * handler->common->lb.height);
-		if (ret < 0) {
-			ErrPrint("Failed to send Up: %d\n", ret);
-		}
-	}
 
 	return ret;
 }
@@ -2269,6 +2260,7 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 {
 	struct packet *packet;
 	int ret;
+	unsigned int cmd = CMD_CREATE_PD;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2309,7 +2301,7 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 		}
 	}
 
-	packet = packet_create("create_pd", "ssdd", handler->common->pkgname, handler->common->id, x, y);
+	packet = packet_create((const char *)&cmd, "ssdd", handler->common->pkgname, handler->common->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -2333,6 +2325,7 @@ EAPI int livebox_create_pd_with_position(struct livebox *handler, double x, doub
 EAPI int livebox_move_pd(struct livebox *handler, double x, double y)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_PD_MOVE;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2354,7 +2347,7 @@ EAPI int livebox_move_pd(struct livebox *handler, double x, double y)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	packet = packet_create_noack("pd_move", "ssdd", handler->common->pkgname, handler->common->id, x, y);
+	packet = packet_create_noack((const char *)&cmd, "ssdd", handler->common->pkgname, handler->common->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -2367,13 +2360,14 @@ EAPI int livebox_activate(const char *pkgname, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_ACTIVATE_PACKAGE;
 	int ret;
 
 	if (!pkgname) {
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	packet = packet_create("activate_package", "s", pkgname);
+	packet = packet_create((const char *)&cmd, "s", pkgname);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -2418,6 +2412,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 	struct packet *packet;
 	struct cb_info *cbinfo;
 	int ret;
+	unsigned int cmd = CMD_DESTROY_PD;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2462,7 +2457,7 @@ EAPI int livebox_destroy_pd(struct livebox *handler, ret_cb_t cb, void *data)
 
 	DbgPrint("[%s]\n", handler->common->pkgname);
 
-	packet = packet_create("destroy_pd", "ss", handler->common->pkgname, handler->common->id);
+	packet = packet_create((const char *)&cmd, "ss", handler->common->pkgname, handler->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -2492,9 +2487,8 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 {
 	int w = 1;
 	int h = 1;
-	char cmd[32] = { '\0', };
-	char *ptr = cmd;
 	int ret = 0;	/* re-used for sending event type */
+	unsigned int cmd;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2521,13 +2515,141 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 			ErrPrint("PD is not created\n");
 			return LB_STATUS_ERROR_INVALID;
 		}
-		*ptr++ = 'p';
-		*ptr++ = 'd';
+		switch (type & ~(ACCESS_EVENT_PD_MASK | ACCESS_EVENT_LB_MASK)) {
+		case ACCESS_EVENT_HIGHLIGHT:
+			cmd = CMD_PD_ACCESS_HL;
+			ret = ACCESS_TYPE_CUR;
+			break;
+		case ACCESS_EVENT_HIGHLIGHT_NEXT:
+			cmd = CMD_PD_ACCESS_HL;
+			ret = ACCESS_TYPE_NEXT;
+			break;
+		case ACCESS_EVENT_HIGHLIGHT_PREV:
+			cmd = CMD_PD_ACCESS_HL;
+			ret = ACCESS_TYPE_PREV;
+			break;
+		case ACCESS_EVENT_UNHIGHLIGHT:
+			cmd = CMD_PD_ACCESS_HL;
+			ret = ACCESS_TYPE_OFF;
+			break;
+		case ACCESS_EVENT_ACTIVATE:
+			cmd = CMD_PD_ACCESS_ACTIVATE;
+			break;
+		case ACCESS_EVENT_ACTION_DOWN:
+			cmd = CMD_PD_ACCESS_ACTION;
+			ret = ACCESS_TYPE_DOWN;
+			break;
+		case ACCESS_EVENT_ACTION_UP:
+			cmd = CMD_PD_ACCESS_ACTION;
+			ret = ACCESS_TYPE_UP;
+			break;
+		case ACCESS_EVENT_SCROLL_DOWN:
+			cmd = CMD_PD_ACCESS_SCROLL;
+			ret = ACCESS_TYPE_DOWN;
+			break;
+		case ACCESS_EVENT_SCROLL_MOVE:
+			cmd = CMD_PD_ACCESS_SCROLL;
+			ret = ACCESS_TYPE_MOVE;
+			break;
+		case ACCESS_EVENT_SCROLL_UP:
+			cmd = CMD_PD_ACCESS_SCROLL;
+			ret = ACCESS_TYPE_UP;
+			break;
+		case ACCESS_EVENT_VALUE_CHANGE:
+			cmd = CMD_PD_ACCESS_VALUE_CHANGE;
+			break;
+		case ACCESS_EVENT_MOUSE:
+			cmd = CMD_PD_ACCESS_MOUSE;
+			break;
+		case ACCESS_EVENT_BACK:
+			cmd = CMD_PD_ACCESS_BACK;
+			break;
+		case ACCESS_EVENT_OVER:
+			cmd = CMD_PD_ACCESS_OVER;
+			break;
+		case ACCESS_EVENT_READ:
+			cmd = CMD_PD_ACCESS_READ;
+			break;
+		case ACCESS_EVENT_ENABLE:
+			cmd = CMD_PD_ACCESS_ENABLE;
+			ret = 1;
+			break;
+		case ACCESS_EVENT_DISABLE:
+			cmd = CMD_PD_ACCESS_ENABLE;
+			ret = 0;
+			break;
+		default:
+			return LB_STATUS_ERROR_INVALID;
+		}
 		w = handler->common->pd.width;
 		h = handler->common->pd.height;
 	} else if (type & ACCESS_EVENT_LB_MASK) {
-		*ptr++ = 'l';
-		*ptr++ = 'b';
+		switch (type & ~(ACCESS_EVENT_PD_MASK | ACCESS_EVENT_LB_MASK)) {
+		case ACCESS_EVENT_HIGHLIGHT:
+			cmd = CMD_LB_ACCESS_HL;
+			ret = ACCESS_TYPE_CUR;
+			break;
+		case ACCESS_EVENT_HIGHLIGHT_NEXT:
+			cmd = CMD_LB_ACCESS_HL;
+			ret = ACCESS_TYPE_NEXT;
+			break;
+		case ACCESS_EVENT_HIGHLIGHT_PREV:
+			cmd = CMD_LB_ACCESS_HL;
+			ret = ACCESS_TYPE_PREV;
+			break;
+		case ACCESS_EVENT_UNHIGHLIGHT:
+			cmd = CMD_LB_ACCESS_HL;
+			ret = ACCESS_TYPE_OFF;
+			break;
+		case ACCESS_EVENT_ACTIVATE:
+			cmd = CMD_LB_ACCESS_ACTIVATE;
+			break;
+		case ACCESS_EVENT_ACTION_DOWN:
+			cmd = CMD_LB_ACCESS_ACTION;
+			ret = ACCESS_TYPE_DOWN;
+			break;
+		case ACCESS_EVENT_ACTION_UP:
+			cmd = CMD_LB_ACCESS_ACTION;
+			ret = ACCESS_TYPE_UP;
+			break;
+		case ACCESS_EVENT_SCROLL_DOWN:
+			cmd = CMD_LB_ACCESS_SCROLL;
+			ret = ACCESS_TYPE_DOWN;
+			break;
+		case ACCESS_EVENT_SCROLL_MOVE:
+			cmd = CMD_LB_ACCESS_SCROLL;
+			ret = ACCESS_TYPE_MOVE;
+			break;
+		case ACCESS_EVENT_SCROLL_UP:
+			cmd = CMD_LB_ACCESS_SCROLL;
+			ret = ACCESS_TYPE_UP;
+			break;
+		case ACCESS_EVENT_VALUE_CHANGE:
+			cmd = CMD_LB_ACCESS_VALUE_CHANGE;
+			break;
+		case ACCESS_EVENT_MOUSE:
+			cmd = CMD_LB_ACCESS_MOUSE;
+			break;
+		case ACCESS_EVENT_BACK:
+			cmd = CMD_LB_ACCESS_BACK;
+			break;
+		case ACCESS_EVENT_OVER:
+			cmd = CMD_LB_ACCESS_OVER;
+			break;
+		case ACCESS_EVENT_READ:
+			cmd = CMD_LB_ACCESS_READ;
+			break;
+		case ACCESS_EVENT_ENABLE:
+			cmd = CMD_LB_ACCESS_ENABLE;
+			ret = 1;
+			break;
+		case ACCESS_EVENT_DISABLE:
+			cmd = CMD_LB_ACCESS_ENABLE;
+			ret = 0;
+			break;
+		default:
+			return LB_STATUS_ERROR_INVALID;
+		}
 		w = handler->common->lb.width;
 		h = handler->common->lb.height;
 	} else {
@@ -2535,78 +2657,12 @@ EAPI int livebox_access_event(struct livebox *handler, enum access_event_type ty
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	switch (type & ~(ACCESS_EVENT_PD_MASK | ACCESS_EVENT_LB_MASK)) {
-	case ACCESS_EVENT_HIGHLIGHT:
-		strcpy(ptr, "_access_hl");
-		ret = ACCESS_TYPE_CUR;
-		break;
-	case ACCESS_EVENT_HIGHLIGHT_NEXT:
-		strcpy(ptr, "_access_hl");
-		ret = ACCESS_TYPE_NEXT;
-		break;
-	case ACCESS_EVENT_HIGHLIGHT_PREV:
-		strcpy(ptr, "_access_hl");
-		ret = ACCESS_TYPE_PREV;
-		break;
-	case ACCESS_EVENT_UNHIGHLIGHT:
-		strcpy(ptr, "_access_hl");
-		ret = ACCESS_TYPE_OFF;
-		break;
-	case ACCESS_EVENT_ACTIVATE:
-		strcpy(ptr, "_access_activate");
-		break;
-	case ACCESS_EVENT_ACTION_DOWN:
-		strcpy(ptr, "_access_action");
-		ret = ACCESS_TYPE_DOWN;
-		break;
-	case ACCESS_EVENT_ACTION_UP:
-		strcpy(ptr, "_access_action");
-		ret = ACCESS_TYPE_UP;
-		break;
-	case ACCESS_EVENT_SCROLL_DOWN:
-		strcpy(ptr, "_access_scroll");
-		ret = ACCESS_TYPE_DOWN;
-		break;
-	case ACCESS_EVENT_SCROLL_MOVE:
-		strcpy(ptr, "_access_scroll");
-		ret = ACCESS_TYPE_MOVE;
-		break;
-	case ACCESS_EVENT_SCROLL_UP:
-		strcpy(ptr, "_access_scroll");
-		ret = ACCESS_TYPE_UP;
-		break;
-	case ACCESS_EVENT_VALUE_CHANGE:
-		strcpy(ptr, "_access_value_change");
-		break;
-	case ACCESS_EVENT_MOUSE:
-		strcpy(ptr, "_access_mouse");
-		break;
-	case ACCESS_EVENT_BACK:
-		strcpy(ptr, "_access_back");
-		break;
-	case ACCESS_EVENT_OVER:
-		strcpy(ptr, "_access_over");
-		break;
-	case ACCESS_EVENT_READ:
-		strcpy(ptr, "_access_read");
-		break;
-	case ACCESS_EVENT_ENABLE:
-		strcpy(ptr, "_access_enable");
-		ret = 1;
-		break;
-	case ACCESS_EVENT_DISABLE:
-		strcpy(ptr, "_access_enable");
-		ret = 0;
-		break;
-	default:
-		return LB_STATUS_ERROR_INVALID;
-	}
 
 	if (!cb) {
 		cb = default_access_event_cb;
 	}
 
-	ret = send_access_event(handler, cmd, x * w, y * h, ret);
+	ret = send_access_event(handler, (const char *)&cmd, x * w, y * h, ret);
 	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.access_event.cb = cb;
 		handler->cbs.access_event.data = data;
@@ -2620,8 +2676,7 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 {
 	int w = 1;
 	int h = 1;
-	char cmd[32] = { '\0', };
-	char *ptr = cmd;
+	unsigned int cmd;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -2664,20 +2719,54 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 			flag = 0;
 		}
 
-		w = handler->common->pd.width;
-		h = handler->common->pd.height;
 		if (flag) {
+			w = handler->common->pd.width;
+			h = handler->common->pd.height;
 			handler->common->pd.x = x;
 			handler->common->pd.y = y;
 		}
-		*ptr++ = 'p';
-		*ptr++ = 'd';
-	} else if (type & CONTENT_EVENT_LB_MASK) {
-		int flag = 1;
 
-		if (!handler->common->lb.mouse_event) {
+		switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
+		case CONTENT_EVENT_MOUSE_ENTER | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_ENTER;
+			break;
+		case CONTENT_EVENT_MOUSE_LEAVE | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_LEAVE;
+			break;
+		case CONTENT_EVENT_MOUSE_UP | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_UP;
+			break;
+		case CONTENT_EVENT_MOUSE_DOWN | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_DOWN;
+			break;
+		case CONTENT_EVENT_MOUSE_MOVE | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_MOVE;
+			break;
+		case CONTENT_EVENT_MOUSE_SET | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_SET;
+			break;
+		case CONTENT_EVENT_MOUSE_UNSET | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_UNSET;
+			break;
+		case CONTENT_EVENT_ON_SCROLL | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_ON_SCROLL;
+			break;
+		case CONTENT_EVENT_ON_HOLD | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_ON_HOLD;
+			break;
+		case CONTENT_EVENT_OFF_SCROLL | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_OFF_SCROLL;
+			break;
+		case CONTENT_EVENT_OFF_HOLD | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_PD_MOUSE_OFF_HOLD;
+			break;
+		default:
+			ErrPrint("Invalid event type\n");
 			return LB_STATUS_ERROR_INVALID;
 		}
+
+	} else if (type & CONTENT_EVENT_LB_MASK) {
+		int flag = 1;
 
 		if (!handler->common->lb.fb) {
 			ErrPrint("Handler is not valid\n");
@@ -2692,68 +2781,71 @@ EAPI int livebox_mouse_event(struct livebox *handler, enum content_event_type ty
 			flag = 0;
 		}
 
-		w = handler->common->lb.width;
-		h = handler->common->lb.height;
 		if (flag) {
+			w = handler->common->lb.width;
+			h = handler->common->lb.height;
 			handler->common->lb.x = x;
 			handler->common->lb.y = y;
 		}
-		*ptr++ = 'l';
-		*ptr++ = 'b';
+
+		switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
+		case CONTENT_EVENT_MOUSE_ENTER | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_ENTER;
+			break;
+		case CONTENT_EVENT_MOUSE_LEAVE | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_LEAVE;
+			break;
+		case CONTENT_EVENT_MOUSE_UP | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_UP;
+			break;
+		case CONTENT_EVENT_MOUSE_DOWN | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_DOWN;
+			break;
+		case CONTENT_EVENT_MOUSE_MOVE | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_MOVE;
+			if (!handler->common->lb.mouse_event) {
+				return LB_STATUS_ERROR_INVALID;
+			}
+			break;
+		case CONTENT_EVENT_MOUSE_SET | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_SET;
+			if (!handler->common->lb.mouse_event) {
+				return LB_STATUS_ERROR_INVALID;
+			}
+			break;
+		case CONTENT_EVENT_MOUSE_UNSET | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_UNSET;
+			if (!handler->common->lb.mouse_event) {
+				return LB_STATUS_ERROR_INVALID;
+			}
+			break;
+		case CONTENT_EVENT_ON_SCROLL | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_ON_SCROLL;
+			break;
+		case CONTENT_EVENT_ON_HOLD | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_ON_HOLD;
+			break;
+		case CONTENT_EVENT_OFF_SCROLL | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_OFF_SCROLL;
+			break;
+		case CONTENT_EVENT_OFF_HOLD | CONTENT_EVENT_MOUSE_MASK:
+			cmd = CMD_LB_MOUSE_OFF_HOLD;
+			break;
+		default:
+			ErrPrint("Invalid event type\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
 	} else {
 		ErrPrint("Invalid event type\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	/*!
-	 * Must be shorter than 29 bytes.
-	 */
-	switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
-	case CONTENT_EVENT_MOUSE_ENTER | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_enter");
-		break;
-	case CONTENT_EVENT_MOUSE_LEAVE | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_leave");
-		break;
-	case CONTENT_EVENT_MOUSE_UP | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_up");
-		break;
-	case CONTENT_EVENT_MOUSE_DOWN | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_down");
-		break;
-	case CONTENT_EVENT_MOUSE_MOVE | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_move");
-		break;
-	case CONTENT_EVENT_MOUSE_SET | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_set");
-		break;
-	case CONTENT_EVENT_MOUSE_UNSET | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_unset");
-		break;
-	case CONTENT_EVENT_ON_SCROLL | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_on_scroll");
-		break;
-	case CONTENT_EVENT_ON_HOLD | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_on_hold");
-		break;
-	case CONTENT_EVENT_OFF_SCROLL | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_off_scroll");
-		break;
-	case CONTENT_EVENT_OFF_HOLD | CONTENT_EVENT_MOUSE_MASK:
-		strcpy(ptr, "_mouse_off_hold");
-		break;
-	default:
-		ErrPrint("Invalid event type\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	return send_mouse_event(handler, cmd, x * w, y * h);
+	return send_mouse_event(handler, (const char *)&cmd, x * w, y * h);
 }
 
 EAPI int livebox_key_event(struct livebox *handler, enum content_event_type type, unsigned int keycode, ret_cb_t cb, void *data)
 {
-	char cmd[32] = { '\0', };
-	char *ptr = cmd;
+	unsigned int cmd;
 	int ret;
 
 	if (!handler || handler->state != CREATE) {
@@ -2804,13 +2896,31 @@ EAPI int livebox_key_event(struct livebox *handler, enum content_event_type type
 			 */
 		}
 
-		*ptr++ = 'p';
-		*ptr++ = 'd';
-	} else if (type & CONTENT_EVENT_LB_MASK) {
-		if (!handler->common->lb.mouse_event) {
+		switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
+		case CONTENT_EVENT_KEY_FOCUS_IN | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_PD_KEY_FOCUS_IN;
+			break;
+		case CONTENT_EVENT_KEY_FOCUS_OUT | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_PD_KEY_FOCUS_OUT;
+			break;
+		case CONTENT_EVENT_KEY_UP | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_PD_KEY_UP;
+			break;
+		case CONTENT_EVENT_KEY_DOWN | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_PD_KEY_DOWN;
+			break;
+		case CONTENT_EVENT_KEY_SET | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_PD_KEY_SET;
+			break;
+		case CONTENT_EVENT_KEY_UNSET | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_PD_KEY_UNSET;
+			break;
+		default:
+			ErrPrint("Invalid event type\n");
 			return LB_STATUS_ERROR_INVALID;
 		}
 
+	} else if (type & CONTENT_EVENT_LB_MASK) {
 		if (!handler->common->lb.fb) {
 			ErrPrint("Handler is not valid\n");
 			return LB_STATUS_ERROR_INVALID;
@@ -2827,36 +2937,30 @@ EAPI int livebox_key_event(struct livebox *handler, enum content_event_type type
 			 */
 		}
 
-		*ptr++ = 'l';
-		*ptr++ = 'b';
+		switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
+		case CONTENT_EVENT_KEY_FOCUS_IN | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_LB_KEY_FOCUS_IN;
+			break;
+		case CONTENT_EVENT_KEY_FOCUS_OUT | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_LB_KEY_FOCUS_OUT;
+			break;
+		case CONTENT_EVENT_KEY_UP | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_LB_KEY_UP;
+			break;
+		case CONTENT_EVENT_KEY_DOWN | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_LB_KEY_DOWN;
+			break;
+		case CONTENT_EVENT_KEY_SET | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_LB_KEY_SET;
+			break;
+		case CONTENT_EVENT_KEY_UNSET | CONTENT_EVENT_KEY_MASK:
+			cmd = CMD_LB_KEY_UNSET;
+			break;
+		default:
+			ErrPrint("Invalid event type\n");
+			return LB_STATUS_ERROR_INVALID;
+		}
 	} else {
-		ErrPrint("Invalid event type\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	/*!
-	 * Must be short than 29 bytes.
-	 */
-	switch ((type & ~(CONTENT_EVENT_PD_MASK | CONTENT_EVENT_LB_MASK))) {
-	case CONTENT_EVENT_KEY_FOCUS_IN | CONTENT_EVENT_KEY_MASK:
-		strcpy(ptr, "_key_focus_in");
-		break;
-	case CONTENT_EVENT_KEY_FOCUS_OUT | CONTENT_EVENT_KEY_MASK:
-		strcpy(ptr, "_key_focus_out");
-		break;
-	case CONTENT_EVENT_KEY_UP | CONTENT_EVENT_KEY_MASK:
-		strcpy(ptr, "_key_up");
-		break;
-	case CONTENT_EVENT_KEY_DOWN | CONTENT_EVENT_KEY_MASK:
-		strcpy(ptr, "_key_down");
-		break;
-	case CONTENT_EVENT_KEY_SET | CONTENT_EVENT_KEY_MASK:
-		strcpy(ptr, "_key_set");
-		break;
-	case CONTENT_EVENT_KEY_UNSET | CONTENT_EVENT_KEY_MASK:
-		strcpy(ptr, "_key_unset");
-		break;
-	default:
 		ErrPrint("Invalid event type\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
@@ -2865,7 +2969,7 @@ EAPI int livebox_key_event(struct livebox *handler, enum content_event_type type
 		cb = default_key_event_cb;
 	}
 
-	ret = send_key_event(handler, cmd, keycode);
+	ret = send_key_event(handler, (const char *)&cmd, keycode);
 	if (ret == (int)LB_STATUS_SUCCESS) {
 		handler->cbs.key_event.cb = cb;
 		handler->cbs.key_event.data = data;
@@ -2980,6 +3084,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 {
 	struct packet *packet;
 	int ret;
+	unsigned int cmd = CMD_CHANGE_GROUP;
 
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
@@ -3016,7 +3121,7 @@ EAPI int livebox_set_group(struct livebox *handler, const char *cluster, const c
 		return LB_STATUS_ERROR_ALREADY;
 	}
 
-	packet = packet_create("change_group", "ssss", handler->common->pkgname, handler->common->id, cluster, category);
+	packet = packet_create((const char *)&cmd, "ssss", handler->common->pkgname, handler->common->id, cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -3146,9 +3251,10 @@ EAPI int livebox_delete_cluster(const char *cluster, ret_cb_t cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_DELETE_CLUSTER;
 	int ret;
 
-	packet = packet_create("delete_cluster", "s", cluster);
+	packet = packet_create((const char *)&cmd, "s", cluster);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -3172,9 +3278,10 @@ EAPI int livebox_delete_category(const char *cluster, const char *category, ret_
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_DELETE_CATEGORY;
 	int ret;
 
-	packet = packet_create("delete_category", "ss", cluster, category);
+	packet = packet_create((const char *)&cmd, "ss", cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -3344,6 +3451,7 @@ EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
 	struct packet *packet;
 	const char *pkgname;
 	const char *id;
+	unsigned int cmd = CMD_LB_RELEASE_PIXMAP;
 
 	if (pixmap == 0 /* || handler->state != CREATE */ ) {
 		ErrPrint("Handler is invalid [%d]\n", pixmap);
@@ -3388,7 +3496,7 @@ EAPI int livebox_release_lb_pixmap(struct livebox *handler, int pixmap)
 		id = handler->common->id;
 	}
 
-	packet = packet_create_noack("lb_release_pixmap", "ssi", pkgname, id, pixmap);
+	packet = packet_create_noack((const char *)&cmd, "ssi", pkgname, id, pixmap);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_INVALID;
@@ -3503,6 +3611,7 @@ EAPI int livebox_release_pd_pixmap(struct livebox *handler, int pixmap)
 	struct packet *packet;
 	const char *pkgname;
 	const char *id;
+	unsigned int cmd = CMD_PD_RELEASE_PIXMAP;
 
 	if (pixmap == 0 /* || handler->state != CREATE */) {
 		ErrPrint("Pixmap is invalid [%d]\n", pixmap);
@@ -3547,7 +3656,7 @@ EAPI int livebox_release_pd_pixmap(struct livebox *handler, int pixmap)
 		id = handler->common->id;
 	}
 
-	packet = packet_create_noack("pd_release_pixmap", "ssi", pkgname, id, pixmap);
+	packet = packet_create_noack((const char *)&cmd, "ssi", pkgname, id, pixmap);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -3690,6 +3799,7 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 {
 	struct packet *packet;
 	int ret;
+	unsigned int cmd = CMD_PINUP_CHANGED;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3716,7 +3826,7 @@ EAPI int livebox_set_pinup(struct livebox *handler, int flag, ret_cb_t cb, void 
 		return LB_STATUS_ERROR_ALREADY;
 	}
 
-	packet = packet_create("pinup_changed", "ssi", handler->common->pkgname, handler->common->id, flag);
+	packet = packet_create((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, flag);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -3855,6 +3965,7 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 	struct packet *packet;
 	struct cb_info *cbinfo;
 	int ret;
+	unsigned int cmd = CMD_TEXT_SIGNAL;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3879,7 +3990,7 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 		source = "";
 	}
 
-	packet = packet_create("text_signal", "ssssdddd",
+	packet = packet_create((const char *)&cmd, "ssssdddd",
 				handler->common->pkgname, handler->common->id, emission, source, sx, sy, ex, ey);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
@@ -3903,6 +4014,7 @@ EAPI int livebox_emit_text_signal(struct livebox *handler, const char *emission,
 EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_SUBSCRIBE;
 
 	/*!
 	 * \todo
@@ -3910,7 +4022,7 @@ EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 	 * If the group info is not valid, do not send this request
 	 */
 
-	packet = packet_create_noack("subscribe", "ss", cluster ? cluster : "", category ? category : "");
+	packet = packet_create_noack((const char *)&cmd, "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -3922,6 +4034,7 @@ EAPI int livebox_subscribe_group(const char *cluster, const char *category)
 EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_UNSUBSCRIBE;
 
 	/*!
 	 * \todo
@@ -3930,7 +4043,7 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 	 * AND Check the subscribed or not too
 	 */
 
-	packet = packet_create_noack("unsubscribe", "ss", cluster ? cluster : "", category ? category : "");
+	packet = packet_create_noack((const char *)&cmd, "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -3942,6 +4055,7 @@ EAPI int livebox_unsubscribe_group(const char *cluster, const char *category)
 EAPI int livebox_refresh(struct livebox *handler, int force)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_UPDATE;
 
 	if (!handler || handler->state != CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3958,7 +4072,7 @@ EAPI int livebox_refresh(struct livebox *handler, int force)
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	packet = packet_create_noack("update", "ssi", handler->common->pkgname, handler->common->id, force);
+	packet = packet_create_noack((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, force);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -3970,13 +4084,14 @@ EAPI int livebox_refresh(struct livebox *handler, int force)
 EAPI int livebox_refresh_group(const char *cluster, const char *category, int force)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_REFRESH_GROUP;
 
 	if (!cluster || !category) {
 		ErrPrint("Invalid argument\n");
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	packet = packet_create_noack("refresh_group", "ssi", cluster, category, force);
+	packet = packet_create_noack((const char *)&cmd, "ssi", cluster, category, force);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -4599,6 +4714,7 @@ int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *data)
 	struct packet *packet;
 	struct cb_info *cbinfo;
 	int ret;
+	unsigned int cmd = CMD_DELETE;
 
 	if (handler->common->request.deleted) {
 		ErrPrint("Already in-progress\n");
@@ -4612,7 +4728,7 @@ int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *data)
 		cb = default_delete_cb;
 	}
 
-	packet = packet_create("delete", "ssid", handler->common->pkgname, handler->common->id, type, handler->common->timestamp);
+	packet = packet_create((const char *)&cmd, "ssid", handler->common->pkgname, handler->common->id, type, handler->common->timestamp);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		if (cb) {
@@ -4653,8 +4769,9 @@ int lb_send_delete(struct livebox *handler, int type, ret_cb_t cb, void *data)
 EAPI int livebox_client_paused(void)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_CLIENT_PAUSED;
 
-	packet = packet_create_noack("client_paused", "d", util_timestamp());
+	packet = packet_create_noack((const char *)&cmd, "d", util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a pause packet\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -4666,8 +4783,9 @@ EAPI int livebox_client_paused(void)
 EAPI int livebox_client_resumed(void)
 {
 	struct packet *packet;
+	unsigned int cmd = CMD_CLIENT_RESUMED;
 
-	packet = packet_create_noack("client_resumed", "d", util_timestamp());
+	packet = packet_create_noack((const char *)&cmd, "d", util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a resume packet\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -4887,6 +5005,12 @@ EAPI int livebox_set_option(enum livebox_option_type option, int state)
 	case LB_OPTION_SHARED_CONTENT:
 		conf_set_shared_content(state);
 		break;
+	case LB_OPTION_DIRECT_UPDATE:
+		if (s_info.init_count) {
+			DbgPrint("Already intialized, this option is not applied\n");
+		}
+		conf_set_direct_update(state);
+		break;
 	default:
 		ret = LB_STATUS_ERROR_INVALID;
 		break;
@@ -4908,6 +5032,9 @@ EAPI int livebox_option(enum livebox_option_type option)
 		break;
 	case LB_OPTION_SHARED_CONTENT:
 		ret = conf_shared_content();
+		break;
+	case LB_OPTION_DIRECT_UPDATE:
+		ret = conf_direct_update();
 		break;
 	default:
 		ret = LB_STATUS_ERROR_INVALID;

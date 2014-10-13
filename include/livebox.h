@@ -247,6 +247,7 @@ enum livebox_option_type {
 	LB_OPTION_MANUAL_SYNC,			/**< Sync manually */
 	LB_OPTION_FRAME_DROP_FOR_RESIZE,	/**< Drop frames while resizing */
 	LB_OPTION_SHARED_CONTENT,		/**< Use only one real instance for multiple fake instances if user creates it using same content */
+	LB_OPTION_DIRECT_UPDATE,		/**< Use the private socket for receiving updated event */
 
 	LB_OPTION_ERROR = 0xFFFFFFFF		/**< To specify the size of this enumeration type */
 };
