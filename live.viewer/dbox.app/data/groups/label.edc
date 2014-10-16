@@ -1,0 +1,684 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+#define LABEL_WIDTH 350.0
+#define LABEL_HEIGHT 40.0
+#define LABEL_GAP 100.0
+
+group {
+		name: "elmdemo-test/label";
+		parts{
+			part {
+				name: "top_padding";
+				type: RECT;
+				scale: 1; //allow scaling
+				description {
+					state: "default" 0.0;
+					min : LABEL_WIDTH 50; //minimum size for gap filler
+					fixed: 0 1;
+					rel1 { relative: 0 0; }
+					rel2 { relative: 1 0; }
+					align: 0 0;
+					visible: 0;
+				}
+			}
+			part {
+				name: "label1_bg";
+				type: RECT;
+				description {
+					color: 200 200 200 127;
+					rel1.to:"label1";
+					rel2.to:"label1";
+				}
+			}
+			part {
+				name: "label1";
+				type: SWALLOW;
+				scale: 1;
+				description {
+					fixed: 1 1;
+					min: LABEL_WIDTH LABEL_HEIGHT;
+					max: LABEL_WIDTH LABEL_HEIGHT;
+					state: "default" 0.0;
+					rel1 { relative: 0 1.0; to_y: "top_padding"; }
+					align: 0.5 0;
+					}
+			}
+			part {
+				name: "label1_bottom_padding";
+				type: RECT;
+				scale: 1;
+				description {
+					state: "default" 0.0;
+					min : LABEL_WIDTH LABEL_GAP;
+					fixed: 0 1;
+					rel1 { relative: 0 1.0; to_y: "label1"; }
+					rel2 { relative: 1 1.0; to_y: "label1"; }
+					visible: 0;
+				}
+			}
+			part {
+				name: "label2_bg";
+				type: RECT;
+				description {
+					color: 200 200 200 127;
+					rel1.to:"label2";
+					rel2.to:"label2";
+				}
+			}
+			part {
+				name: "label2";
+				type: SWALLOW;
+				scale: 1;
+				description {
+									fixed: 1 0;
+					min: LABEL_WIDTH LABEL_HEIGHT;
+					max: LABEL_WIDTH LABEL_HEIGHT;
+					state: "default" 0.0;
+					rel1 { relative: 0 1.0; to_y: "label1_bottom_padding"; }
+					align: 0.5 0;
+				}
+			}
+			part {
+				name: "label2_bottom_padding";
+				type: RECT;
+				scale: 1;
+				description {
+					state: "default" 0.0;
+					min : 0 LABEL_GAP;
+					fixed: 0 1;
+					rel1 { relative: 0 1.0; to_y: "label2"; }
+					rel2 { relative: 1 1.0; to_y: "label2"; }
+					visible: 0;
+				}
+			}
+			part {
+				name: "label3_bg";
+				type: RECT;
+				description {
+					color: 200 200 200 127;
+					rel1.to:"label3";
+					rel2.to:"label3";
+				}
+			}
+			part {
+				name: "label3";
+				type: SWALLOW;
+				scale: 1;
+				description {
+					fixed: 1 1;
+					min: LABEL_WIDTH LABEL_HEIGHT;
+					max: LABEL_WIDTH LABEL_HEIGHT;
+					state: "default" 0.0;
+					rel1 { relative: 0 1.0; to_y: "label2_bottom_padding"; }
+					align: 0.5 0;
+				}
+			}
+			part {
+				name: "label3_bottom_padding";
+				type: RECT;
+				scale: 1;
+				description {
+					state: "default" 0.0;
+					min : 0 LABEL_GAP;
+					fixed: 0 1;
+					rel1 { relative: 0 1.0; to_y: "label3"; }
+					rel2 { relative: 1 1.0; to_y: "label3"; }
+					visible: 0;
+				}
+			}
+			part {
+				name: "label4_bg";
+				type: RECT;
+				description {
+					color: 200 200 200 127;
+					rel1.to:"label4";
+					rel2.to:"label4";
+				}
+			}
+			part {
+				name: "label4";
+				type: SWALLOW;
+				scale: 1;
+				description {
+					fixed: 1 1;
+					min: LABEL_WIDTH LABEL_HEIGHT;
+					max: LABEL_WIDTH LABEL_HEIGHT;
+					state: "default" 0.0;
+					rel1 { relative: 0 1.0; to_y: "label3_bottom_padding"; }
+					align: 0.5 0;
+				}
+			}
+			part {
+				name: "label4_bottom_padding";
+				type: RECT;
+				scale: 1;
+				description {
+					state: "default" 0.0;
+					min : 0 LABEL_GAP;
+					fixed: 0 1;
+					rel1 { relative: 0 1.0; to_y: "label4"; }
+					rel2 { relative: 1 1.0; to_y: "label4"; }
+					visible: 0;
+				}
+			}
+			part {
+				name: "label5_bg";
+				type: RECT;
+				description {
+					color: 200 200 200 127;
+					rel1.to:"label5";
+					rel2.to:"label5";
+				}
+			}
+			part {
+				name: "label5";
+				type: SWALLOW;
+				scale: 1;
+				description {
+					fixed: 1 1;
+					min: LABEL_WIDTH LABEL_HEIGHT;
+					max: LABEL_WIDTH LABEL_HEIGHT;
+					state: "default" 0.0;
+					rel1 { relative: 0 1.0; to_y: "label4_bottom_padding"; }
+					align: 0.5 0;
+				}
+			}
+			part {
+				name: "label5_bottom_padding";
+				type: RECT;
+				scale: 1;
+				description {
+					state: "default" 0.0;
+					min : 0 30;
+					rel1 { relative: 0 1.0; to_y: "label5"; }
+					rel2 { relative: 1 1.0; }
+					visible: 0;
+					align: 0.5 1.0;
+				}
+			}
+		}//end parts
+#undef LABEL_WIDTH
+#undef LABEL_HEIGHT
+#undef LABEL_GAP
+} //end group
+
+      styles
+	{
+	   style { name: "textblock_style";
+	      base: "font=Tizen:style=Medium font_size=30 color=#FF0000 wrap=word text_class=tizen";
+	      tag:  "br" "\n";
+	      tag:  "ps" "ps";
+	      tag:  "hilight" "+ font=Tizen:style=Bold";
+	      tag:  "b" "+ font=Tizen:style=Bold";
+	      tag:  "tab" "\t";
+	   }
+	}
+
+      styles
+	{
+	   style { name: "textblock_charwrap_style";
+	      base: "font=Tizen:style=Medium font_size=30 color=#FF0000 wrap=char text_class=tizen";
+	      tag:  "br" "\n";
+	      tag:  "ps" "ps";
+	      tag:  "hilight" "+ font=Tizen:style=Bold";
+	      tag:  "b" "+ font=Tizen:style=Bold";
+	      tag:  "tab" "\t";
+	   }
+	}
+
+   group { name: "elm/label/base/extended/label_ellipsis";
+      data.item: "default_font_size" "30";
+      data.item: "min_font_size" "30";
+      data.item: "max_font_size" "30";
+      parts {
+	 part { name: "label.swallow.background";
+	    type: SWALLOW;
+	    description { state: "default" 0.0;
+		   visible: 1;
+		   rel1 { relative: 0 0; to: "elm.text"; }
+		   rel2 { relative: 1 1; to: "elm.text"; }
+	    }
+     }
+	 part { name: "elm.text";
+	    type: TEXTBLOCK;
+	    mouse_events: 0;
+	    scale: 1;
+	    description { state: "default" 0.0;
+	       text {
+		  style: "textblock_style";
+		  min: 1 1;
+	       }
+	    }
+	 }
+      }
+   }
+
+   group { name: "elm/label/base_wrap_ellipsis/extended/wrap_ellipsis";
+      data.item: "default_font_size" "30";
+      data.item: "min_font_size" "30";
+      data.item: "max_font_size" "30";
+      parts {
+	 part { name: "label.swallow.background";
+	    type: SWALLOW;
+	    description { state: "default" 0.0;
+		   visible: 1;
+		   rel1 { relative: 0 0; to: "elm.text"; }
+		   rel2 { relative: 1 1; to: "elm.text"; }
+	    }
+     }
+	 part { name: "elm.text";
+	    type: TEXTBLOCK;
+	    mouse_events: 0;
+	    scale: 1;
+	    multiline: 1;
+	    description { state: "default" 0.0;
+		// FIXME : fixed for multiline ellipsis.
+		//         does it need to make another ellipsis style?
+	       fixed: 0 1;
+	       text {
+		  style: "textblock_style";
+		  min: 0 1;
+	       }
+	    }
+	    description { state: "charwrap_mode" 0.0;
+		// FIXME : fixed for multiline ellipsis.
+		//         does it need to make another ellipsis style?
+	       fixed: 0 1;
+	       text {
+		  style: "textblock_charwrap_style";
+		  min: 0 1;
+	       }
+	    }
+	 }
+      }
+	programs {
+		program { name: "default_on";
+			signal: "elm,state,default";
+			source: "elm";
+			action: STATE_SET "default" 0.0;
+			target: "elm.text";
+		}
+		program { name: "charwrap_on";
+			signal: "elm,state,charwrap";
+			source: "elm";
+			action: STATE_SET "charwrap_mode" 0.0;
+			target: "elm.text";
+		}
+	} // end programs
+   } // end group
+
+	group {
+		name, "elmdemo-test/label_slide";
+		parts {
+			part { name, "background";
+				type: RECT;
+				description {
+					state: "default" 0.0;
+					min : 0 100;
+					fixed: 0 1;
+					align: 0 0;
+					rel1 { relative: 0 0; }
+					rel2 { relative: 1 0; }
+					visible: 0;
+				}
+			}
+			part {
+				name: "top_padding";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 80;
+					fixed: 0 1;
+					align: 0 0;
+					rel1 { relative: 0.15 0.0; to_y: "background"; }
+					rel2 { relative: 0.85 0.0; to_y: "background"; }
+					visible: 0;
+				}
+			}
+			part { name: "slide_long_text";
+				type: TEXT;
+				scale: 1;
+				description { state: "default" 0.0;
+					fixed: 0 1;
+					rel1 { relative: 0.0 0.35; to: "top_padding";}
+					rel2 { relative: 1.0 1.0; to: "top_padding";}
+					text {
+						font: "Tizen:style=Roman";
+						size: 24;
+						text:"slide_long";
+						min: 1 1 ;
+						align: 0.0 0.0;
+					}
+					align: 0.5 0;
+					color: 173 170 165 255;
+				}
+			}
+			part { name: "swallow_label_1_bg";
+				type: RECT;
+				description { state: "default" 0.0;
+					color: 200 200 200 127;
+					rel1.to: "swallow_label_1";
+					rel2.to: "swallow_label_1";
+				}
+			}
+			part { name: "swallow_label_1";
+				type: SWALLOW;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 330 40;
+					fixed: 0 1;
+					rel1 { relative: 0.15 1.0; to_y: "top_padding"; }
+					rel2 { relative: 0.85 1.0; to_y: "top_padding"; }
+					align: 0.0 0.0;
+					visible: 1;
+				}
+			}
+			part {
+				name: "padding1";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 80;
+					fixed: 0 1;
+					align: 0 0;
+					rel1 { relative: 0 1.0; to: "swallow_label_1"; }
+					rel2 { relative: 1 1.0; to: "swallow_label_1"; }
+					visible: 0;
+				}
+			}
+			part { name: "slide_long1_text";
+				type: TEXT;
+				scale: 1;
+				description { state: "default" 0.0;
+					fixed: 0 1;
+					rel1 { relative: 0.0 0.35; to: "padding1";}
+					rel2 { relative: 1.0 1.0; to: "padding1";}
+					text {
+						font: "Tizen:style=Roman";
+						size: 24;
+						text: "slide_long";
+						min: 1 1 ;
+						align: 0.0 0.0;
+					}
+					color: 173 170 165 255;
+					align: 0.5 0;
+				}
+			}
+			part { name: "swallow_label_2_bg";
+				type: RECT;
+				description { state: "default" 0.0;
+					color: 200 200 200 127;
+					rel1.to: "swallow_label_2";
+					rel2.to: "swallow_label_2";
+				}
+			}
+			part { name: "swallow_label_2";
+				type: SWALLOW;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 330 40;
+					fixed: 0 1;
+					rel1 { relative: 0.15 1.0; to_y: "padding1"; }
+					rel2 { relative: 0.85 1.0; to_y: "padding1"; }
+					align: 0.0 0.0;
+					visible: 1;
+				}
+			}
+			part {
+				name: "padding2";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 80;
+					fixed: 0 1;
+					align: 0 0;
+					rel1 { relative: 0 1.0; to: "swallow_label_2"; }
+					rel2 { relative: 1 1.0; to: "swallow_label_2"; }
+					visible: 0;
+				}
+			}
+			part { name: "slide_short_text";
+				type: TEXT;
+				scale: 1;
+				description { state: "default" 0.0;
+					fixed: 0 1;
+					rel1 { relative: 0.0 0.35; to: "padding2";}
+					rel2 { relative: 1.0 1.0; to: "padding2";}
+					text {
+						font: "Tizen:style=Roman";
+						size: 24;
+						text: "slide_short";
+						min: 1 1 ;
+						align: 0.0 0.0;
+					}
+					color: 173 170 165 255;
+					align: 0.5 0;
+				}
+			}
+			part { name: "swallow_label_3_bg";
+				type: RECT;
+				description { state: "default" 0.0;
+					color: 200 200 200 127;
+					rel1.to: "swallow_label_3";
+					rel2.to: "swallow_label_3";
+				}
+			}
+			part { name: "swallow_label_3";
+				type: SWALLOW;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 330 40;
+					fixed: 0 1;
+					rel1 { relative: 0.15 1.0; to_y: "padding2"; }
+					rel2 { relative: 0.85 1.0; to_y: "padding2"; }
+					align: 0.0 0.0;
+					visible: 1;
+				}
+			}
+			part {
+				name: "padding3";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 80;
+					fixed: 0 1;
+					align: 0 0;
+					rel1 { relative: 0 1.0; to: "swallow_label_3"; }
+					rel2 { relative: 1 1.0; to: "swallow_label_3"; }
+					visible: 0;
+				}
+			}
+			part { name: "slide_bounce_text";
+				type: TEXT;
+				scale: 1;
+				description { state: "default" 0.0;
+					fixed: 0 1;
+					rel1 { relative: 0.0 0.35; to: "padding3";}
+					rel2 { relative: 1.0 1.0; to: "padding3";}
+					text {
+						font: "Tizen:style=Roman";
+						size: 24;
+						text: "slide_bounce";
+						min: 1 1 ;
+						align: 0.0 0.0;
+					}
+					color: 173 170 165 255;
+					align: 0.5 0;
+				}
+			}
+			part { name: "swallow_label_4_bg";
+				type: RECT;
+				description { state: "default" 0.0;
+					color: 200 200 200 127;
+					rel1.to: "swallow_label_4";
+					rel2.to: "swallow_label_4";
+				}
+			}
+			part { name: "swallow_label_4";
+				type: SWALLOW;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 330 40;
+					fixed: 0 1;
+					rel1 { relative: 0.15 1.0; to_y: "padding3"; }
+					rel2 { relative: 0.85 1.0; to_y: "padding3"; }
+					align: 0.0 0.0;
+					visible: 1;
+				}
+			}
+			part {
+				name: "padding4";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 80;
+					fixed: 0 1;
+					align: 0 0;
+					rel1 { relative: 0 1.0; to: "swallow_label_4"; }
+					rel2 { relative: 1 1.0; to: "swallow_label_4"; }
+					visible: 0;
+				}
+			}
+			part { name: "slide_roll_text";
+				type: TEXT;
+				scale: 1;
+				description { state: "default" 0.0;
+					fixed: 0 1;
+					rel1 { relative: 0.0 0.35; to: "padding4";}
+					rel2 { relative: 1.0 1.0; to: "padding4";}
+					text {
+						font: "Tizen:style=Roman";
+						size: 24;
+						text: "slide_roll";
+						min: 1 1 ;
+						align: 0.0 0.0;
+					}
+					color: 173 170 165 255;
+					align: 0.5 0;
+				}
+			}
+			part { name: "swallow_label_5_bg";
+				type: RECT;
+				description { state: "default" 0.0;
+					color: 200 200 200 127;
+					rel1.to: "swallow_label_5";
+					rel2.to: "swallow_label_5";
+				}
+			}
+			part { name: "swallow_label_5";
+				type: SWALLOW;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 330 40;
+					fixed: 0 1;
+					rel1 { relative: 0.15 1.0; to_y: "padding4"; }
+					rel2 { relative: 0.85 1.0; to_y: "padding4"; }
+					align: 0.0 0.0;
+					visible: 1;
+				}
+			}
+			part {
+				name: "padding5";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 80;
+					fixed: 0 1;
+					align: 0 0;
+					rel1 { relative: 0 1.0; to: "swallow_label_5"; }
+					rel2 { relative: 1 1.0; to: "swallow_label_5"; }
+					visible: 0;
+				}
+			}
+			part { name: "slide_roll1_text";
+				type: TEXT;
+				scale: 1;
+				description { state: "default" 0.0;
+					fixed: 0 1;
+					rel1 { relative: 0.0 0.35; to: "padding5";}
+					rel2 { relative: 1.0 1.0; to: "padding5";}
+					text {
+						font: "Tizen:style=Roman";
+						size: 24;
+						text: "slide_roll";
+						min: 1 1 ;
+						align: 0.0 0.0;
+					}
+					color: 173 170 165 255;
+					align: 0.5 0;
+				}
+			}
+			part { name: "swallow_label_6_bg";
+				type: RECT;
+				description { state: "default" 0.0;
+					color: 200 200 200 127;
+					rel1.to: "swallow_label_6";
+					rel2.to: "swallow_label_6";
+				}
+			}
+			part { name: "swallow_label_6";
+				type: SWALLOW;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 330 40;
+					fixed: 0 1;
+					rel1 { relative: 0.15 1.0; to_y: "padding5"; }
+					rel2 { relative: 0.85 1.0; to_y: "padding5"; }
+					align: 0.0 0.0;
+					visible: 1;
+				}
+			}
+			part {
+				name: "padding6";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 80;
+					fixed: 0 1;
+					align: 0 0;
+					rel1 { relative: 0 1.0; to: "swallow_label_6"; }
+					rel2 { relative: 1 1.0; to: "swallow_label_6"; }
+					visible: 0;
+				}
+			}
+			part { name: "swallow_btn";
+				type: SWALLOW;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 330 40;
+					fixed: 0 1;
+					rel1 { relative: 0 1.0; to: "padding6"; }
+					rel2 { relative: 1 1.0; to: "padding6"; }
+					align: 0.0 0.0;
+					visible: 1;
+				}
+			}
+			part {
+				name: "padding7";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 30;
+					align: 0 1;
+					rel1 { relative: 0 1.0; to: "swallow_btn"; }
+					rel2 { relative: 1 1.0; }
+					visible: 0;
+				}
+			}
+		}
+	}

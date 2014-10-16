@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "Apps"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "Widget"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "無法刪除。"
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "輕觸並按住 Widget 以移動。"
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "主螢幕已變更。"
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "正在載入..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "無法載入資料。輕觸以重試。"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "無法新增應用程式。主螢幕空間不足。"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "無法新增 widget。主螢幕空間不足。"
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "應用程式已存在。"
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "widget 已存在。"
+

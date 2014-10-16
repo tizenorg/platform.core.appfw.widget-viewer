@@ -24,13 +24,13 @@
 
 #include <packet.h>
 #include <com-core_packet.h>
-#include <livebox-errno.h>
-#include <livebox-service.h>
+#include <dynamicbox_errno.h>
+#include <dynamicbox_service.h>
 
 #include "debug.h"
 #include "dlist.h"
-#include "livebox.h"
-#include "livebox_internal.h"
+#include "dynamicbox.h"
+#include "dynamicbox_internal.h"
 #include "master_rpc.h"
 #include "client.h"
 #include "util.h"
@@ -41,8 +41,8 @@
 struct command {
 	int ttl;
 	struct packet *packet;
-	struct livebox *handler;
-	void (*ret_cb)(struct livebox *handler, const struct packet *result, void *data);
+	dynamicbox_h handler;
+	void (*ret_cb)(dynamicbox_h handler, const struct packet *result, void *data);
 	void *data;
 	enum {
 		TYPE_ACK,
@@ -77,7 +77,7 @@ static inline struct command *pop_command(void)
 	return command;
 }
 
-static inline struct command *create_command(struct livebox *handler, struct packet *packet)
+static inline struct command *create_command(dynamicbox_h handler, struct packet *packet)
 {
 	struct command *command;
 
@@ -87,7 +87,7 @@ static inline struct command *create_command(struct livebox *handler, struct pac
 		return NULL;
 	}
 
-	command->handler = lb_ref(handler);
+	command->handler = dbox_ref(handler);
 	command->packet = packet_ref(packet);
 	return command;
 }
@@ -95,7 +95,7 @@ static inline struct command *create_command(struct livebox *handler, struct pac
 static inline void destroy_command(struct command *command)
 {
 	packet_unref(command->packet);
-	lb_unref(command->handler, 1);
+	dbox_unref(command->handler, 1);
 	free(command);
 }
 
@@ -176,7 +176,7 @@ static int done_cb(pid_t pid, int handle, const struct packet *packet, void *dat
 
 	if (packet_get(packet, "i", &ret) != 1) {
 		ErrPrint("Invalid result packet\n");
-		ret = LB_STATUS_ERROR_INVALID;
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 out:
@@ -198,7 +198,7 @@ static inline void push_command(struct command *command)
  * \note
  * "handler" could be NULL
  */
-int master_rpc_async_request(struct livebox *handler, struct packet *packet, int urgent, void (*ret_cb)(struct livebox *handler, const struct packet *result, void *data), void *data)
+int master_rpc_async_request(dynamicbox_h handler, struct packet *packet, int urgent, void (*ret_cb)(dynamicbox_h handler, const struct packet *result, void *data), void *data)
 {
 	struct command *command;
 
@@ -206,7 +206,7 @@ int master_rpc_async_request(struct livebox *handler, struct packet *packet, int
 	if (!command) {
 		ErrPrint("Failed to create a command\n");
 		packet_unref(packet);
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 	command->ret_cb = ret_cb;
@@ -221,10 +221,10 @@ int master_rpc_async_request(struct livebox *handler, struct packet *packet, int
 	}
 
 	packet_unref(packet);
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
-int master_rpc_request_only(struct livebox *handler, struct packet *packet)
+int master_rpc_request_only(dynamicbox_h handler, struct packet *packet)
 {
 	struct command *command;
 
@@ -232,7 +232,7 @@ int master_rpc_request_only(struct livebox *handler, struct packet *packet)
 	if (!command) {
 		ErrPrint("Failed to create a command\n");
 		packet_unref(packet);
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 	command->ret_cb = NULL;
@@ -242,7 +242,7 @@ int master_rpc_request_only(struct livebox *handler, struct packet *packet)
 
 	push_command(command);
 	packet_unref(packet);
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int master_rpc_clear_fault_package(const char *pkgname)
@@ -252,7 +252,7 @@ int master_rpc_clear_fault_package(const char *pkgname)
 	struct command *command;
 
 	if (!pkgname) {
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	dlist_foreach_safe(s_info.cmd_list, l, n, command) {
@@ -301,13 +301,13 @@ int master_rpc_sync_request(struct packet *packet)
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Invalid result packet\n");
-			ret = LB_STATUS_ERROR_INVALID;
+			ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to send a sync request\n");
-		ret = LB_STATUS_ERROR_FAULT;
+		ret = DBOX_STATUS_ERROR_FAULT;
 	}
 
 	packet_unref(packet);

@@ -1,0 +1,413 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+   group {
+      name: "elmdemo-test/segment";
+#define BUTTON_WIDTH 250.0
+#define BUTTON_HEIGHT 44.0
+#define BUTTON_GAP 20.0
+      parts {
+         part {
+            name: "bg";
+            type: RECT;
+            scale: 1; //allow scaling
+            description {
+               state: "default" 0.0;
+               color: 128 128 128 50;
+            }
+         }
+         part {
+            name: "top_padding";
+            type: RECT;
+            scale: 1; //allow scaling
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : BUTTON_WIDTH 30; //minimum size for gap filler
+               fixed: 0 1;
+               rel1 {
+                  relative: 0.0 0.0;
+               }
+               rel2 {
+                  relative: 1.0 0.0;
+               }
+               align: 0.0 0.0;
+            }
+         }
+         part {
+            name: "left_padding";
+            type: RECT;
+            scale: 1; //allow scaling
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min: 10 0; //minimum size for gap filler
+               fixed: 1 0;
+               rel1 {
+                  relative: 0.0 0.0;
+               }
+               rel2 {
+                  relative: 0.0 1.0;
+               }
+               align: 0.0 0.5;
+            }
+         }
+         part {
+            name: "right_padding";
+            type: RECT;
+            scale: 1; //allow scaling
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : 10 0; //minimum size for gap filler
+               fixed: 1 0;
+               rel1 {
+                  relative: 1.0 0.0;
+               }
+               rel2 {
+                  relative: 1.0 1.0;
+               }
+               align: 1.0 0.5;
+            }
+         }
+         part {
+            name: "segment1";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 0 1;
+               min: 460 70;
+               max: 780 70;
+               rel1 {
+                  relative: 1.0 1.0;
+                  to_y: "top_padding";
+                  to_x: "left_padding";
+               }
+               rel2 {
+                  relative: 0.0 1.0;
+                  to_x: "right_padding";
+               }
+               align: 0.5 0.0;
+            }
+         }
+         part {
+            name: "middle_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : BUTTON_WIDTH BUTTON_GAP;
+               max : BUTTON_WIDTH BUTTON_GAP;
+               fixed: 1 1;
+               align: 0.5 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "segment1";
+               }
+               rel2 {
+                  relative: 1.0 1.0;
+                  to_y: "segment1";
+               }
+            }
+         }
+         part {
+            name: "segment2";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 0 1;
+               min: 460 90;
+               max: 780 90;
+               rel1 {
+                  relative: 1.0 1.0;
+                  to_y: "middle_padding";
+                  to_x: "left_padding";
+               }
+               rel2 {
+                  relative: 0.0 1.0;
+                  to_x: "right_padding";
+               }
+               align: 0.5 0.0;
+               }
+         }
+         part {
+            name: "pad_after_segment2";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : BUTTON_WIDTH BUTTON_GAP;
+               max : BUTTON_WIDTH BUTTON_GAP;
+               fixed: 1 1;
+               align: 0.5 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "segment2";
+               }
+               rel2 {
+                  relative: 1.0 1.0;
+                  to_y: "segment2";
+               }
+            }
+         }
+         part {
+            name: "disabled_seg1";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 0 1;
+               min: 460 90;
+               max: 780 90;
+               rel1 {
+                  relative: 1.0 1.0;
+                  to_y: "pad_after_segment2";
+                  to_x: "left_padding";
+               }
+               rel2 {
+                  relative: 0.0 1.0;
+                  to_x: "right_padding";
+               }
+               align: 0.5 0.0;
+               }
+         }
+         part {
+            name: "pad_after_segment3";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : BUTTON_WIDTH BUTTON_GAP;
+               max : BUTTON_WIDTH BUTTON_GAP;
+               fixed: 1 1;
+               align: 0.5 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "disabled_seg1";
+               }
+               rel2 {
+                  relative: 1.0 1.0;
+                  to_y: "disabled_seg1";
+               }
+            }
+         }
+         part {
+            name: "segment4";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 0 1;
+               min: 460 90;
+               max: 780 90;
+               rel1 {
+                  relative: 1.0 1.0;
+                  to_y: "pad_after_segment3";
+                  to_x: "left_padding";
+               }
+               rel2 {
+                  relative: 0.0 1.0;
+                  to_x: "right_padding";
+               }
+               align: 0.5 0.0;
+               }
+         }
+         part {
+            name: "pad_after_segment4";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : BUTTON_WIDTH BUTTON_GAP;
+               max : BUTTON_WIDTH BUTTON_GAP;
+               fixed: 1 1;
+               align: 0.5 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "segment4";
+               }
+               rel2 {
+                  relative: 1.0 1.0;
+                  to_y: "segment4";
+               }
+            }
+         }
+         part {
+            name: "disabled_seg2";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 0 1;
+               min: 460 50;
+               max: 780 50;
+               rel1 {
+                  relative: 1.0 1.0;
+                  to_y: "pad_after_segment4";
+                  to_x: "left_padding";
+               }
+               rel2 {
+                  relative: 0.0 1.0;
+                  to_x: "right_padding";
+               }
+               align: 0.5 0.0;
+               }
+         }
+         part {
+            name: "btn_insert_bottom_padding";
+            type: RECT;
+            scale: 1;
+
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : BUTTON_WIDTH 15;
+               max : BUTTON_WIDTH 15;
+               fixed: 1 1;
+               align: 0.5 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "disabled_seg2";
+               }
+               rel2 {
+                  relative: 1.0 1.0;
+                  to_y: "disabled_seg2";
+               }
+            }
+         }
+         part {
+            name: "add";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               align: 0.5 0.0;
+               min: BUTTON_WIDTH BUTTON_HEIGHT;
+               max: BUTTON_WIDTH BUTTON_HEIGHT;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_insert_bottom_padding";
+               }
+               align: 0.5 0.0;
+            }
+         }
+         part {
+            name: "btn_add_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : BUTTON_WIDTH BUTTON_GAP;
+               max : BUTTON_WIDTH BUTTON_GAP;
+               fixed: 1 1;
+               align: 0.5 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "add";
+               }
+               rel2 {
+                  relative: 1.0 1.0;
+                  to_y: "add";
+               }
+            }
+         }
+         part {
+            name: "del";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               fixed: 1 1;
+               min: BUTTON_WIDTH BUTTON_HEIGHT;
+               max: BUTTON_WIDTH BUTTON_HEIGHT;
+               align: 0.5 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_add_bottom_padding";
+               }
+               align: 0.5 0.0;
+            }
+         }
+         part {
+            name: "btn_del_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : BUTTON_WIDTH BUTTON_GAP;
+               max : BUTTON_WIDTH BUTTON_GAP;
+               fixed: 1 1;
+               align: 0.5 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "del";
+               }
+               rel2 {
+                  relative: 1.0 1.0;
+                  to_y: "del";
+               }
+            }
+         }
+         part {
+            name: "insert";
+            type: SWALLOW;
+            scale: 1;
+            description {
+               fixed: 1 1;
+               min: BUTTON_WIDTH BUTTON_HEIGHT;
+               max: BUTTON_WIDTH BUTTON_HEIGHT;
+               state: "default" 0.0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_del_bottom_padding";
+               }
+               align: 0.5 0.0;
+            }
+         }
+         part {
+            name: "btn_yellow_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description {
+               state: "default" 0.0;
+               visible: 0;
+               min : 0 BUTTON_GAP;
+               rel1 {
+                  relative: 0 1.0;
+                  to_y: "insert";
+               }
+               rel2 {
+                  relative: 1 1.0;
+               }
+               align: 0.5 1.0;
+            }
+         }
+      }//end parts
+#undef BUTTON_WIDTH
+#undef BUTTON_HEIGHT
+#undef BUTTON_GAP
+} //end group
+

@@ -1,0 +1,242 @@
+/*
+ * Copyright 2012  Samsung Electronics Co., Ltd
+ *
+ * Licensed under the Flora License, Version 1.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.tizenopensource.org/license
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+collections {
+	images {
+		image: "unknown.png" COMP;
+	}
+
+#include "dynamicbox.edc"
+
+#define WIN_WIDTH 480
+#define WIN_HEIGHT 800
+
+#define DBOX_SIZE_1x1_WIDTH 1
+#define DBOX_SIZE_1x1_HEIGHT 1
+
+#define DBOX_SIZE_2x2_WIDTH 454
+#define DBOX_SIZE_2x2_HEIGHT 454
+
+#define DBOX_1x1_WPAD ((WIN_WIDTH-DBOX_SIZE_1x1_WIDTH)/2)
+#define DBOX_2x2_WPAD ((WIN_WIDTH-DBOX_SIZE_2x2_WIDTH)/2)
+
+#define DBOX_1x1_HPAD ((WIN_HEIGHT-DBOX_SIZE_1x1_HEIGHT)/2)
+#define DBOX_2x2_HPAD ((WIN_HEIGHT-DBOX_SIZE_2x2_HEIGHT)/2)
+
+	group {
+		name: "image";
+		parts {
+			part {
+				name: "unkown";
+				type: IMAGE;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 1.0; }
+					image { normal: "unknown.png"; }
+				}
+			}
+		}
+	}
+
+	group {
+		name: "preview";
+		parts {
+			part {
+				name: "bg,color";
+				type: RECT;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 1.0; }
+				}
+			}
+
+			part {
+				name: "bg";
+				type: SWALLOW;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; to, "bg,color"; }
+					rel2 { relative: 1.0 1.0; to, "bg,color"; }
+					visible: 0;
+				}
+				description {
+					state: "show" 0.0;
+					inherit: "default" 0.0;
+					visible: 1;
+				}
+			}
+			part {
+				name: "preview";
+				type: SWALLOW;
+				description {
+					state: "defaut" 0.0;
+					fixed: 1 1;
+					align: 0.5 0.5;
+					rel1 { relative: 0.5 0.5; to, "bg"; }
+					rel2 { relative: 0.5 0.5; to, "bg"; }
+					visible: 0;
+				}
+				description {
+					state: "show" 0.0;
+					inherit: "default" 0.0;
+					visible: 1;
+				}
+			}
+
+			part {
+				name: "name";
+				type: TEXT;
+				effect: TIZEN_GLOW_SHADOW;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; to, "preview"; }
+					rel2 { relative: 1.0 1.0; to, "preview"; }
+					align: 0.5 0.5;
+					color: 255 255 255 255;
+					color2: 0 0 0 255;
+					color3: 0 0 0 255;
+					text {
+						text: "Hello";
+						align: 0.5 0.5;
+						size: 20;
+					}
+				}
+			}
+		}
+
+		programs {
+			program {
+				name: "show,box";
+				signal: "show";
+				source: "preview";
+				action: STATE_SET "show" 0.0;
+				target: "preview";
+				target: "bg";
+			}
+
+			program {
+				name: "hide,box";
+				signal: "hide";
+				source: "preview";
+				action: STATE_SET "default" 0.0;
+				target: "preview";
+				target: "bg";
+			}
+		}
+	}
+
+	group {
+		name: "layout";
+		parts {
+			part {
+				name: "scroller";
+				type: SWALLOW;
+				mouse_events: 1;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 1.0; }
+					visible: 1;
+				}
+			}
+
+			part {
+				name: "bg";
+				type: SWALLOW;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.5 0.5; }
+					rel2 { relative: 0.5 0.5; }
+					align: 0.5 0.5;
+					fixed: 1 1;
+					visible: 0;
+				}
+				description {
+					state: "show" 0.0;
+					inherit: "default" 0.0;
+					visible: 1;
+				}
+			}
+
+			part {
+				name: "dynamicbox";
+				type: SWALLOW;
+				mouse_events: 1;
+				description {
+					state: "defaut" 0.0;
+					rel1 { to, "bg"; }
+					rel2 { to, "bg"; }
+					visible: 0;
+				}
+				description {
+					state: "show" 0.0;
+					inherit: "default" 0.0;
+					visible: 1;
+				}
+			}
+
+			part {
+				name: "content";
+				type: RECT;
+				mouse_events: 1;
+				description {
+					state: "default" 0.0;
+					rel1 { to, "bg"; }
+					rel2 { to, "bg"; }
+					color: 255 0 0 255;
+					visible: 0;
+				}
+
+				description {
+					state: "empty" 0.0;
+					inherit: "default" 0.0;
+					visible: 1;
+				}
+			}
+		}
+
+		programs {
+			program {
+				name: "show,box";
+				signal: "show";
+				source: "dynamicbox";
+				action: STATE_SET "show" 0.0;
+				target: "dynamicbox";
+				target: "bg";
+			}
+
+			program {
+				name: "hide,box";
+				signal: "hide";
+				source: "dynamicbox";
+				action: STATE_SET "default" 0.0;
+				target: "dynamicbox";
+				target: "bg";
+			}
+
+			program {
+				name: "empty,content";
+				signal: "empty";
+				source: "content";
+				action: STATE_SET "empty" 0.0;
+				target: "content";
+			}
+		}
+	}
+
+}

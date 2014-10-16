@@ -29,7 +29,7 @@
  * The Dynamic Box is the widget of the TIZEN.
  *
  * It works as a small application displayed on other applications' (such as homescreen, lockscreen, etc ...) view.
- * Each Dynamic Box can have (not a mandatory option) a Glance Bar (progressive disclosure) in which more detailed information can be found.
+ * Each Dynamic Box can have (not a mandatory option) a Glance Bar (Glance Bar) in which more detailed information can be found.
  * The content of Glance Bar can be exposed when a certain gesture (e.g., flick-down) has been applied to the Dynamic Box.
  * If you are interested in developing a dynamic box, there are things you should know prior to making any source code for the box.
  * To make your Dynamic Box added to any Dynamic Box viewer application (e.g., live panel in our case), then you need to create and prepare    
@@ -44,9 +44,9 @@
  * Passing an image file (whose name is the previously given name) is the basic method for providing contents to the viewer.
  * But if you want play animation or handles user event in real-time, you can use the buffer type.
  *
- * And you should prepare the content of the Progressive Disclosure.
- * The Progressive Dislcosure is only updated by the "buffer" type. so you should prepare the layout script for it.
- * If you didn't install any script file for progressive disclosure, the viewer will ignore the "flick down" event from your dynamic box.
+ * And you should prepare the content of the Glance Bar.
+ * The Glance Bar is only updated by the "buffer" type. so you should prepare the layout script for it.
+ * If you didn't install any script file for Glance Bar, the viewer will ignore the "flick down" event from your dynamic box.
  *
  * @subsubsection DynamicBox 1.1 Dynamic Box
  * Live box is a default content of your widget. It always displays on the screen and updated periodically.
@@ -55,9 +55,9 @@
  * @image html stock.png Stock Dynamic Box
  * @image html twitter.png Twitter Dynamic Box
  *
- * @subsubsection ProgressiveDisclosure 1.2 Progressive Disclosure
- * @image html PD.png Progressive Disclosure
- * Progressive disclosure will be displayed when a user flicks down a dynamic box. (basically it depends on the implementation of the view applications)
+ * @subsubsection GlanceBar 1.2 Glance Bar
+ * @image html PD.png Glance Bar
+ * Glance Bar will be displayed when a user flicks down a dynamic box. (basically it depends on the implementation of the viewer applications)
  * To supports this, a developer should prepare the layout script (EDJE only for the moment) of the dynamic box's Glance Bar. (or you can use the buffer directly)
  * Data provider supports EDJE script but the developer can use various scripts if (which is BIG IF) their interpreters can be implemented based on evas & ecore.
  *
@@ -82,7 +82,7 @@
  *
  * @subsubsection ImageFormat 2.1 Via image file
  * This is the basic method for providing content of a dynamic box to the viewer application.
- * But this can be used only for the dynamic box. (Unavailable for the progressive disclosure).
+ * But this can be used only for the dynamic box. (Unavailable for the Glance Bar).
  * When your dynamic box is created, the provider will assign an unique ID for your dynamic box(it would be a filename).
  * You should keep that ID until your dynamic box is running. The ID will be passed to you via dynamicbox_create function.
  * \image html image_format.png
@@ -111,13 +111,87 @@
  * This type is only supported for 3rd party dynamic box such as OSP and WEB.
  * Inhouse(EFL) dynamic box is not able to use this buffer type for the box content.
  *
- * @subsection PackageNTools 3. How can I get the development packages or tools?
- *
- * @subsection DevelopDynamicBox 4. How can I write a new dynamic box
- *
- * @subsection TestDynamicBox 5. How can I test my dynamic box
- *
- * @subsection DynamicBoxDirectory 6. Dynamic Box directory hierachy
+ * @subsection DynamicBoxDirectory 3. Dynamic Box directory hierachy
  * @image html preload_folder.png
  * @image html download_folder.png
+ *
+ * @subsection WritingViewerApp 4. Writing a new application for displaying Dynamic Boxes
+ * If you want install dynamic boxes on your application screen, you should initialize the viewer system first.
+ *
+ * @code
+ * extern int dynamicbox_init(void *disp, int prevent_overwrite, double event_filter, int use_thread);
+ * @endcode
+ *
+ * @a disp should be current display object. if we are on X11 based windowing system, it will give you a Display Object, when you connect to X Server.
+ * Viewer application also needs it to preparing rendering buffer to display contents of dynamic boxes.
+ *
+ * @a prevent_overwirte flag is used for image or script type dynamic boxes.
+ * If this option is turn on, the viewer library will copy the image file of dyanmic box content to "reader" folder.
+ * To prevent from overwriting content image file.
+ *
+ * @a event_filter is used for feeding events.
+ * Basically, the dynamic box can be feed touch event by viewer application or master widget controller. (aka, data-provider-master).
+ * If a viewer feeds event to the dynamic box, it could more slow than data-provider-master's direct feeding.
+ * But sometimes, the viewer requires to feeds event by itself.
+ * In that case, we should choose the feeding option. feeding every events can be slow down.
+ * To save it, this event_filter will be used. if the event is generated in this time-gap, it will be ignored.
+ *
+ * @a use_thread if this flag is turned on, the viewer library will create a new thread for handling the IPC packets only.
+ * It will helps to increase the throughput of main thread. because it will not be interrupted to handles IPC packets.
+ *
+ * After the viewer is initiated, you can create a new box and locate it in your screen.
+ *
+ * Opposite function is "dynamicbox_fini"
+ *
+ * @code
+ * extern int dynamicbox_fini(void);
+ * @endcode
+ *
+ * Here is a sample code
+ *
+ * @code
+ * #include <stdio.h>
+ * #include <errno.h>
+ * #include <dynamicbox.h>
+ * #include <app.h>
+ *
+ * #include <dlog.h>
+ *
+ * int errno;
+ *
+ * static bool _create_cb(void *data)
+ * {
+ *      int ret;
+ *	ret = dynamicbox_init(NULL, 1, 0.0f, 1);
+ *      if (ret != DBOX_STATUS_ERROR_NONE) {
+ *          LOGE("Failed to initialize the dynamic box viewer");
+ *      }
+ *      return true;
+ * }
+ *
+ * static void _terminate_cb(void *data)
+ * {
+ *     dynamicbox_fini();
+ * }
+ *
+ * int main(int argc, char *argv[])
+ * {
+ *     app_event_callback_s event_callback;
+ *     event_callback.create = _create_cb;
+ *     event_callback.terminate = _terminate_cb;
+ *     event_callback.pause = _pause_cb;
+ *     event_callback.resume = _resume_cb;
+ *     event_callback.app_control = _app_control;
+ *     event_callback.low_memory = NULL;
+ *     event_callback.low_battery = NULL;
+ *     event_callback.device_orientation = NULL;
+ *     event_callback.language_changed = _language_changed;
+ *     event_callback.region_format_changed = NULL;
+ *     
+ *     return app_efl_main(&argc, &argv, &event_callback, &main_info);
+ * }
+ * @endocde
+ *
+ * If you want add a new dynamic box, you can call "dynamicbox_add()" function.
+ *
  */

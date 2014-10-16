@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "ແອັບ"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "ວິດເຈັທ"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "ບໍ່ສາມາດເອົາອອກໄປໄດ້."
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "ແຕະວິດເຈັດຄ້າງໄວ້ເພື່ອຍ້າຍມັນ."
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "ໜ້າຈໍຫຼັກໄດ້ປ່ຽນ."
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "ກຳລັງໂຫຼດ..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນໄດ້. ເຄາະເພື່ອລອງໃໝ່."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "ບໍ່ສາມາດເພີ່ມແອພພລິເຄຊັນໄດ້. ບໍ່ມີຫ້ອງຢູ່ໃນໜ້າຈໍຫຼັກອີກ."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "ບໍ່ສາມາດເພີ່ມວິດເຈັດໄດ້. ບໍ່ມີຫ້ອງຢູ່ໃນໜ້າຈໍຫຼັກອີກ."
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "ມີແອພພລິເຄຊັນຢູ່ແລ້ວ."
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "ມີວິດເຈັດຢູ່ແລ້ວ."
+

@@ -1,0 +1,299 @@
+#include "progressbar_macro.edc"
+
+group {
+   name: "pingpongs";
+   parts {
+      BACKGROUND_PART("bg")
+      TOP_PADDING_PART("top_padding")
+      LEFT_PADDING_PART("left_padding")
+      RIGHT_PADDING_PART("right_padding")
+      PART_LABEL("pingpong_bounces_text", "top_padding", "Pingpong_bounces progress mode")
+      PART_ELEMENT_CONTAINER("pingpong_bounces_progress", "pingpong_bounces_text")
+      PART_PADDING("top_padding1", "pingpong_bounces_progress")
+      PART_LABEL("pingpong_bounces_pulse_text", "top_padding1", "Pingpong_bounces pulse mode")
+      PART_ELEMENT_CONTAINER("pingpong_bounces_pulse", "pingpong_bounces_pulse_text")
+      PART_PADDING("top_padding2", "pingpong_bounces_pulse")
+      PART_LABEL("pingpong_text", "top_padding2", "Pingpong progress mode")
+      PART_ELEMENT_CONTAINER("pingpong_progress", "pingpong_text")
+      BOTTOM_PADDING_PART("bottom_padding", "pingpong_progress")
+   }
+}
+
+#define PROGRESSBAR_SIZE                     300 300
+#define BALL_SIZE                            50 50
+#define TEXT_MARK_SIZE                       30
+
+#define LEFT_POSITION_1                      0.0 0.4
+#define TOP_POSITION_1                       0.4 0.0
+#define RIGHT_POSITION_2                     1.0 0.6
+#define RIGHT_HORIZONTAL_POSITION_2          1.0 0.6
+#define BOTTOM_POSITION_2                    0.6 1.0
+
+#define LEFT_MARK_POSITION_1                 0.0 0.3
+#define TOP_MARK_POSITION_1                  0.55 0.0
+#define RIGHT_MARK_POSITION_2                1.0 0.7
+#define RIGHT_HORIZONTAL_MARK_POSITION_2     1.0 0.45
+#define BOTTOM_MARK_POSITION_2               0.45 1.0
+
+#define INVISIBLE_COLOR                      255 255 255 0
+#define VISIBLE_COLOR                        255 255 255 255
+#define STATE_INVISIBLE                      "default"
+#define STATE_VISIBLE                        "visible"
+
+#define BOUNCE_BALL_MOTION                   BOUNCE 2 2 4
+#define LINEAR_BALL_MOTION                   LIN 0.6
+
+#define ALIGN_LEFT_TOP                       0.0 0.0
+#define ALIGN_RIGHT_BOTTOM                   1.0 1.0
+
+#define TEXT_MARK_PART_PINGPONG(part_name, align_type, relative_params) \
+      part { \
+         name: part_name; \
+         type: TEXT; \
+         scale: 1; \
+         description { \
+            state: "default" 0.0; \
+            align: align_type; \
+            color: INVISIBLE_COLOR; \
+            text { \
+               font: "Sans:bold"; \
+               align: align_type; \
+               size: TEXT_MARK_SIZE; \
+               text_source: "elm.text.status"; \
+            } \
+            relative_params \
+         } \
+         description { \
+            state: "visible" 0.0; \
+            inherit: "default" 0.0; \
+            color: VISIBLE_COLOR; \
+         } \
+      }
+
+#define MOTION_PROGRAM(prog_name, prog_after, to_mark, next_part, transit) \
+      program { \
+         name: prog_name; \
+         action: STATE_SET to_mark 0.0; \
+         transition: transit; \
+         target: "ball"; \
+         after: prog_after; \
+         after: "shine."next_part; \
+         after: "dim."to_mark; \
+      }
+
+#define MOTION_PROGRAM_PULSE(prog_name, prog_after, to_mark) \
+      program { \
+         name: prog_name; \
+         action: STATE_SET to_mark 0.0; \
+         transition: LINEAR_BALL_MOTION; \
+         target: "ball"; \
+         after: prog_after; \
+      }
+#define VISIBILITY_PROGRAM(prog_name, part_name, state) \
+      program { \
+         name: prog_name; \
+         action: STATE_SET state 0.0; \
+         transition: ACCEL 0.5; \
+         target: part_name; \
+      }
+
+#define NEW_PINGPONG_PROGRESSBAR_GROUP(group_name, ball_transition_style) \
+group { \
+   name: group_name; \
+   images { \
+      image: "background.png" COMP; \
+      image: "ball.png" COMP; \
+   } \
+   parts { \
+      part { \
+         name: "background"; \
+         type: IMAGE; \
+         scale: 1; \
+         description { \
+            state: "default"; \
+            min: PROGRESSBAR_SIZE; \
+            max: PROGRESSBAR_SIZE; \
+            image { \
+               normal: "background.png"; \
+               border: 10 10 10 10; \
+            } \
+         } \
+      } \
+      part { \
+         name: "elm.text.status"; \
+         type: TEXT; \
+         description { \
+            state: "default" 0.0; \
+            visible: 0; \
+         } \
+      } \
+      TEXT_MARK_PART_PINGPONG("text.mark.1", ALIGN_LEFT_TOP, \
+                              rel1 { \
+                                 relative: LEFT_MARK_POSITION_1; \
+                                 to: "background"; \
+                              } \
+                              rel2.to: "background";) \
+      TEXT_MARK_PART_PINGPONG("text.mark.2", ALIGN_LEFT_TOP, \
+                              rel1 { \
+                                 relative: TOP_MARK_POSITION_1; \
+                                 to: "background"; \
+                              } \
+                              rel2.to: "background";) \
+      TEXT_MARK_PART_PINGPONG("text.mark.3", ALIGN_RIGHT_BOTTOM, \
+                              rel1.to: "background"; \
+                              rel2 { \
+                                 relative: RIGHT_MARK_POSITION_2; \
+                                 to: "background"; \
+                              }) \
+      TEXT_MARK_PART_PINGPONG("text.mark.3.horizontal", ALIGN_RIGHT_BOTTOM, \
+                              rel1.to: "background"; \
+                              rel2 { \
+                                 to: "background"; \
+                                 relative: RIGHT_HORIZONTAL_MARK_POSITION_2; \
+                              }) \
+      TEXT_MARK_PART_PINGPONG("text.mark.4", ALIGN_RIGHT_BOTTOM, \
+                              rel1.to: "background"; \
+                              rel2 { \
+                                 relative: BOTTOM_MARK_POSITION_2; \
+                                 to: "background"; \
+                              }) \
+      part { \
+         name: "ball"; \
+         type: IMAGE; \
+         scale: 1; \
+         description { \
+            state: "default" 0.0; \
+            min: BALL_SIZE; \
+            max: BALL_SIZE; \
+            align: ALIGN_LEFT_TOP; \
+            image.normal: "ball.png"; \
+            rel1 { \
+               relative: LEFT_POSITION_1; \
+               to: "background"; \
+            } \
+            rel2.to: "background"; \
+         } \
+         description { \
+            state: "top" 0.0; \
+            inherit: "default" 0.0; \
+            rel1.relative: TOP_POSITION_1; \
+         } \
+         description { \
+            state: "right" 0.0; \
+            inherit: "default" 0.0; \
+            align: ALIGN_RIGHT_BOTTOM; \
+            rel2.relative: RIGHT_POSITION_2; \
+         } \
+         description { \
+            state: "right.horizontal" 0.0; \
+            inherit: "default" 0.0; \
+            align: ALIGN_RIGHT_BOTTOM; \
+            rel2.relative: RIGHT_HORIZONTAL_POSITION_2; \
+         } \
+         description { \
+            state: "bottom" 0.0; \
+            inherit: "default" 0.0; \
+            align: ALIGN_RIGHT_BOTTOM; \
+            rel2.relative: BOTTOM_POSITION_2; \
+         } \
+         description { \
+            state: "left" 0.0; \
+            inherit: "default" 0.0; \
+         } \
+      } \
+   } \
+   programs { \
+      program { \
+         name: "on_start"; \
+         signal: "load"; \
+         source: ""; \
+         after: "progress.1"; \
+         after: "shine.right.horizontal"; \
+         after: "dim.left"; \
+      } \
+      program { \
+         name: "on_pulse"; \
+         signal: "elm,state,pulse,start"; \
+         source: "elm"; \
+         action: STATE_SET STATE_INVISIBLE 0.0; \
+         target: "text.mark.1"; \
+         target: "text.mark.2"; \
+         target: "text.mark.3"; \
+         target: "text.mark.3.horizontal"; \
+         target: "text.mark.4"; \
+         after: "pulse"; \
+      } \
+      program { \
+         name: "pulse"; \
+         action: STATE_SET "default" 0.0; \
+         target: "ball"; \
+         after: "pulse.1"; \
+      } \
+      MOTION_PROGRAM("progress.1", "progress.2", "right.horizontal", "bottom", \
+                     ball_transition_style) \
+      MOTION_PROGRAM("progress.2", "progress.3", "bottom", "left", \
+                     ball_transition_style) \
+      MOTION_PROGRAM("progress.3", "progress.4", "left", "top", \
+                     ball_transition_style) \
+      MOTION_PROGRAM("progress.4", "progress.5", "top", "right", \
+                     ball_transition_style) \
+      MOTION_PROGRAM("progress.5", "progress.6", "right", "bottom", \
+                     ball_transition_style) \
+      MOTION_PROGRAM("progress.6", "progress.7", "bottom", "left", \
+                     ball_transition_style) \
+      MOTION_PROGRAM("progress.7", "progress.1", "left", "right.horizontal", \
+                     ball_transition_style) \
+      MOTION_PROGRAM_PULSE("pulse.1", "pulse.2", "right") \
+      MOTION_PROGRAM_PULSE("pulse.2", "pulse.3", "bottom") \
+      MOTION_PROGRAM_PULSE("pulse.3", "pulse.4", "left") \
+      MOTION_PROGRAM_PULSE("pulse.4", "pulse.5", "top") \
+      MOTION_PROGRAM_PULSE("pulse.5", "pulse.6", "right") \
+      MOTION_PROGRAM_PULSE("pulse.6", "pulse.7", "bottom") \
+      MOTION_PROGRAM_PULSE("pulse.7", "pulse.1", "left") \
+      VISIBILITY_PROGRAM("shine.left", "text.mark.1", STATE_VISIBLE) \
+      VISIBILITY_PROGRAM("shine.top", "text.mark.2", STATE_VISIBLE) \
+      VISIBILITY_PROGRAM("shine.right", "text.mark.3", STATE_VISIBLE) \
+      VISIBILITY_PROGRAM("shine.right.horizontal", "text.mark.3.horizontal", \
+                         STATE_VISIBLE) \
+      VISIBILITY_PROGRAM("shine.bottom", "text.mark.4", STATE_VISIBLE) \
+      VISIBILITY_PROGRAM("dim.left", "text.mark.1", STATE_INVISIBLE) \
+      VISIBILITY_PROGRAM("dim.top", "text.mark.2", STATE_INVISIBLE) \
+      VISIBILITY_PROGRAM("dim.right", "text.mark.3", STATE_INVISIBLE) \
+      VISIBILITY_PROGRAM("dim.right.horizontal", "text.mark.3.horizontal", \
+                         STATE_INVISIBLE) \
+      VISIBILITY_PROGRAM("dim.bottom", "text.mark.4", STATE_INVISIBLE) \
+   } \
+}
+
+NEW_PINGPONG_PROGRESSBAR_GROUP("elm/progressbar/horizontal/pingpong_bounces",
+                               BOUNCE_BALL_MOTION)
+
+NEW_PINGPONG_PROGRESSBAR_GROUP("elm/progressbar/horizontal/pingpong",
+                               LINEAR_BALL_MOTION)
+
+#undef PROGRESSBAR_SIZE
+#undef BALL_SIZE
+#undef TEXT_MARK_SIZE
+#undef LEFT_POSITION_1
+#undef TOP_POSITION_1
+#undef RIGHT_POSITION_2
+#undef RIGHT_HORIZONTAL_POSITION_2
+#undef BOTTOM_POSITION_2
+#undef LEFT_MARK_POSITION_1
+#undef TOP_MARK_POSITION_1
+#undef RIGHT_MARK_POSITION_2
+#undef RIGHT_HORIZONTAL_MARK_POSITION_2
+#undef BOTTOM_MARK_POSITION_2
+#undef INVISIBLE_COLOR
+#undef VISIBLE_COLOR
+#undef STATE_INVISIBLE
+#undef STATE_VISIBLE
+#undef BOUNCE_BALL_MOTION
+#undef LINEAR_BALL_MOTION
+#undef ALIGN_LEFT_TOP
+#undef ALIGN_RIGHT_BOTTOM
+#undef TEXT_MARK_PART_PINGPONG
+#undef MOTION_PROGRAM
+#undef MOTION_PROGRAM_PULSE
+#undef VISIBILITY_PROGRAM
+#undef NEW_PINGPONG_PROGRESSBAR_GROUP

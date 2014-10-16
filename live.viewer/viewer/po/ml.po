@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "ആപ്ലിക്കേഷനുകൾ"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "വിഡ്ജെറ്റ്"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "നീക്കം ചെയ്യാന്‍ ആവുന്നില്ല."
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "വിജിറ്റ് നീക്കുന്നതിന് അതില്‍ തട്ടി ഹോള്‍ഡ് ചെയ്യുക."
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "ഹോം സ്ക്രീന്‍ മാറ്റി."
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "ലോഡ്‌ ചെയ്യുന്നു..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "ഡാറ്റ ലോഡുചെയ്യാന്‍ കഴിയുന്നില്ല. വീണ്ടും ശ്രമിക്കുന്നതിന് ടാപ്പുചെയ്യുക"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "ആപ്ലിക്കേഷൻ ചേർക്കാനാവില്ല. ഹോം സ്ക്രീനിൽ ഇനിയും സ്ഥലമില്ല."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "വിജിറ്റ് ചേർ‌ക്കാനാവില്ല. ഹോം സ്ക്രീനിൽ ഇനിയും സ്ഥലമില്ല."
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "ആപ്ലിക്കേഷൻ നേരത്തേതന്നെ നിലവിലുണ്ട്."
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "വിജിറ്റ് നേരത്തേതന്നെ നിലവിലുണ്ട്."
+

@@ -1,0 +1,1077 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+#define BUTTON_PADDING_WIDTH 170.0
+#define BUTTON_PADDING_HEIGHT 22.0
+   group { name: "elmdemo-test/button";
+      parts {
+         part { name: "top_padding";
+            type: RECT;
+            scale: 1; //allow scaling
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT; //minimum size for gap filler
+               fixed: 0 1;
+               rel2.relative: 1.0 0.0;
+               color:  0 0 0 0;
+               align: 0 0;
+            }
+         }
+         part { name: "btn_reveal";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "top_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "top_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_reveal_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 { 
+                  relative: 0.0 1.0;
+                  to_y: "btn_reveal";
+               }
+               rel2.to_y: "btn_reveal";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_expand";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_reveal_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_reveal_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_expand_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0 1.0;
+                  to_y: "btn_expand";
+               }
+               rel2.to_y: "btn_expand";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_info";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_expand_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_expand_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_info_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_info";
+               }
+               rel2.to_y: "btn_info";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_rename";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_info_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_info_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_rename_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_rename";
+               }
+               rel2.to_y: "btn_rename";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_call";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_rename_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_rename_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_call_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_call";
+               }
+               rel2.to_y: "btn_call";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_warning";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_call_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_call_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_warning_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_warning";
+               }
+               rel2.to_y: "btn_warning";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_plus";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_warning_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_warning_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_plus_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_plus";
+               }
+               rel2.to_y: "btn_plus";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_minus";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_plus_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_plus_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_minus_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_minus";
+               }
+               rel2.to_y: "btn_minus";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_cancel";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_minus_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_minus_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_cancel_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_cancel";
+               }
+               rel2.to_y: "btn_cancel";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_send";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_cancel_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_cancel_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_send_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_send";
+               }
+               rel2.to_y: "btn_send";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_contact";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_send_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_send_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_contact_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_contact";
+               }
+               rel2.to_y: "btn_contact";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_circle";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_contact_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_contact_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_circle_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_circle";
+               }
+               rel2.to_y: "btn_circle";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_icon_plus";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_circle_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_circle_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_icon_plus_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_icon_plus";
+               }
+               rel2.to_y: "btn_icon_plus";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_icon_minus";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_icon_plus_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_icon_plus_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_icon_minus_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_icon_minus";
+               }
+               rel2.to_y: "btn_icon_minus";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_icon_expand";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_icon_minus_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_icon_minus_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_icon_expand_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_icon_expand";
+               }
+               rel2.to_y: "btn_icon_expand";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_style1";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_icon_expand_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_icon_expand_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_style1_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_style1";
+               }
+               rel2.to_y: "btn_style1";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_expandable_number";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_style1_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_style1_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_expandable_number_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_expandable_number";
+               }
+               rel2.to_y: "btn_expandable_number";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_sweep";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               state: "default" 0.0;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_expandable_number_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_expandable_number_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_sweep_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_sweep";
+               }
+               rel2.to_y: "btn_sweep";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_multibuttonentry";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               state: "default" 0.0;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_sweep_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_sweep_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_multibuttonentry_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_multibuttonentry";
+               }
+               rel2.to_y: "btn_multibuttonentry";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_naviframe_title_text";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               state: "default" 0.0;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_multibuttonentry_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_multibuttonentry_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : 0 BUTTON_PADDING_HEIGHT;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_naviframe_title_text";
+               }
+               color: 0 0 0 0;
+               align: 0.5 1.0;
+            }
+         }
+      } //end parts
+   } //end group
+
+   group { name: "elmdemo-test/button-extended";
+      parts {
+         part { name: "top_padding";
+            type: RECT;
+            scale: 1; //allow scaling
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT; //minimum size for gap filler
+               fixed: 0 1;
+               rel2.relative: 1.0 0.0;
+               color:  0 0 0 0;
+               align: 0 0;
+            }
+         }
+         part { name: "btn_reveal";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "top_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "top_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_reveal_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_reveal";
+               }
+               rel2.to_y: "btn_reveal";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_expand";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_reveal_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_reveal_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_expand_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_expand";
+               }
+               rel2.to_y: "btn_expand";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_info";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_expand_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_expand_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_info_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_info";
+               }
+               rel2.to_y: "btn_info";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_rename";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_info_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_info_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_rename_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_rename";
+               }
+               rel2.to_y: "btn_rename";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_call";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_rename_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_rename_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_call_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_call";
+               }
+               rel2.to_y: "btn_call";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_warning";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_call_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_call_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_warning_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_warning";
+               }
+               rel2.to_y: "btn_warning";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_plus";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_warning_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_warning_bottom_padding";
+               }
+               align: 0.5 0;
+               }
+         }
+         part { name: "btn_plus_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_plus";
+               }
+               rel2.to_y: "btn_plus";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_minus";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_plus_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_plus_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_minus_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_minus";
+               }
+               rel2.to_y: "btn_minus";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_cancel";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_minus_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_minus_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_cancel_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_cancel";
+               }
+               rel2.to_y: "btn_cancel";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_send";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_cancel_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_cancel_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_send_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_send";
+               }
+               rel2.to_y: "btn_send";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_icon_plus";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_send_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_send_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "btn_icon_plus_bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               max : BUTTON_PADDING_WIDTH BUTTON_PADDING_HEIGHT;
+               fixed: 1 1;
+               align: 0.5 0;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_icon_plus";
+               }
+               rel2.to_y: "btn_icon_plus";
+               color: 0 0 0 0;
+            }
+         }
+         part { name: "btn_icon_minus";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_icon_plus_bottom_padding";
+               }
+               rel2 {
+                  relative: 0.5 1.0;
+                  to_y: "btn_icon_plus_bottom_padding";
+               }
+               align: 0.5 0;
+            }
+         }
+         part { name: "bottom_padding";
+            type: RECT;
+            scale: 1;
+            description { state: "default" 0.0;
+               min : 0 BUTTON_PADDING_HEIGHT;
+               rel1 {
+                  relative: 0.0 1.0;
+                  to_y: "btn_icon_minus";
+               }
+               color: 0 0 0 0;
+               align: 0.5 1.0;
+            }
+         }
+      } //end parts
+   } //end group
+
+#undef BUTTON_PADDING_WIDTH
+#undef BUTTON_HEIGHT
+#undef BUTTON_PADDING_HEIGHT

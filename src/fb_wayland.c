@@ -28,7 +28,8 @@
 #include <sys/ipc.h>
 
 #include <dlog.h>
-#include <livebox-errno.h> /* For error code */
+#include <dynamicbox_errno.h> /* For error code */
+#include <dynamicbox_buffer.h>
 
 #include "debug.h"
 #include "util.h"
@@ -45,17 +46,6 @@ struct fb_info {
 
 	int pixels;
 	int handle;
-};
-
-struct buffer { /*!< Must has to be sync with slave & provider */
-	enum {
-		CREATED = 0x00beef00,
-		DESTROYED = 0x00dead00
-	} state;
-	enum buffer_type type;
-	int refcnt;
-	void *info;
-	char data[];
 };
 
 static struct {
@@ -85,17 +75,17 @@ static inline int sync_for_file(struct fb_info *info)
 	buffer = info->buffer;
 
 	if (!buffer) { /* Ignore this sync request */
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid state of a FB\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (buffer->type != BUFFER_TYPE_FILE) {
+	if (buffer->type != DBOX_BUFFER_TYPE_FILE) {
 		ErrPrint("Invalid buffer\n");
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	fd = open(util_uri_to_path(info->id), O_RDONLY);
@@ -110,7 +100,7 @@ static inline int sync_for_file(struct fb_info *info)
 		 *
 		 * and then update it after it gots update events
 		 */
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
@@ -126,25 +116,25 @@ static inline int sync_for_file(struct fb_info *info)
 		 *
 		 * and then update it after it gots update events
 		 */
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	if (close(fd) < 0) {
 		ErrPrint("close: %s\n", strerror(errno));
 	}
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
-int fb_sync(struct fb_info *info)
+int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 {
 	if (!info) {
 		ErrPrint("FB Handle is not valid\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!info->id || info->id[0] == '\0') {
 		DbgPrint("Ingore sync\n");
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
@@ -152,10 +142,10 @@ int fb_sync(struct fb_info *info)
 	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		/* No need to do sync */ 
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
-	return LB_STATUS_ERROR_INVALID;
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 }
 
 struct fb_info *fb_create(const char *id, int w, int h)
@@ -190,7 +180,7 @@ struct fb_info *fb_create(const char *id, int w, int h)
 		free(info);
 		return NULL;
 	} else {
-		info->handle = LB_STATUS_ERROR_INVALID;
+		info->handle = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	info->bufsz = 0;
@@ -205,7 +195,7 @@ int fb_destroy(struct fb_info *info)
 {
 	if (!info) {
 		ErrPrint("Handle is not valid\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (info->buffer) {
@@ -217,7 +207,7 @@ int fb_destroy(struct fb_info *info)
 
 	free(info->id);
 	free(info);
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int fb_is_created(struct fb_info *info)
@@ -267,7 +257,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 				return NULL;
 			}
 
-			buffer->type = BUFFER_TYPE_FILE;
+			buffer->type = DBOX_BUFFER_TYPE_FILE;
 			buffer->refcnt = 0;
 			buffer->state = CREATED;
 			buffer->info = info;
@@ -291,10 +281,10 @@ void *fb_acquire_buffer(struct fb_info *info)
 	buffer = info->buffer;
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_FILE:
+	case DBOX_BUFFER_TYPE_FILE:
 		buffer->refcnt++;
 		break;
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
 		DbgPrint("Unknwon FP: %d\n", buffer->type);
 		break;
@@ -309,29 +299,29 @@ int fb_release_buffer(void *data)
 
 	if (!data) {
 		ErrPrint("buffer data == NIL\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	buffer = container_of(data, struct buffer, data);
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid handle\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_SHM:
+	case DBOX_BUFFER_TYPE_SHM:
 		if (shmdt(buffer) < 0) {
 			ErrPrint("shmdt: %s\n", strerror(errno));
 		}
 		break;
-	case BUFFER_TYPE_FILE:
+	case DBOX_BUFFER_TYPE_FILE:
 		buffer->refcnt--;
 		if (buffer->refcnt == 0) {
 			struct fb_info *info;
 			info = buffer->info;
 
-			buffer->state = DESTROYED;
+			buffer->state = DBOX_FB_STATE_DESTROYED;
 			free(buffer);
 
 			if (info && info->buffer == buffer) {
@@ -339,13 +329,13 @@ int fb_release_buffer(void *data)
 			}
 		}
 		break;
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
 		ErrPrint("Unknwon buffer type\n");
 		break;
 	}
 
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int fb_refcnt(void *data)
@@ -355,31 +345,31 @@ int fb_refcnt(void *data)
 	int ret;
 
 	if (!data) {
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	buffer = container_of(data, struct buffer, data);
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid handle\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_SHM:
+	case DBOX_BUFFER_TYPE_SHM:
 		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
 			ErrPrint("Error: %s\n", strerror(errno));
-			return LB_STATUS_ERROR_FAULT;
+			return DBOX_STATUS_ERROR_FAULT;
 		}
 
 		ret = buf.shm_nattch;
 		break;
-	case BUFFER_TYPE_FILE:
+	case DBOX_BUFFER_TYPE_FILE:
 		ret = buffer->refcnt;
 		break;
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
-		ret = LB_STATUS_ERROR_INVALID;
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
@@ -395,12 +385,12 @@ int fb_get_size(struct fb_info *info, int *w, int *h)
 {
 	if (!info) {
 		ErrPrint("Handle is not valid\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	*w = info->w;
 	*h = info->h;
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int fb_size(struct fb_info *info)
@@ -419,23 +409,23 @@ int fb_type(struct fb_info *info)
 	struct buffer *buffer;
 
 	if (!info) {
-		return BUFFER_TYPE_ERROR;
+		return DBOX_BUFFER_TYPE_ERROR;
 	}
 
 	buffer = info->buffer;
 	if (!buffer) {
-		int type = BUFFER_TYPE_ERROR;
+		int type = DBOX_BUFFER_TYPE_ERROR;
 		/*!
 		 * \note
 		 * Try to get this from SCHEMA
 		 */
 		if (info->id) {
 			if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
-				type = BUFFER_TYPE_FILE;
+				type = DBOX_BUFFER_TYPE_FILE;
 			} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 				/* Unsupported type */
 			} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
-				type = BUFFER_TYPE_SHM;
+				type = DBOX_BUFFER_TYPE_SHM;
 			}
 		}
 

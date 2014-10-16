@@ -1,0 +1,1937 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+group { name: "elm/popup/content/btnstyle";
+   alias: "elm/popup/content/btnstyle_transparent";
+   parts {
+      part{ name:"elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.5;
+         }
+      }
+   }
+}
+
+group {
+   name: "nbpopup_3button_view";
+#define BUTTON_WIDTH 394
+#define BUTTON_HEIGHT 74
+#define BUTTON_GAP 24
+   parts{
+      part { name: "top_padding";
+         type: SPACER;
+         scale: 1; //allow scaling
+         description { state: "default" 0.0;
+            min: 0 32; //minimum size for gap filler
+            fixed: 0 1;
+            rel1 { relative: 0.0 0.0; }
+            rel2 { relative: 1.0 0.0; }
+            align: 0 0;
+         }
+      }
+      part {
+         name: "left_padding";
+         type: SPACER;
+         scale:1;
+         description {
+            state: "default" 0.0;
+            min: 47 0;
+            fixed: 1 0;
+            rel1 { relative: 0.0 0.0; }
+            rel2 { relative: 0.0 1.0; }
+            align: 0 0;
+         }
+      }
+      part {
+         name: "right_padding";
+         type: SPACER;
+         scale: 1;
+         description {
+            state: "default" 0.0;
+            min: 47 0;
+            fixed: 1 0;
+            rel1 { relative: 1.0 0.0; }
+            rel2 { relative: 1.0 1.0; }
+            align: 1.0 0;
+         }
+      }
+      part {
+         name: "text_rect";
+         type: SPACER;
+         scale: 1;
+         description {
+            state: "default" 0.0;
+            fixed: 1 1;
+            min: 0 38;
+            rel1 { relative: 1.0 1.0; to_x: "left_padding";   to_y: "top_padding"; }
+            rel2 { relative: 0.0 1.0; to_x: "right_padding"; to_y: "top_padding"; }
+            align: 0.0 0.0;
+         }
+      }
+      part {
+         name: "contact_label";
+         type: TEXT;
+         scale: 1;
+         description {
+            state: "default" 0.0;
+            fixed: 1 1;
+            text {
+               min: 0 0;
+               align: 0.5 0.5;
+               text_class: "T123";
+            }
+            color_class: "T123";
+            rel1 { relative: 0.0 0.0; to: "text_rect"; }
+            rel2 { relative: 1.0 1.0; to: "text_rect"; }
+            align: 0.5 0.5;
+         }
+      }
+      part { name: "btn_top_padding";
+         type: SPACER;
+         scale: 1; //allow scaling
+         description { state: "default" 0.0;
+            min: 0 24; //minimum size for gap filler
+            fixed: 0 1;
+            rel1 { relative: 0.0 1.0;  to: "text_rect";}
+            rel2 { relative: 1.0 1.0;  to: "text_rect";}
+            align: 0 0;
+         }
+      }
+      part { name: "btn_default";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 1;
+            align: 0.5 0;
+            min: BUTTON_WIDTH BUTTON_HEIGHT;
+            max: BUTTON_WIDTH BUTTON_HEIGHT;
+            rel1 { relative: 0 1.0; to_y: "btn_top_padding"; }
+         }
+      }
+      part { name: "btn_default_bottom_padding";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: BUTTON_WIDTH BUTTON_GAP;
+            max: BUTTON_WIDTH BUTTON_GAP;
+            fixed: 1 1;
+            align: 0.5 0;
+            rel1 { relative: 0 1.0; to_y: "btn_default"; }
+            rel2 { relative: 1 1.0; to_y: "btn_default"; }
+         }
+      }
+      part { name: "btn_center";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 1;
+            align: 0.5 0;
+            min: BUTTON_WIDTH BUTTON_HEIGHT;
+            max: BUTTON_WIDTH BUTTON_HEIGHT;
+            rel1 { relative: 0 1.0; to_y: "btn_default_bottom_padding"; }
+         }
+      }
+      part { name: "btn_center_bottom_padding";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: BUTTON_WIDTH BUTTON_GAP;
+            max: BUTTON_WIDTH BUTTON_GAP;
+            fixed: 1 1;
+            align: 0.5 0;
+            rel1 { relative: 0 1.0; to_y: "btn_center"; }
+            rel2 { relative: 1 1.0; to_y: "btn_center"; }
+         }
+      }
+      part { name: "btn_text_only_style1";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 1;
+            min: BUTTON_WIDTH BUTTON_HEIGHT;
+            max: BUTTON_WIDTH BUTTON_HEIGHT;
+            align: 0.5 0;
+            rel1 { relative: 0 1.0; to_y: "btn_center_bottom_padding"; }
+         }
+      }
+      part { name: "bottom_padding";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 32;
+            max: 0 32;
+            rel1 { relative: 0 1.0; to_y: "btn_text_only_style1"; }
+            rel2 { relative: 1 1.0;}
+            align: 0.5 1.0;
+         }
+      }
+   }//end parts
+#undef BUTTON_WIDTH
+#undef BUTTON_HEIGHT
+#undef BUTTON_GAP
+} //end group
+
+group {
+   name: "nbpopup_2button_view";
+#define BUTTON_WIDTH 304
+#define BUTTON_HEIGHT 76
+#define BUTTON_GAP 24
+   parts{
+      part { name: "top_padding";
+         type: SPACER;
+         scale: 1; //allow scaling
+         description { state: "default" 0.0;
+            min: 0 32; //minimum size for gap filler
+            fixed: 0 1;
+            rel2 { relative: 1.0 0.0; }
+            align: 0 0;
+         }
+      }
+      part {
+         name: "left_padding";
+         type: SPACER;
+         scale:1;
+         description {
+            state: "default" 0.0;
+            min: 47 0;
+            fixed: 1 0;
+            rel2 { relative: 0.0 1.0; }
+            align: 0 0;
+         }
+      }
+      part {
+         name: "right_padding";
+         type: SPACER;
+         scale: 1;
+         description {
+            state: "default" 0.0;
+            min: 47 0;
+            fixed: 1 0;
+            rel1 { relative: 1.0 0.0; }
+            align: 1.0 0;
+         }
+      }
+      part {
+         name: "text_rect";
+         type: SPACER;
+         scale: 1;
+         description {
+            state: "default" 0.0;
+            fixed: 1 1;
+            min: 0 40;
+            rel1 { relative: 1.0 1.0; to_x: "left_padding";   to_y: "top_padding"; }
+            rel2 { relative: 0.0 1.0; to_x: "right_padding"; to_y: "top_padding"; }
+            align: 0.0 0.0;
+         }
+      }
+      part {
+         name: "contact_label";
+         type: TEXT;
+         scale: 1;
+         description {
+            state: "default" 0.0;
+            fixed: 1 1;
+            text {
+               min: 0 0;
+               align: 0.5 0.5;
+               text_class: "T123";
+            }
+            color_class: "T123";
+            rel1 { relative: 0.0 0.0; to: "text_rect"; }
+            rel2 { relative: 1.0 1.0; to: "text_rect"; }
+            align: 0.5 0.5;
+         }
+      }
+      part { name: "btn_top_padding";
+         type: SPACER;
+         scale: 1; //allow scaling
+         description { state: "default" 0.0;
+            min: 0 24; //minimum size for gap filler
+            fixed: 0 1;
+            rel1 { relative: 0.0 1.0;  to: "text_rect";}
+            rel2 { relative: 1.0 1.0;  to: "text_rect";}
+            align: 0 0;
+         }
+      }
+      part { name: "btn_default";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 1;
+            align: 0.5 0;
+            min: BUTTON_WIDTH BUTTON_HEIGHT;
+            max: BUTTON_WIDTH BUTTON_HEIGHT;
+            rel1 { relative: 0 1.0; to_y: "btn_top_padding"; }
+         }
+      }
+      part { name: "btn_default_bottom_padding";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: BUTTON_WIDTH BUTTON_GAP;
+            max: BUTTON_WIDTH BUTTON_GAP;
+            fixed: 1 1;
+            align: 0.5 0;
+            rel1 { relative: 0 1.0; to_y: "btn_default"; }
+            rel2 { relative: 1 1.0; to_y: "btn_default"; }
+         }
+      }
+      part { name: "btn_center";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 1;
+            align: 0.5 0;
+            min: BUTTON_WIDTH BUTTON_HEIGHT;
+            max: BUTTON_WIDTH BUTTON_HEIGHT;
+            rel1 { relative: 0 1.0; to_y: "btn_default_bottom_padding"; }
+         }
+      }
+      part { name: "bottom_padding";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 32;
+            max: 0 32;
+            rel1 { relative: 0 1.0; to_y: "btn_center"; }
+            rel2 { relative: 1 1.0;}
+            align: 0.5 1.0;
+         }
+      }
+   }//end parts
+#undef BUTTON_WIDTH
+#undef BUTTON_HEIGHT
+#undef BUTTON_GAP
+} //end group
+
+group { name: "popup_entryview";
+   parts {
+      part { name: "pad_t";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 0.0;to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 0.0;to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 65 0;
+            max: 65 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 0.0 0.0;
+            }
+            rel2 {
+               relative: 0.0 1.0;
+            }
+            align: 0.0 0.0;
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 65 0;
+            max: 65 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 0.0;
+            }
+            rel2 {
+               relative: 1.0 1.0;
+            }
+            align: 1.0 0.0;
+         }
+      }
+      part { name: "pad_b";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part { name:"elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 100;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+               to_y: "pad_t";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "pad_b";
+            }
+         }
+      }
+   }
+}
+
+group { name: "label_layout";
+   parts {
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 0;
+            min: 0 700;
+         }
+      }
+   }
+}
+
+group { name: "label_layout_landscape";
+   parts {
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 0;
+            min: 0 380;
+         }
+      }
+   }
+}
+
+group { name: "popup_checkview";
+   parts {
+      part { name: "pad_t";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.0;
+            min: 0 20;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 0.0;to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 0.0;to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 0.0 0.0;
+            }
+            rel2 {
+               relative: 0.0 1.0;
+            }
+            align: 0.0 0.0;
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 0.0;
+            }
+            rel2 {
+               relative: 1.0 1.0;
+            }
+            align: 1.0 0.0;
+         }
+      }
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+               to_y: "pad_t";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "pad_b";
+            }
+         }
+      }
+      part { name: "bottom_pad";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_b";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            min: 0 121;
+            fixed: 0 1;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "bottom_pad";
+            }
+            rel2 {
+               relative: 1.0 0.0;
+               to: "bottom_pad";
+            }
+         }
+      }
+      part { name: "end_field";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            min: 0 100;
+            fixed: 0 1;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "pad_b";
+            }
+            rel2 {
+               relative: 1.0 1.0;
+               to: "pad_b";
+            }
+         }
+      }
+      part { name: "elm.swallow.end";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 1;
+            align: 0.0 0.5;
+            rel1.to: "end_field";
+            rel2.to: "end_field";
+         }
+      }
+   }
+}
+
+group { name: "popup_checkview_image";
+   inherit: "popup_checkview";
+   parts {
+      part { name:"elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+               to_y: "pad_t";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "elm.swallow.icon.bg";
+            }
+         }
+      }
+      part { name: "elm.swallow.icon.bg";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 1.0;
+            fixed: 1 1;
+            min: 360 164;
+            rel1 {
+               relative: 0.5 0.0;
+               to: "pad_b";
+            }
+            rel2 {
+               relative: 0.5 0.0;
+               to: "pad_b";
+            }
+         }
+      }
+      part { name: "elm.swallow.icon";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.5;
+            fixed: 0 1;
+            min: 360 120;
+            rel1 {
+               relative: 0.0 0.5;
+               to: "elm.swallow.icon.bg";
+            }
+            rel2 {
+               relative: 1.0 0.5;
+               to: "elm.swallow.icon.bg";
+            }
+         }
+      }
+   }
+}
+
+group { name: "popup_smartstay1_internal";
+   parts {
+      part { name: "elm.swallow.content1";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 0.0;
+            rel2.relative: 1.0 0.0;
+            fixed: 0 1;
+         }
+      }
+      part { name: "elm.content.bg";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 443;
+            fixed: 0 1;
+            align: 0.0 0.0;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "elm.swallow.content1";
+            }
+            rel2.to: "elm.swallow.content1";
+         }
+      }
+      part { name: "elm.swallow.content2";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 390 390;
+            max: 390 390;
+            fixed: 1 1;
+            aspect: 1.0 1.0;
+            aspect_preference: VERTICAL;
+            rel1.to: "elm.content.bg";
+            rel2.to: "elm.content.bg";
+         }
+      }
+      part { name: "elm.swallow.content3";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "elm.content.bg";
+            }
+         }
+      }
+   }
+}
+
+group { name: "popup_smartstay1";
+   parts {
+      part { name: "pad_t";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.0;
+            min: 0 20;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 0.0;to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 0.0;to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 0.0 0.0;
+            }
+            rel2 {
+               relative: 0.0 1.0;
+            }
+            align: 0.0 0.0;
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 0.0;
+            }
+            rel2 {
+               relative: 1.0 1.0;
+            }
+            align: 1.0 0.0;
+         }
+      }
+      part { name:"elm.swallow.layout";
+         type: SWALLOW;
+         scale: 1;
+         mouse_events: 1;
+         repeat_events: 1;
+         description { state: "default" 0.0;
+            min: 0 700;
+            align: 0.5 1.0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+               to_y: "pad_t";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "pad_b";
+            }
+         }
+      }
+      part { name: "bottom_pad";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_b";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 1.0;
+            min: 0 66;
+            fixed: 0 1;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "bottom_pad";
+            }
+            rel2 {
+               relative: 1.0 0.0;
+               to: "bottom_pad";
+            }
+         }
+      }
+      part { name: "end_field";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            min: 0 63;
+            fixed: 0 1;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "pad_b";
+            }
+            rel2 {
+               relative: 1.0 1.0;
+               to: "pad_b";
+            }
+         }
+      }
+      part { name: "elm.swallow.end";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            fixed: 1 1;
+            align: 0.0 0.5;
+            rel1.to: "end_field";
+            rel2.to: "end_field";
+         }
+      }
+   }
+}
+
+group { name: "popup_smartstay1_landscape";
+   inherit: "popup_smartstay1";
+   parts {
+      part { name:"elm.swallow.layout";
+         type: SWALLOW;
+         scale: 1;
+         mouse_events: 1;
+         repeat_events: 1;
+         description { state: "default" 0.0;
+            min: 0 332;
+            align: 0.5 1.0;
+            fixed: 1 0;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "pad_t";
+            }
+            rel2 {
+               relative: 1.0 0.0;
+               to: "pad_b";
+            }
+         }
+      }
+   }
+}
+
+group { name: "popup_center_image";
+   parts {
+      part {
+         name: "base";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 310 310;
+         }
+      }
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.5;
+            fixed: 1 1;
+            min: 176 176;
+            rel1.relative: 0.5 0.5;
+            rel2.relative: 0.5 0.5;
+         }
+      }
+   }
+}
+
+group { name: "popup_volumebar";
+#define DEMO_POPUP_VOLUMEBAR_WIDTH_HEIGHT_MIN 568 134
+#define DEMO_POPUP_VOLUMEBAR_CONTENT_MIN 476 134
+   images {
+      image: "00_divider_line.png" COMP;
+   }
+   parts {
+      part { name:"bg";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_VOLUMEBAR_WIDTH_HEIGHT_MIN;
+            fixed: 1 0;
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 65 0;
+            max: 65 0;
+            fixed: 1 1;
+            rel1.to: "bg";
+            rel2.to: "bg";
+            align: 0.0 0.0;
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 65 0;
+            max: 65 0;
+            fixed: 1 1;
+            rel1.to: "bg";
+            rel2.to: "bg";
+            align: 1.0 1.0;
+         }
+      }
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_VOLUMEBAR_CONTENT_MIN;
+             fixed: 1 1;
+            rel1 {
+               relative: 1.0 0.5;
+               to_x: "pad_l";
+               to_y: "bg";
+            }
+            rel2 {
+               relative: 0.0 0.5;
+               to_x: "pad_after_content";
+               to_y: "bg";
+            }
+            align: 0.5 0.5;
+         }
+      }
+      part { name: "pad_after_content";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 12 0;
+            max: 12 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 0.0 0.5;
+               to_x: "divider";
+               to_y: "bg";
+            }
+            rel2 {
+               relative: 0.0 0.5;
+               to_x: "divider";
+               to_y: "bg";
+            }
+            align: 1.0 0.5;
+         }
+      }
+      part { name: "divider";
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 2 52;
+            max: 2 52;
+            fixed: 1 1;
+            rel1 {
+               relative: 0.0 1.0;
+               to_x: "pad_after_divider";
+               to_y: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_after_divider";
+               to_y: "pad_r";
+            }
+            image.normal: "00_divider_line.png";
+            align: 1.0 0.5;
+         }
+      }
+      part { name: "pad_after_divider";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 12 0;
+            max: 12 0;
+            fixed: 1 1;
+            rel1 {
+               relative: 0.0 0.5;
+               to_x: "elm.swallow.icon";
+               to_y: "bg";
+            }
+            rel2 {
+               relative: 0.0 0.5;
+               to_x: "elm.swallow.icon";
+               to_y: "bg";
+            }
+            align: 1.0 0.5;
+         }
+      }
+      part { name: "elm.swallow.icon";
+         type: SWALLOW;
+         scale: 1;
+         clip_to: "icon_clip";
+         description { state: "default" 0.0;
+            min: 63 63;
+            max: 63 63;
+            fixed: 1 1;
+            rel1 {
+               relative: 0.0 0.5;
+               to_x: "pad_r";
+               to_y: "bg";
+            }
+            rel2 {
+               relative: 0.0 0.5;
+               to_x: "pad_r";
+               to_y: "bg";
+            }
+            align: 1.0 0.5;
+         }
+      }
+      part { name: "icon_clip";
+         type: RECT;
+         scale: 1;
+         description { state: "default" 0.0;
+            rel1.to: "elm.swallow.icon";
+            rel2.to: "elm.swallow.icon";
+            color_class: "B063L7";
+         }
+      }
+   }
+#undef DEMO_POPUP_VOLUMEBAR_WIDTH_HEIGHT_MIN
+#undef DEMO_POPUP_VOLUMEBAR_CONTENT_MIN
+}
+
+group { name: "popup_volumestyle";
+#define DEMO_POPUP_VOLUMEBAR_BG_MIN 590 134
+   parts {
+      part { name: "base";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_VOLUMEBAR_BG_MIN;
+            max: 776 134;
+            fixed: 1 0;
+         }
+      }
+      part { name: "pad_t";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 32;
+            fixed: 0 1;
+            align: 0.0 0.0;
+            rel1 {
+               relative: 1.0 0.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            fixed: 1 0;
+            align: 0.0 0.0;
+            rel1 {
+               to: "base";
+               relative: 0.0 0.0;
+            }
+            rel2 {
+               to: "base";
+               relative: 0.0 1.0;
+            }
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            fixed: 1 0;
+            align: 1.0 0.0;
+            rel1 {
+               to: "base";
+               relative: 1.0 0.0;
+            }
+            rel2 {
+               to: "base";
+               relative: 1.0 1.0;
+            }
+         }
+      }
+      part { name: "pad_b";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 32;
+            fixed: 0 1;
+            align: 0.0 1.0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 590 70;
+            max: 776 70;
+            fixed: 1 1;
+            align: 0.5 0.0;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "pad_t";
+            }
+            rel2.to: "pad_t";
+         }
+      }
+   }
+#undef DEMO_POPUP_VOLUMEBAR_BG_MIN
+}
+
+group { name: "popup_volumebar_text";
+#define DEMO_POPUP_VOLUMEBAR_TEXT_BG_MIN 568 300
+#define DEMO_POPUP_VOLUMEBAR_TEXT_MIN 568 100
+#define DEMO_POPUP_VOLUMEBAR_TEXT_CONTENT_WEIGHT_MIN 568
+#define DEMO_POPUP_VOLUMEBAR_TEXT_CONTENT_HEIGHT_MIN_MAX 134
+   styles {
+      style { name: "popup_volume_text_style";
+         base: "font=Tizen:style=Bold font_size=36 align=left color=#FFFFFF color_class=T123 wrap=mixed text_class=T123";
+         tag:  "br" "\n";
+         tag:  "tab" "\t";
+      }
+   }
+   parts {
+      part { name:"bg";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_VOLUMEBAR_TEXT_BG_MIN;
+            fixed: 1 0;
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            fixed: 1 0;
+            align: 0.0 0.0;
+            rel1 {
+               to: "bg";
+               relative: 0.0 0.0;
+            }
+            rel2 {
+               to: "bg";
+               relative: 0.0 1.0;
+            }
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            fixed: 1 0;
+            align: 1.0 0.0;
+            rel1 {
+               to: "bg";
+               relative: 1.0 0.0;
+            }
+            rel2 {
+               to: "bg";
+               relative: 1.0 1.0;
+            }
+         }
+      }
+      part { name: "elm.swallow.content1";
+         scale: 1;
+         type: SWALLOW;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_VOLUMEBAR_TEXT_CONTENT_WEIGHT_MIN DEMO_POPUP_VOLUMEBAR_TEXT_CONTENT_HEIGHT_MIN_MAX;
+            max: -1 DEMO_POPUP_VOLUMEBAR_TEXT_CONTENT_HEIGHT_MIN_MAX;
+            fixed: 1 1;
+            align: 0.5 0.0;
+            rel1.to: "bg";
+            rel2.to: "bg";
+         }
+      }
+      part { name: "elm.swallow.text";
+         scale: 1;
+         type: TEXTBLOCK;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_VOLUMEBAR_TEXT_MIN;
+            fixed: 1 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_y: "elm.swallow.content1";
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+               to_y: "bg";
+            }
+            align: 0.5 0.0;
+            text {
+             style: "popup_volume_text_style";
+             min: 0 1;
+             max: 0 1;
+            }
+         }
+      }
+   }
+#undef DEMO_POPUP_VOLUMEBAR_TEXT_BG_MIN
+#undef DEMO_POPUP_VOLUMEBAR_TEXT_MIN
+#undef DEMO_POPUP_VOLUMEBAR_TEXT_CONTENT_WEIGHT_MIN
+#undef DEMO_POPUP_VOLUMEBAR_TEXT_CONTENT_HEIGHT_MIN_MAX
+}
+
+group { name: "popup_processingview";
+#define DEMO_POPUP_PROCESSINGVIEW_CONTENT_MIN 568 288
+   parts {
+      part { name: "base";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_PROCESSINGVIEW_CONTENT_MIN;
+            fixed: 1 0;
+         }
+      }
+      part { name:"pad_t";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 34;
+            fixed: 0 1;
+            align: 0 0;
+            rel1.to: "base";
+            rel2 {
+               relative: 1.0 0.0;
+               to: "base";
+            }
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 63 0;
+            max: 63 0;
+            fixed: 1 1;
+            rel1.to: "base";
+            rel2.to: "base";
+            align: 0.0 0.0;
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 63 0;
+            max: 63 0;
+            fixed: 1 1;
+            rel1.to: "base";
+            rel2.to: "base";
+            align: 1.0 1.0;
+         }
+      }
+      part { name:"elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 63;
+            align: 0.0 0.0;
+            fixed: 1 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+               to_y: "pad_t";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+               to_y: "pad_t";
+            }
+         }
+      }
+      part { name:"pad_after_content";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 10;
+            fixed: 0 1;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "elm.swallow.content";
+            }
+            rel2 {
+               relative: 1.0 1.0;
+               to: "elm.swallow.content";
+            }
+         }
+      }
+      part { name:"elm.swallow.text";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 150;
+            align: 0.0 0.0;
+            fixed: 1 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+               to_y: "pad_after_content";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "pad_b";
+            }
+         }
+      }
+      part { name:"pad_b";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 0 20;
+            fixed: 0 1;
+            align: 1 1;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "base";
+            }
+            rel2.to: "base";
+         }
+      }
+   }
+#undef DEMO_POPUP_PROCESSINGVIEW_CONTENT_MIN
+}
+
+group { name: "popup_processingview_1button";
+#define DEMO_POPUP_PROCESSINGVIEW1BUTTON_CONTENT_MIN 568 132
+   styles {
+      style { name: "popup_processing_text_style";
+         base: "font=Tizen:style=Bold font_size=36 align=left color=#FFFFFF color_class=T123 wrap=none ellipsis=1.0 text_class=T123";
+         tag:  "br" "\n";
+         tag:  "tab" "\t";
+      }
+   }
+   parts {
+      part { name: "base";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_PROCESSINGVIEW1BUTTON_CONTENT_MIN;
+            fixed: 1 0;
+         }
+      }
+      part { name: "pad_t";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 0.0;to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 0.0;to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "base";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to: "base";
+            }
+            align: 0.0 0.0;
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 0.0;
+               to: "base";
+            }
+            rel2 {
+               relative: 1.0 1.0;
+               to: "base";
+            }
+            align: 1.0 0.0;
+         }
+      }
+      part { name: "pad_b";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part {
+         name: "spacing";
+         scale: 1;
+         type: SPACER;
+         description { state: "default" 0.0;
+            align: 0.0 0.5;
+            min: 79 79;
+            max: 79 79;
+            fixed: 1 1;
+            rel1 {
+               relative: 0.0 1.0;
+               to: "pad_t";
+            }
+            rel2 {
+               relative: 1.0 0.0;
+               to: "pad_b";
+            }
+         }
+      }
+      part { name: "elm.text";
+         type: TEXTBLOCK;
+         scale : 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.5;
+            fixed: 1 1;
+            text {
+             style: "popup_processing_text_style";
+             min: 0 1;
+             max: 1 1;
+            }
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "spacing";
+               to_y: "pad_t";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "pad_b";
+            }
+         }
+      }
+      part { name:"pad_before_text";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 16 132;
+            max: 16 132;
+            fixed: 1 1;
+            align: 1.0 0.0;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "elm.text";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to: "elm.text";
+            }
+         }
+      }
+      part { name:"elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 63 63;
+            max: 63 63;
+            fixed: 1 1;
+            align: 1.0 0.0;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "pad_before_text";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to: "pad_before_text";
+            }
+         }
+      }
+   }
+#undef DEMO_POPUP_PROCESSINGVIEW1BUTTON_CONTENT_MIN
+}
+
+group { name: "popup_center_progressview";
+#define DEMO_POPUP_PROGRESSVIEW_CONTENT_MIN 568 191
+#define DEMO_POPUP_PROGRESSVIEW_TITLE_MIN 568 50
+#define DEMO_POPUP_PROGRESSVIEW_TEXT_LEFT_RIGHT_MAX 324 50
+   parts {
+      part { name: "pad_t";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 0.0;to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 0.0;to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 0.0 0.0;
+            }
+            rel2 {
+               relative: 0.0 1.0;
+            }
+            align: 0.0 0.0;
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 0.0;
+            }
+            rel2 {
+               relative: 1.0 1.0;
+            }
+            align: 1.0 0.0;
+         }
+      }
+      part { name: "pad_b";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.0 1.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "elm.title";
+         type: TEXT;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_PROGRESSVIEW_TITLE_MIN;
+            fixed: 1 1;
+            text {
+               min: 0 0;
+               align: 0.0 0.0;
+               text_class: "T123";
+            }
+            color_class: "T123";
+            align: 0.5 0.0;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "elm.swallow.content";
+            }
+            rel2 {
+               relative: 1.0 0.0;
+               to: "elm.swallow.content";
+            }
+         }
+      }
+      part{ name:"elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_PROGRESSVIEW_CONTENT_MIN;
+            align: 0.5 0.5;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+               to_y: "pad_t";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "pad_b";
+            }
+         }
+      }
+      part { name: "elm.text.left";
+         type: TEXT;
+         scale: 1;
+         description { state: "default" 0.0;
+            max: DEMO_POPUP_PROGRESSVIEW_TEXT_LEFT_RIGHT_MAX;
+            text {
+               min: 0 0;
+               align: 0.0 1.0;
+               text_class: "T123";
+            }
+            color_class: "T123";
+            align: 0.0 1.0;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "elm.swallow.content";
+            }
+            rel2 {
+               relative: 0.5 1.0;
+               to: "elm.swallow.content";
+            }
+         }
+      }
+      part { name: "elm.text.right";
+         type: TEXT;
+         scale: 1;
+         description { state: "default" 0.0;
+            max: DEMO_POPUP_PROGRESSVIEW_TEXT_LEFT_RIGHT_MAX;
+            text {
+               min: 0 0;
+               align: 1.0 1.0;
+               text_class: "T123";
+            }
+            color_class: "T123";
+            align: 1.0 1.0;
+            rel1 {
+               relative: 0.5 0.0;
+               to: "elm.swallow.content";
+            }
+            rel2 {
+               relative: 1.0 1.0;
+               to: "elm.swallow.content";
+            }
+         }
+      }
+   }
+#undef DEMO_POPUP_PROGRESSVIEW_CONTENT_MIN
+#undef DEMO_POPUP_PROGRESSVIEW_TITLE_MIN
+#undef DEMO_POPUP_PROGRESSVIEW_TEXT_LEFT_RIGHT_MAX
+}
+
+group { name: "elm/label/base/popup/progressview";
+   alias: "elm/label/base/popup/progressview_transparent";
+   styles {
+      style { name: "popup_desc_progressview_style";
+         base: "font=Tizen:style=Bold font_size=38 align=left color=#FFFFFF color_class=T123 linesize=50 text_class=T123";
+         tag:  "br" "\n";
+         tag:  "ps" "ps";
+         tag:  "whitecolor" "+ color=#ffffff";
+         tag:  "tab" "\t";
+      }
+   }
+   parts {
+      part { name: "elm.text";
+         type: TEXTBLOCK;
+         mouse_events: 0;
+         scale: 1;
+         description { state: "default" 0.0;
+            text {
+               style: "popup_desc_progressview_style";
+               min: 0 1;
+               max: 0 1;
+            }
+         }
+      }
+   }
+}
+
+group { name: "popup_center_text_progressview";
+#define DEMO_POPUP_CENTER_PROGRESSVIEW_CONTENT_MIN 590 0
+#define DEMO_POPUP_CENTER_PROGRESSVIEW_CONTENT_END_MIN 568 45
+#define DEMO_POPUP_CENTER_PROGRESSVIEW_PAD_BOTTOM 0 86
+   parts {
+      part { name: "pad_t";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 0.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "pad_l";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 0.0 0.0;
+            }
+            rel2 {
+               relative: 0.0 1.0;
+            }
+            align: 0.0 0.0;
+         }
+      }
+      part { name: "pad_r";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 47 0;
+            max: 47 0;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 0.0;
+            }
+            rel2 {
+               relative: 1.0 1.0;
+            }
+            align: 1.0 0.0;
+         }
+      }
+      part { name:"elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: DEMO_POPUP_CENTER_PROGRESSVIEW_CONTENT_MIN;
+            align: 0.5 0.5;
+            fixed: 1 0;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+               to_y: "pad_t";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "pad_b";
+            }
+         }
+      }
+      part { name: "pad_b";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 1.0;
+            min: 0 32;
+            fixed: 0 1;
+            rel1 {
+               relative: 1.0 0.0;
+               to_x: "pad_l";
+               to_y: "pad_bm";
+            }
+            rel2 {
+               relative: 0.0 0.0;
+               to_x: "pad_r";
+               to_y: "pad_bm";
+            }
+         }
+      }
+      part { name: "elm.swallow.end";
+         type: SWALLOW;
+         scale: 1;
+         mouse_events: 1;
+         repeat_events: 1;
+         description { state: "default" 0.0;
+            align: 0.5 0.5;
+            min: DEMO_POPUP_CENTER_PROGRESSVIEW_CONTENT_END_MIN;
+            fixed: 1 1;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "pad_b";
+            }
+            rel2 {
+               relative: 1.0 1.0;
+               to: "pad_b";
+            }
+         }
+      }
+      part { name: "pad_bm";
+         type: SPACER;
+         scale: 1;
+         description { state: "default" 0.0;
+            align: 0.5 1.0;
+            min: DEMO_POPUP_CENTER_PROGRESSVIEW_PAD_BOTTOM;
+            fixed: 1 1;
+            rel1 {
+               relative: 1.0 1.0;
+               to_x: "pad_l";
+            }
+            rel2 {
+               relative: 0.0 1.0;
+               to_x: "pad_r";
+            }
+         }
+      }
+      part { name: "elm.text.subtext1";
+         type: TEXT;
+         scale: 1;
+         description { state: "default" 0.0;
+            text {
+               min: 0 0;
+               align: 0.0 0.5;
+               text_class: "T123";
+            }
+            color_class: "T123";
+            align: 0.0 0.5;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "pad_bm";
+            }
+            rel2 {
+               relative: 1.0 1.0;
+               to: "pad_bm";
+            }
+         }
+      }
+      part { name: "elm.text.subtext2";
+         type: TEXT;
+         scale: 1;
+         description { state: "default" 0.0;
+            text {
+               min: 0 0;
+               align: 1.0 0.5;
+               text_class: "T123";
+            }
+            color_class: "T123";
+            align: 1.0 0.5;
+            rel1 {
+               relative: 0.0 0.0;
+               to: "pad_bm";
+            }
+            rel2 {
+               relative: 1.0 1.0;
+               to: "pad_bm";
+            }
+         }
+      }
+   }
+#undef DEMO_POPUP_CENTER_PROGRESSVIEW_CONTENT_MIN
+#undef DEMO_POPUP_CENTER_PROGRESSVIEW_CONTENT_END_MIN
+#undef DEMO_POPUP_CENTER_PROGRESSVIEW_PAD_BOTTOM
+}
+
+group { name: "popup_gengrid_custom_1line";
+   parts {
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 594 276; // (190 + (4*2))*3  (150+37+37) + 26 + 26
+            align: 0.5 0.5;
+         }
+      }
+   }
+}
+
+group { name: "popup_gengrid_custom_rotate_1line";
+   parts {
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 792 276;  // (190 + (4*2))*4 (150+37+37) + 26 + 26
+            align: 0.5 0.5;
+         }
+      }
+   }
+}
+
+group { name: "popup_gengrid_custom_2line";
+   parts {
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 594 500; // (190 + (4*2))*3  (150+37+37)*2 + 26 + 26
+            align: 0.5 0.5;
+         }
+      }
+   }
+}
+
+group { name: "popup_gengrid_custom_rotate_2line";
+   parts {
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 792 500;  // (190 + (4*2))*4 (150+37+37)*2 + 26 + 26
+            align: 0.5 0.5;
+         }
+      }
+   }
+}
+
+group { name: "popup_gengrid_custom_3line";
+   parts {
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 594 724; // (190 + (4*2))*3  (150+37+37)*3 + 26 + 26
+            align: 0.5 0.5;
+         }
+      }
+   }
+}
+
+group { name: "popup_gengrid_custom_rotate_3line";
+   parts {
+      part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+         description { state: "default" 0.0;
+            min: 792 500;  // (190 + (4*2))*4 (150+37+37)*2 + 26 + 26
+            align: 0.5 0.5;
+         }
+      }
+   }
+}

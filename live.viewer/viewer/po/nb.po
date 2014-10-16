@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "Apper"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "Widget"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "Kan ikke fjerne."
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "Trykk på og hold en widget for å flytte den."
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "Startskjerm endret."
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "Åpner..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "Kan ikke laste data. Trykk for å prøve på nytt."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "Kan ikke legge appen. Ikke mer plass på startskjermbildet."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "Kan ikke legge widgeten. Ikke mer plass på startskjermbildet."
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "Appen finnes allerede."
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "Widgeten finnes allerede."
+

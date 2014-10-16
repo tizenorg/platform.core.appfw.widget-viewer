@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "ப.பாடுகள்"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "விட்ஜெட்"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "அகற்ற முடியவில்லை."
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "ஒரு விட்ஜெட்டை இதற்கு நகர்த்த டேப் செய்து வைத்திருக்கவும்."
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "முகப்புத் திரை மாற்றப்பட்டது."
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "லோடிங்..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "தரவை ஏற்ற இயலவில்லை. மீண்டும் முயலவென டேப் செய்க."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "பயன்பாட்டை சேர்க்க இயலவில்லை. முகப்புத் திரையில் இடமில்லை."
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "விட்ஜெட்டைச் சேர்க்க முடியவில்லை. முகப்புத் திரையில் இடமில்லை."
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "பயன்பாடு முன்பே உள்ளது."
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "விட்ஜெட் முன்பே உள்ளது."
+

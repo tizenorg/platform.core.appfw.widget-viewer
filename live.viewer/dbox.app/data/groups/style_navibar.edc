@@ -1,0 +1,611 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+#define PADDING		5
+#define ITEM_HEIGHT	50
+#define ITEM_WIDTH 	120
+#define MAX_ITEM_WIDTH 200
+#define NAVI_BAR_EXTENDED_HEIGHT 93
+#define NAVI_BAR_EXTENDED_FNBTN_TOP_HEIGHT 110
+#define NAVI_BAR_H 67
+
+#define BUTTON_WIDTH 170.0
+#define BUTTON_HEIGHT 44.0
+#define BUTTON_GAP 22.0
+
+group {
+	name: "elmdemo-test/btn-ext2";
+	parts{
+		part {
+			name: "bg";
+			type: RECT;
+			description {
+				color: 246 245 237 255;
+			}
+		}
+		part {
+			name: "top_padding";
+			type: RECT;
+			scale: 1; //allow scaling
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP; //minimum size for gap filler
+				fixed: 0 1;
+				rel1 { relative: 0 0; }
+				rel2 { relative: 1 0; }
+				color:  0 0 0 0;
+				align: 0 0;
+			}
+		}
+		part {
+			name: "btn_reveal";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				rel1 { relative: 0.5 1.0; to_y: "top_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "top_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_reveal_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_reveal"; }
+				rel2 { relative: 1 1.0; to_y: "btn_reveal"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_add";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				rel1 { relative: 0.5 1.0; to_y: "btn_reveal_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_reveal_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_add_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_add"; }
+				rel2 { relative: 1 1.0; to_y: "btn_add"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_remove";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				rel1 { relative: 0.5 1.0; to_y: "btn_add_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_add_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_remove_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_remove"; }
+				rel2 { relative: 1 1.0; to_y: "btn_remove"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_warning";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				rel1 { relative: 0.5 1.0; to_y: "btn_remove_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_remove_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_warning_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_warning"; }
+				rel2 { relative: 1 1.0; to_y: "btn_warning"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_info";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				rel1 { relative: 0.5 1.0; to_y: "btn_warning_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_warning_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_info_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_info"; }
+				rel2 { relative: 1 1.0; to_y: "btn_info"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_icon_only";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				rel1 { relative: 0.5 1.0; to_y: "btn_info_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_info_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_icon_only_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_icon_only"; }
+				rel2 { relative: 1 1.0; to_y: "btn_icon_only"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_dark";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				rel1 { relative: 0.5 1.0; to_y: "btn_icon_only_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_icon_only_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_dark_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_dark"; }
+				rel2 { relative: 1 1.0; to_y: "btn_dark"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_default";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0.5 1.0; to_y: "btn_dark_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_dark_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_default_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_default"; }
+				rel2 { relative: 1 1.0; to_y: "btn_default"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_center";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				align: 0.5 0;
+				max: 300 BUTTON_HEIGHT;
+				rel1 { relative: 0.0 1.0; to_y: "btn_default_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_center_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_center"; }
+				rel2 { relative: 1 1.0; to_y: "btn_center"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_text_only_style1";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0.5 1.0; to_y: "btn_center_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_center_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_text_only_style1_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_style1"; }
+				rel2 { relative: 1 1.0; to_y: "btn_text_only_style1"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_text_only_style2";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				state: "default" 0.0;
+				rel1 { relative: 0.5 1.0; to_y: "btn_text_only_style1_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_text_only_style1_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_text_only_style2_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_style2"; }
+				rel2 { relative: 1 1.0; to_y: "btn_text_only_style2"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_text_only_style3";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				state: "default" 0.0;
+				rel1 { relative: 0.5 1.0; to_y: "btn_text_only_style2_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_text_only_style2_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_text_only_style3_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_style3"; }
+				rel2 { relative: 1 1.0; to_y: "btn_text_only_style3"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_text_only_sweep";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				state: "default" 0.0;
+				rel1 { relative: 0.5 1.0; to_y: "btn_text_only_style3_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_text_only_style3_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_text_only_sweep_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_sweep"; }
+				rel2 { relative: 1 1.0; to_y: "btn_text_only_sweep"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_text_only_title";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				state: "default" 0.0;
+				rel1 { relative: 0.5 1.0; to_y: "btn_text_only_sweep_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_text_only_sweep_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_text_only_title_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_title"; }
+				rel2 { relative: 1 1.0; to_y: "btn_text_only_title"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_text_only_contact";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				state: "default" 0.0;
+				rel1 { relative: 0.5 1.0; to_y: "btn_text_only_title_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_text_only_title_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_text_only_contact_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_contact"; }
+				rel2 { relative: 1 1.0; to_y: "btn_text_only_contact"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_text_only_more";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				state: "default" 0.0;
+				rel1 { relative: 0.5 1.0; to_y: "btn_text_only_contact_bottom_padding"; }
+				rel2 { relative: 0.5 1.0; to_y: "btn_text_only_contact_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "btn_text_only_more_bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : BUTTON_WIDTH BUTTON_GAP;
+				max : BUTTON_WIDTH BUTTON_GAP;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_more"; }
+				rel2 { relative: 1 1.0; to_y: "btn_text_only_more"; }
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "btn_text_only_multiline";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				fixed: 1 1;
+				min: BUTTON_WIDTH 60;
+				max: BUTTON_WIDTH 60;
+				state: "default" 0.0;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_more_bottom_padding"; }
+				align: 0.5 0;
+			}
+		}
+		part {
+			name: "bottom_padding";
+			type: RECT;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min : 0 BUTTON_GAP;
+				rel1 { relative: 0 1.0; to_y: "btn_text_only_multiline"; }
+				rel2 { relative: 1 1.0;}
+				color: 0 0 0 0;
+				align: 0.5 1.0;
+			}
+		}
+	}//end parts
+#undef BUTTON_WIDTH
+#undef BUTTON_HEIGHT
+#undef BUTTON_GAP
+} //end group
+
+
+group { name: "navibar_effect_layout";
+	parts {
+		part {
+			name: "bg";
+			type: RECT;
+			description {
+				color: 246 245 237 255;
+			}
+		}
+		part {
+			name: "elm.swallow.content";
+			type: SWALLOW;
+			scale: 1;
+			description {
+			}
+		}
+	}
+}
+
+
+#define GENLIST_PART_BG_COLOR_INC 246 245 237 255
+#define GENLIST_PART_TEXT_COLOR_INC 0 0 0 255
+#define GENLIST_PART_TEXT_SELECTED_COLOR_INC 225 225 225 255
+#define GENLIST_PART_SUB_TEXT_COLOR_INC 0 0 0 255
+#define GENLIST_PART_BOTTOM_LINE_INC 212 212 212 255
+#define GENLIST_GROUP_PART_TEXT_COLOR_INC 50 50 50 255
+
+#define BEAT_GENLIST_PART_LIST_PICKER_BOTTOM_LINE \
+         part { name: "bottom_line"; \
+            type: RECT; \
+            clip_to: "disclip"; \
+            mouse_events: 0; \
+            description { state: "default" 0.0; \
+               min: 0 1; \
+               fixed: 0 1; \
+               visible: 1; \
+               color: 104 97 92 255; \
+               rel1 { \
+                  relative: 0.0 1.0; \
+                  offset: 0 -1; \
+               } \
+            } \
+         }
+
+
+#define BEAT_GENLIST_PART_PADDING_LEFT( param_padding_size ) \
+         part { name: "elm.padding.left"; \
+            type: RECT; \
+            scale: 1; \
+            description { state: "default" 0.0; \
+               min: param_padding_size 0; \
+               fixed: 1 0; \
+               visible: 0; \
+               rel2.relative: 0.0 1.0; \
+               align: 0.0 0.0; \
+            } \
+         }
+
+
+#define BEAT_GENLIST_PART_BASE( param_item_height ) \
+         part { name: "base"; \
+            type: RECT; \
+            repeat_events: 1; \
+            scale: 1; \
+            description { state: "default" 0.0; \
+               min: 0 param_item_height; \
+               color: GENLIST_PART_BG_COLOR_INC; \
+            } \
+         }
+
+
+#define BEAT_GENLIST_PART_PADDING_RIGHT( param_padding_size ) \
+       part { name: "elm.padding.right"; \
+            type: RECT; \
+            scale: 1; \
+            description { state: "default" 0.0; \
+               min: param_padding_size 0; \
+               fixed: 1 0; \
+               visible: 0; \
+               rel1.relative: 1.0  0.0; \
+               align: 1.0 0.0; \
+            } \
+         }

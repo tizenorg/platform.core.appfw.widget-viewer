@@ -32,7 +32,8 @@
 #include <X11/Xutil.h>
 
 #include <dlog.h>
-#include <livebox-errno.h> /* For error code */
+#include <dynamicbox_errno.h> /* For error code */
+#include <dynamicbox_buffer.h>
 
 #include "debug.h"
 #include "util.h"
@@ -49,17 +50,6 @@ struct fb_info {
 
 	int pixels;
 	int handle;
-};
-
-struct buffer { /*!< Must has to be sync with slave & provider */
-	enum {
-		CREATED = 0x00beef00,
-		DESTROYED = 0x00dead00
-	} state;
-	enum buffer_type type;
-	int refcnt;
-	void *info;
-	char data[];
 };
 
 static struct {
@@ -86,7 +76,7 @@ int fb_init(void *disp)
 		s_info.visual = DefaultVisualOfScreen(screen);
 	}
 
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int fb_fini(void)
@@ -107,25 +97,25 @@ static inline void update_fb_size(struct fb_info *info)
 	info->bufsz = info->w * info->h * info->pixels;
 }
 
-static int sync_for_file(struct fb_info *info)
+static int sync_for_file(struct fb_info *info, int x, int y, int w, int h)
 {
 	int fd;
-	struct buffer *buffer;
+	dynamicbox_fb_t buffer;
 
 	buffer = info->buffer;
 
 	if (!buffer) { /* Ignore this sync request */
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
-	if (buffer->state != CREATED) {
+	if (buffer->state != DBOX_FB_STATE_CREATED) {
 		ErrPrint("Invalid state of a FB\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (buffer->type != BUFFER_TYPE_FILE) {
+	if (buffer->type != DBOX_FB_TYPE_FILE) {
 		ErrPrint("Invalid buffer\n");
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	fd = open(util_uri_to_path(info->id), O_RDONLY);
@@ -133,57 +123,101 @@ static int sync_for_file(struct fb_info *info)
 		ErrPrint("Failed to open a file (%s) because of (%s)\n",
 					util_uri_to_path(info->id), strerror(errno));
 
-		/*!
-		 * \note
+		/**
+		 * @note
 		 * But return ZERO, even if we couldn't get a buffer file,
 		 * the viewer can draw empty screen.
 		 *
 		 * and then update it after it gots update events
 		 */
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
-	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
-		ErrPrint("read: %s\n", strerror(errno));
-		if (close(fd) < 0) {
-			ErrPrint("close: %s\n", strerror(errno));
-		}
+	/**
+	 * @note
+	 * Could we get some advantage if we load a part of file instead of loading all of them?
+	 */
+	if (x != 0 || y != 0 || info->w != w || info->h != h) {
+		int iy;
+		register int index;
+		register int width;
 
-		/*!
-		 * \note
-		 * But return ZERO, even if we couldn't get a buffer file,
-		 * the viewer can draw empty screen.
-		 *
-		 * and then update it after it gots update events
-		 */
-		return LB_STATUS_SUCCESS;
+		for (iy = y; iy < h; iy++) {
+			index = iy * info->w + x;
+			width = w * info->pixels;
+
+			if (lseek(fd, index * info->pixels, SEEK_SET) != index * info->pixels) {
+				ErrPrint("lseek: %s\n", strerror(errno));
+				if (close(fd) < 0) {
+					ErrPrint("close: %s\n", strerror(errno));
+				}
+				/**
+				 * @note
+				 * But return ZERO, even if we couldn't get a buffer file,
+				 * the viewer can draw empty screen.
+				 *
+				 * and then update it after it gots update events
+				 */
+				return DBOX_STATUS_ERROR_NONE;
+			}
+
+			if (read(fd, ((unsigned int *)buffer->data) + index, width) != width) {
+				if (close(fd) < 0) {
+					ErrPrint("close: %s\n", strerror(errno));
+				}
+				/**
+				 * @note
+				 * But return ZERO, even if we couldn't get a buffer file,
+				 * the viewer can draw empty screen.
+				 *
+				 * and then update it after it gots update events
+				 */
+				return DBOX_STATUS_ERROR_NONE;
+			}
+		}
+	} else {
+		if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
+			ErrPrint("read: %s\n", strerror(errno));
+			if (close(fd) < 0) {
+				ErrPrint("close: %s\n", strerror(errno));
+			}
+
+			/**
+			 * @note
+			 * But return ZERO, even if we couldn't get a buffer file,
+			 * the viewer can draw empty screen.
+			 *
+			 * and then update it after it gots update events
+			 */
+			return DBOX_STATUS_ERROR_NONE;
+		}
 	}
 
 	if (close(fd) < 0) {
 		ErrPrint("close: %s\n", strerror(errno));
 	}
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
-static int sync_for_pixmap(struct fb_info *info)
+static int sync_for_pixmap(struct fb_info *info, int x, int y, int w, int h)
 {
-	struct buffer *buffer;
+	dynamicbox_fb_t buffer;
 	XShmSegmentInfo si;
 	XImage *xim;
 
 	buffer = info->buffer;
 	if (!buffer) { /*!< Ignore this sync request */
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
-	if (buffer->state != CREATED) {
+	if (buffer->state != DBOX_FB_STATE_CREATED) {
 		ErrPrint("Invalid state of a FB\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	if (buffer->type != BUFFER_TYPE_PIXMAP) {
+	if (buffer->type != DBOX_FB_TYPE_PIXMAP) {
 		ErrPrint("Invalid buffer\n");
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	if (!s_info.disp) {
@@ -199,13 +233,13 @@ static int sync_for_pixmap(struct fb_info *info)
 			s_info.visual = DefaultVisualOfScreen(screen);
 		} else {
 			ErrPrint("Failed to open a display\n");
-			return LB_STATUS_ERROR_FAULT;
+			return DBOX_STATUS_ERROR_FAULT;
 		}
 	}
 
 	if (info->handle == 0) {
 		ErrPrint("Pixmap ID is not valid\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (info->bufsz == 0) {
@@ -216,13 +250,13 @@ static int sync_for_pixmap(struct fb_info *info)
 		 * To sync its contents.
 		 */
 		DbgPrint("Nothing can be sync\n");
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	si.shmid = shmget(IPC_PRIVATE, info->bufsz, IPC_CREAT | 0666);
 	if (si.shmid < 0) {
 		ErrPrint("shmget: %s\n", strerror(errno));
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 	si.readOnly = False;
@@ -232,7 +266,7 @@ static int sync_for_pixmap(struct fb_info *info)
 			ErrPrint("shmctl: %s\n", strerror(errno));
 		}
 
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 	/*!
@@ -252,7 +286,7 @@ static int sync_for_pixmap(struct fb_info *info)
 			ErrPrint("shmctl: %s\n", strerror(errno));
 		}
 
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 	xim->data = si.shmaddr;
@@ -261,7 +295,20 @@ static int sync_for_pixmap(struct fb_info *info)
 	XShmGetImage(s_info.disp, info->handle, xim, 0, 0, 0xFFFFFFFF);
 	XSync(s_info.disp, False);
 
-	memcpy(buffer->data, xim->data, info->bufsz);
+	if (x != 0 || y != 0 || info->w != w || info->h != h) {
+		int ix;
+		int iy;
+		register int index;
+
+		for (iy = y; iy < h; iy++) {
+			for (ix = x; ix < w; ix++) {
+				index = iy * info->w + x;
+				*(((unsigned int *)buffer->data) + index) = *(((unsigned int *)xim->data) + index);
+			}
+		}
+	} else {
+		memcpy(buffer->data, xim->data, info->bufsz);
+	}
 
 	XShmDetach(s_info.disp, &si);
 	XDestroyImage(xim);
@@ -274,31 +321,31 @@ static int sync_for_pixmap(struct fb_info *info)
 		ErrPrint("shmctl: %s\n", strerror(errno));
 	}
 
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
-int fb_sync(struct fb_info *info)
+int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 {
 	if (!info) {
 		ErrPrint("FB Handle is not valid\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!info->id || info->id[0] == '\0') {
 		DbgPrint("Ingore sync\n");
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
-		return sync_for_file(info);
+		return sync_for_file(info, x, y, w, h);
 	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-		return sync_for_pixmap(info);
+		return sync_for_pixmap(info, x, y, w, h);
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		/* No need to do sync */ 
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
-	return LB_STATUS_ERROR_INVALID;
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 }
 
 struct fb_info *fb_create(const char *id, int w, int h)
@@ -330,7 +377,7 @@ struct fb_info *fb_create(const char *id, int w, int h)
 	} else if (sscanf(info->id, SCHEMA_PIXMAP "%d:%d", &info->handle, &info->pixels) == 2) {
 		DbgPrint("PIXMAP-SHMID: %d is gotten (%d)\n", info->handle, info->pixels);
 	} else {
-		info->handle = LB_STATUS_ERROR_INVALID;
+		info->handle = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	info->bufsz = 0;
@@ -345,11 +392,11 @@ int fb_destroy(struct fb_info *info)
 {
 	if (!info) {
 		ErrPrint("Handle is not valid\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (info->buffer) {
-		struct buffer *buffer;
+		dynamicbox_fb_t buffer;
 		buffer = info->buffer;
 
 		buffer->info = NULL;
@@ -357,7 +404,7 @@ int fb_destroy(struct fb_info *info)
 
 	free(info->id);
 	free(info);
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int fb_is_created(struct fb_info *info)
@@ -386,7 +433,7 @@ int fb_is_created(struct fb_info *info)
 
 void *fb_acquire_buffer(struct fb_info *info)
 {
-	struct buffer *buffer;
+	dynamicbox_fb_t buffer;
 
 	if (!info) {
 		ErrPrint("info == NIL\n");
@@ -404,9 +451,9 @@ void *fb_acquire_buffer(struct fb_info *info)
 				return NULL;
 			}
 
-			buffer->type = BUFFER_TYPE_PIXMAP;
+			buffer->type = DBOX_FB_TYPE_PIXMAP;
 			buffer->refcnt = 0;
-			buffer->state = CREATED;
+			buffer->state = DBOX_FB_STATE_CREATED;
 			buffer->info = info;
 			info->buffer = buffer;
 
@@ -414,7 +461,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 			 * \note
 			 * Just update from here.
 			 */
-			sync_for_pixmap(info);
+			sync_for_pixmap(info, 0, 0, info->w, info->h);
 		} else if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 			update_fb_size(info);
 
@@ -425,13 +472,13 @@ void *fb_acquire_buffer(struct fb_info *info)
 				return NULL;
 			}
 
-			buffer->type = BUFFER_TYPE_FILE;
+			buffer->type = DBOX_FB_TYPE_FILE;
 			buffer->refcnt = 0;
-			buffer->state = CREATED;
+			buffer->state = DBOX_FB_STATE_CREATED;
 			buffer->info = info;
 			info->buffer = buffer;
 
-			sync_for_file(info);
+			sync_for_file(info, 0, 0, info->w, info->h);
 		} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 			buffer = shmat(info->handle, NULL, 0);
 			if (buffer == (void *)-1) {
@@ -449,10 +496,10 @@ void *fb_acquire_buffer(struct fb_info *info)
 	buffer = info->buffer;
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_FB_TYPE_PIXMAP:
 		buffer->refcnt++;
 		break;
-	case BUFFER_TYPE_FILE:
+	case DBOX_FB_TYPE_FILE:
 		buffer->refcnt++;
 		break;
 	default:
@@ -465,33 +512,33 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 int fb_release_buffer(void *data)
 {
-	struct buffer *buffer;
+	dynamicbox_fb_t buffer;
 
 	if (!data) {
 		ErrPrint("buffer data == NIL\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	buffer = container_of(data, struct buffer, data);
+	buffer = container_of(data, struct dynamicbox_fb, data);
 
-	if (buffer->state != CREATED) {
+	if (buffer->state != DBOX_FB_STATE_CREATED) {
 		ErrPrint("Invalid handle\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_SHM:
+	case DBOX_FB_TYPE_SHM:
 		if (shmdt(buffer) < 0) {
 			ErrPrint("shmdt: %s\n", strerror(errno));
 		}
 		break;
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_FB_TYPE_PIXMAP:
 		buffer->refcnt--;
 		if (buffer->refcnt == 0) {
 			struct fb_info *info;
 			info = buffer->info;
 
-			buffer->state = DESTROYED;
+			buffer->state = DBOX_FB_STATE_DESTROYED;
 			free(buffer);
 		
 			if (info && info->buffer == buffer) {
@@ -499,13 +546,13 @@ int fb_release_buffer(void *data)
 			}
 		}
 		break;
-	case BUFFER_TYPE_FILE:
+	case DBOX_FB_TYPE_FILE:
 		buffer->refcnt--;
 		if (buffer->refcnt == 0) {
 			struct fb_info *info;
 			info = buffer->info;
 
-			buffer->state = DESTROYED;
+			buffer->state = DBOX_FB_STATE_DESTROYED;
 			free(buffer);
 
 			if (info && info->buffer == buffer) {
@@ -518,43 +565,43 @@ int fb_release_buffer(void *data)
 		break;
 	}
 
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int fb_refcnt(void *data)
 {
-	struct buffer *buffer;
+	dynamicbox_fb_t buffer;
 	struct shmid_ds buf;
 	int ret;
 
 	if (!data) {
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	buffer = container_of(data, struct buffer, data);
+	buffer = container_of(data, struct dynamicbox_fb, data);
 
-	if (buffer->state != CREATED) {
+	if (buffer->state != DBOX_FB_STATE_CREATED) {
 		ErrPrint("Invalid handle\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (buffer->type) {
-	case BUFFER_TYPE_SHM:
+	case DBOX_FB_TYPE_SHM:
 		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
 			ErrPrint("Error: %s\n", strerror(errno));
-			return LB_STATUS_ERROR_FAULT;
+			return DBOX_STATUS_ERROR_FAULT;
 		}
 
 		ret = buf.shm_nattch;
 		break;
-	case BUFFER_TYPE_PIXMAP:
+	case DBOX_FB_TYPE_PIXMAP:
 		ret = buffer->refcnt;
 		break;
-	case BUFFER_TYPE_FILE:
+	case DBOX_FB_TYPE_FILE:
 		ret = buffer->refcnt;
 		break;
 	default:
-		ret = LB_STATUS_ERROR_INVALID;
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
@@ -570,12 +617,12 @@ int fb_get_size(struct fb_info *info, int *w, int *h)
 {
 	if (!info) {
 		ErrPrint("Handle is not valid\n");
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	*w = info->w;
 	*h = info->h;
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 int fb_size(struct fb_info *info)
@@ -591,26 +638,26 @@ int fb_size(struct fb_info *info)
 
 int fb_type(struct fb_info *info)
 {
-	struct buffer *buffer;
+	dynamicbox_fb_t buffer;
 
 	if (!info) {
-		return BUFFER_TYPE_ERROR;
+		return DBOX_FB_TYPE_ERROR;
 	}
 
 	buffer = info->buffer;
 	if (!buffer) {
-		int type = BUFFER_TYPE_ERROR;
+		int type = DBOX_FB_TYPE_ERROR;
 		/*!
 		 * \note
 		 * Try to get this from SCHEMA
 		 */
 		if (info->id) {
 			if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
-				type = BUFFER_TYPE_FILE;
+				type = DBOX_FB_TYPE_FILE;
 			} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-				type = BUFFER_TYPE_PIXMAP;
+				type = DBOX_FB_TYPE_PIXMAP;
 			} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
-				type = BUFFER_TYPE_SHM;
+				type = DBOX_FB_TYPE_SHM;
 			}
 		}
 

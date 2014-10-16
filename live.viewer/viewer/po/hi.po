@@ -1,0 +1,33 @@
+msgid "IDS_IDLE_BODY_APPS"
+msgstr "एप्स"
+
+msgid "IDS_IDLE_HEADER_WIDGET"
+msgstr "विजेट"
+
+msgid "IDS_IM_POP_UNABLE_TO_REMOVE"
+msgstr "हटाने में असमर्थ।"
+
+msgid "IDS_COM_BODY_TAP_AND_HOLD_A_WIDGET_TO_MOVE_IT_ABB"
+msgstr "विजेट ले जाने के लिए उसे टैप करे रखें"
+
+msgid "IDS_ST_BODY_HOME_SCREEN_CHANGED_ABB"
+msgstr "होम स्क्रीन बदली गई।"
+
+msgid "IDS_IDLE_POP_LOADING_ING"
+msgstr "लोड हो रहा है..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "डाटा लोड करने में अक्षम। फिर से प्रयास करने हेतु टैप करें।"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_APPLICATION_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "ऐप्लिकेशन जोड़ने में अक्षम। होम स्क्रीन पर कोई और रूम नहीं है।"
+
+msgid "IDS_HS_POP_UNABLE_TO_ADD_WIDGET_NO_MORE_ROOM_ON_HOME_SCREEN"
+msgstr "विजेट जोड़ने में अक्षम। होम स्क्रीन पर कोई और रूम नहीं है।"
+
+msgid "IDS_HS_TPOP_APPLICATION_ALREADY_EXISTS"
+msgstr "एप्लिकेशन पहले से मौजूद है।"
+
+msgid "IDS_HS_TPOP_WIDGET_ALREADY_EXISTS"
+msgstr "विजेट पहले से मौजूद है।"
+

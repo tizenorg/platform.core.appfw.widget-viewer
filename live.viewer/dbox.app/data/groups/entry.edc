@@ -1,0 +1,329 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+   group { 
+    		name: "entry_test";		
+		parts{	
+			part { 
+				name: "bg";
+				type: RECT;
+				mouse_events: 1;				
+				scale:1;
+
+				description {						
+					state: "default" 0.0;						
+					color: 0 0 0 0;
+					rel1.relative: 0.0 0.0;
+					rel2.relative: 1.0 1.0;
+				}				
+			}
+			part{
+				name: "top_padding";
+				type: RECT;
+				scale: 1; //allow scaling
+
+				description {
+					state: "default" 0.0;
+					min : 0 24; //minimum size for gap filler
+					fixed: 0 1;
+					rel1 { relative: 0 0;to:bg; }
+					rel2 { relative: 1 0;to:bg; }
+					color: 0 0 0 0;
+				}
+			 }	
+			 part { 	
+				name: "left_padding";	
+				type: RECT;
+				scale: 1;
+
+				description {
+					state: "default" 0.0;
+					min : 10 0; //minimum size for gap filler				
+					fixed: 1 0;
+					rel1 { relative: 0 0; to: "bg"; }
+					rel2 { relative: 0 1; to: "bg"; }
+					color: 0 0 0 0;
+					align: 0 0;
+				}
+			} 
+			 part { 	
+				name: "bg_entry";	
+				type: RECT;
+				mouse_events: 0;
+				scale:1;					
+
+				description { 							
+					state: "default" 0.0;	
+					min: 0 75;
+					max: 480 75;
+					fixed:1 1;
+					rel1 { relative: 0.0  1.0;to_y:top_padding;}							
+					color: 0 0 0 0;
+					align: 0 0;
+				} 
+			} 
+
+			part { 	
+				name: "entry_part";	
+				type: SWALLOW;
+				mouse_events: 1;
+				scale:1;
+				
+				description { 		
+					min : 0 75; //minimum size for gap filler
+					max: 5000 75;
+					fixed: 1 1;
+					state: "default" 0.0;						
+					rel1 { relative: 1.0  0.0;to_x:left_padding;to_y:bg_entry;}		
+					align: 0 0;
+				} 
+			} 
+			part {
+				name: "padding";
+				type: RECT;
+				scale: 1;
+				description { state: "default" 0.0;
+					min : 0 30;
+					align: 0 1;
+					rel1 { relative: 0 1.0; to_y: "entry_part"; }
+					rel2 { relative: 1 1.0; }
+					color: 0 0 0 0;
+				}
+			}
+		}
+	} 
+
+group {
+   name: "entry_test_multi";
+   parts{
+      part{
+         name: "top_padding";
+         type: RECT;
+         scale: 1; //allow scaling
+         description {
+            state: "default" 0.0;
+            min : 0 24; //minimum size for gap filler
+            fixed: 0 1;
+            rel1.relative: 0 0;
+            rel2.relative: 1 0;
+            color: 0 0 0 0;
+         }
+      }
+      part {
+         name: "left_padding";
+         type: RECT;
+         scale: 1;
+         description {
+            state: "default" 0.0;
+            min : 10 0; //minimum size for gap filler
+            fixed: 1 0;
+            rel1.relative: 0 0;
+            rel2.relative: 0 1;
+            color: 0 0 0 0;
+            align: 0 0;
+         }
+      }
+      part {
+         name: "entry_part";
+         type: SWALLOW;
+         mouse_events: 1;
+         scale:1;
+         description {
+            state: "default" 0.0;
+            rel1 {
+               relative: 1.0 0.0;
+               to_x:left_padding;
+            }
+         align: 0 0;
+         }
+      }
+   }
+}
+
+group {
+      name: "entry_test_change_text_size";
+	  parts{
+		  part{ name: "bg";
+            type: RECT;
+            mouse_events: 0;
+            scale: 1;
+	        description{
+               state: "default" 0.0;
+               color: 0 0 0 0;
+	           rel1.relative: 0 0;
+	           rel2.relative: 1 1;
+	        }
+		  }
+		  part{ name: "top_padding";
+           type: RECT;
+           scale: 1;
+		   description {
+              state: "default" 0.0;
+              min: 0 24;
+              fixed: 0 1;
+	          rel1 {relative: 0 0; to: "bg";}
+	          rel2 {relative: 1 0; to: "bg";}
+              color: 0 0 0 0;
+		   }
+		  }
+		  part { name: "left_padding";
+            type: RECT;
+            scale: 1;
+	        description {
+               state: "default" 0.0;
+               min: 10 0;
+               fixed: 1 0;
+	           rel1{ relative: 0 0; to: "bg"; }
+	           rel2{ relative: 0 1; to: "bg"; }
+               color: 0 0 0 0;
+               align: 0 0;
+	        }
+		  }
+		  part { name: "box1";
+              type: RECT;
+              scale: 1;
+	          description {
+                 state: "default" 0.0;
+                 min: 0 80;
+                 fixed: 0 1;
+	             rel1 { relative: 1.0 1.0; to_x: "left_padding"; to_y: "top_padding";}
+				 rel2 { relative: 1.0 1.0; to: "bg"; to_y: "top_padding";}
+                 color: 0 0 0 0;
+                 align: 0 0;
+	          }
+		  }
+		  part { name: "label";
+              type: SWALLOW;
+              mouse_events: 1;
+              scale: 1;
+	          description {
+                 state: "default" 0.0;
+                 min: 180 80;
+                 max: 180 80;
+                 fixed: 1 1;
+	             rel1 { relative: 0.0 0.0; to: "box1";}
+				 rel2 { relative: 1.0 1.0; to: "box1";}
+                 align: 0 0.5;
+	          }
+		  }
+		  part { name: "entry_size";
+              type: SWALLOW;
+              mouse_events: 1;
+              scale: 1;
+	          description {
+                 state: "default" 0.0;
+                 min: 100 80;
+                 max: 100 80;
+                 fixed: 1 1;
+	             rel1 { relative: 1.0 0.0; to: "label";}
+				 rel2 { relative: 1.0 1.0; to: "box1";}
+                 align: 0 0.5;
+	          }
+		  }
+		   part { name: "button";
+              type: SWALLOW;
+              mouse_events: 1;
+              scale: 1;
+	          description {
+                 state: "default" 0.0;
+	             rel1 { relative: 1.0 0.0; to: "entry_size"; offset: 10 0;}
+				 rel2 { relative: 1.0 1.0; to: "box1";}
+                 align: 0 0.5;
+	          }
+		  }
+		  part {
+              name: "entry_part1";
+              type: SWALLOW;
+              mouse_events: 1;
+              scale: 1;
+	          description {
+                 state: "default" 0.0;
+                 min: 0 80;
+                 max: 999999 250;
+                 fixed: 0 0;
+	             rel1 { relative: 0.0 1.0; to: "box1";}
+                 align: 0 0;
+	          }
+		  }
+		  part {
+              name: "middle_padding";
+              type: RECT;
+              mouse_events: 0;
+			  description {
+                 state: "default" 0.0;
+                 color: 0 0 0 0;
+                 min: 1 20;
+                 max: 9999999 20;
+	             rel1 { relative: 0.0 1.0; to: "entry_part1";}
+                 align: 0 0;
+			  }
+		 }
+		 part { name: "entry_part2";
+             type: SWALLOW;
+             mouse_events: 1;
+             scale: 1;
+	         description {
+                state: "default" 0.0;
+                min: 0 80;
+                fixed: 0 0;
+	            rel1 { relative: 0.0 1.0; to: "middle_padding";}
+                align: 0 0;
+	         }
+		 }
+	  }
+}
+
+group { name: "entry_test_translate";
+	parts {
+		part { name: "check_part";
+			type: SWALLOW;
+			mouse_events: 1;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min: 1 120;
+				max: 999999 120;
+				align: 0 0;
+			}
+		}
+		part { name: "padding";
+			type: RECT;
+			mouse_events: 0;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min: 1 40;
+				max: 999999 40;
+				rel1 { relative: 0.0 1.0; to: "check_part"; }
+				align: 0 0;
+				color: 0 0 0 0;
+			}
+		}
+		part { name: "entry_part";
+			type: SWALLOW;
+			mouse_events: 1;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min: 0 100;
+				fixed: 0 0;
+				rel1 { relative: 0.0 1.0; to: "padding";}
+				align: 0 0;
+			}
+		}
+	}
+}

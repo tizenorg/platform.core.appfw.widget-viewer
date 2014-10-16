@@ -1,0 +1,1051 @@
+/*
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd All Rights Reserved
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+//Ctxpopup Camera Shooting mode
+
+//Content Layout
+group {
+	name:"camera/layout";
+	parts {
+		part {
+			name: "layout_bg";
+			type: RECT;
+			mouse_events: 0;
+			 description {
+				color: 0 0 0 120;
+				rel2 { to: "elm.text"; }
+			 }
+		}
+		part {
+			name: "elm.text";
+			type:  TEXT;
+			mouse_events:  0;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min: 1 54;
+				max: 999999 54;
+				fixed: 0 1;
+				align: 0.5 0;
+				text {
+					font:     FONT_ROM;
+					size:     28;
+					align:    0.5 0.5;
+					min: 1 1;
+					text: "Shooting mode";
+				}
+			}
+		}
+		part {
+			name: "elm.swallow.box";
+			type: SWALLOW;
+			description {
+				rel1 { to: "elm.text"; relative: 0 1; }
+			}
+		}
+	}
+}
+
+//Item Layout
+group {
+	name: "camera/radio_icon_text_item";
+	script {
+		public disabled_v;
+	}
+	parts {
+		part {
+			name: "seprator";
+			type: RECT;
+			mouse_events: 0;
+			scale: 1;
+			description {
+				min: 1 1;
+				max: 999999 1;
+				fixed: 0 1;
+				color: 120 120 120 255;
+				align: 0.5 0;
+				rel1 { offset: 1 0; }
+				rel2 { offset: -2 -1; }
+			}
+		}
+		part {
+			name: "item_bg";
+			type: RECT;
+			description {
+				state: "default" 0.0;
+				color: 0 0 0 0;
+			}
+			description {
+				state: "clicked" 0.0;
+				color: 0 0 0 120;
+			}
+		}
+		part {
+			name: "event_blocker";
+			type: RECT;
+			mouse_events: 1;
+			description {
+				state: "default" 0.0;
+				visible: 0;
+			}
+		}
+		part {
+			name: "check_left_padding";
+			type: SPACER;
+			scale: 1;
+			mouse_events: 0;
+			description {
+				state: "default" 0.0;
+				min: 15 75;
+				max: 15 75;
+				align: 0 0;
+				fixed: 1 1;
+			}
+		}
+		part {
+			name: "elm.swallow.radio";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min: 39 39;
+				max: 39 39;
+				fixed: 1 1;
+				align: 0 0.5;
+				rel1 { to:"check_left_padding"; relative: 1 0; }
+			}
+		}
+		part {
+			name: "icon_left_padding";
+			type: SPACER;
+			scale: 1;
+			mouse_events: 0;
+			description {
+				state: "default" 0.0;
+				min: 1 75;
+				max: 1 75;
+				align: 0 0;
+				fixed: 1 1;
+				rel1 { to_x: "elm.swallow.radio"; relative: 1 0; }
+			}
+		}
+		part {
+			name: "elm.swallow.icon";
+			type: SWALLOW;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min: 60 60;
+				max: 60 60;
+				align: 0 0.5;
+				aspect: 1.0 1.0;
+				rel1 { to:"icon_left_padding"; relative: 1 0; }
+			}
+		}
+		part {
+			name: "icon_right_padding";
+			type: SPACER;
+			scale: 1;
+			mouse_events: 0;
+			description {
+				state: "default" 0.0;
+				min: 20 75;
+				max: 20 75;
+				align: 0 0.5;
+				fixed: 1 1;
+				rel1 { to:"elm.swallow.icon"; relative: 1 0; }
+			}
+		}
+		part {
+			name: "elm.text";
+			type:  TEXT;
+			mouse_events:  0;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min: 1 75;
+				max: 999999 75;
+				fixed: 0 1;
+				align: 0.5 0.5;
+				rel1 {relative: 1.0 0.0; to_x: "icon_right_padding";}
+				rel2 {relative: 1.0 1.0; }
+				color: 255 255 255 255;
+				text {
+					font:     FONT_ROM;
+					size:     30;
+					align:    0.0 0.5;
+					min: 1 1;
+				}
+			}
+			description {
+				state: "clicked" 0.0;
+				inherit: "default" 0.0;
+				color: 255 255 255 255;
+			}
+		}
+		part {
+			name: "over1";
+			type: RECT;
+			mouse_events: 1;
+			repeat_events: 1;
+			ignore_flags: ON_HOLD;
+			description {
+				state: "default" 0.0;
+				color: 0 0 0 0;
+			}
+			description {
+				state: "disabled" 0.0;
+				inherit:  "default" 0.0;
+				visible: 0;
+			}
+		}
+		part {
+			name: "over2";
+			type: RECT;
+			mouse_events: 1;
+			repeat_events: 1;
+			description {
+				state: "default" 0.0;
+				color: 255 255 255 0;
+			}
+			description {
+				state: "clicked" 0.0;
+				color: 255 255 255 255;
+			}
+		}
+	}
+	programs {
+		program {
+			name:   "item_unclick3";
+			signal: "mouse,up,1";
+			source: "over1";
+			action: SIGNAL_EMIT "elm,action,click" "";
+		}
+		program {
+			name: "disable";
+			signal: "elm,state,disabled";
+			source: "elm";
+			after: "disable_text";
+		}
+		program {
+			name: "disable_text";
+			script {
+				set_state(PART:"elm.text", "disabled", 0.0);
+				set_int( disabled_v, 1 );
+			}
+		}
+		program {
+			name: "enable";
+			signal: "elm,state,enabled";
+			source: "elm";
+			after: "enable_text";
+		}
+		program {
+			name: "enable_text";
+			script {
+				set_state(PART:"elm.text", "enabled", 0.0);
+				set_int( disabled_v, 0 );
+			}
+		}
+		program {
+			name:   "button_click";
+			signal: "mouse,down,1";
+			source: "over2";
+			script {
+				if(!get_int( disabled_v)) {
+					set_state(PART:"elm.text", "clicked", 0.0);
+					set_state(PART:"item_bg", "clicked", 0.0);
+				}
+			}
+		}
+	}
+	program {
+		name:   "button_unclick";
+		signal: "mouse,up,1";
+		source: "over2";
+		script {
+			if(!get_int(disabled_v)) {
+				set_state(PART:"elm.text", "default", 0.0);
+				set_state(PART:"item_bg", "default", 0.0);
+			}
+		}
+	}
+}
+
+//Radio Button Style
+styles {
+	style {
+		name: "radio_label_textblock_style";
+		base: "font=Tizen:style=Medium font_size=21 align=left color=#ffffff wrap=char";
+		tag: "br" "\n";
+		tag: "hilight" "+ font=Tizen:style=Bold";
+		tag: "b" "+ font=Tizen:style=Bold";
+		tag: "whitecolor" "+ color=#ffffff";
+		tag: "tab" "\t";
+	}
+	style {
+		name: "radio_label_textblock_disabled_style";
+		base: "font=Tizen:style=Medium font_size=21 align=left color=#888888 color3=#000000 wrap=char";
+		tag: "br" "\n";
+		tag: "hilight" "+ font=Tizen:style=Bold";
+		tag: "b" "+ font=Tizen:style=Bold";
+		tag: "whitecolor" "+ color=#ffffff";
+		tag: "tab" "\t";
+	}
+}
+
+group {
+	name: "elm/radio/base/elm_demo_tizen/camera";
+	images {
+		image: "11_camera_menu_popup_radio_button_off.png" COMP;
+		image: "11_camera_menu_popup_radio_button_on.png" COMP;
+		image: "00_button_radio_focus.png" COMP;
+		image: "00_button_radio_dim.png" COMP;
+	}
+	parts {
+		part { name: "bg";
+			mouse_events: 0;
+			scale: 1;
+			type: RECT;
+			description {
+				state: "default" 0.0;
+				rel1.offset: 0 0;
+				rel2.relative: 0.0 1.0;
+				rel2.offset: 0 0;
+				fixed: 1 0;
+				align: 0.0 0.5;
+				min: 39 39;
+				max: 39 39;
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "radio";
+			mouse_events: 0;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				rel1 {
+					to: "bg";
+					offset: 0 0;
+				}
+				rel2 {
+					to: "bg";
+					offset: 0 0;
+				}
+				visible: 1;
+				color: 255 255 255 255;
+				image.normal: "11_camera_menu_popup_radio_button_off.png";
+			}
+			description {
+				state: "visible" 0.0;
+				inherit: "default" 0.0;
+				image.normal: "11_camera_menu_popup_radio_button_on.png";
+			}
+			description {
+				state: "pressed" 0.0;
+				inherit: "default" 0.0;
+				image.normal: "11_camera_menu_popup_radio_button_on.png";
+			}
+			description {
+				state: "disabled" 0.0;
+				inherit: "default" 0.0;
+				image.normal: "00_button_radio_dim.png";
+			}
+			description {
+				state: "disabled_visible" 0.0;
+				inherit: "default" 0.0;
+				image.normal: "00_button_radio_dim.png";
+			}
+		}
+		part {
+			name: "elm.swallow.content";
+			type: SWALLOW;
+			description {
+				state: "default" 0.0;
+				fixed: 1 0;
+				visible: 0;
+				color: 255 255 255 255;
+				align: 0.0 0.5;
+				rel1.to_x: "bg";
+				rel1.relative: 1.0 0.0;
+				rel1.offset: 1 1;
+				rel2.to_x: "bg";
+				rel2.relative: 1.0 1.0;
+				rel2.offset: 2 -2;
+			}
+			description {
+				state: "visible" 0.0;
+				inherit: "default" 0.0;
+				fixed: 1 1;
+				visible: 1;
+				aspect: 1.0 1.0;
+				aspect_preference: VERTICAL;
+			}
+			description {
+				state: "disabled" 0.0;
+				inherit: "default" 0.0;
+				color: 128 128 128 128;
+			}
+			description {
+				state: "disabled_visible" 0.0;
+				inherit: "default" 0.0;
+				color: 128 128 128 128;
+				fixed: 1 1;
+				visible: 1;
+				aspect: 1.0 1.0;
+			}
+		}
+		part {
+			name: "elm.text";
+			type: TEXTBLOCK;
+			mouse_events: 0;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				visible: 0;
+				fixed: 0 1;
+				rel1 { relative: 1.0 0.5; offset: 1 1; to_x: "elm.swallow.content"; }
+				rel2 { relative: 1.0 0.5; offset: -2 -2; }
+				color: 255 255 255 255;
+				align: 0.0 0.5;
+				text {
+					style: "radio_label_textblock_style";
+					min: 0 0;
+				}
+			}
+			description {
+				state: "visible" 0.0;
+				inherit: "default" 0.0;
+				visible: 1;
+				text.min: 1 1;
+			}
+			description {
+				state: "disabled" 0.0;
+				inherit: "default" 0.0;
+			}
+			description {
+				state: "disabled_visible" 0.0;
+				inherit: "default" 0.0;
+				visible: 1;
+				text {
+					style: "radio_label_textblock_disabled_style";
+					min: 1 1;
+				}
+			}
+		}
+		part {
+			name: "events";
+			type: RECT;
+			ignore_flags: ON_HOLD;
+			description {
+				state: "default" 0.0;
+				color: 0 0 0 0;
+			}
+		}
+		part {
+			name: "disabler";
+			type: RECT;
+			description {
+				state: "default" 0.0;
+				color: 0 0 0 0;
+				visible: 0;
+			}
+			description {
+				state: "disabled" 0.0;
+				inherit: "default" 0.0;
+				visible: 1;
+				color: 0 0 0 0;
+			}
+		}
+	}
+	programs {
+		program {
+			name: "click";
+			signal: "mouse,up,1";
+			source: "events";
+			action: SIGNAL_EMIT "elm,action,radio,toggle" "";
+		}
+		program {
+			name: "bg_normal";
+			script {
+				set_state(PART:"bg", "default", 0.0);
+			}
+		}
+		program {
+			name: "mouseout";
+			signal: "mouse,out";
+			source: "events";
+			after: "bg_radio_normal";
+		}
+		program {
+			name: "bg_radio_normal";
+			script {
+				new st[31];
+				new Float:vl;
+				get_state(PART:"radio", st, 30, vl);
+				if (!strcmp(st, "pressed"))
+					set_state(PART:"radio", "default", 0.0);
+				set_state(PART:"bg", "default", 0.0);
+			}
+		}
+		program {
+			name: "pressed";
+			signal: "mouse,down,1";
+			source: "events";
+			script {
+				new st[31];
+				new Float:vl;
+				get_state(PART:"radio", st, 30, vl);
+				if (!strcmp(st, "default"))
+					set_state(PART:"radio", "pressed", 0.0);
+			}
+		}
+		program {
+			name: "radio_on";
+			signal: "elm,state,radio,on";
+			source: "elm";
+			action:  STATE_SET "visible" 0.0;
+			target: "radio";
+		}
+		program {
+			name: "radio_off";
+			signal: "elm,state,radio,off";
+			source: "elm";
+			action:  STATE_SET "default" 0.0;
+			target: "radio";
+		}
+		program {
+			name: "text_show";
+			signal: "elm,state,text,visible";
+			source: "elm";
+			action:  STATE_SET "visible" 0.0;
+			target: "elm.text";
+		}
+		program {
+			name: "text_hide";
+			signal: "elm,state,text,hidden";
+			source: "elm";
+			action:  STATE_SET "default" 0.0;
+			target: "elm.text";
+		}
+		program {
+			name: "icon_show";
+			signal: "elm,state,icon,visible";
+			source: "elm";
+			action:  STATE_SET "visible" 0.0;
+			target: "elm.swallow.content";
+		}
+		program {
+			name: "icon_hide";
+			signal: "elm,state,icon,hidden";
+			source: "elm";
+			action:  STATE_SET "default" 0.0;
+			target: "elm.swallow.content";
+		}
+		program {
+			name: "disable";
+			signal: "elm,state,disabled";
+			source: "elm";
+			action: STATE_SET "disabled" 0.0;
+			target: "disabler";
+			after: "disable_text";
+		}
+		program {
+			name: "disable_text";
+			script {
+				new st[31];
+				new Float:vl;
+				get_state(PART:"elm.text", st, 30, vl);
+				if (!strcmp(st, "visible"))
+					set_state(PART:"elm.text", "disabled_visible", 0.0);
+				else
+					set_state(PART:"elm.text", "disabled", 0.0);
+
+				get_state(PART:"elm.swallow.content", st, 30, vl);
+				if (!strcmp(st, "visible"))
+					set_state(PART:"elm.swallow.content", "disabled_visible", 0.0);
+				else
+					set_state(PART:"elm.swallow.content", "disabled", 0.0);
+
+				get_state(PART:"radio", st, 30, vl);
+				if (!strcmp(st, "visible"))
+					set_state(PART:"radio", "disabled_visible", 0.0);
+				else
+					set_state(PART:"radio", "disabled", 0.0);
+			}
+		}
+		program {
+			name: "enable";
+			signal: "elm,state,enabled";
+			source: "elm";
+			action: STATE_SET "default" 0.0;
+			target: "disabler";
+			after: "enable_text";
+		}
+		program {
+			name: "enable_text";
+			script {
+				new st[31];
+				new Float:vl;
+				get_state(PART:"elm.text", st, 30, vl);
+				if (!strcmp(st, "disabled_visible"))
+					set_state(PART:"elm.text", "visible", 0.0);
+				else
+					set_state(PART:"elm.text", "default", 0.0);
+
+				get_state(PART:"elm.swallow.content", st, 30, vl);
+				if (!strcmp(st, "disabled_visible"))
+					set_state(PART:"elm.swallow.content", "visible", 0.0);
+				else
+					set_state(PART:"elm.swallow.content", "default", 0.0);
+
+				get_state(PART:"radio", st, 30, vl);
+				if (!strcmp(st, "disabled_visible"))
+					set_state(PART:"radio", "visible", 0.0);
+				else
+					set_state(PART:"elm.swallow.content", "default", 0.0);
+			}
+		}
+	}
+}
+
+//Ctxpopup Style
+#define CTXPOPUP_CAMERA_ARROW_SIZE 26 26
+///////////////////////////////////////////////////////////////////////////////
+group {
+	name: "elm/ctxpopup/base/elm_demo_tizen/camera";
+	images {
+		image: "imageeditor_border_left_top.png" COMP;
+		image: "imageeditor_border_right_top.png" COMP;
+		image: "imageeditor_border_left_bottom.png" COMP;
+		image: "imageeditor_border_right_bottom.png" COMP;
+	}
+	parts {
+		part {
+			name: "ctxpopup_frame_left_top";
+			type: SPACER;
+			scale: 1;
+			description {
+				align: 0 0;
+				min: CTXPOPUP_FRAME_CORNER_SIZE;
+				max: CTXPOPUP_FRAME_CORNER_SIZE;
+			}
+		}
+
+		part {
+			name: "ctxpopup_frame_right_top";
+			type: SPACER;
+			scale: 1;
+			description {
+				align: 1 0;
+				min: CTXPOPUP_FRAME_CORNER_SIZE;
+				max: CTXPOPUP_FRAME_CORNER_SIZE;
+			}
+		}
+
+		part {
+			name: "ctxpopup_frame_left_bottom";
+			type: SPACER;
+			scale: 1;
+			description {
+				align: 0 1;
+				min: CTXPOPUP_FRAME_CORNER_SIZE;
+				max: CTXPOPUP_FRAME_CORNER_SIZE;
+			}
+		}
+
+		part {
+			name: "ctxpopup_frame_right_bottom";
+			type: SPACER;
+			scale: 1;
+			description {
+				align: 1 1;
+				min: CTXPOPUP_FRAME_CORNER_SIZE;
+				max: CTXPOPUP_FRAME_CORNER_SIZE;
+			}
+		}
+
+		part { name: "arrow_area_left";
+			type: SPACER;
+			mouse_events: 0;
+			scale: 1;
+			description { state: "default" 0.0;
+				min: 27 27;
+				fixed: 1 1;
+				align: 1 0.5;
+				rel1 {
+					relative: 0 1;
+					to_y: "ctxpopup_frame_left_top";
+				}
+				rel2 {
+					relative:0 0;
+					to:"ctxpopup_frame_left_bottom";
+				}
+			}
+		}
+		part { name: "arrow_area_right";
+			type: SPACER;
+			mouse_events: 0;
+			scale: 1;
+			description { state: "default" 0.0;
+				min: 27 27;
+				fixed: 1 1;
+				align: 0 0.5;
+				rel1 {
+					relative: 1 1;
+					to:"ctxpopup_frame_right_top";
+				}
+				rel2 {
+					relative: 1 0;
+					to_y: "ctxpopup_frame_right_bottom";
+				}
+			}
+		}
+		part { name: "arrow_area_up";
+			type: SPACER;
+			mouse_events: 0;
+			scale: 1;
+			description { state: "default" 0.0;
+				min: 27 27;
+				fixed: 1 1;
+				align: 0.5 1;
+				rel1 {
+					relative: 1 0;
+					to_x: "ctxpopup_frame_left_top";
+				}
+				rel2 {
+					relative: 0 0;
+					to:"ctxpopup_frame_right_top";
+				}
+			}
+		}
+		part { name: "arrow_area_down";
+			type: SPACER;
+			mouse_events: 0;
+			scale: 1;
+			description { state: "default" 0.0;
+				min: 27 27;
+				fixed: 1 1;
+				align: 0.5 0;
+				rel1 {
+					relative: 1 1;
+					to:"ctxpopup_frame_left_bottom";
+				}
+				rel2 {
+					relative: 0 1;
+					to_x: "ctxpopup_frame_right_bottom";
+				}
+			}
+		}
+
+		part { name: "elm.swallow.arrow_up";
+			type: SWALLOW;
+			mouse_events: 0;
+			scale: 1;
+			dragable {
+				x: 1 1 0;
+				y: 1 1 0;
+				confine: "arrow_area_up";
+			}
+			description {
+				state: "default" 0.0;
+				min: 27 27;
+				fixed: 1 1;
+				visible: 1;
+			}
+		}
+		part { name: "elm.swallow.arrow_down";
+			type: SWALLOW;
+			mouse_events: 0;
+			scale: 1;
+			dragable {
+				x: 1 1 0;
+				y: 1 1 0;
+				confine: "arrow_area_down";
+			}
+			description {
+				state: "default" 0.0;
+				min: 27 27;
+				fixed: 1 1;
+				visible: 1;
+			}
+		}
+		part { name: "elm.swallow.arrow_left";
+			type: SWALLOW;
+			mouse_events: 0;
+			scale: 1;
+			dragable {
+				x: 1 1 0;
+				y: 1 1 0;
+				confine: "arrow_area_left";
+			}
+			description {
+				state: "default" 0.0;
+				min: 27 27;
+				fixed: 1 1;
+				visible: 1;
+			}
+		}
+		part { name: "elm.swallow.arrow_right";
+			type: SWALLOW;
+			mouse_events: 0;
+			scale: 1;
+			dragable {
+				x: 1 1 0;
+				y: 1 1 0;
+				confine: "arrow_area_right";
+			}
+			description {
+				state: "default" 0.0;
+				min: 27 27;
+				fixed: 1 1;
+				visible: 1;
+			}
+		}
+
+		part {
+			name: "ctxpopup_frame";
+			type: RECT;
+			scale: 1;
+			description {
+				align: 1 1;
+				color: 0 0 0 85;
+				rel1 {to: "ctxpopup_frame_left_top"; relative: 0.5 0.5;}
+				rel2 {to: "ctxpopup_frame_right_bottom"; relative: 0.5 0.5;}
+			}
+		}
+
+		part {
+			name: "elm.swallow.content";
+			type: SWALLOW;
+			description {
+				state: "default" 0.0;
+				rel1 {to: "ctxpopup_frame_left_top"; relative: 0.5 0.5;}
+				rel2 {to: "ctxpopup_frame_right_bottom"; relative: 0.5 0.5;}
+			}
+		}
+
+		part {
+			name: "ctxpopup_border_left_top";
+			type: IMAGE;
+			scale: 1;
+			description {
+				align: 0 0;
+				min: CTXPOPUP_BORDER_CORNER_SIZE;
+				max: CTXPOPUP_BORDER_CORNER_SIZE;
+				image {
+					normal: "imageeditor_border_left_top.png";
+				}
+			}
+		}
+
+		part {
+			name: "ctxpopup_border_right_top";
+			type: IMAGE;
+			scale: 1;
+			description {
+				align: 1 0;
+				min: CTXPOPUP_BORDER_CORNER_SIZE;
+				max: CTXPOPUP_BORDER_CORNER_SIZE;
+				image {
+					normal: "imageeditor_border_right_top.png";
+				}
+			}
+		}
+
+		part {
+			name: "ctxpopup_border_left_bottom";
+			type: IMAGE;
+			scale: 1;
+			description {
+				align: 0 1;
+				min: CTXPOPUP_BORDER_CORNER_SIZE;
+				max: CTXPOPUP_BORDER_CORNER_SIZE;
+				image {
+					normal: "imageeditor_border_left_bottom.png";
+				}
+			}
+		}
+
+		part {
+			name: "ctxpopup_border_right_bottom";
+			type: IMAGE;
+			scale: 1;
+			description {
+				align: 1 1;
+				min: CTXPOPUP_BORDER_CORNER_SIZE;
+				max: CTXPOPUP_BORDER_CORNER_SIZE;
+				image {
+					normal: "imageeditor_border_right_bottom.png";
+				}
+			}
+		}
+
+		part {
+			name: "ctxpopup_border_top";
+			type: RECT;
+			scale: 1;
+			description {
+				align: 0 0;
+				color: 222 222 222 255;
+				rel1 {to:"ctxpopup_frame_left_top";  relative: 1 0;}
+				rel2 {to:"ctxpopup_frame_right_top";  relative: 0 0.5;}
+			}
+		}
+
+		part {
+			name: "ctxpopup_border_bottom";
+			type: RECT;
+			scale: 1;
+			description {
+				align: 0 0;
+				color: 222 222 222 255;
+				rel1 {to:"ctxpopup_frame_left_bottom";  relative: 1 0.5;}
+				rel2 {to:"ctxpopup_frame_right_bottom";  relative: 0 1;}
+			}
+		}
+
+		part {
+			name: "ctxpopup_border_left";
+			type: RECT;
+			scale: 1;
+			description {
+				align: 0 0;
+				color: 222 222 222 255;
+				rel1 {to:"ctxpopup_frame_left_top";  relative: 0 1;}
+				rel2 {to:"ctxpopup_frame_left_bottom";  relative: 0.5 0;}
+			}
+		}
+
+		part {
+			name: "ctxpopup_border_right";
+			type: RECT;
+			scale: 1;
+			description {
+				align: 0 0;
+				color: 222 222 222 255;
+				rel1 {to:"ctxpopup_frame_right_top";  relative: 0.5 1;}
+				rel2 {to:"ctxpopup_frame_right_bottom";  relative: 1 0;}
+			}
+		}
+		part { name: "access.outline";
+			type: RECT;
+			repeat_events: 1;
+			description { state: "default" 0.0;
+				fixed: 1 1;
+				rel1.to: "ctxpopup_frame_left_top";
+				rel2.to: "ctxpopup_frame_right_bottom";
+				color: 0 0 0 0;
+			}
+		}
+	}
+}
+///////////////////////////////////////////////////////////////////////////////
+group { name: "elm/ctxpopup/arrow/elm_demo_tizen/camera";
+	images {
+		image: "imageeditor_left_arrow.png" COMP;
+		image: "imageeditor_right_arrow.png" COMP;
+		image: "imageeditor_top_arrow.png" COMP;
+		image: "imageeditor_bottom_arrow.png" COMP;
+	}
+	parts {
+		part {
+			name: "ctxpopup_arrow";
+			type: IMAGE;
+			scale: 1;
+			description {
+				state: "default" 0.0;
+				min: CTXPOPUP_CAMERA_ARROW_SIZE;
+				max: CTXPOPUP_CAMERA_ARROW_SIZE;
+				fixed: 1 1;
+				visible: 0;
+				align: 0.5 0.5;
+			}
+			description {
+				state: "left" 0.0;
+				min: CTXPOPUP_CAMERA_ARROW_SIZE;
+				max: CTXPOPUP_CAMERA_ARROW_SIZE;
+				fixed: 1 1;
+				align: 0.0 0.5;
+				image {
+					normal: "imageeditor_left_arrow.png";
+				}
+			}
+			description {
+				state: "right" 0.0;
+				min: CTXPOPUP_CAMERA_ARROW_SIZE;
+				max: CTXPOPUP_CAMERA_ARROW_SIZE;
+				fixed: 1 1;
+				align: 1.0 0.5;
+				image {
+					normal: "imageeditor_right_arrow.png";
+				}
+			}
+			description {
+				state: "top" 0.0;
+				min: CTXPOPUP_CAMERA_ARROW_SIZE;
+				max: CTXPOPUP_CAMERA_ARROW_SIZE;
+				fixed: 1 1;
+				align: 0.5 0.0;
+				image {
+					normal: "imageeditor_top_arrow.png";
+				}
+			}
+			description {
+				state: "bottom" 0.0;
+				min: CTXPOPUP_CAMERA_ARROW_SIZE;
+				max: CTXPOPUP_CAMERA_ARROW_SIZE;
+				fixed: 1 1;
+				align: 0.5 1.0;
+				image {
+					normal: "imageeditor_bottom_arrow.png";
+				}
+			}
+		}
+	}
+	programs {
+		program {
+			name: "enable_left_arrow";
+			signal: "elm,state,left";
+			source: "elm";
+			action: STATE_SET "left" 0.0;
+			target: "ctxpopup_arrow";
+		}
+		program {
+			name: "enable_right_arrow";
+			signal: "elm,state,right";
+			source: "elm";
+			action: STATE_SET "right" 0.0;
+			target: "ctxpopup_arrow";
+		}
+		program {
+			name: "enable_top_arrow";
+			signal: "elm,state,top";
+			source: "elm";
+			action: STATE_SET "top" 0.0;
+			target: "ctxpopup_arrow";
+		}
+		program {
+			name: "enable_bottom_arrow";
+			signal: "elm,state,bottom";
+			source: "elm";
+			action: STATE_SET "bottom" 0.0;
+			target: "ctxpopup_arrow";
+		}
+	}
+}
