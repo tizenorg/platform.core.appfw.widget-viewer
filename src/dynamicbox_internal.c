@@ -24,20 +24,20 @@
 
 int errno;
 
-enum event_state {
+typedef enum event_state {
 	INFO_STATE_CALLBACK_IN_IDLE = 0x00,
 	INFO_STATE_CALLBACK_IN_PROCESSING = 0x01
-};
+} event_state_e;
 
 struct event_info {
 	int is_deleted;
-	int (*handler)(dynamicbox_h handler, enum dynamicbox_event_type event, void *data);
+	int (*handler)(dynamicbox_h handler, dynamicbox_event_type_e event, void *data);
 	void *user_data;
 };
 
 struct fault_info {
 	int is_deleted;
-	int (*handler)(enum dynamicbox_fault_type event, const char *pkgname, const char *filename, const char *func, void *data);
+	int (*handler)(dynamicbox_fault_type_e event, const char *pkgname, const char *filename, const char *func, void *data);
 	void *user_data;
 };
 
@@ -46,8 +46,8 @@ static struct info {
 	struct dlist *dynamicbox_list;
 	struct dlist *event_list;
 	struct dlist *fault_list;
-	enum event_state event_state;
-	enum event_state fault_state;
+	event_state_e event_state;
+	event_state_e fault_state;
 } s_info = {
 	.dynamicbox_common_list = NULL,
 	.dynamicbox_list = NULL,
@@ -348,7 +348,7 @@ void dbox_set_default_gbarsize(struct dynamicbox_common *common, int w, int h)
 	common->gbar.default_height = h;
 }
 
-void dbox_invoke_fault_handler(enum dynamicbox_fault_type event, const char *pkgname, const char *file, const char *func)
+void dbox_invoke_fault_handler(dynamicbox_fault_type_e event, const char *pkgname, const char *file, const char *func)
 {
 	struct dlist *l;
 	struct dlist *n;
@@ -370,7 +370,7 @@ void dbox_invoke_fault_handler(enum dynamicbox_fault_type event, const char *pkg
 	s_info.fault_state &= ~INFO_STATE_CALLBACK_IN_PROCESSING;
 }
 
-void dbox_invoke_event_handler(dynamicbox_h handler, enum dynamicbox_event_type event)
+void dbox_invoke_event_handler(dynamicbox_h handler, dynamicbox_event_type_e event)
 {
 	struct dlist *l;
 	struct dlist *n;

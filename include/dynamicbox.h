@@ -54,7 +54,7 @@ typedef struct dynamicbox *dynamicbox_h;
  * @details Viewer should send these events to dynamicbox.
  * @since_tizen 2.3
  */
-enum dynamicbox_mouse_event_type {
+typedef enum dynamicbox_mouse_event_type {
     DBOX_MOUSE_EVENT_MASK       = 0x20000000, /**< Mask value for mouse event */
     DBOX_MOUSE_EVENT_GBAR_MASK  = 0x10000000, /**< Mask value for Glance Bar event */
     DBOX_MOUSE_EVENT_DBOX_MASK  = 0x40000000, /**< Mask value for Dynamic Box event */
@@ -99,9 +99,9 @@ enum dynamicbox_mouse_event_type {
     DBOX_GBAR_MOUSE_UNSET       = DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_MASK | DBOX_MOUSE_EVENT_UNSET, /**< Mouse event, stop feeding event by master */
 
     DBOX_MOUSE_EVENT_MAX        = 0xFFFFFFFF /**< Unknown event */
-};
+} dynamicbox_mouse_event_type_e;
 
-enum dynamicbox_key_event_type {
+typedef enum dynamicbox_key_event_type {
     DBOX_KEY_EVENT_MASK         = 0x80000000, /**< Mask value for key event */
     DBOX_KEY_EVENT_GBAR_MASK    = 0x10000000, /**< Mask value for Glance Bar event */
     DBOX_KEY_EVENT_DBOX_MASK    = 0x40000000, /**< Mask value for Dynamic Box event */
@@ -128,7 +128,7 @@ enum dynamicbox_key_event_type {
     DBOX_GBAR_KEY_FOCUS_OUT     = DBOX_KEY_EVENT_MASK | DBOX_KEY_EVENT_GBAR_MASK | DBOX_KEY_EVENT_FOCUS_OUT, /**< Key event, focus out */
 
     DBOX_KEY_EVENT_MAX          = 0xFFFFFFFF /**< Unknown event */
-};
+} dynamicbox_key_event_type_e;
 
 /**
  * @internal
@@ -136,7 +136,7 @@ enum dynamicbox_key_event_type {
  * @details These events are sync'd with Tizen accessibility event set.
  * @since_tizen 2.3
  */
-enum dynamicbox_access_event_type {
+typedef enum dynamicbox_access_event_type {
     DBOX_ACCESS_EVENT_GBAR_MASK    = 0x10000000, /**< Glance Bar Accessibilivent mask */
     DBOX_ACCESS_EVENT_DBOX_MASK    = 0x20000000, /**< Dynamic Box Accessibility event mask */
 
@@ -173,21 +173,21 @@ enum dynamicbox_access_event_type {
     DBOX_GBAR_ACCESS_READ          = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_READ, /**< Highlight an object */
     DBOX_GBAR_ACCESS_ENABLE        = DBOX_ACCESS_EVENT_GBAR_MASK | DBOX_ACCESS_EVENT_ENABLE, /**< Enable highlight and read ability */
     DBOX_GBAR_ACCESS_EVENT_MAX     = 0xFFFFFFFF
-};
+} dynamicbox_access_event_type_e;
 
 /**
  * @internal
  * @brief Enumeration for Dynamic Box content type.
  * @since_tizen 2.3
  */
-enum dynamicbox_type {
+typedef enum dynamicbox_type {
     DBOX_CONTENT_TYPE_IMAGE       = 0x01,       /**< Contents of a dynamicbox is based on the image file */
     DBOX_CONTENT_TYPE_BUFFER      = 0x02,       /**< Contents of a dynamicbox is based on canvas buffer(shared) */
     DBOX_CONTENT_TYPE_TEXT        = 0x04,       /**< Contents of a dynamicbox is based on formatted text file */
     DBOX_CONTENT_TYPE_RESOURCE_ID = 0x08,       /**< Contens of a dynamicbox is shared by the resource id(depends on window system) */
     DBOX_CONTENT_TYPE_UIFW        = 0x10,       /**< Using UI F/W resource for sharing content & event */
     DBOX_CONTENT_TYPE_INVALID     = 0xFF        /**< Unknown Dynamic Box type */
-};
+} dynamicbox_type_e;
 
 /**
  * @internal
@@ -195,7 +195,7 @@ enum dynamicbox_type {
  * @details These events will be sent from the provider.
  * @since_tizen 2.3
  */
-enum dynamicbox_event_type {                    /**< dynamicbox_event_handler_set Event list */
+typedef enum dynamicbox_event_type {                    /**< dynamicbox_event_handler_set Event list */
     DBOX_EVENT_DBOX_UPDATED,                    /**< Contents of the given dynamicbox is updated */
     DBOX_EVENT_GBAR_UPDATED,                    /**< Contents of the given pd is updated */
 
@@ -228,32 +228,32 @@ enum dynamicbox_event_type {                    /**< dynamicbox_event_handler_se
     DBOX_EVENT_EXTRA_INFO_UPDATED,              /**< Extra information is updated */
 
     DBOX_EVENT_IGNORED = 0xFF                   /**< Request is ignored */
-};
+} dynamicbox_event_type_e;
 
 /**
  * @internal
  * @brief Enumeration for Dynamicbox option types.
  * @since_tizen 2.3
  */
-enum dynamicbox_option_type {
+typedef enum dynamicbox_option_type {
     DBOX_OPTION_MANUAL_SYNC,                    /**< Sync frame manually */
     DBOX_OPTION_FRAME_DROP_FOR_RESIZE,          /**< Drop frames while resizing */
     DBOX_OPTION_SHARED_CONTENT,                 /**< Use only one real instance for multiple fake instances if user creates dbox for same content */
     DBOX_OPTION_DIRECT_UPDATE,                  /**< Use the private socket for receiving updated event */
 
     DBOX_OPTION_ERROR = 0xFFFFFFFF              /**< To specify the size of this enumeration type */
-};
+} dynamicbox_option_type_e;
 
 /**
  * @internal
  * @brief Reason of faults
  * @since_tizen 2.3
  */
-enum dynamicbox_fault_type {
+typedef enum dynamicbox_fault_type {
     DBOX_FAULT_DEACTIVATED,                     /**< Dynamicbox is deactivated by its fault operation */
     DBOX_FAULT_PROVIDER_DISCONNECTED,           /**< Provider is disconnected */
     DBOX_FAULT_MAX = 0xFF                       /**< To specify the size of this enumeration type, some compiler enjoy of this kind of notation */
-};
+} dynamicbox_fault_type_e;
 
 /**
  * @internal
@@ -261,14 +261,14 @@ enum dynamicbox_fault_type {
  * @details Must be sync'd with a provider.
  * @since_tizen 2.3
  */
-enum dynamicbox_visible_state {
+typedef enum dynamicbox_visible_state {
     DBOX_SHOW            = 0x00,                /**< Dynamicbox is shown. Default state */
     DBOX_HIDE            = 0x01,                /**< Dynamicbox is hidden, Update timer will not be freezed. but you cannot receive any updates events. */
 
     DBOX_HIDE_WITH_PAUSE = 0x02,                /**< Dynamicbox is hidden, it will pause the update timer, but if a dynamicbox updates its contents, update event will be triggered */
 
     DBOX_VISIBLE_ERROR   = 0xFF                 /**< To specify the size of this enumeration type */
-};
+} dynamicbox_visible_state_e;
 
 /**
  * @internal
@@ -523,7 +523,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  * @retval @c NULL if it fails to create a handle
  * @see dynamicbox_ret_cb
  */
-extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, const char *cluster, const char *category, double period, enum dynamicbox_size_type type, dynamicbox_ret_cb cb, void *data);
+extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, const char *cluster, const char *category, double period, dynamicbox_size_type_e type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -548,7 +548,7 @@ extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, con
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent, return callack will be called
  * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_del(dynamicbox_h handler, enum dynamicbox_delete_type type, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_del(dynamicbox_h handler, dynamicbox_delete_type_e type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -671,7 +671,7 @@ extern int dynamicbox_activate(const char *dbox_id, dynamicbox_ret_cb cb, void *
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to make a request
  * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_resize(dynamicbox_h handler, enum dynamicbox_size_type type, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_resize(dynamicbox_h handler, dynamicbox_size_type_e type, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -781,7 +781,7 @@ extern int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox
  * @retval #DBOX_CONTENT_TYPE_INVALID Invalid type
  * @see dynamicbox_type()
  */
-extern enum dynamicbox_type dynamicbox_type(dynamicbox_h handler, int gbar);
+extern dynamicbox_type_e dynamicbox_type(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -906,11 +906,11 @@ extern int dynamicbox_fb_refcnt(void *buffer);
  * @brief Gets the size of the Dynamicbox.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
- * @return enum dynamicbox_size_type
+ * @return dynamicbox_size_type_e
  * @retval #DBOX_SIZE_TYPE_NxM N by M size
  * @retval #DBOX_SIZE_TYPE_UNKNOWN Invalid handler or size type is not defined yet
  */
-extern enum dynamicbox_size_type dynamicbox_size(dynamicbox_h handler);
+extern dynamicbox_size_type_e dynamicbox_size(dynamicbox_h handler);
 
 /**
  * @internal
@@ -968,7 +968,7 @@ extern int dynamicbox_fb_buffer_size(dynamicbox_h handler, int gbar);
  * @see dynamicbox_feed_access_event()
  * @see dynamicbox_feed_key_event()
  */
-extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse_event_type type, dynamicbox_mouse_event_info_t info);
+extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_event_type_e type, dynamicbox_mouse_event_info_t info);
 
 /**
  * @internal
@@ -992,7 +992,7 @@ extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mou
  * @see dynamicbox_feed_mouse_event()
  * @see dynamicbox_feed_key_event()
  */
-extern int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_event_type_e type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1015,7 +1015,7 @@ extern int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_ac
  * @see dynamicbox_feed_mouse_event()
  * @see dynamicbox_feed_access_event()
  */
-extern int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_event_type type, dynamicbox_key_event_info_t info, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_feed_key_event(dynamicbox_h handler, dynamicbox_key_event_type_e type, dynamicbox_key_event_info_t info, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1363,7 +1363,7 @@ extern int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsign
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  */
-extern int dynamicbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible_state state);
+extern int dynamicbox_set_visibility(dynamicbox_h handler, dynamicbox_visible_state_e state);
 
 /**
  * @internal
@@ -1377,7 +1377,7 @@ extern int dynamicbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visib
  * @retval #DBOX_HIDE_WITH_PAUSE Dynamicbox is hidden, it will pause the update timer, but if a dynamicbox updates its contents, update event will occur
  * @retval #DBOX_VISIBLE_ERROR To enlarge the size of this enumeration type
  */
-extern enum dynamicbox_visible_state dynamicbox_visibility(dynamicbox_h handler);
+extern dynamicbox_visible_state_e dynamicbox_visibility(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1534,7 +1534,7 @@ extern int dynamicbox_release_fb_lock(dynamicbox_h handler, int gbar);
  * @see dynamicbox_get_option()
  * @see dynamicbox_sync_fb()
  */
-extern int dynamicbox_set_option(enum dynamicbox_option_type option, int state);
+extern int dynamicbox_set_option(dynamicbox_option_type_e option, int state);
 
 /**
  * @internal
@@ -1547,7 +1547,7 @@ extern int dynamicbox_set_option(enum dynamicbox_option_type option, int state);
  * @retval >=0 Value of given option (must be >=0)
  * @see dynamicbox_set_option()
  */
-extern int dynamicbox_option(enum dynamicbox_option_type option);
+extern int dynamicbox_option(dynamicbox_option_type_e option);
 
 /**
  * @internal

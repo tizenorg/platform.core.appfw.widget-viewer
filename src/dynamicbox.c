@@ -952,7 +952,7 @@ static void refresh_for_paused_updating_cb(dynamicbox_h handle, int ret, void *d
 	dbox_invoke_event_handler(handle, DBOX_EVENT_DBOX_UPDATED);
 }
 
-static int dbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible_state state)
+static int dbox_set_visibility(dynamicbox_h handler, dynamicbox_visible_state_e state)
 {
 	struct packet *packet;
 	int need_to_add_job = 0;
@@ -1167,7 +1167,7 @@ EAPI int dynamicbox_fini(void)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, enum dynamicbox_size_type type, dynamicbox_ret_cb cb, void *data)
+EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const char *cluster, const char *category, double period, dynamicbox_size_type_e type, dynamicbox_ret_cb cb, void *data)
 {
 	char *dboxid;
 	dynamicbox_h handler;
@@ -1360,7 +1360,7 @@ EAPI int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox_r
 	return ret;
 }
 
-EAPI int dynamicbox_del(dynamicbox_h handler, enum dynamicbox_delete_type type, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_del(dynamicbox_h handler, dynamicbox_delete_type_e type, dynamicbox_ret_cb cb, void *data)
 {
 	struct cb_info *cbinfo;
 
@@ -1500,7 +1500,7 @@ EAPI int dynamicbox_is_active_update(dynamicbox_h handler)
 	return handler->common->is_active_update;
 }
 
-EAPI int dynamicbox_resize(dynamicbox_h handler, enum dynamicbox_size_type type, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_resize(dynamicbox_h handler, dynamicbox_size_type_e type, dynamicbox_ret_cb cb, void *data)
 {
 	struct dynamicbox_common *common;
 	int w;
@@ -1968,7 +1968,7 @@ EAPI int dynamicbox_destroy_glance_bar(dynamicbox_h handler, dynamicbox_ret_cb c
 	return ret;
 }
 
-EAPI int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_access_event_type type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_event_type_e type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb cb, void *data)
 {
 	int w = 1;
 	int h = 1;
@@ -2105,7 +2105,7 @@ EAPI int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_acce
 	return ret;
 }
 
-EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse_event_type type, struct dynamicbox_mouse_event_info *info)
+EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_event_type_e type, struct dynamicbox_mouse_event_info *info)
 {
 	int w = 1;
 	int h = 1;
@@ -2276,7 +2276,7 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mouse
 	return send_mouse_event(handler, (const char *)&cmd, info->x * w, info->y * h);
 }
 
-EAPI int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_event_type type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_feed_key_event(dynamicbox_h handler, dynamicbox_key_event_type_e type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb cb, void *data)
 {
 	int ret;
 	unsigned int cmd;
@@ -2478,7 +2478,7 @@ EAPI int dynamicbox_get_glance_bar_size(dynamicbox_h handler, int *w, int *h)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI enum dynamicbox_size_type dynamicbox_size(dynamicbox_h handler)
+EAPI dynamicbox_size_type_e dynamicbox_size(dynamicbox_h handler)
 {
 	int w;
 	int h;
@@ -2737,9 +2737,9 @@ EAPI int dynamicbox_delete_category(const char *cluster, const char *category, d
 	return ret;
 }
 
-EAPI enum dynamicbox_type dynamicbox_type(dynamicbox_h handler, int gbar)
+EAPI dynamicbox_type_e dynamicbox_type(dynamicbox_h handler, int gbar)
 {
-	enum dynamicbox_type type;
+	dynamicbox_type_e type;
 
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3444,7 +3444,7 @@ EAPI int dynamicbox_refresh_group(const char *cluster, const char *category, int
 	return master_rpc_request_only(NULL, packet);
 }
 
-EAPI int dynamicbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible_state state)
+EAPI int dynamicbox_set_visibility(dynamicbox_h handler, dynamicbox_visible_state_e state)
 {
 	int old_state;
 	int ret;
@@ -3488,7 +3488,7 @@ EAPI int dynamicbox_set_visibility(dynamicbox_h handler, enum dynamicbox_visible
 	return ret;
 }
 
-EAPI enum dynamicbox_visible_state dynamicbox_visibility(dynamicbox_h handler)
+EAPI dynamicbox_visible_state_e dynamicbox_visibility(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3688,7 +3688,7 @@ EAPI int dynamicbox_release_fb_lock(dynamicbox_h handler, int is_gbar)
 	return ret == 0 ? DBOX_STATUS_ERROR_NONE : DBOX_STATUS_ERROR_FAULT;
 }
 
-EAPI int dynamicbox_set_option(enum dynamicbox_option_type option, int state)
+EAPI int dynamicbox_set_option(dynamicbox_option_type_e option, int state)
 {
 	int ret = DBOX_STATUS_ERROR_NONE;
 
@@ -3716,7 +3716,7 @@ EAPI int dynamicbox_set_option(enum dynamicbox_option_type option, int state)
 	return ret;
 }
 
-EAPI int dynamicbox_option(enum dynamicbox_option_type option)
+EAPI int dynamicbox_option(dynamicbox_option_type_e option)
 {
 	int ret;
 

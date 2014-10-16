@@ -1331,8 +1331,8 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	int size_list;
 	int user;
 	int pinup_supported;
-	enum dynamicbox_dbox_type dbox_type;
-	enum dynamicbox_gbar_type gbar_type;
+	dynamicbox_dbox_type_e dbox_type;
+	dynamicbox_gbar_type_e gbar_type;
 	double period;
 	int is_pinned_up;
 

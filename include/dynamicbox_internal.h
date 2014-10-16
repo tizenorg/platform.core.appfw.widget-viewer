@@ -19,8 +19,8 @@ struct cb_info {
 	void *data;
 };
 
-extern void dbox_invoke_event_handler(struct dynamicbox *handler, enum dynamicbox_event_type event);
-extern void dbox_invoke_fault_handler(enum dynamicbox_fault_type type, const char *pkgname, const char *filename, const char *function);
+extern void dbox_invoke_event_handler(struct dynamicbox *handler, dynamicbox_event_type_e event);
+extern void dbox_invoke_fault_handler(dynamicbox_fault_type_e type, const char *pkgname, const char *filename, const char *function);
 
 extern struct dynamicbox_common *dbox_find_common_handle(const char *pkgname, const char *filename);
 extern struct dynamicbox *dbox_new_dynamicbox(const char *pkgname, const char *id, double timestamp, const char *cluster, const char *category);
@@ -76,14 +76,14 @@ extern struct dynamicbox *dbox_unref(struct dynamicbox *handler, int destroy_com
 extern int dbox_send_delete(struct dynamicbox *handler, int type, dynamicbox_ret_cb cb, void *data);
 extern int dbox_delete_all(void);
 
-enum dynamicbox_state {
+typedef enum dynamicbox_state {
 	DBOX_STATE_CREATE = 0xBEEFbeef,
 	DBOX_STATE_DELETE = 0xDEADdead, /* Delete only for this client */
 	DBOX_STATE_DESTROYED = 0x00DEAD00
-};
+} dynamicbox_state_e;
 
 struct dynamicbox_common {
-	enum dynamicbox_state state;
+	dynamicbox_state_e state;
 
 	struct dlist *dynamicbox_list;
 	int refcnt;
@@ -105,16 +105,16 @@ struct dynamicbox_common {
 		char *name;
 	} alt;
 
-	enum dynamicbox_delete_type delete_type;
+	dynamicbox_delete_type_e delete_type;
 
 	int is_user;
 	int is_gbar_created;
 	int is_pinned_up;
 	int is_active_update;
-	enum dynamicbox_visible_state visible;
+	dynamicbox_visible_state_e visible;
 
 	struct {
-		enum dynamicbox_dbox_type type;
+		dynamicbox_dbox_type_e type;
 		struct fb_info *fb;
 
 		int size_list;
@@ -137,7 +137,7 @@ struct dynamicbox_common {
 	} dbox;
 
 	struct {
-		enum dynamicbox_gbar_type type;
+		dynamicbox_gbar_type_e type;
 		struct fb_info *fb;
 
 		int width;
@@ -185,12 +185,12 @@ struct job_item {
 };
 
 struct dynamicbox {
-	enum dynamicbox_state state;
+	dynamicbox_state_e state;
 
 	int refcnt;
 	int paused_updating;
 
-	enum dynamicbox_visible_state visible;
+	dynamicbox_visible_state_e visible;
 	struct dynamicbox_common *common;
 
 	void *data;
