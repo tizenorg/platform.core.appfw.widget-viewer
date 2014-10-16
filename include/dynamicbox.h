@@ -502,6 +502,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  * 0x0=720x1280, #DBOX_SIZE_TYPE_0x0
  * @since_tizen 2.3
  * @remarks
+ *    This is an ASYNCHRONOUS API.
  *    Even if you get a handle from the return value of this function, it is not a created instance.
  *    So you have to consider it as a not initialized handle.
  *    It can be initialized only after getting the return callback with "ret == #DBOX_STATUS_ERROR_NONE"
@@ -528,7 +529,9 @@ extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, con
  * @internal
  * @brief Deletes a dynamicbox (will replace dynamicbox_del).
  * @since_tizen 2.3
- * @remarks If you call this with an uninitialized handle, the return callback will be called synchronously.
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
+ *    If you call this with an uninitialized handle, the return callback will be called synchronously.
  *    So before returning from this function, the return callback will be called first.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
@@ -606,7 +609,9 @@ extern void *dynamicbox_unset_fault_handler(dynamicbox_fault_handler_cb cb);
  * @brief Activates the faulted dynamicbox.
  * @details Request result will be returned via return callback.
  * @since_tizen 2.3
- * @remarks Even though this function returns ERROR_NONE, it means that it just successfully sent a request to the provider.
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
+ *    Even though this function returns ERROR_NONE, it means that it just successfully sent a request to the provider.
  *    So you have to check the return callback and its "ret" argument.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
@@ -649,6 +654,7 @@ extern int dynamicbox_activate(const char *dbox_id, dynamicbox_ret_cb cb, void *
  * 0x0=720x1280, DBOX_SIZE_TYPE_0x0
  * @since_tizen 2.3
  * @remarks
+ *    This is an ASYNCHRONOUS API.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
  * @param[in] handler Handler of a dynamicbox instance
@@ -688,6 +694,7 @@ extern int dynamicbox_click(dynamicbox_h handler, double x, double y);
  * @brief Changes the cluster/sub-cluster name of the given dynamicbox handler.
  * @since_tizen 2.3
  * @remarks
+ *    This is an ASYNCHRONOUS API.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
  * @param[in] handler Handler of a dynamicbox instance
@@ -740,6 +747,7 @@ extern double dynamicbox_period(dynamicbox_h handler);
  * @brief Changes the update period.
  * @since_tizen 2.3
  * @remarks
+ *    This is an ASYNCHRONOUS API.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
  * @param[in] handler Handler of a dynamicbox instance
@@ -965,6 +973,8 @@ extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, enum dynamicbox_mou
 /**
  * @internal
  * @brief Sends an access event (for buffer type) to the provider (dynamicbox).
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] type Event type
@@ -987,6 +997,8 @@ extern int dynamicbox_feed_access_event(dynamicbox_h handler, enum dynamicbox_ac
 /**
  * @internal
  * @brief Sends a key event (for buffer type) to the provider (dynamicbox).
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] type Key event type
@@ -1012,6 +1024,8 @@ extern int dynamicbox_feed_key_event(dynamicbox_h handler, enum dynamicbox_key_e
  *   you can freeze the update of the given dynamicbox.
  *   But it is different from pause.
  *   The box will be updated and it will decide wheter update its content or not when the pinup is on.
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] flag Pinup value
@@ -1069,6 +1083,8 @@ extern int dynamicbox_has_glance_bar(dynamicbox_h handler);
 /**
  * @internal
  * @brief Creates Glance Bar of the given handler with the relative position from dynamicbox.
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] x 0.0 ~ 1.0
@@ -1107,6 +1123,8 @@ extern int dynamicbox_move_glance_bar(dynamicbox_h handler, double x, double y);
 /**
  * @internal
  * @brief Destroys the Glance Bar of the given handler if it is created.
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] cb Callback function
@@ -1152,6 +1170,7 @@ extern int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, dynamicbo
  * @brief Emits a text signal to the given dynamicbox only if it is a text type.
  * @since_tizen 2.3
  * @remarks
+ *    This is an ASYNCHRONOUS API.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
  * @param[in] handler Handler of a dynamicbox instance
@@ -1288,6 +1307,8 @@ extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
  * @brief Gets the Resource Id of a dynamicbox.
  * @details Even if a render process releases the Resource Id, the Resource Id will be kept before being released by dynamicbox_release_resource_id.
  *   You should release the resource id manually.
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
@@ -1366,6 +1387,7 @@ extern enum dynamicbox_visible_state dynamicbox_visibility(dynamicbox_h handler)
  *   Default is Passive mode.
  * @since_tizen 2.3
  * @remarks
+ *    This is an ASYNCHRONOUS API.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
  * @param[in] handler Handler of a dynamicbox instance
