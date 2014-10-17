@@ -713,12 +713,12 @@ struct widget_data *widget_unref(struct widget_data *data)
 	}
 
 	if (data->dbox_fb) {
-		dynamicbox_release_fb(data->dbox_fb);
+		dynamicbox_release_buffer(data->dbox_fb);
 		data->dbox_fb = NULL;
 	}
 
 	if (data->gbar_fb) {
-		dynamicbox_release_fb(data->gbar_fb);
+		dynamicbox_release_buffer(data->gbar_fb);
 		data->gbar_fb = NULL;
 	}
 
@@ -972,7 +972,7 @@ static void dbox_destroy_gbar_cb(struct dynamicbox *handle, int ret, void *cbdat
 			}
 		case DBOX_CONTENT_TYPE_BUFFER:
 			if (data->gbar_fb) {
-				dynamicbox_release_fb(data->gbar_fb);
+				dynamicbox_release_buffer(data->gbar_fb);
 				data->gbar_fb = NULL;
 			}
 			evas_object_del(gbar_content);
@@ -3161,11 +3161,11 @@ static void dbox_update_buffer_object(struct widget_data *data, Evas_Object *dbo
 	};
 
 	if (data->dbox_fb) {
-		dynamicbox_release_fb(data->dbox_fb);
+		dynamicbox_release_buffer(data->dbox_fb);
 		data->dbox_fb = NULL;
 	}
 
-	data->dbox_fb = dynamicbox_acquire_fb(data->handle, 0);
+	data->dbox_fb = dynamicbox_acquire_buffer(data->handle, 0);
 	if (!data->dbox_fb) {
 		ErrPrint("Failed to get fb\n");
 		return;
@@ -3173,11 +3173,11 @@ static void dbox_update_buffer_object(struct widget_data *data, Evas_Object *dbo
 
 	evas_object_image_size_set(dbox_content, w, h);
 
-	if (dynamicbox_acquire_fb_lock(data->handle, 0) < 0) {
+	if (dynamicbox_acquire_buffer_lock(data->handle, 0) < 0) {
 		ErrPrint("Failed to acquire lock\n");
 	}
 	evas_object_image_data_copy_set(dbox_content, data->dbox_fb);
-	if (dynamicbox_release_fb_lock(data->handle, 0) < 0) {
+	if (dynamicbox_release_buffer_lock(data->handle, 0) < 0) {
 		ErrPrint("Failed to release lock\n");
 	}
 
@@ -3316,14 +3316,14 @@ static void gbar_update_buffer_object(struct widget_data *data, Evas_Object *gba
 	};
 
 	if (data->gbar_fb) {
-		dynamicbox_release_fb(data->gbar_fb);
+		dynamicbox_release_buffer(data->gbar_fb);
 		data->gbar_fb = NULL;
 	} else {
 		// This is first time
 		gbar_overlay_disable(data);
 	}
 
-	data->gbar_fb = dynamicbox_acquire_fb(data->handle, 1);
+	data->gbar_fb = dynamicbox_acquire_buffer(data->handle, 1);
 	if (!data->gbar_fb) {
 		ErrPrint("Failed to get fb\n");
 		return;
@@ -3331,11 +3331,11 @@ static void gbar_update_buffer_object(struct widget_data *data, Evas_Object *gba
 
 	evas_object_image_size_set(gbar_content, w, h);
 
-	if (dynamicbox_acquire_fb_lock(data->handle, 1) < 0) {
+	if (dynamicbox_acquire_buffer_lock(data->handle, 1) < 0) {
 		ErrPrint("Failed to acquire lock\n");
 	}
 	evas_object_image_data_copy_set(gbar_content, data->gbar_fb);
-	if (dynamicbox_release_fb_lock(data->handle, 1) < 0) {
+	if (dynamicbox_release_buffer_lock(data->handle, 1) < 0) {
 		ErrPrint("Failed to release lock\n");
 	}
 
@@ -3523,12 +3523,12 @@ static void dynamicbox_event_deleted(struct widget_data *data)
 	struct dynamicbox_evas_event_info info;
 
 	if (data->dbox_fb) {
-		dynamicbox_release_fb(data->dbox_fb);
+		dynamicbox_release_buffer(data->dbox_fb);
 		data->dbox_fb = NULL;
 	}
 
 	if (data->gbar_fb) {
-		dynamicbox_release_fb(data->gbar_fb);
+		dynamicbox_release_buffer(data->gbar_fb);
 		data->gbar_fb = NULL;
 	}
 

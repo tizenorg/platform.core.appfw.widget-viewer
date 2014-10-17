@@ -131,8 +131,16 @@ struct dynamicbox_common {
 		/* For the filtering event */
 		double x;
 		double y;
+
+		/* For the extra buffer */
+		unsigned int *extra_buffer;
+		int last_extra_buffer_idx;
+
+		/* Lock */
 		char *lock;
 		int lock_fd;
+
+		/* For damaged region */
 		struct dynamicbox_damage_region last_damage;
 	} dbox;
 
@@ -149,8 +157,16 @@ struct dynamicbox_common {
 		/* For the filtering event */
 		double x;
 		double y;
+
+		/* For the extra buffer */
+		unsigned int *extra_buffer;
+		int last_extra_buffer_idx;
+
+		/* Lock */
 		char *lock;
 		int lock_fd;
+
+		/* For damaged region */
 		struct dynamicbox_damage_region last_damage;
 	} gbar;
 

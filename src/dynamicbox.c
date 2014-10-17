@@ -78,6 +78,8 @@ static struct info {
 
 static void dbox_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data);
 static void gbar_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data);
+static void gbar_xpixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data);
+static void dbox_xpixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data);
 
 static int default_launch_handler(dynamicbox_h handler, const char *appid, void *data)
 {
@@ -514,6 +516,96 @@ static void dbox_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *r
 	}
 }
 
+static void dbox_xpixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data)
+{
+	int pixmap;
+	int ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	dynamicbox_ret_cb cb;
+	void *cbdata;
+	struct cb_info *info = data;
+
+	cb = info->cb;
+	cbdata = info->data;
+	dbox_destroy_cb_info(info);
+
+	if (!result) {
+		pixmap = 0;
+	} else if (packet_get(result, "ii", &pixmap, &ret) != 2) {
+		pixmap = 0;
+	}
+
+	if (cb) {
+		cb(handler, pixmap, cbdata);
+	}
+
+	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+		dbox_unref(handler, 1);
+	}
+}
+
+static int dbox_acquire_gbar_extra_pixmap(dynamicbox_h handler, int idx, dynamicbox_ret_cb cb, void *data)
+{
+	struct packet *packet;
+	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_GBAR_ACQUIRE_XPIXMAP;
+	int ret;
+
+	packet = packet_create((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, idx);
+	if (!packet) {
+		ErrPrint("Failed to build a param\n");
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	cbinfo = dbox_create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(handler, packet, 0, gbar_xpixmap_acquired_cb, cbinfo);
+	if (ret < 0) {
+		/*!
+		 * \note
+		 * Packet will be destroyed by master_rpc_async_request
+		 */
+		dbox_destroy_cb_info(cbinfo);
+	}
+
+	return ret;
+}
+
+static int dbox_acquire_dbox_extra_pixmap(dynamicbox_h handler, int idx, dynamicbox_ret_cb cb, void *data)
+{
+	struct packet *packet;
+	struct cb_info *cbinfo;
+	unsigned int cmd = CMD_DBOX_ACQUIRE_XPIXMAP;
+	int ret;
+
+	packet = packet_create((const char *)&cmd, "ssi", handler->common->pkgname, handler->common->id, idx);
+	if (!packet) {
+		ErrPrint("Failed to build a param\n");
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	cbinfo = dbox_create_cb_info(cb, data);
+	if (!cbinfo) {
+		packet_destroy(packet);
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	ret = master_rpc_async_request(handler, packet, 0, dbox_xpixmap_acquired_cb, cbinfo);
+	if (ret < 0) {
+		/*!
+		 * \note
+		 * Packet will be destroyed by master_rpc_async_request
+		 */
+		dbox_destroy_cb_info(cbinfo);
+	}
+
+	return ret;
+}
+
 static int dbox_acquire_gbar_pixmap(dynamicbox_h handler, dynamicbox_ret_cb cb, void *data)
 {
 	struct packet *packet;
@@ -549,6 +641,37 @@ static int dbox_acquire_gbar_pixmap(dynamicbox_h handler, dynamicbox_ret_cb cb, 
 	}
 
 	return ret;
+}
+
+static void gbar_xpixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data)
+{
+	int pixmap;
+	int ret;
+	dynamicbox_ret_cb cb;
+	void *cbdata;
+	struct cb_info *info = data;
+
+	cb = info->cb;
+	cbdata = info->data;
+	dbox_destroy_cb_info(info);
+
+	if (!result) {
+		pixmap = 0; /* PIXMAP 0 means error */
+		ret = DBOX_STATUS_ERROR_FAULT;
+	} else if (packet_get(result, "ii", &pixmap, &ret) != 2) {
+		pixmap = 0;
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (cb) {
+		DbgPrint("ret: %x, pixmap: %d\n", ret, pixmap);
+		cb(handler, pixmap, cbdata);
+	}
+
+	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+		dbox_unref(handler, 1);
+	}
 }
 
 static void gbar_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *result, void *data)
@@ -882,6 +1005,7 @@ static int create_real_instance(dynamicbox_h handler, dynamicbox_ret_cb cb, void
 				common->dbox.period, common->dbox.width, common->dbox.height);
 	if (!packet) {
 		ErrPrint("Failed to create a new packet\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_FAULT);
 		return DBOX_STATUS_ERROR_FAULT;
 	}
 
@@ -889,6 +1013,7 @@ static int create_real_instance(dynamicbox_h handler, dynamicbox_ret_cb cb, void
 	if (!cbinfo) {
 		ErrPrint("Failed to create a cbinfo\n");
 		packet_destroy(packet);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
 		return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -901,6 +1026,7 @@ static int create_real_instance(dynamicbox_h handler, dynamicbox_ret_cb cb, void
 	if (ret < 0) {
 		ErrPrint("Failed to send a new packet\n");
 		dbox_destroy_cb_info(cbinfo);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_FAULT);
 		return DBOX_STATUS_ERROR_FAULT;
 	}
 	handler->common->request.created = 1;
@@ -1177,18 +1303,21 @@ EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const
 	if (!pkgname || !cluster || !category) {
 		ErrPrint("Invalid arguments: pkgname[%p], cluster[%p], category[%p]\n",
 								pkgname, cluster, category);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	dboxid = dbox_pkgname(pkgname);
 	if (!dboxid) {
 		ErrPrint("Invalid package: %s\n", pkgname);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (dynamicbox_service_is_enabled(dboxid) == 0) {
 		DbgPrint("Livebox [%s](%s) is disabled package\n", dboxid, pkgname);
 		free(dboxid);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_DISABLED);
 		return NULL;
 	}
 
@@ -1200,6 +1329,7 @@ EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const
 	if (!handler) {
 		ErrPrint("Error: %s\n", strerror(errno));
 		free(dboxid);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -1219,8 +1349,8 @@ EAPI dynamicbox_h dynamicbox_add(const char *pkgname, const char *content, const
 
 		if (!content || !strlen(content)) {
 			char *pc;
-			/*!
-			 * \note
+			/**
+			 * @note
 			 * I know the content should not be modified. use it temporarly without "const"
 			 */
 			pc = dynamicbox_service_content(handler->common->pkgname);
@@ -1288,17 +1418,20 @@ EAPI double dynamicbox_period(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return 0.0f;
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return -1.0f;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return 0.0f;
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return -1.0f;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Hnalder is not valid\n");
-		return 0.0f;
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return -1.0f;
 	}
 
 	return handler->common->dbox.period;
@@ -1391,7 +1524,7 @@ EAPI int dynamicbox_del(dynamicbox_h handler, dynamicbox_delete_type_e type, dyn
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_set_fault_handler(dynamicbox_fault_handler_cb dbox_cb, void *data)
+EAPI int dynamicbox_add_fault_handler(dynamicbox_fault_handler_cb dbox_cb, void *data)
 {
 	if (!dbox_cb) {
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
@@ -1400,7 +1533,7 @@ EAPI int dynamicbox_set_fault_handler(dynamicbox_fault_handler_cb dbox_cb, void 
 	return dbox_add_fault_handler(dbox_cb, data);
 }
 
-EAPI void *dynamicbox_unset_fault_handler(dynamicbox_fault_handler_cb dbox_cb)
+EAPI void *dynamicbox_remove_fault_handler(dynamicbox_fault_handler_cb dbox_cb)
 {
 	if (!dbox_cb) {
 		return NULL;
@@ -1409,7 +1542,7 @@ EAPI void *dynamicbox_unset_fault_handler(dynamicbox_fault_handler_cb dbox_cb)
 	return dbox_remove_fault_handler(dbox_cb);
 }
 
-EAPI int dynamicbox_set_event_handler(dynamicbox_event_handler_cb dbox_cb, void *data)
+EAPI int dynamicbox_add_event_handler(dynamicbox_event_handler_cb dbox_cb, void *data)
 {
 	if (!dbox_cb) {
 		ErrPrint("Invalid argument dbox_cb is nil\n");
@@ -1419,7 +1552,7 @@ EAPI int dynamicbox_set_event_handler(dynamicbox_event_handler_cb dbox_cb, void 
 	return dbox_add_event_handler(dbox_cb, data);
 }
 
-EAPI void *dynamicbox_unset_event_handler(dynamicbox_event_handler_cb dbox_cb)
+EAPI void *dynamicbox_remove_event_handler(dynamicbox_event_handler_cb dbox_cb)
 {
 	if (!dbox_cb) {
 		return NULL;
@@ -2437,6 +2570,7 @@ EAPI const char *dynamicbox_filename(dynamicbox_h handler)
 	}
 
 	/* Oooops */
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_NONE);
 	return util_uri_to_path(handler->common->id);
 }
 
@@ -2485,16 +2619,19 @@ EAPI dynamicbox_size_type_e dynamicbox_size(dynamicbox_h handler)
 
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_SIZE_TYPE_UNKNOWN;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_SIZE_TYPE_UNKNOWN;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Handler is not valid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_SIZE_TYPE_UNKNOWN;
 	}
 
@@ -2507,6 +2644,7 @@ EAPI dynamicbox_size_type_e dynamicbox_size(dynamicbox_h handler)
 		if (!fb_is_created(handler->common->dbox.fb)) {
 			w = 0;
 			h = 0;
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_NOT_EXIST);
 		}
 		break;
 	default:
@@ -2647,19 +2785,23 @@ EAPI const char *dynamicbox_pkgname(dynamicbox_h handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_NONE);
 	return handler->common->pkgname;
 }
 
@@ -2667,16 +2809,19 @@ EAPI double dynamicbox_priority(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return -1.0f;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return -1.0f;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Handler is not valid (%p)\n", handler);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return -1.0f;
 	}
 
@@ -2739,20 +2884,21 @@ EAPI int dynamicbox_delete_category(const char *cluster, const char *category, d
 
 EAPI dynamicbox_type_e dynamicbox_type(dynamicbox_h handler, int gbar)
 {
-	dynamicbox_type_e type;
-
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_CONTENT_TYPE_INVALID;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_CONTENT_TYPE_INVALID;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Handler is not valid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_CONTENT_TYPE_INVALID;
 	}
 
@@ -2775,8 +2921,6 @@ EAPI dynamicbox_type_e dynamicbox_type(dynamicbox_h handler, int gbar)
 		default:
 			break;
 		}
-
-		return DBOX_CONTENT_TYPE_INVALID;
 	} else {
 		switch (handler->common->dbox.type) {
 		case DBOX_TYPE_FILE:
@@ -2798,11 +2942,10 @@ EAPI dynamicbox_type_e dynamicbox_type(dynamicbox_h handler, int gbar)
 		default:
 			break;
 		}
-
-		return DBOX_CONTENT_TYPE_INVALID;
 	}
 
-	return type;
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+	return DBOX_CONTENT_TYPE_INVALID;
 }
 
 EAPI int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, struct dynamicbox_script_operators *ops)
@@ -2826,24 +2969,78 @@ EAPI int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, struct dyna
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_acquire_extra_resource_id(dynamicbox_h handler, int gbar, int idx, dynamicbox_ret_cb cb, void *data)
 {
+	if (idx < 0) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler->common->id) {
+		ErrPrint("Invalid handle\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
 	if (gbar) {
-		if (!handler || handler->state != DBOX_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
+		if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
+			ErrPrint("Invalid handler\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
+		if (!handler->common->gbar.extra_buffer) {
+			return DBOX_STATUS_ERROR_NOT_EXIST;
+		}
+
+		if (idx >= conf_extra_buffer_count()) {
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
-		if (!handler->common->id) {
-			ErrPrint("Invalid handle\n");
+		return dbox_acquire_gbar_extra_pixmap(handler, idx, cb, data);
+	} else {
+		if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
+			ErrPrint("Handler is not valid type\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		}
 
+		if (!handler->common->dbox.extra_buffer) {
+			return DBOX_STATUS_ERROR_NOT_EXIST;
+		}
+
+		if (idx >= conf_extra_buffer_count()) {
+			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+
+		return dbox_acquire_dbox_extra_pixmap(handler, idx, cb, data);
+	}
+}
+
+EAPI int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb cb, void *data)
+{
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler->common->id) {
+		ErrPrint("Invalid handle\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (gbar) {
 		if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
@@ -2851,21 +3048,6 @@ EAPI unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar,
 
 		return dbox_acquire_gbar_pixmap(handler, cb, data);
 	} else {
-		if (!handler || handler->state != DBOX_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
-		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
-		if (!handler->common->id) {
-			ErrPrint("Invalid handle\n");
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
 		if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
 			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
@@ -2986,89 +3168,138 @@ EAPI int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned
 	return master_rpc_request_only(handler, packet);
 }
 
+EAPI unsigned int dynamicbox_extra_resource_id(const dynamicbox_h handler, int gbar, int idx)
+{
+	if (idx < 0) {
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return 0u;
+	}
+
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return 0u;
+	}
+
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return 0u;
+	}
+
+	if (!handler->common->id) {
+		ErrPrint("Invalid handler\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return 0u;
+	}
+
+	if (gbar) {
+		if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
+			ErrPrint("Invalid handler\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+			return 0u;
+		}
+
+		if (!handler->common->gbar.extra_buffer || handler->common->gbar.last_extra_buffer_idx < 0) {
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_NOT_EXIST);
+			return 0u;
+		}
+
+		return handler->common->gbar.extra_buffer[handler->common->gbar.last_extra_buffer_idx];
+	} else {
+		if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
+			ErrPrint("Invalid handler\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+			return 0u;
+		}
+
+		if (!handler->common->dbox.extra_buffer || handler->common->dbox.last_extra_buffer_idx < 0) {
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_NOT_EXIST);
+			return 0u;
+		}
+
+		return handler->common->dbox.extra_buffer[handler->common->dbox.last_extra_buffer_idx];
+	}
+}
+
 EAPI unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
 {
 	const char *id;
-	int pixmap = 0;
+	unsigned int pixmap = 0u;
+
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return 0u;
+	}
+
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return 0u;
+	}
+
+	if (!handler->common->id) {
+		ErrPrint("Invalid handler\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return 0u;
+	}
 
 	if (gbar) {
-		if (!handler || handler->state != DBOX_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			return 0;
-		}
-
-		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			return 0;
-		}
-
-		if (!handler->common->id) {
-			ErrPrint("Invalid handler\n");
-			return 0;
-		}
-
 		if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Invalid handler\n");
-			return 0;
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+			return 0u;
 		}
 
 		id = fb_id(handler->common->gbar.fb);
-		if (id && sscanf(id, SCHEMA_PIXMAP "%u", (unsigned int *)&pixmap) != 1) {
+		if (id && sscanf(id, SCHEMA_PIXMAP "%u", &pixmap) != 1) {
 			ErrPrint("PIXMAP Id is not valid\n");
-			return 0;
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+			return 0u;
 		}
 	} else {
-		if (!handler || handler->state != DBOX_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			return 0;
-		}
-
-		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			return 0;
-		}
-
-		if (!handler->common->id) {
-			ErrPrint("Invalid handler\n");
-			return 0;
-		}
-
 		if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
 			ErrPrint("Invalid handler\n");
-			return 0;
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+			return 0u;
 		}
 
 		id = fb_id(handler->common->dbox.fb);
-		if (id && sscanf(id, SCHEMA_PIXMAP "%u", (unsigned int *)&pixmap) != 1) {
+		if (id && sscanf(id, SCHEMA_PIXMAP "%u", &pixmap) != 1) {
 			ErrPrint("PIXMAP Id is not valid\n");
-			return 0;
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+			return 0u;
 		}
-
 	}
 
 	return pixmap;
 }
 
-EAPI void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar)
+EAPI void *dynamicbox_acquire_buffer(dynamicbox_h handler, int gbar)
 {
 	if (gbar) {
 		if (!handler || handler->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (!handler->common->id) {
 			ErrPrint("Invalid handler\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (handler->common->gbar.type != GBAR_TYPE_SCRIPT && handler->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
@@ -3076,21 +3307,25 @@ EAPI void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar)
 	} else {
 		if (!handler || handler->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (!handler->common->id) {
 			ErrPrint("Invalid handle\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (handler->common->dbox.type != DBOX_TYPE_SCRIPT && handler->common->dbox.type != DBOX_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
@@ -3098,30 +3333,33 @@ EAPI void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar)
 	}
 }
 
-EAPI int dynamicbox_release_fb(void *buffer)
+EAPI int dynamicbox_release_buffer(void *buffer)
 {
 	return fb_release_buffer(buffer);
 }
 
-EAPI int dynamicbox_fb_refcnt(void *buffer)
+EAPI int dynamicbox_buffer_refcnt(void *buffer)
 {
 	return fb_refcnt(buffer);
 }
 
-EAPI int dynamicbox_fb_buffer_size(dynamicbox_h handler, int gbar)
+EAPI int dynamicbox_buffer_size(dynamicbox_h handler, int gbar)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Invalid handler\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3136,16 +3374,19 @@ EAPI int dynamicbox_is_created_by_user(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Invalid handler\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3207,16 +3448,19 @@ EAPI int dynamicbox_is_pinned_up(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Invalid handler\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3227,16 +3471,19 @@ EAPI int dynamicbox_has_pinup(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Invalid handler\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3263,11 +3510,13 @@ EAPI void *dynamicbox_data(dynamicbox_h handler)
 {
 	if (!handler) {
 		ErrPrint("Handler is NIL\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -3278,14 +3527,17 @@ EAPI const char *dynamicbox_content(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_NONE);
 	return handler->common->content;
 }
 
@@ -3293,14 +3545,17 @@ EAPI const char *dynamicbox_title(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_NONE);
 	return handler->common->title;
 }
 
@@ -3492,16 +3747,19 @@ EAPI dynamicbox_visible_state_e dynamicbox_visibility(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_VISIBLE_ERROR;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_VISIBLE_ERROR;
 	}
 
 	if (!handler->common->id) {
 		ErrPrint("Handler is not valid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_VISIBLE_ERROR;
 	}
 
@@ -3536,7 +3794,7 @@ EAPI int dynamicbox_viewer_set_resumed(void)
 	return master_rpc_request_only(NULL, packet);
 }
 
-EAPI int dynamicbox_sync_fb(dynamicbox_h handler, int gbar)
+EAPI int dynamicbox_sync_buffer(dynamicbox_h handler, int gbar)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
@@ -3560,37 +3818,41 @@ EAPI int dynamicbox_sync_fb(dynamicbox_h handler, int gbar)
 	}
 }
 
-EAPI const char *dynamicbox_alt_icon(dynamicbox_h handler)
+EAPI const char *dynamicbox_alternative_icon(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handler);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	return handler->common->alt.icon;
 }
 
-EAPI const char *dynamicbox_alt_name(dynamicbox_h handler)
+EAPI const char *dynamicbox_alternative_name(dynamicbox_h handler)
 {
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handler);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	return handler->common->alt.name;
 }
 
-EAPI int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int is_gbar)
+EAPI int dynamicbox_acquire_buffer_lock(dynamicbox_h handler, int is_gbar)
 {
 	int ret = DBOX_STATUS_ERROR_NONE;
 	int fd;
@@ -3639,7 +3901,7 @@ EAPI int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int is_gbar)
 	return ret == 0 ? DBOX_STATUS_ERROR_NONE : DBOX_STATUS_ERROR_FAULT;
 }
 
-EAPI int dynamicbox_release_fb_lock(dynamicbox_h handler, int is_gbar)
+EAPI int dynamicbox_release_buffer_lock(dynamicbox_h handler, int is_gbar)
 {
 	int ret = DBOX_STATUS_ERROR_NONE;
 	int fd;
@@ -3720,6 +3982,7 @@ EAPI int dynamicbox_option(dynamicbox_option_type_e option)
 {
 	int ret;
 
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_NONE);
 	switch (option) {
 	case DBOX_OPTION_MANUAL_SYNC:
 		ret = conf_manual_sync();
@@ -3735,6 +3998,7 @@ EAPI int dynamicbox_option(dynamicbox_option_type_e option)
 		break;
 	default:
 		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		break;
 	}
 
@@ -3770,6 +4034,53 @@ EAPI int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dyna
 		region = &handler->common->dbox.last_damage;
 	} else {
 		region = &handler->common->gbar.last_damage;
+	}
+
+	return DBOX_STATUS_ERROR_NONE;
+}
+
+EAPI int dynamicbox_get_last_extra_buffer(dynamicbox_h handler, int gbar, int *idx, unsigned int *resource_id)
+{
+	int _idx;
+	unsigned int _resource_id;
+
+	if (!handler || handler->state != DBOX_STATE_CREATE) {
+		ErrPrint("Invalid handle\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler->common || handler->common->state != DBOX_STATE_CREATE) {
+		ErrPrint("Invalid handle\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handler->common->id) {
+		ErrPrint("Handler is not valid[%p]\n", handler);
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!idx) {
+		idx = &_idx;
+	}
+
+	if (!resource_id) {
+		resource_id = &_resource_id;
+	}
+
+	if (gbar) {
+		if (!handler->common->gbar.extra_buffer || handler->common->gbar.last_extra_buffer_idx < 0) {
+			return DBOX_STATUS_ERROR_NOT_EXIST;
+		}
+
+		*idx = handler->common->gbar.last_extra_buffer_idx;
+		*resource_id = handler->common->gbar.extra_buffer[*idx];
+	} else {
+		if (!handler->common->dbox.extra_buffer || handler->common->dbox.last_extra_buffer_idx < 0) {
+			return DBOX_STATUS_ERROR_NOT_EXIST;
+		}
+
+		*idx = handler->common->dbox.last_extra_buffer_idx;
+		*resource_id = handler->common->dbox.extra_buffer[*idx];
 	}
 
 	return DBOX_STATUS_ERROR_NONE;

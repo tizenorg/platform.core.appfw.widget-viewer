@@ -40,5 +40,9 @@ extern double conf_event_filter(void);
 extern void conf_set_event_filter(double filter);
 extern void conf_set_direct_update(int flag);
 extern int conf_direct_update(void);
+extern int conf_extra_buffer_count(void);
+extern void conf_set_extra_buffer_count(int buffer_count);
+extern dynamicbox_status_e conf_last_status(void);
+extern void conf_set_last_status(dynamicbox_status_e status);
 
 /* End of a file */

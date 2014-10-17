@@ -240,12 +240,14 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 	if (!info) {
 		ErrPrint("info == NIL\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!info->buffer) {
 		if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 			ErrPrint("Unsupported Type\n");
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		} else if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 			update_fb_size(info);
@@ -254,6 +256,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 			if (!buffer) {
 				ErrPrint("Heap: %s\n", strerror(errno));
 				info->bufsz = 0;
+				dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
 				return NULL;
 			}
 
@@ -268,12 +271,14 @@ void *fb_acquire_buffer(struct fb_info *info)
 			buffer = shmat(info->handle, NULL, 0);
 			if (buffer == (void *)-1) {
 				ErrPrint("shmat: %s (%d)\n", strerror(errno), info->handle);
+				dynamicbox_set_last_status(DBOX_STATUS_ERROR_FAULT);
 				return NULL;
 			}
 
 			return buffer->data;
 		} else {
 			ErrPrint("Buffer is not created (%s)\n", info->id);
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 	}
@@ -287,6 +292,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
 		DbgPrint("Unknwon FP: %d\n", buffer->type);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		break;
 	}
 
@@ -299,6 +305,7 @@ int fb_release_buffer(void *data)
 
 	if (!data) {
 		ErrPrint("buffer data == NIL\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -306,6 +313,7 @@ int fb_release_buffer(void *data)
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid handle\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -332,6 +340,7 @@ int fb_release_buffer(void *data)
 	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
 		ErrPrint("Unknwon buffer type\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		break;
 	}
 
@@ -345,6 +354,7 @@ int fb_refcnt(void *data)
 	int ret;
 
 	if (!data) {
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -352,6 +362,7 @@ int fb_refcnt(void *data)
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid handle\n");
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
@@ -359,6 +370,7 @@ int fb_refcnt(void *data)
 	case DBOX_BUFFER_TYPE_SHM:
 		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
 			ErrPrint("Error: %s\n", strerror(errno));
+			dynamicbox_set_last_status(DBOX_STATUS_ERROR_FAULT);
 			return DBOX_STATUS_ERROR_FAULT;
 		}
 
@@ -369,6 +381,7 @@ int fb_refcnt(void *data)
 		break;
 	case DBOX_BUFFER_TYPE_PIXMAP:
 	default:
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
 		break;
 	}
@@ -396,6 +409,7 @@ int fb_get_size(struct fb_info *info, int *w, int *h)
 int fb_size(struct fb_info *info)
 {
 	if (!info) {
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
 		return 0;
 	}
 

@@ -182,12 +182,14 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
 	common = calloc(1, sizeof(*common));
 	if (!common) {
 		ErrPrint("Heap: %s\n", strerror(errno));
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
 	common->pkgname = strdup(pkgname);
 	if (!common->pkgname) {
 		free(common);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -196,6 +198,7 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
 		ErrPrint("Error: %s\n", strerror(errno));
 		free(common->pkgname);
 		free(common);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -205,6 +208,7 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
 		free(common->cluster);
 		free(common->pkgname);
 		free(common);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -221,10 +225,14 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
 	common->timestamp = util_timestamp();
 	common->is_user = 1;
 	common->delete_type = DBOX_DELETE_PERMANENTLY;
+
 	common->gbar.lock = NULL;
 	common->gbar.lock_fd = -1;
+	common->gbar.last_extra_buffer_idx = -1;
+
 	common->dbox.lock = NULL;
 	common->dbox.lock_fd = -1;
+	common->dbox.last_extra_buffer_idx = -1;
 
 	common->state = DBOX_STATE_CREATE;
 	common->visible = DBOX_SHOW;

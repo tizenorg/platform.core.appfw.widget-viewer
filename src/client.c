@@ -1022,6 +1022,234 @@ out:
 	return NULL;
 }
 
+static struct packet *master_gbar_extra_buffer_destroyed(pid_t pid, int handle, const struct packet *packet)
+{
+	dynamicbox_h handler;
+	struct dynamicbox_common *common;
+	const char *pkgname;
+	struct dlist *l;
+	struct dlist *n;
+	const char *id;
+	int pixmap;
+	int idx;
+	int ret;
+
+	if (!packet) {
+		ErrPrint("Invalid packet\n");
+		goto out;
+	}
+
+	ret = packet_get(packet, "ssii", &pkgname, &id, &pixmap, &idx);
+	if (ret != 4) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	if (idx < 0 || idx >= conf_extra_buffer_count()) {
+		ErrPrint("Extra buffer count is not matched\n");
+		goto out;
+	}
+
+	common = dbox_find_common_handle(pkgname, id);
+	if (!common) {
+		ErrPrint("DBOX(%s) is not found\n", id);
+		goto out;
+	}
+
+	if (common->state != DBOX_STATE_CREATE) {
+		ErrPrint("DBOX(%s) is not created yet\n", id);
+		goto out;
+	}
+
+	if (!common->gbar.extra_buffer && conf_extra_buffer_count()) {
+		common->gbar.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->gbar.extra_buffer));
+		if (!common->gbar.extra_buffer) {
+			ErrPrint("DBOX(%s) calloc: %s\n", id, strerror(errno));
+		}
+	}
+
+	common->gbar.last_extra_buffer_idx = idx;
+	if (common->gbar.extra_buffer[idx] != pixmap) {
+		DbgPrint("Extra buffer Pixmap is not matched %u <> %u\n", common->dbox.extra_buffer[idx], pixmap);
+	}
+
+	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
+		dbox_invoke_event_handler(handler, DBOX_EVENT_GBAR_EXTRA_BUFFER_DESTROYED);
+	}
+out:
+	return NULL;
+}
+
+static struct packet *master_dbox_extra_buffer_destroyed(pid_t pid, int handle, const struct packet *packet)
+{
+	dynamicbox_h handler;
+	struct dynamicbox_common *common;
+	const char *pkgname;
+	struct dlist *l;
+	struct dlist *n;
+	const char *id;
+	int idx;
+	int pixmap;
+	int ret;
+
+	if (!packet) {
+		ErrPrint("Invalid packet\n");
+		goto out;
+	}
+
+	ret = packet_get(packet, "ssii", &pkgname, &id, &pixmap, &idx);
+	if (ret != 4) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	if (idx < 0 || idx >= conf_extra_buffer_count()) {
+		ErrPrint("Extra buffer count is not matched\n");
+		goto out;
+	}
+
+	common = dbox_find_common_handle(pkgname, id);
+	if (!common) {
+		ErrPrint("DBOX(%s) is not found\n", id);
+		goto out;
+	}
+
+	if (common->state != DBOX_STATE_CREATE) {
+		ErrPrint("DBOX(%s) is not created yet\n", id);
+		goto out;
+	}
+
+	if (!common->dbox.extra_buffer && conf_extra_buffer_count()) {
+		common->dbox.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->dbox.extra_buffer));
+		if (!common->dbox.extra_buffer) {
+			ErrPrint("DBOX(%s) calloc: %s\n", id, strerror(errno));
+		}
+	}
+
+	common->dbox.last_extra_buffer_idx = idx;
+	if (common->dbox.extra_buffer[idx] != pixmap) {
+		DbgPrint("Extra buffer Pixmap is not matched %u <> %u\n", common->dbox.extra_buffer[idx], pixmap);
+	}
+
+	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
+		dbox_invoke_event_handler(handler, DBOX_EVENT_DBOX_EXTRA_BUFFER_DESTROYED);
+	}
+out:
+	return NULL;
+}
+
+static struct packet *master_dbox_extra_buffer_created(pid_t pid, int handle, const struct packet *packet)
+{
+	dynamicbox_h handler;
+	struct dynamicbox_common *common;
+	const char *pkgname;
+	struct dlist *l;
+	struct dlist *n;
+	const char *id;
+	int idx;
+	int pixmap;
+	int ret;
+
+	if (!packet) {
+		ErrPrint("Invalid packet\n");
+		goto out;
+	}
+
+	ret = packet_get(packet, "ssii", &pkgname, &id, &pixmap, &idx);
+	if (ret != 4) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	if (idx < 0 || idx >= conf_extra_buffer_count()) {
+		ErrPrint("Extra buffer count is not matched\n");
+		goto out;
+	}
+
+	common = dbox_find_common_handle(pkgname, id);
+	if (!common) {
+		ErrPrint("DBOX(%s) is not found\n", id);
+		goto out;
+	}
+
+	if (common->state != DBOX_STATE_CREATE) {
+		ErrPrint("DBOX(%s) is not created yet\n", id);
+		goto out;
+	}
+
+	if (!common->dbox.extra_buffer && conf_extra_buffer_count()) {
+		common->dbox.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->dbox.extra_buffer));
+		if (!common->dbox.extra_buffer) {
+			ErrPrint("DBOX(%s) calloc: %s\n", id, strerror(errno));
+		}
+	}
+
+	common->dbox.last_extra_buffer_idx = idx;
+	common->dbox.extra_buffer[idx] = pixmap;
+
+	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
+		dbox_invoke_event_handler(handler, DBOX_EVENT_DBOX_EXTRA_BUFFER_CREATED);
+	}
+out:
+	return NULL;
+}
+
+static struct packet *master_gbar_extra_buffer_created(pid_t pid, int handle, const struct packet *packet)
+{
+	dynamicbox_h handler;
+	struct dynamicbox_common *common;
+	const char *pkgname;
+	struct dlist *l;
+	struct dlist *n;
+	const char *id;
+	int pixmap;
+	int idx;
+	int ret;
+
+	if (!packet) {
+		ErrPrint("Invalid packet\n");
+		goto out;
+	}
+
+	ret = packet_get(packet, "ssii", &pkgname, &id, &pixmap, &idx);
+	if (ret != 4) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	if (idx < 0 || idx >= conf_extra_buffer_count()) {
+		ErrPrint("Extra buffer count is not matched\n");
+		goto out;
+	}
+
+	common = dbox_find_common_handle(pkgname, id);
+	if (!common) {
+		ErrPrint("DBOX(%s) is not found\n", id);
+		goto out;
+	}
+
+	if (common->state != DBOX_STATE_CREATE) {
+		ErrPrint("DBOX(%s) is not created yet\n", id);
+		goto out;
+	}
+
+	if (!common->gbar.extra_buffer && conf_extra_buffer_count()) {
+		common->gbar.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->gbar.extra_buffer));
+		if (!common->gbar.extra_buffer) {
+			ErrPrint("DBOX(%s) calloc: %s\n", id, strerror(errno));
+		}
+	}
+
+	common->gbar.last_extra_buffer_idx = idx;
+	common->gbar.extra_buffer[idx] = pixmap;
+
+	dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
+		dbox_invoke_event_handler(handler, DBOX_EVENT_GBAR_EXTRA_BUFFER_CREATED);
+	}
+out:
+	return NULL;
+}
+
 static struct packet *master_update_mode(pid_t pid, int handle, const struct packet *packet)
 {
 	dynamicbox_h handler;
@@ -1047,12 +1275,12 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 
 	common = dbox_find_common_handle(pkgname, id);
 	if (!common) {
-		ErrPrint("Livebox(%s) is not found\n", id);
+		ErrPrint("DBOX(%s) is not found\n", id);
 		goto out;
 	}
 
 	if (common->state != DBOX_STATE_CREATE) {
-		ErrPrint("Livebox(%s) is not created yet\n", id);
+		ErrPrint("DBOX(%s) is not created yet\n", id);
 		goto out;
 	}
 
@@ -1108,12 +1336,12 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 
 	common = dbox_find_common_handle(pkgname, id);
 	if (!common) {
-		ErrPrint("Livebox(%s) is not found\n", id);
+		ErrPrint("DBOX(%s) is not found\n", id);
 		goto out;
 	}
 
 	if (common->state != DBOX_STATE_CREATE) {
-		ErrPrint("Livebox(%s) is not created yet\n", id);
+		ErrPrint("DBOX(%s) is not created yet\n", id);
 		goto out;
 	}
 
@@ -1207,12 +1435,12 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 
 	common = dbox_find_common_handle(pkgname, id);
 	if (!common) {
-		ErrPrint("Livebox(%s) is not found\n", id);
+		ErrPrint("DBOX(%s) is not found\n", id);
 		goto out;
 	}
 
 	if (common->state != DBOX_STATE_CREATE) {
-		ErrPrint("Livebox(%s) is not created\n", id);
+		ErrPrint("DBOX(%s) is not created\n", id);
 		goto out;
 	}
 
@@ -1264,7 +1492,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 
 	common = dbox_find_common_handle(pkgname, id);
 	if (!common) {
-		ErrPrint("Livebox(%s) is not exists\n", id);
+		ErrPrint("DBOX(%s) is not exists\n", id);
 		goto out;
 	}
 
@@ -1274,7 +1502,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		 * Do no access this handler,
 		 * You cannot believe this handler anymore.
 		 */
-		ErrPrint("Livebox(%s) is not created\n", id);
+		ErrPrint("DBOX(%s) is not created\n", id);
 		goto out;
 	}
 
@@ -1428,7 +1656,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 		/*!
 		 * \note
-		 * Livebox should create the lock file from here.
+		 * DBOX should create the lock file from here.
 		 * Even if the old_state == DBOX_STATE_DELETE,
 		 * the lock file will be deleted from deleted event callback.
 		 */
@@ -1655,6 +1883,25 @@ static struct method s_table[] = {
 		.cmd = CMD_STR_UPDATE_MODE,
 		.handler = master_update_mode,
 	},
+
+	{
+		.cmd = CMD_STR_DBOX_CREATE_XBUF,
+		.handler = master_dbox_extra_buffer_created,
+	},
+	{
+		.cmd = CMD_STR_GBAR_CREATE_XBUF,
+		.handler = master_gbar_extra_buffer_created,
+	},
+	{
+		.cmd = CMD_STR_DBOX_DESTROY_XBUF,
+		.handler = master_dbox_extra_buffer_destroyed,
+	},
+	{
+		.cmd = CMD_STR_GBAR_DESTROY_XBUF,
+		.handler = master_gbar_extra_buffer_destroyed,
+	},
+
+
 	{
 		.cmd = NULL,
 		.handler = NULL,
@@ -1667,11 +1914,13 @@ static void acquire_cb(dynamicbox_h handler, const struct packet *result, void *
 		DbgPrint("Result packet is not valid\n");
 	} else {
 		int ret;
+		int extra_buffer_count;
 
-		if (packet_get(result, "i", &ret) != 1) {
+		if (packet_get(result, "ii", &ret, &extra_buffer_count) != 2) {
 			ErrPrint("Invalid argument\n");
 		} else {
-			DbgPrint("Acquire returns: %d\n", ret);
+			DbgPrint("Acquire returns: %d (%d)\n", ret, extra_buffer_count);
+			conf_set_extra_buffer_count(extra_buffer_count);
 		}
 	}
 

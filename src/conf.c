@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <dynamicbox_errno.h>
 
 static struct info {
 	int manual_sync;
 	int frame_drop_for_resizing;
 	int shared_content;
 	int direct_update;
+	int extra_buffer_count;
 
 	double event_filter;
 } s_info = {
@@ -12,6 +14,7 @@ static struct info {
 	.frame_drop_for_resizing = 1,
 	.shared_content = 0,
 	.direct_update = 0,
+	.extra_buffer_count = 0,
 
 	.event_filter = 0.01f,
 };
@@ -64,6 +67,16 @@ double conf_event_filter(void)
 void conf_set_event_filter(double filter)
 {
 	s_info.event_filter = filter;
+}
+
+void conf_set_extra_buffer_count(int buffer_count)
+{
+	s_info.extra_buffer_count = buffer_count;
+}
+
+int conf_extra_buffer_count(void)
+{
+	return s_info.extra_buffer_count;
 }
 
 /* End of a file */

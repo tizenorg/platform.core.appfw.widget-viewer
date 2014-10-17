@@ -227,6 +227,12 @@ typedef enum dynamicbox_event_type {                    /**< dynamicbox_event_ha
 
     DBOX_EVENT_EXTRA_INFO_UPDATED,              /**< Extra information is updated */
 
+    DBOX_EVENT_DBOX_EXTRA_BUFFER_CREATED,       /**< DBOX Extra Buffer created event */
+    DBOX_EVENT_GBAR_EXTRA_BUFFER_CREATED,       /**< GBAR Extra Buffer created event */
+
+    DBOX_EVENT_DBOX_EXTRA_BUFFER_DESTROYED,     /**< DBOX Extra Buffer destroyed event */
+    DBOX_EVENT_GBAR_EXTRA_BUFFER_DESTROYED,     /**< DBOX Extra Buffer destroyed event */
+
     DBOX_EVENT_IGNORED = 0xFF                   /**< Request is ignored */
 } dynamicbox_event_type_e;
 
@@ -508,6 +514,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  *    It can be initialized only after getting the return callback with "ret == #DBOX_STATUS_ERROR_NONE"
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
+ *    If this returns NULL, you can get the reason of failure using dynamicbox_last_status()
  * @param[in] dbox_id DynamicBox Id
  * @param[in] content Contents that will be given to the dynamicbox instance
  * @param[in] cluster Main group
@@ -565,7 +572,7 @@ extern int dynamicbox_del(dynamicbox_h handler, dynamicbox_delete_type_e type, d
  * @retval #DBOX_STATUS_ERROR_OUT_OF_MEMORY Not enough memory
  * @see dynamicbox_unset_event_handler()
  */
-extern int dynamicbox_set_event_handler(dynamicbox_event_handler_cb cb, void *data);
+extern int dynamicbox_add_event_handler(dynamicbox_event_handler_cb cb, void *data);
 
 /**
  * @internal
@@ -576,7 +583,7 @@ extern int dynamicbox_set_event_handler(dynamicbox_event_handler_cb cb, void *da
  * @retval pointer Pointer of 'data' which is used with the dynamicbox_set_event_handler
  * @see dynamicbox_set_event_handler()
  */
-extern void *dynamicbox_unset_event_handler(dynamicbox_event_handler_cb cb);
+extern void *dynamicbox_remove_event_handler(dynamicbox_event_handler_cb cb);
 
 /**
  * @internal
@@ -591,7 +598,7 @@ extern void *dynamicbox_unset_event_handler(dynamicbox_event_handler_cb cb);
  * @retval #DBOX_STATUS_ERROR_OUT_OF_MEMORY Not enough memory
  * @see dynamicbox_unset_fault_handler()
  */
-extern int dynamicbox_set_fault_handler(dynamicbox_fault_handler_cb cb, void *data);
+extern int dynamicbox_add_fault_handler(dynamicbox_fault_handler_cb cb, void *data);
 
 /**
  * @internal
@@ -602,7 +609,7 @@ extern int dynamicbox_set_fault_handler(dynamicbox_fault_handler_cb cb, void *da
  * @retval pointer Pointer of 'data' which is used with the dynamicbox_set_fault_handler
  * @see dynamicbox_set_fault_handler()
  */
-extern void *dynamicbox_unset_fault_handler(dynamicbox_fault_handler_cb cb);
+extern void *dynamicbox_remove_fault_handler(dynamicbox_fault_handler_cb cb);
 
 /**
  * @internal
@@ -735,10 +742,12 @@ extern int dynamicbox_get_group(dynamicbox_h handler, const char **cluster, cons
  * @since_tizen 2.3
  * @remarks If this function returns 0.0f, it means the dynamicbox has no update period or the handle is not valid.
  *    This function only works after the return callback of dynamicbox_create fucntion is called.
+ *    If this returns negative value, you can get the reason of failure using dynamicbox_last_status()
  * @param[in] handler Handler of a dynamicbox instance
  * @return double
- * @retval Current update period of a dynamicbox
- * @retval 0.0f This means the box has no update period or the handles is not valid
+ * @retval >0 Current update period of a dynamicbox
+ * @retval 0.0f The box has no update period
+ * @retval -1.0f Failed to get the period info
  */
 extern double dynamicbox_period(dynamicbox_h handler);
 
@@ -769,6 +778,8 @@ extern int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox
 /**
  * @internal
  * @brief Checks whether the given dynamicbox is a text type or not.
+ * @remarks
+ *    If this returns DBOX_CONTENT_TYPE_INVALID, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
@@ -786,6 +797,7 @@ extern dynamicbox_type_e dynamicbox_type(dynamicbox_h handler, int gbar);
 /**
  * @internal
  * @brief Checks if the given dynamicbox is created by user or not.
+ * @remarks if this returns negative value, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @details If the dynamicbox instance is created by a system this will return 0.
  * @param[in] handler Handler of a dynamicbox instance
@@ -801,6 +813,7 @@ extern int dynamicbox_is_created_by_user(dynamicbox_h handler);
 /**
  * @internal
  * @brief Gets content information string of the given dynamicbox.
+ * @remarks if this returns NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -819,6 +832,7 @@ extern const char *dynamicbox_content(dynamicbox_h handler);
  * @remarks The title returned by this API can be read by TTS.
  *  But it is just recomendation for the homescreen.
  *  So, to read it or not depends on its implementation.
+ *  if this returns NULL, you can get the reason of failure using dynamicbox_last_status()
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
  * @retval sub Cluster name
@@ -830,6 +844,7 @@ extern const char *dynamicbox_title(dynamicbox_h handler);
  * @internal
  * @brief Gets the filename of the given dynamicbox, if it is an IMAGE type dynamicbox.
  * @details If the box is developed as an image format to represent its contents, the homescreen should know its image file name.
+ * @remarks if this returns NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -841,6 +856,7 @@ extern const char *dynamicbox_filename(dynamicbox_h handler);
 /**
  * @internal
  * @brief Gets the package name of the given dynamicbox handler.
+ * @remarks if this returns NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -852,6 +868,7 @@ extern const char *dynamicbox_pkgname(dynamicbox_h handler);
 /**
  * @internal
  * @brief Gets the priority of a current content.
+ * @remarks if this returns negative value, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return double
@@ -871,9 +888,9 @@ extern double dynamicbox_priority(dynamicbox_h handler);
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return void *
  * @retval address Address of a Frame Buffer
- * @retval @c NULL If it fails to get fb address
+ * @retval @c NULL If it fails to get buffer address
  */
-extern void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar);
+extern void *dynamicbox_acquire_buffer(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -885,9 +902,9 @@ extern void *dynamicbox_acquire_fb(dynamicbox_h handler, int gbar);
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
- * @see dynamicbox_acquire_fb()
+ * @see dynamicbox_acquire_buffer()
  */
-extern int dynamicbox_release_fb(void *buffer);
+extern int dynamicbox_release_buffer(void *buffer);
 
 /**
  * @internal
@@ -899,11 +916,13 @@ extern int dynamicbox_release_fb(void *buffer);
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval refcnt Positive integer value including ZERO
  */
-extern int dynamicbox_fb_refcnt(void *buffer);
+extern int dynamicbox_buffer_refcnt(void *buffer);
 
 /**
  * @internal
  * @brief Gets the size of the Dynamicbox.
+ * @remarks
+ *   If this returns DBOX_SIZE_TYPE_UNKNOWN, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return dynamicbox_size_type_e
@@ -948,7 +967,7 @@ extern int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, int *s
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval size Size in bytes of the dynamicbox buffer
  */
-extern int dynamicbox_fb_buffer_size(dynamicbox_h handler, int gbar);
+extern int dynamicbox_buffer_size(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -1325,7 +1344,7 @@ extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
  * @see dynamicbox_release_resource_id()
  * @see dynamicbox_ret_cb
  */
-extern unsigned int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1367,8 +1386,9 @@ extern int dynamicbox_set_visibility(dynamicbox_h handler, dynamicbox_visible_st
 
 /**
  * @internal
- * @brief Updates a visible state of the dynamicbox.
  * @brief Gets the current visible state of a dynamicbox.
+ * @remarks
+ *   If this returns DBOX_VISIBLE_ERROR, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return dynamicbox_visible_state
@@ -1410,6 +1430,8 @@ extern int dynamicbox_set_update_mode(dynamicbox_h handler, int active_update, d
 /**
  * @internal
  * @brief Checks the active update mode of the given dynamicbox.
+ * @remarks
+ *   If this returns negative value, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return int
@@ -1432,7 +1454,7 @@ extern int dynamicbox_is_active_update(dynamicbox_h handler);
  * @see dynamicbox_set_manual_sync()
  * @see dynamicbox_manual_sync()
  */
-extern int dynamicbox_sync_fb(dynamicbox_h handler, int gbar);
+extern int dynamicbox_sync_buffer(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -1451,6 +1473,8 @@ extern int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dy
  * @internal
  * @brief Gets an alternative icon of the given dynamicbox instance.
  * @details If the box should be represented as a shortcut icon, this function will get the alternative icon.
+ * @remarks
+ *   If this returns NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -1458,12 +1482,14 @@ extern int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dy
  * @retval @c NULL Dynamicbox has no alternative icon file
  * @see dynamicbox_alt_name()
  */
-extern const char *dynamicbox_alt_icon(dynamicbox_h handler);
+extern const char *dynamicbox_alternative_icon(dynamicbox_h handler);
 
 /**
  * @internal
  * @brief Gets an alternative name of the given dynamicbox instance.
  * @details If the box should be represented as a shortcut name, this function will get the alternative name.
+ * @remarks
+ *   If this returns NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -1471,7 +1497,7 @@ extern const char *dynamicbox_alt_icon(dynamicbox_h handler);
  * @retval @c NULL Dynamicbox has no alternative name
  * @see dynamicbox_alt_icon()
  */
-extern const char *dynamicbox_alt_name(dynamicbox_h handler);
+extern const char *dynamicbox_alternative_name(dynamicbox_h handler);
 
 /**
  * @internal
@@ -1487,9 +1513,9 @@ extern const char *dynamicbox_alt_name(dynamicbox_h handler);
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
- * @see dynamicbox_release_fb_lock()
+ * @see dynamicbox_release_buffer_lock()
  */
-extern int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int gbar);
+extern int dynamicbox_acquire_buffer_lock(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -1504,9 +1530,9 @@ extern int dynamicbox_acquire_fb_lock(dynamicbox_h handler, int gbar);
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
- * @see dynamicbox_acquire_fb_lock()
+ * @see dynamicbox_acquire_buffer_lock()
  */
-extern int dynamicbox_release_fb_lock(dynamicbox_h handler, int gbar);
+extern int dynamicbox_release_buffer_lock(dynamicbox_h handler, int gbar);
 
 /**
  * @internal
@@ -1519,7 +1545,7 @@ extern int dynamicbox_release_fb_lock(dynamicbox_h handler, int gbar);
  *   DBOX_OPTION_MANUAL_SYNC
  *     If you don't want to update frames automatically, or you want only reload the frames by your hands, (manually)
  *     Turn this on.
- *     After turnning it on, you should sync it using dynamicbox_sync_gbar_fb and dynamicbox_sync_dbox_pfb.
+ *     After turnning it on, you should sync it using dynamicbox_sync_buffer().
  *   DBOX_OPTION_SHARED_CONTENT
  *     If this option is turnned on, even though you create a new dynamicbox,
  *     if there are already added same instances that have same contents, the instance will not be created again.
@@ -1532,13 +1558,15 @@ extern int dynamicbox_release_fb_lock(dynamicbox_h handler, int gbar);
  * @retval #DBOX_STATUS_ERROR_FAULT Failed to change the state of option
  * @retval #DBOX_STATUS_ERROR_NONE Successfully changed
  * @see dynamicbox_get_option()
- * @see dynamicbox_sync_fb()
+ * @see dynamicbox_sync_buffer()
  */
 extern int dynamicbox_set_option(dynamicbox_option_type_e option, int state);
 
 /**
  * @internal
  * @brief Gets options of a dynamicbox sub-system.
+ * @remarks
+ *   If this returns negative value, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] option Type of option
  * @return int
@@ -1574,6 +1602,25 @@ extern int dynamicbox_set_auto_launch_handler(dynamicbox_auto_launch_handler_cb 
  * @retval #DBOX_STATUS_ERROR_NONE If sucess
  */
 extern int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dynamicbox_damage_region_t *region);
+
+/**
+ * @internal
+ * @brief Get the last extra buffer index and its id.
+ * @details
+ *   If there is an event of DBOX_EVENT_DBOX_EXTRA_BUFFER_CREATED or DBOX_EVENT_GBAR_EXTRA_BUFFER_CREATED,
+ *                           DBOX_EVENT_DBOX_EXTRA_BUFFER_DESTROYED or DBOX_EVENT_GBAR_EXTRA_BUFFER_DESTROYED
+ *   you can use this to get the last created buffer info
+ * @since_tizen 2.3
+ * @param[in] handler Dynamicbox handler
+ * @param[in] gbar 1 if you want get the glance bar's info or 0
+ * @param[out] idx Index of buffer
+ * @param[out] resource_id Resource Id
+ * @return status
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully get
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Handler is not valid
+ * @retval #DBOX_STATUS_ERROR_NOT_EXIST There is no extra buffer
+ */
+extern int dynamicbox_get_affected_extra_buffer(dynamicbox_h handler, int gbar, int *idx, unsigned int *resource_id);
 
 /**
  * @}
