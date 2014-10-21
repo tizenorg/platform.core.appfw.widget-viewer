@@ -335,6 +335,22 @@ typedef struct dynamicbox_key_event_info {
 
 /**
  * @internal
+ * @brief Text Event Information
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_text_event {
+	const char *emission;
+	const char *source;
+	struct {
+		double sx;
+		double sy;
+		double ex;
+		double ey;
+	} geometry;
+} *dynamicbox_text_event_t;
+
+/**
+ * @internal
  * @brief Structure for TEXT type dynamicbox contents handling opertators.
  * @since_tizen 2.3
  */
@@ -1209,7 +1225,7 @@ extern int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, dynamicbo
  * @retval #DBOX_STATUS_ERROR_NONE Successfully emitted
  * @see dynamicbox_ret_cb
  */
-extern int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_emit_text_signal(dynamicbox_h handler, dynamicbox_text_event_t event_info, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal

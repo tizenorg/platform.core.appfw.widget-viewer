@@ -3559,12 +3559,14 @@ EAPI const char *dynamicbox_title(dynamicbox_h handler)
 	return handler->common->title;
 }
 
-EAPI int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission, const char *source, double sx, double sy, double ex, double ey, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_emit_text_signal(dynamicbox_h handler, dynamicbox_text_event_t event_info, dynamicbox_ret_cb cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
 	unsigned int cmd = CMD_TEXT_SIGNAL;
 	int ret;
+	const char *emission;
+	const char *source;
 
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
@@ -3581,16 +3583,26 @@ EAPI int dynamicbox_emit_text_signal(dynamicbox_h handler, const char *emission,
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
+	if (!event_info) {
+		ErrPrint("Invalid event info\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	emission = event_info->emission;
 	if (!emission) {
 		emission = "";
 	}
 
+	source = event_info->source;
 	if (!source) {
 		source = "";
 	}
 
 	packet = packet_create((const char *)&cmd, "ssssdddd",
-				handler->common->pkgname, handler->common->id, emission, source, sx, sy, ex, ey);
+				handler->common->pkgname, handler->common->id,
+				emission, source,
+				event_info->geometry.sx, event_info->geometry.sy,
+				event_info->geometry.ex, event_info->geometry.ey);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		return DBOX_STATUS_ERROR_FAULT;
