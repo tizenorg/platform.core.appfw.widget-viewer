@@ -41,17 +41,6 @@
 
 int errno;
 
-struct fb_info {
-	char *id;
-	int w;
-	int h;
-	int bufsz;
-	void *buffer;
-
-	int pixels;
-	int handle;
-};
-
 static struct {
 	Display *disp;
 	int screen;
