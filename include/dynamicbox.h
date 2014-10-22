@@ -278,13 +278,11 @@ typedef enum dynamicbox_visible_state {
 
 /**
  * @internal
- * @brief Accessibility Event Information
+ * @brief Accessibility Event type
  * @since_tizen 2.3
+ * @see dynamicbox_feed_access_event()
  */
-struct dynamicbox_access_event_info {
-    double x;                                   /**< X Coordinates that the event occurred */
-    double y;                                   /**< Y Coordinates that the event occurred */
-    enum _dynamicbox_access_type {
+typedef enum dynamicbox_access_info_type {
 	DBOX_ACCESS_TYPE_NONE = 0x00,           /**< Initialized */
 
         DBOX_ACCESS_TYPE_DOWN = 0x00,           /**< Mouse down */
@@ -298,9 +296,19 @@ struct dynamicbox_access_event_info {
 
         DBOX_ACCESS_TYPE_DISABLE = 0x00,        /**< Disable */
         DBOX_ACCESS_TYPE_ENABLE  = 0x01         /**< Enable */
-    } type;
+} dynamicbox_access_info_type_e;
+
+/**
+ * @internal
+ * @brief Accessibility Event Information
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_access_event_info {
+    double x;                                   /**< X Coordinates that the event occurred */
+    double y;                                   /**< Y Coordinates that the event occurred */
+    dynamicbox_access_info_type_e type;         /**< Accessibility event type */
     int info;                                   /**< Extra information for this event */
-};
+} *dynamicbox_access_event_info_t;
 
 /**
  * @internal
@@ -421,7 +429,7 @@ typedef int (*dynamicbox_fault_handler_cb)(enum dynamicbox_fault_type type, cons
  * @return @c EXIT_FAILURE delete this event callback from the event callback list
  * @return @c EXIT_SUCCESS successfully handled, keep this callback in the event callback list
  */
-typedef int (*dynamicbox_event_handler_cb)(dynamicbox_h handler, enum dynamicbox_event_type event, void *data);
+typedef int (*dynamicbox_event_handler_cb)(dynamicbox_h handler, dynamicbox_event_type_e event, void *data);
 
 /**
  * @internal
@@ -1027,7 +1035,7 @@ extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_ev
  * @see dynamicbox_feed_mouse_event()
  * @see dynamicbox_feed_key_event()
  */
-extern int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_event_type_e type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb cb, void *data);
+extern int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_event_type_e type, dynamicbox_access_event_info_t info, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal

@@ -2101,7 +2101,7 @@ EAPI int dynamicbox_destroy_glance_bar(dynamicbox_h handler, dynamicbox_ret_cb c
 	return ret;
 }
 
-EAPI int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_event_type_e type, struct dynamicbox_access_event_info *info, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_event_type_e type, dynamicbox_access_event_info_t info, dynamicbox_ret_cb cb, void *data)
 {
 	int w = 1;
 	int h = 1;
