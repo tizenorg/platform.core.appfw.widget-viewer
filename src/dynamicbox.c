@@ -2238,7 +2238,7 @@ EAPI int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_ev
 	return ret;
 }
 
-EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_event_type_e type, struct dynamicbox_mouse_event_info *info)
+EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_event_type_e type, dynamicbox_mouse_event_info_t info)
 {
 	int w = 1;
 	int h = 1;
@@ -2409,7 +2409,7 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_even
 	return send_mouse_event(handler, (const char *)&cmd, info->x * w, info->y * h);
 }
 
-EAPI int dynamicbox_feed_key_event(dynamicbox_h handler, dynamicbox_key_event_type_e type, struct dynamicbox_key_event_info *info, dynamicbox_ret_cb cb, void *data)
+EAPI int dynamicbox_feed_key_event(dynamicbox_h handler, dynamicbox_key_event_type_e type, dynamicbox_key_event_info_t info, dynamicbox_ret_cb cb, void *data)
 {
 	int ret;
 	unsigned int cmd;
@@ -2742,7 +2742,7 @@ EAPI int dynamicbox_get_group(dynamicbox_h handler, const char **cluster, const 
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, int *size_list)
+EAPI int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, dynamicbox_size_type_e *size_list)
 {
 	register int i;
 	register int j;
@@ -2773,7 +2773,7 @@ EAPI int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, int *siz
 				break;
 			}
 
-			size_list[j++] = (0x01 << i);
+			size_list[j++] = (dynamicbox_size_type_e)(0x01 << i);
 		}
 	}
 

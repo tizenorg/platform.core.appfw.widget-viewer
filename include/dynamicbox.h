@@ -543,7 +543,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  * @param[in] content Contents that will be given to the dynamicbox instance
  * @param[in] cluster Main group
  * @param[in] category Sub group
- * @param[in] period Update period (@c DEFAULT_PERIOD can be used for this; this argument will be used to specify the period of updating contents of a dynamicbox)
+ * @param[in] period Update period (@c DBOX_DEFAULT_PERIOD can be used for this; this argument will be used to specify the period of updating contents of a dynamicbox)
  * @param[in] type Size type (defined from libdynamicbox-service package)
  * @param[in] cb After the request is sent to the master provider, this callback will be called
  * @param[in] data This data will be passed to the callback
@@ -960,8 +960,8 @@ extern dynamicbox_size_type_e dynamicbox_size(dynamicbox_h handler);
  * @brief Gets the size of the Glance Bar.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
- * @param[out] w
- * @param[out] h
+ * @param[out] w Width of glance bar in pixels
+ * @param[out] h Height of glance bar in pixels
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters are used
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
@@ -973,13 +973,15 @@ extern int dynamicbox_get_glance_bar_size(dynamicbox_h handler, int *w, int *h);
  * @brief Gets a list of the supported sizes of a given handler.
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
- * @param[out] cnt
- * @param[out] size_list
+ * @param[in] size_list Array buffer for getting the size types
+ * @param[in] cnt size of array
+ * @param[out] cnt Count of returned size types
+ * @param[out] size_list Array of size types
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  */
-extern int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, int *size_list);
+extern int dynamicbox_get_supported_sizes(dynamicbox_h handler, int *cnt, dynamicbox_size_type_e *size_list);
 
 /**
  * @internal
