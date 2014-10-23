@@ -750,8 +750,8 @@ static void gbar_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 	}
 
 	if (s_info.conf.field.auto_feed) {
-		minfo.x = (double)data->down.geo.x / (double)data->down.geo.w;
-		minfo.y = (double)data->down.geo.y / (double)data->down.geo.h;
+		minfo.x = (double)data->down.geo.x;
+		minfo.y = (double)data->down.geo.y;
 		dynamicbox_feed_mouse_event(data->handle, DBOX_GBAR_MOUSE_SET, &minfo);
 	} else {
 		minfo.x = (double)(down->canvas.x - data->down.geo.x) / (double)data->down.geo.w;
@@ -903,8 +903,8 @@ static void dbox_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 		struct dynamicbox_mouse_event_info minfo;
 
 		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
-			minfo.x = (double)data->down.geo.x / (double)data->down.geo.w;
-			minfo.y = (double)data->down.geo.y / (double)data->down.geo.h;
+			minfo.x = (double)data->down.geo.x;
+			minfo.y = (double)data->down.geo.y;
 			dynamicbox_feed_mouse_event(data->handle, DBOX_MOUSE_SET, &minfo);
 		} else {
 			minfo.x = (double)(data->x - data->down.geo.x) / (double)data->down.geo.w;

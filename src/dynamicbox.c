@@ -2285,11 +2285,11 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_even
 			flag = 0;
 		}
 
-		w = handler->common->gbar.width;
-		h = handler->common->gbar.height;
 		if (flag) {
 			handler->common->gbar.x = info->x;
 			handler->common->gbar.y = info->y;
+			w = handler->common->gbar.width;
+			h = handler->common->gbar.height;
 		}
 
 		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
@@ -2347,11 +2347,11 @@ EAPI int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_even
 			flag = 0;
 		}
 
-		w = handler->common->dbox.width;
-		h = handler->common->dbox.height;
 		if (flag) {
 			handler->common->dbox.x = info->x;
 			handler->common->dbox.y = info->y;
+			w = handler->common->dbox.width;
+			h = handler->common->dbox.height;
 		}
 
 		switch ((type & ~(DBOX_MOUSE_EVENT_GBAR_MASK | DBOX_MOUSE_EVENT_DBOX_MASK))) {
