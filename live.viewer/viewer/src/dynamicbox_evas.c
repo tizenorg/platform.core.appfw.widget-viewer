@@ -3840,16 +3840,16 @@ EAPI int evas_object_dynamicbox_init(Evas_Object *win, int force_to_buffer)
 		return ret;
 	}
 
-	ret = dynamicbox_set_event_handler(dynamicbox_event_handler, NULL);
+	ret = dynamicbox_add_event_handler(dynamicbox_event_handler, NULL);
 	if (ret != DBOX_STATUS_ERROR_NONE) {
 		ErrPrint("Failed to set handler\n");
 		dynamicbox_fini();
 	} else {
 		DbgPrint("Event handler registered\n");
-		ret = dynamicbox_set_fault_handler(dynamicbox_fault_handler, NULL);
+		ret = dynamicbox_add_fault_handler(dynamicbox_fault_handler, NULL);
 		if (ret != DBOX_STATUS_ERROR_NONE) {
 			ErrPrint("Failed to set fault handler\n");
-			dynamicbox_unset_event_handler(dynamicbox_event_handler);
+			dynamicbox_remove_event_handler(dynamicbox_event_handler);
 			dynamicbox_fini();
 		} else {
 			DbgPrint("Fault handler is registered\n");
@@ -3864,8 +3864,8 @@ EAPI int evas_object_dynamicbox_init(Evas_Object *win, int force_to_buffer)
 
 EAPI int evas_object_dynamicbox_fini(void)
 {
-	dynamicbox_unset_event_handler(dynamicbox_event_handler);
-	dynamicbox_unset_fault_handler(dynamicbox_fault_handler);
+	dynamicbox_remove_event_handler(dynamicbox_event_handler);
+	dynamicbox_remove_fault_handler(dynamicbox_fault_handler);
 	dynamicbox_fini();
 	return 0;
 }
