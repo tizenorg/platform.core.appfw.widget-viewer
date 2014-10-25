@@ -150,7 +150,7 @@ int dbox_create_lock_file(struct dynamicbox_common *common, int is_gbar)
 		return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
 	}
 
-	snprintf(file, len + 20, "%s.%s.lck", util_uri_to_path(common->id), is_gbar ? "pd" : "lb");
+	snprintf(file, len + 20, "%s.%s.lck", util_uri_to_path(common->id), is_gbar ? "gbar" : "dbox");
 
 	if (is_gbar) {
 		common->gbar.lock_fd = open(file, O_RDONLY);
