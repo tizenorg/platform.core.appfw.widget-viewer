@@ -3867,7 +3867,6 @@ EAPI const char *dynamicbox_alternative_name(dynamicbox_h handler)
 EAPI int dynamicbox_acquire_buffer_lock(dynamicbox_h handler, int is_gbar)
 {
 	int ret = DBOX_STATUS_ERROR_NONE;
-	int fd;
 
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handler);
@@ -3885,30 +3884,10 @@ EAPI int dynamicbox_acquire_buffer_lock(dynamicbox_h handler, int is_gbar)
 	}
 
 	if (is_gbar) {
-		if (!handler->common->gbar.lock || handler->common->gbar.lock_fd < 0) {
-			DbgPrint("Lock: %s (%d)\n", handler->common->gbar.lock, handler->common->gbar.lock_fd);
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
-		if (fb_type(dbox_get_gbar_fb(handler->common)) == DBOX_FB_TYPE_FILE) {
-			return DBOX_STATUS_ERROR_NONE;
-		}
-
-		fd = handler->common->gbar.lock_fd;
+		ret = dynamicbox_service_acquire_lock(handler->common->gbar.lock);
 	} else {
-		if (!handler->common->dbox.lock || handler->common->dbox.lock_fd < 0) {
-			DbgPrint("Lock: %s (%d)\n", handler->common->dbox.lock, handler->common->dbox.lock_fd);
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
-		if (fb_type(dbox_get_dbox_fb(handler->common)) == DBOX_FB_TYPE_FILE) {
-			return DBOX_STATUS_ERROR_NONE;
-		}
-
-		fd = handler->common->dbox.lock_fd;
+		ret = dynamicbox_service_acquire_lock(handler->common->dbox.lock);
 	}
-
-	ret = dbox_fb_lock(fd);
 
 	return ret == 0 ? DBOX_STATUS_ERROR_NONE : DBOX_STATUS_ERROR_FAULT;
 }
@@ -3916,7 +3895,6 @@ EAPI int dynamicbox_acquire_buffer_lock(dynamicbox_h handler, int is_gbar)
 EAPI int dynamicbox_release_buffer_lock(dynamicbox_h handler, int is_gbar)
 {
 	int ret = DBOX_STATUS_ERROR_NONE;
-	int fd;
 
 	if (!handler || handler->state != DBOX_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
@@ -3934,30 +3912,10 @@ EAPI int dynamicbox_release_buffer_lock(dynamicbox_h handler, int is_gbar)
 	}
 
 	if (is_gbar) {
-		if (!handler->common->gbar.lock || handler->common->gbar.lock_fd < 0) {
-			DbgPrint("Unlock: %s (%d)\n", handler->common->gbar.lock, handler->common->gbar.lock_fd);
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
-		if (fb_type(dbox_get_gbar_fb(handler->common)) == DBOX_FB_TYPE_FILE) {
-			return DBOX_STATUS_ERROR_NONE;
-		}
-
-		fd = handler->common->gbar.lock_fd;
+		ret = dynamicbox_service_release_lock(handler->common->gbar.lock);
 	} else {
-		if (!handler->common->dbox.lock || handler->common->dbox.lock_fd < 0) {
-			DbgPrint("Unlock: %s (%d)\n", handler->common->dbox.lock, handler->common->dbox.lock_fd);
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
-		if (fb_type(dbox_get_dbox_fb(handler->common)) == DBOX_FB_TYPE_FILE) {
-			return DBOX_STATUS_ERROR_NONE;
-		}
-
-		fd = handler->common->dbox.lock_fd;
+		ret = dynamicbox_service_release_lock(handler->common->dbox.lock);
 	}
-
-	ret = dbox_fb_unlock(fd);
 
 	return ret == 0 ? DBOX_STATUS_ERROR_NONE : DBOX_STATUS_ERROR_FAULT;
 }

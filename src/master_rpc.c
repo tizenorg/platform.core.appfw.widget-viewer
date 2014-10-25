@@ -26,6 +26,7 @@
 #include <com-core_packet.h>
 #include <dynamicbox_errno.h>
 #include <dynamicbox_service.h>
+#include <dynamicbox_buffer.h>
 
 #include "debug.h"
 #include "dlist.h"

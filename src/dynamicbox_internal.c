@@ -99,82 +99,6 @@ static void del_ret_cb(dynamicbox_h handler, const struct packet *result, void *
 	 */
 }
 
-int dbox_destroy_lock_file(struct dynamicbox_common *common, int is_gbar)
-{
-	if (is_gbar) {
-		if (!common->gbar.lock) {
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
-		if (close(common->gbar.lock_fd) < 0) {
-			ErrPrint("close: %s\n", strerror(errno));
-		}
-		common->gbar.lock_fd = -1;
-
-		if (unlink(common->gbar.lock) < 0) {
-			ErrPrint("unlink: %s\n", strerror(errno));
-		}
-
-		free(common->gbar.lock);
-		common->gbar.lock = NULL;
-	} else {
-		if (!common->dbox.lock) {
-			return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-		}
-
-		if (close(common->dbox.lock_fd) < 0) {
-			ErrPrint("close: %s\n", strerror(errno));
-		}
-		common->dbox.lock_fd = -1;
-
-		if (unlink(common->dbox.lock) < 0) {
-			ErrPrint("unlink: %s\n", strerror(errno));
-		}
-
-		free(common->dbox.lock);
-		common->dbox.lock = NULL;
-	}
-
-	return DBOX_STATUS_ERROR_NONE;
-}
-
-int dbox_create_lock_file(struct dynamicbox_common *common, int is_gbar)
-{
-	int len;
-	char *file;
-
-	len = strlen(common->id);
-	file = malloc(len + 20);
-	if (!file) {
-		ErrPrint("Heap: %s\n", strerror(errno));
-		return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-	}
-
-	snprintf(file, len + 20, "%s.%s.lck", util_uri_to_path(common->id), is_gbar ? "gbar" : "dbox");
-
-	if (is_gbar) {
-		common->gbar.lock_fd = open(file, O_RDONLY);
-		if (common->gbar.lock_fd < 0) {
-			ErrPrint("open: %s\n", strerror(errno));
-			free(file);
-			return DBOX_STATUS_ERROR_IO_ERROR;
-		}
-
-		common->gbar.lock = file;
-	} else {
-		common->dbox.lock_fd = open(file, O_RDONLY);
-		if (common->dbox.lock_fd < 0) {
-			ErrPrint("open: %s\n", strerror(errno));
-			free(file);
-			return DBOX_STATUS_ERROR_IO_ERROR;
-		}
-
-		common->dbox.lock = file;
-	}
-
-	return DBOX_STATUS_ERROR_NONE;
-}
-
 struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const char *pkgname, const char *cluster, const char *category)
 {
 	struct dynamicbox_common *common;
@@ -227,11 +151,9 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
 	common->delete_type = DBOX_DELETE_PERMANENTLY;
 
 	common->gbar.lock = NULL;
-	common->gbar.lock_fd = -1;
 	common->gbar.last_extra_buffer_idx = -1;
 
 	common->dbox.lock = NULL;
-	common->dbox.lock_fd = -1;
 	common->dbox.last_extra_buffer_idx = -1;
 
 	common->state = DBOX_STATE_CREATE;
@@ -826,7 +748,8 @@ dynamicbox_h dbox_unref(dynamicbox_h handler, int destroy_common)
 			 * \note
 			 * Lock file should be deleted after all callbacks are processed.
 			 */
-			dbox_destroy_lock_file(handler->common, 0);
+			(void)dynamicbox_service_destroy_lock(handler->common->dbox.lock);
+			handler->common->dbox.lock = NULL;
 			dbox_destroy_common_handle(handler->common);
 		}
 	}
@@ -895,10 +818,10 @@ int dbox_sync_dbox_fb(struct dynamicbox_common *common)
 {
 	int ret;
 
-	if (fb_type(dbox_get_dbox_fb(common)) == DBOX_FB_TYPE_FILE && common->dbox.lock_fd >= 0) {
-		(void)dbox_fb_lock(common->dbox.lock_fd);
+	if (fb_type(dbox_get_dbox_fb(common)) == DBOX_FB_TYPE_FILE) {
+		(void)dynamicbox_service_acquire_lock(common->dbox.lock);
 		ret = fb_sync(dbox_get_dbox_fb(common), common->dbox.last_damage.x, common->dbox.last_damage.y, common->dbox.last_damage.w, common->dbox.last_damage.h);
-		(void)dbox_fb_unlock(common->dbox.lock_fd);
+		(void)dynamicbox_service_release_lock(common->dbox.lock);
 	} else {
 		ret = fb_sync(dbox_get_dbox_fb(common), common->dbox.last_damage.x, common->dbox.last_damage.y, common->dbox.last_damage.w, common->dbox.last_damage.h);
 	}
@@ -910,57 +833,13 @@ int dbox_sync_gbar_fb(struct dynamicbox_common *common)
 {
 	int ret;
 
-	if (fb_type(dbox_get_gbar_fb(common)) == DBOX_FB_TYPE_FILE && common->gbar.lock_fd >= 0) {
-		(void)dbox_fb_lock(common->gbar.lock_fd);
+	if (fb_type(dbox_get_gbar_fb(common)) == DBOX_FB_TYPE_FILE) {
+		(void)dynamicbox_service_acquire_lock(common->gbar.lock);
 		ret = fb_sync(dbox_get_gbar_fb(common), common->gbar.last_damage.x, common->gbar.last_damage.y, common->gbar.last_damage.w, common->gbar.last_damage.h);
-		(void)dbox_fb_unlock(common->gbar.lock_fd);
+		(void)dynamicbox_service_release_lock(common->gbar.lock);
 	} else {
 		ret = fb_sync(dbox_get_gbar_fb(common), common->gbar.last_damage.x, common->gbar.last_damage.y, common->gbar.last_damage.w, common->gbar.last_damage.h);
 	}
-
-	return ret;
-}
-
-int dbox_fb_lock(int fd)
-{
-        struct flock flock;
-	int ret;
-
-	flock.l_type = F_RDLCK;
-	flock.l_whence = SEEK_SET;
-	flock.l_start = 0;
-	flock.l_len = 0;
-	flock.l_pid = getpid();
-
-	do {
-		ret = fcntl(fd, F_SETLKW, &flock);
-		if (ret < 0) {
-			ret = errno;
-			ErrPrint("fcntl: %s\n", strerror(errno));
-		}
-	} while (ret == EINTR);
-
-	return ret;
-}
-
-int dbox_fb_unlock(int fd)
-{
-	struct flock flock;
-	int ret;
-
-	flock.l_type = F_UNLCK;
-	flock.l_whence = SEEK_SET;
-	flock.l_start = 0;
-	flock.l_len = 0;
-	flock.l_pid = getpid();
-
-	do {
-		ret = fcntl(fd, F_SETLKW, &flock);
-		if (ret < 0) {
-			ret = errno;
-			ErrPrint("fcntl: %s\n", strerror(errno));
-		}
-	} while (ret == EINTR);
 
 	return ret;
 }

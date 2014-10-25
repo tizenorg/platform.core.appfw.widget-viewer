@@ -811,7 +811,7 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 				switch (fb_type(dbox_get_gbar_fb(common))) {
 				case DBOX_FB_TYPE_FILE:
 				case DBOX_FB_TYPE_SHM:
-					dbox_create_lock_file(common, 1);
+					common->gbar.lock = dynamicbox_service_create_lock(common->id, DBOX_TYPE_GBAR, DBOX_LOCK_READ);
 					break;
 				case DBOX_FB_TYPE_PIXMAP:
 				case DBOX_FB_TYPE_ERROR:
@@ -927,7 +927,8 @@ static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct 
 		switch (fb_type(dbox_get_gbar_fb(common))) {
 		case DBOX_FB_TYPE_FILE:
 		case DBOX_FB_TYPE_SHM:
-			dbox_destroy_lock_file(common, 1);
+			dynamicbox_service_destroy_lock(common->gbar.lock);
+			common->gbar.lock = NULL;
 			break;
 		case DBOX_FB_TYPE_PIXMAP:
 		case DBOX_FB_TYPE_ERROR:
@@ -1663,7 +1664,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		switch (fb_type(dbox_get_dbox_fb(common))) {
 		case DBOX_FB_TYPE_FILE:
 		case DBOX_FB_TYPE_SHM:
-			dbox_create_lock_file(common, 0);
+			common->dbox.lock = dynamicbox_service_create_lock(common->id, DBOX_TYPE_DBOX, DBOX_LOCK_READ);
 			break;
 		case DBOX_FB_TYPE_PIXMAP:
 		case DBOX_FB_TYPE_ERROR:

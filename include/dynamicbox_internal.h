@@ -51,16 +51,12 @@ extern void dbox_set_update_mode(struct dynamicbox_common *handler, int active_m
 extern void dbox_set_filename(struct dynamicbox_common *handler, const char *filename);
 extern void dbox_set_alt_icon(struct dynamicbox_common *handler, const char *icon);
 extern void dbox_set_alt_name(struct dynamicbox_common *handle, const char *name);
-extern int dbox_destroy_lock_file(struct dynamicbox_common *common, int is_gbar);
-extern int dbox_create_lock_file(struct dynamicbox_common *common, int is_gbar);
 extern int dbox_destroy_common_handle(struct dynamicbox_common *common);
 extern struct dynamicbox_common *dbox_create_common_handle(struct dynamicbox *handle, const char *pkgname, const char *cluster, const char *category);
 extern int dbox_sync_gbar_fb(struct dynamicbox_common *common);
 extern int dbox_sync_dbox_fb(struct dynamicbox_common *common);
 extern int dbox_common_unref(struct dynamicbox_common *common, struct dynamicbox *handle);
 extern int dbox_common_ref(struct dynamicbox_common *common, struct dynamicbox *handle);
-extern int dbox_fb_lock(int fd);
-extern int dbox_fb_unlock(int fd);
 extern struct dynamicbox_common *dbox_find_sharable_common_handle(const char *pkgname, const char *content, int w, int h, const char *cluster, const char *category);
 extern struct dynamicbox *dbox_find_dbox_in_show(struct dynamicbox_common *common);
 extern struct dynamicbox *dbox_get_dbox_nth(struct dynamicbox_common *common, int nth);
@@ -137,8 +133,7 @@ struct dynamicbox_common {
 		int last_extra_buffer_idx;
 
 		/* Lock */
-		char *lock;
-		int lock_fd;
+		dynamicbox_lock_info_t lock;
 
 		/* For damaged region */
 		struct dynamicbox_damage_region last_damage;
@@ -163,8 +158,7 @@ struct dynamicbox_common {
 		int last_extra_buffer_idx;
 
 		/* Lock */
-		char *lock;
-		int lock_fd;
+		dynamicbox_lock_info_t lock;
 
 		/* For damaged region */
 		struct dynamicbox_damage_region last_damage;
