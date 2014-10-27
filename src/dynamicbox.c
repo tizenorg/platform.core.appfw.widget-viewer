@@ -184,9 +184,11 @@ errout:
 	handler->cbs.update_mode.data = NULL;
 	handler->common->request.update_mode = 0;
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -225,9 +227,11 @@ errout:
 	handler->cbs.size_changed.data = NULL;
 	handler->common->request.size_changed = 0;
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -280,9 +284,11 @@ errout:
 	handler->cbs.group_changed.data = NULL;
 	handler->common->request.group_changed = 0;
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -311,9 +317,11 @@ errout:
 	handler->cbs.period_changed.data = NULL;
 	handler->common->request.period_changed = 0;
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -342,9 +350,11 @@ errout:
 	handler->cbs.gbar_created.data = NULL;
 	handler->common->request.gbar_created = 0;
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -507,8 +517,10 @@ static void dbox_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *r
 			cb(handler, pixmap, cbdata);
 		}
 
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+		if (handler->common->state != DBOX_STATE_DELETE) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	} else {
 		if (cb) {
 			cb(handler, pixmap, cbdata);
@@ -538,9 +550,11 @@ static void dbox_xpixmap_acquired_cb(dynamicbox_h handler, const struct packet *
 		cb(handler, pixmap, cbdata);
 	}
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -668,9 +682,11 @@ static void gbar_xpixmap_acquired_cb(dynamicbox_h handler, const struct packet *
 		cb(handler, pixmap, cbdata);
 	}
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -702,8 +718,11 @@ static void gbar_pixmap_acquired_cb(dynamicbox_h handler, const struct packet *r
 		if (cb) {
 			cb(handler, pixmap, cbdata);
 		}
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+
+		if (handler->common->state != DBOX_STATE_DELETE) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	} else {
 		if (cb) {
 			DbgPrint("ret: %d, pixmap: %d\n", ret, pixmap);
@@ -735,9 +754,11 @@ errout:
 	handler->cbs.pinup.data = NULL;
 	handler->common->request.pinup = 0;
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -766,9 +787,11 @@ errout:
 	handler->cbs.key_event.data = NULL;
 	handler->common->request.key_event = 0;
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
@@ -798,9 +821,11 @@ errout:
 	handler->cbs.access_event.data = NULL;
 	handler->common->request.access_event = 0;
 
-	if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
-		dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-		dbox_unref(handler, 1);
+	if (handler->common->state != DBOX_STATE_DELETE) {
+		if (ret == (int)DBOX_STATUS_ERROR_NOT_EXIST && handler->refcnt == 2) {
+			dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+			dbox_unref(handler, 1);
+		}
 	}
 }
 
