@@ -662,6 +662,90 @@ out:
 	return NULL;
 }
 
+static struct packet *master_extra_updated(pid_t pid, int handle, const struct packet *packet)
+{
+	const char *pkgname;
+	const char *id;
+	dynamicbox_h handler;
+	struct dynamicbox_common *common;
+	int ret;
+	int x;
+	int y;
+	int w;
+	int h;
+	int is_gbar;
+	int event_type;
+	int idx;
+
+	DbgPrint("Updated: %X (%d)\n", *((unsigned int *)packet_command(packet)), pid);
+
+	ret = packet_get(packet, "ssiiiiii", &pkgname, &id, &is_gbar, &idx, &x, &y, &w, &h);
+	if (ret != 8) {
+		ErrPrint("Invalid argument\n");
+		goto out;
+	}
+
+	common = dbox_find_common_handle(pkgname, id);
+	if (!common) {
+		ErrPrint("instance(%s) is not exists\n", id);
+		goto out;
+	}
+
+	if (common->state != DBOX_STATE_CREATE) {
+		/*!
+		 * \note
+		 * Already deleted by the user.
+		 * Don't try to notice anything with this, Just ignore all events
+		 * Beacuse the user doesn't wants know about this anymore
+		 */
+		ErrPrint("(%s) is not exists, but updated\n", id);
+		goto out;
+	}
+
+	if (is_gbar) {
+	    common->gbar.last_damage.x = x;
+	    common->gbar.last_damage.y = y;
+	    common->gbar.last_damage.w = w;
+	    common->gbar.last_damage.h = h;
+	    event_type = DBOX_EVENT_GBAR_EXTRA_UPDATED;
+	    common->gbar.last_extra_buffer_idx = idx;
+	} else {
+	    common->dbox.last_damage.x = x;
+	    common->dbox.last_damage.y = y;
+	    common->dbox.last_damage.w = w;
+	    common->dbox.last_damage.h = h;
+	    event_type = DBOX_EVENT_DBOX_EXTRA_UPDATED;
+	    common->dbox.last_extra_buffer_idx = idx;
+
+	    if (conf_frame_drop_for_resizing() && common->request.size_changed) {
+		    /* Just for skipping the update event callback call, After request to resize buffer, update event will be discarded */
+		    DbgPrint("Discards obsoloted update event\n");
+		    ret = DBOX_STATUS_ERROR_BUSY;
+	    } else {
+		    if (!conf_manual_sync()) {
+			    ret = dbox_sync_dbox_fb(common);
+			    if (ret != (int)DBOX_STATUS_ERROR_NONE) {
+				    ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+			    }
+		    } else {
+			    ret = DBOX_STATUS_ERROR_NONE;
+		    }
+	    }
+	}
+
+	if (ret == (int)DBOX_STATUS_ERROR_NONE) {
+		struct dlist *l;
+		struct dlist *n;
+
+		dlist_foreach_safe(common->dynamicbox_list, l, n, handler) {
+			dbox_invoke_event_handler(handler, event_type);
+		}
+	}
+
+out:
+	return NULL;
+}
+
 static struct packet *master_dbox_updated(pid_t pid, int handle, const struct packet *packet)
 {
 	const char *pkgname;
@@ -1808,6 +1892,10 @@ static struct method s_table[] = {
 		.handler = master_gbar_updated,
 	},
 	{
+		.cmd = CMD_STR_EXTRA_UPDATED,
+		.handler = master_extra_updated,
+	},
+	{
 		.cmd = CMD_STR_EXTRA_INFO,
 		.handler = master_extra_info,
 	},
@@ -2035,6 +2123,10 @@ static struct method s_direct_table[] = {
 	{
 		.cmd = CMD_STR_GBAR_UPDATED, /* pkgname, id, descfile, pd_w, pd_h, ret */
 		.handler = master_gbar_updated,
+	},
+	{
+		.cmd = CMD_STR_EXTRA_UPDATED,
+		.handler = master_extra_updated,
 	},
 	{
 		.cmd = NULL,

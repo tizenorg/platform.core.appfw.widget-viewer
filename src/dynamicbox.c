@@ -4034,7 +4034,7 @@ EAPI int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dyna
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_get_last_extra_buffer(dynamicbox_h handler, int gbar, int *idx, unsigned int *resource_id)
+EAPI int dynamicbox_get_affected_extra_buffer(dynamicbox_h handler, int gbar, int *idx, unsigned int *resource_id)
 {
 	int _idx;
 	unsigned int _resource_id;

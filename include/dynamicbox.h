@@ -197,7 +197,9 @@ typedef enum dynamicbox_type {
  */
 typedef enum dynamicbox_event_type {                    /**< dynamicbox_event_handler_set Event list */
     DBOX_EVENT_DBOX_UPDATED,                    /**< Contents of the given dynamicbox is updated */
+    DBOX_EVENT_DBOX_EXTRA_UPDATED,
     DBOX_EVENT_GBAR_UPDATED,                    /**< Contents of the given pd is updated */
+    DBOX_EVENT_GBAR_EXTRA_UPDATED,
 
     DBOX_EVENT_CREATED,                         /**< A new dynamicbox is created */
     DBOX_EVENT_DELETED,                         /**< A dynamicbox is deleted */
@@ -1615,19 +1617,6 @@ extern int dynamicbox_option(dynamicbox_option_type_e option);
  * @retval #DBOX_STATUS_ERROR_NONE Succeed to set new handler. there is no other cases
  */
 extern int dynamicbox_set_auto_launch_handler(dynamicbox_auto_launch_handler_cb cb, void *data);
-
-/**
- * @internal
- * @brief get a damaged region from handler if a handler has buffer type dbox or gbar
- * @since_tizen 2.3
- * @param[in] handler Handler of a dbox
- * @param[in] gbar 1 if you want to get a damaged region of glance bar or 0
- * @param[out] region Region information, x, y, w, h
- * @return int
- * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #DBOX_STATUS_ERROR_NONE If sucess
- */
-extern int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dynamicbox_damage_region_t *region);
 
 /**
  * @internal
