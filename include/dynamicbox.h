@@ -1360,7 +1360,7 @@ extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
- * @param[in] cb Callback function which will be called with result of acquiring lb resource id
+ * @param[in] cb Callback function which will be called with result of acquiring dbox resource id
  * @param[in] data Callback data
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
@@ -1369,11 +1369,38 @@ extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
  * @pre Dynamicbox service system should support the ResourceId type buffer.
- *   The dynamicbox should be designed to use the buffer (script type).
+ *   The dynamicbox should be designed to use the buffer (or script).
  * @see dynamicbox_release_resource_id()
  * @see dynamicbox_ret_cb
  */
 extern int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynamicbox_ret_cb cb, void *data);
+
+/**
+ * @internal
+ * @brief Get the Resource Id of a dynamicbox for Extra buffer
+ * @details Even if a render process(provider) released the Resource Id, it will be kept while release it by viewer.\n
+ *          This will prevent from unexpected resource releasing for viewer.\n
+ *          You should release this using dynamicbox_release_resource_id()
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
+ * @since_tizen 2.3
+ * @param[in] handler Handler of a dynamicbox instance
+ * @param[in] gbar 1 for Glance Bar or 0
+ * @param[in] idx Index of extra buffer, it is limited to dynamicbox configuration
+ * @param[in] cb Callback function which will be called with result of acquiring dbox resource id
+ * @param[in] data Callback data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox
+ * @return int
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
+ * @pre Dynamicbox service system should support the resource id type buffer.
+ *      The dynamicbox should be designed to use the buffer (or script)
+ * @see dynamicbox_release_resource_id()
+ * @see dynamicbox_ret_cb
+ */
+extern int dynamicbox_acquire_extra_resource_id(dynamicbox_h handler, int gbar, int idx, dynamicbox_ret_cb cb, void *data);
 
 /**
  * @internal
