@@ -13,6 +13,7 @@
 #include <dynamicbox.h>
 #include <dynamicbox_service.h>
 #include <dynamicbox_errno.h>
+#include <dynamicbox_buffer.h>
 
 #include <aul.h>
 #include <mm_player.h>
@@ -49,7 +50,7 @@ int dynamicbox_player_updated(struct info *info)
 	}
 	snprintf(uri, len, "file://%s", info->id);
 
-	ret = dynamicbox_provider_send_updated("com.samsung.w-add-viewer.video", uri, &region);
+	ret = dynamicbox_provider_send_updated("com.samsung.w-add-viewer.video", uri, DBOX_PRIMARY_BUFFER, &region, 0, NULL);
 	free(uri);
 
 	LOGD("============== %s\n", info->id);

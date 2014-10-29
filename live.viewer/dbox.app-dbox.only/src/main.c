@@ -68,7 +68,7 @@ static int dbox_resize(const char *id, int w, int h, void *data)
 	return 0;
 }
 
-static int dbox_destroy(const char *id, int reason, void *data)
+static int dbox_destroy(const char *id, dynamicbox_destroy_type_e reason, void *data)
 {
 	struct dynamicbox_data *dbox_data;
 
