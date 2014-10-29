@@ -677,8 +677,6 @@ static struct packet *master_extra_updated(pid_t pid, int handle, const struct p
     int event_type;
     int idx;
 
-    DbgPrint("Updated: %X (%d)\n", *((unsigned int *)packet_command(packet)), pid);
-
     ret = packet_get(packet, "ssiiiiii", &pkgname, &id, &is_gbar, &idx, &x, &y, &w, &h);
     if (ret != 8) {
 	ErrPrint("Invalid argument\n");
@@ -764,8 +762,6 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
     int y;
     int w;
     int h;
-
-    DbgPrint("Updated: %X (%d)\n", *((unsigned int *)packet_command(packet)), pid);
 
     ret = packet_get(packet, "ssssiiii", &pkgname, &id, &fbfile, &safe_file, &x, &y, &w, &h);
     if (ret != 8) {
@@ -1055,11 +1051,7 @@ static struct packet *master_gbar_updated(pid_t pid, int handle, const struct pa
     int w;
     int h;
 
-    ret = packet_get(packet, "ssssiiii",
-	    &pkgname, &id,
-	    &descfile, &fbfile,
-	    &x, &y,
-	    &w, &h);
+    ret = packet_get(packet, "ssssiiii", &pkgname, &id, &fbfile, &descfile, &x, &y, &w, &h);
     if (ret != 8) {
 	ErrPrint("Invalid argument\n");
 	goto out;
