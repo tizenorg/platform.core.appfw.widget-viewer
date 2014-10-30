@@ -18,12 +18,12 @@
  * \note
  * milli seconds
  */
-#define MAX_LOG_FILE	3
-#define MAX_LOG_LINE	1000
-#define SLAVE_LOG_PATH	"/tmp/.dbox.service/log/"
+#define MAX_LOG_FILE    3
+#define MAX_LOG_LINE    1000
+#define SLAVE_LOG_PATH    "/tmp/.dbox.service/log/"
 
 #if !defined(VCONFKEY_MASTER_STARTED)
-#define VCONFKEY_MASTER_STARTED	"memory/data-provider-master/started"
+#define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"
 #endif
 
 #if !defined(VCONFKEY_MASTER_CLIENT_ADDR)

@@ -248,7 +248,7 @@ typedef enum dynamicbox_option_type {
     DBOX_OPTION_FRAME_DROP_FOR_RESIZE, /**< Drop frames while resizing */
     DBOX_OPTION_SHARED_CONTENT,        /**< Use only one real instance for multiple fake instances if user creates dbox for same content */
     DBOX_OPTION_DIRECT_UPDATE,         /**< Use the private socket for receiving updated event */
-    DBOX_OPTION_EXTRA_BUFFER_CNT,      /**< Extra buffer count, ReadOnly value */	
+    DBOX_OPTION_EXTRA_BUFFER_CNT,      /**< Extra buffer count, ReadOnly value */    
 
     DBOX_OPTION_ERROR = 0xFFFFFFFF     /**< To specify the size of this enumeration type */
 } dynamicbox_option_type_e;
@@ -286,7 +286,7 @@ typedef enum dynamicbox_visible_state {
  * @see dynamicbox_feed_access_event()
  */
 typedef enum dynamicbox_access_info_type {
-	DBOX_ACCESS_TYPE_NONE = 0x00,           /**< Initialized */
+    DBOX_ACCESS_TYPE_NONE = 0x00,           /**< Initialized */
 
         DBOX_ACCESS_TYPE_DOWN = 0x00,           /**< Mouse down */
         DBOX_ACCESS_TYPE_MOVE = 0x01,           /**< Mouse move */
@@ -319,10 +319,10 @@ typedef struct dynamicbox_access_event_info {
  * @since_tizen 2.3
  */
 typedef struct dynamicbox_damage_region {
-	int x;                                  /**< Coordinates X of Left-Top corner */
-	int y;                                  /**< Coordinates Y of Left-Top corner */
-	int w;                                  /**< Damage'd Width */
-	int h;                                  /**< Damage'd Height */
+    int x;                                  /**< Coordinates X of Left-Top corner */
+    int y;                                  /**< Coordinates Y of Left-Top corner */
+    int w;                                  /**< Damage'd Width */
+    int h;                                  /**< Damage'd Height */
 } dynamicbox_damage_region_t;
 
 /**
@@ -350,14 +350,14 @@ typedef struct dynamicbox_key_event_info {
  * @since_tizen 2.3
  */
 typedef struct dynamicbox_text_event {
-	const char *emission;
-	const char *source;
-	struct {
-		double sx;
-		double sy;
-		double ex;
-		double ey;
-	} geometry;
+    const char *emission;
+    const char *source;
+    struct {
+        double sx;
+        double sy;
+        double ex;
+        double ey;
+    } geometry;
 } *dynamicbox_text_event_t;
 
 /**
@@ -457,7 +457,7 @@ typedef int (*dynamicbox_auto_launch_handler_cb)(dynamicbox_h handler, const cha
  * @param[in] event_filter If the dynamicbox_feed_mouse_event() is called again in this secs, it will be ignored and the dynamicbox_feed_mouse_event() will returns DBOX_STATUS_ERROR_BUSY status code
  * @param[in] use_thread If this value has true, the viewer library will create a new thread to communicate with master service
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int Integer, Dynamicbox status code
  * @retval #DBOX_STATUS_ERROR_NONE if successfully initialized.
  * @retval #DBOX_STATUS_ERROR_OUT_OF_MEMORY If a memory is not enough to do this operation.
@@ -472,7 +472,7 @@ extern int dynamicbox_init(void *disp, int prevent_overwrite, double event_filte
  * @brief Finalizes the dynamicbox system.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_SUCCES if success
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER if dynamicbox_init is not called
@@ -485,7 +485,7 @@ extern int dynamicbox_fini(void);
  * @brief Notifies the status of a client ("it is paused") to the provider.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE if success
  * @retval #DBOX_STATUS_ERROR_FAULT if it failed to send state (paused) info
@@ -498,7 +498,7 @@ extern int dynamicbox_viewer_set_paused(void);
  * @brief Notifies the status of client ("it is resumed") to the provider.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE if success
  * @retval #DBOX_STATUS_ERROR_FAULT if it failed to send state (resumed) info
@@ -541,7 +541,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  *    It can be initialized only after getting the return callback with "ret == #DBOX_STATUS_ERROR_NONE"
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
  *    This function will returns proper error code
- *    If this returns NULL, you can get the reason of failure using dynamicbox_last_status()
+ *    If this returns @c NULL, you can get the reason of failure using dynamicbox_last_status()
  * @param[in] dbox_id DynamicBox Id
  * @param[in] content Contents that will be given to the dynamicbox instance
  * @param[in] cluster Main group
@@ -551,7 +551,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  * @param[in] cb After the request is sent to the master provider, this callback will be called
  * @param[in] data This data will be passed to the callback
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return handle
  * @retval Handle Dynamicbox handle but not yet initialized
  * @retval @c NULL if it fails to create a handle
@@ -574,7 +574,7 @@ extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, con
  * @param[in] cb Return callback
  * @param[in] data User data for return callback
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Already in process
@@ -653,7 +653,7 @@ extern void *dynamicbox_remove_fault_handler(dynamicbox_fault_handler_cb cb);
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent a request
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -696,7 +696,7 @@ extern int dynamicbox_activate(const char *dbox_id, dynamicbox_ret_cb cb, void *
  * @param[in] cb Result callback of the resize operation
  * @param[in] data User data for return callback
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous request of resize is in progress
@@ -715,7 +715,7 @@ extern int dynamicbox_resize(dynamicbox_h handler, dynamicbox_size_type_e type, 
  * @param[in] x Rational X of the content width
  * @param[in] y Rational Y of the content height
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -737,7 +737,7 @@ extern int dynamicbox_click(dynamicbox_h handler, double x, double y);
  * @param[in] cb Result callback for changing the cluster/category of a dynamicbox
  * @param[in] data User data for the result callback
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE Request is successfully sent. the return callback will be called
  * @retval #DBOX_STATUS_ERROR_BUSY Previous request is not finished yet
@@ -791,7 +791,7 @@ extern double dynamicbox_period(dynamicbox_h handler);
  * @param[in] cb Result callback of changing the update period of this dynamicbox
  * @param[in] data User data for the result callback
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -840,7 +840,7 @@ extern int dynamicbox_is_created_by_user(dynamicbox_h handler);
 /**
  * @internal
  * @brief Gets content information string of the given dynamicbox.
- * @remarks if this returns NULL, you can get the reason of failure using dynamicbox_last_status()
+ * @remarks if this returns @c NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -859,7 +859,7 @@ extern const char *dynamicbox_content(dynamicbox_h handler);
  * @remarks The title returned by this API can be read by TTS.
  *  But it is just recomendation for the homescreen.
  *  So, to read it or not depends on its implementation.
- *  if this returns NULL, you can get the reason of failure using dynamicbox_last_status()
+ *  if this returns @c NULL, you can get the reason of failure using dynamicbox_last_status()
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
  * @retval sub Cluster name
@@ -871,7 +871,7 @@ extern const char *dynamicbox_title(dynamicbox_h handler);
  * @internal
  * @brief Gets the filename of the given dynamicbox, if it is an IMAGE type dynamicbox.
  * @details If the box is developed as an image format to represent its contents, the homescreen should know its image file name.
- * @remarks if this returns NULL, you can get the reason of failure using dynamicbox_last_status()
+ * @remarks if this returns @c NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -883,7 +883,7 @@ extern const char *dynamicbox_filename(dynamicbox_h handler);
 /**
  * @internal
  * @brief Gets the package name of the given dynamicbox handler.
- * @remarks if this returns NULL, you can get the reason of failure using dynamicbox_last_status()
+ * @remarks if this returns @c NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -912,7 +912,7 @@ extern double dynamicbox_priority(dynamicbox_h handler);
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return void *
  * @retval address Address of a Frame Buffer
  * @retval @c NULL If it fails to get buffer address
@@ -925,7 +925,7 @@ extern void *dynamicbox_acquire_buffer(dynamicbox_h handler, int gbar);
  * @since_tizen 2.3
  * @param[in] buffer Buffer
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
@@ -1007,7 +1007,7 @@ extern int dynamicbox_buffer_size(dynamicbox_h handler, int gbar);
  * @param[in] x Coordinates of X axis
  * @param[in] y Coordinates of Y axis
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -1031,7 +1031,7 @@ extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_ev
  * @param[in] cb Result callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -1054,7 +1054,7 @@ extern int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -1080,7 +1080,7 @@ extern int dynamicbox_feed_key_event(dynamicbox_h handler, dynamicbox_key_event_
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @see dynamicbox_ret_cb
@@ -1140,7 +1140,7 @@ extern int dynamicbox_has_glance_bar(dynamicbox_h handler);
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -1160,7 +1160,7 @@ extern int dynamicbox_create_glance_bar(dynamicbox_h handler, double x, double y
  * @param[in] x 0.0 ~ 1.0, 0.0 indicates the coordinate X of left of dynamicbox
  * @param[in] y 0.0 ~ 1.0, 0.0 indicates the coordinate Y of top of dynamicbox
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE If sending a request for updating position of the Glance Bar has been done successfully
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1178,7 +1178,7 @@ extern int dynamicbox_move_glance_bar(dynamicbox_h handler, double x, double y);
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1231,7 +1231,7 @@ extern int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, dynamicbo
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1275,7 +1275,7 @@ extern void *dynamicbox_data(dynamicbox_h handler);
  * @param[in] cluster Cluster ("*" can be used for subscribe all cluster's dynamicboxes event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe dynamicboxes events of all category(sub-cluster) in a given "cluster")
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
@@ -1290,7 +1290,7 @@ extern int dynamicbox_subscribe_group(const char *cluster, const char *category)
  * @param[in] cluster Cluster("*" can be used for subscribe all cluster's dynamicboxes event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe all sub-cluster's dynamicboxes event in a given "cluster")
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
@@ -1309,7 +1309,7 @@ extern int dynamicbox_unsubscribe_group(const char *cluster, const char *categor
  * @param[in] category Sub-cluster ID
  * @param[in] force 1 if the boxes should be updated even if they are paused
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1325,7 +1325,7 @@ extern int dynamicbox_refresh_group(const char *cluster, const char *category, i
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] force 1 if the box should be updated even if it is paused
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1363,7 +1363,7 @@ extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
  * @param[in] cb Callback function which will be called with result of acquiring dbox resource id
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1412,7 +1412,7 @@ extern int dynamicbox_acquire_extra_resource_id(dynamicbox_h handler, int gbar, 
  * @param[in] gbar 1 for Glance Bar or 0
  * @param[in] resource_id Resource Id of given dynamicbox handler
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1429,7 +1429,7 @@ extern int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsign
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] state Configure the current visible state of a dynamicbox
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY
@@ -1471,7 +1471,7 @@ extern dynamicbox_visible_state_e dynamicbox_visibility(dynamicbox_h handler);
  * @param[in] cb Result callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY
@@ -1503,7 +1503,7 @@ extern int dynamicbox_is_active_update(dynamicbox_h handler);
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE If success
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid handle
@@ -1530,7 +1530,7 @@ extern int dynamicbox_damage_region_get(dynamicbox_h handler, int gbar, const dy
  * @brief Gets an alternative icon of the given dynamicbox instance.
  * @details If the box should be represented as a shortcut icon, this function will get the alternative icon.
  * @remarks
- *   If this returns NULL, you can get the reason of failure using dynamicbox_last_status()
+ *   If this returns @c NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -1545,7 +1545,7 @@ extern const char *dynamicbox_alternative_icon(dynamicbox_h handler);
  * @brief Gets an alternative name of the given dynamicbox instance.
  * @details If the box should be represented as a shortcut name, this function will get the alternative name.
  * @remarks
- *   If this returns NULL, you can get the reason of failure using dynamicbox_last_status()
+ *   If this returns @c NULL, you can get the reason of failure using dynamicbox_last_status()
  * @since_tizen 2.3
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
@@ -1564,7 +1564,7 @@ extern const char *dynamicbox_alternative_name(dynamicbox_h handler);
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -1581,7 +1581,7 @@ extern int dynamicbox_acquire_buffer_lock(dynamicbox_h handler, int gbar);
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -1594,18 +1594,18 @@ extern int dynamicbox_release_buffer_lock(dynamicbox_h handler, int gbar);
  * @internal
  * @brief Sets options for controlling a dynamicbox sub-system.
  * @details
- *   DBOX_OPTION_FRAME_DROP_FOR_RESIZE
- *     While resizing the box, viewer doesn't want to know the updated frames of an old size content anymore.
- *     In that case, turn this on, the provider will not send the updated event to the viewer about an old content.
- *     So the viewer can reduce its burden to update unnecessary frames.
- *   DBOX_OPTION_MANUAL_SYNC
- *     If you don't want to update frames automatically, or you want only reload the frames by your hands, (manually)
- *     Turn this on.
- *     After turnning it on, you should sync it using dynamicbox_sync_buffer().
- *   DBOX_OPTION_SHARED_CONTENT
- *     If this option is turnned on, even though you create a new dynamicbox,
- *     if there are already added same instances that have same contents, the instance will not be created again.
- *     Instead of creating a new instance, a viewer will provide an old instance with a new handle.
+ *   #DBOX_OPTION_FRAME_DROP_FOR_RESIZE
+ *       While resizing the box, viewer doesn't want to know the updated frames of an old size content anymore.
+ *       In that case, turn this on, the provider will not send the updated event to the viewer about an old content.
+ *       So the viewer can reduce its burden to update unnecessary frames.
+ *   #DBOX_OPTION_MANUAL_SYNC
+ *       If you don't want to update frames automatically, or you want only reload the frames by your hands, (manually)
+ *       Turn this on.
+ *       After turnning it on, you should sync it using dynamicbox_sync_buffer().
+ *   #DBOX_OPTION_SHARED_CONTENT
+ *       If this option is turnned on, even though you create a new dynamicbox,
+ *       if there are already added same instances that have same contents, the instance will not be created again.
+ *       Instead of creating a new instance, a viewer will provide an old instance with a new handle.
  * @since_tizen 2.3
  * @param[in] option Option which will be affected by this call
  * @param[in] state New value for given option
@@ -1650,8 +1650,8 @@ extern int dynamicbox_set_auto_launch_handler(dynamicbox_auto_launch_handler_cb 
  * @internal
  * @brief Get the last extra buffer index and its id.
  * @details
- *   If there is an event of DBOX_EVENT_DBOX_EXTRA_BUFFER_CREATED or DBOX_EVENT_GBAR_EXTRA_BUFFER_CREATED,
- *                           DBOX_EVENT_DBOX_EXTRA_BUFFER_DESTROYED or DBOX_EVENT_GBAR_EXTRA_BUFFER_DESTROYED
+ *   If there is an event of #DBOX_EVENT_DBOX_EXTRA_BUFFER_CREATED or #DBOX_EVENT_GBAR_EXTRA_BUFFER_CREATED,
+ *                           #DBOX_EVENT_DBOX_EXTRA_BUFFER_DESTROYED or #DBOX_EVENT_GBAR_EXTRA_BUFFER_DESTROYED
  *   you can use this to get the last created buffer info
  * @since_tizen 2.3
  * @param[in] handler Dynamicbox handler
