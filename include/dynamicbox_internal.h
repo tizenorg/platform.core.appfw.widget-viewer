@@ -15,12 +15,12 @@
  */
 
 struct cb_info {
-	dynamicbox_ret_cb cb;
-	void *data;
+    dynamicbox_ret_cb cb;
+    void *data;
 };
 
-extern void dbox_invoke_event_handler(struct dynamicbox *handler, enum dynamicbox_event_type event);
-extern void dbox_invoke_fault_handler(enum dynamicbox_fault_type type, const char *pkgname, const char *filename, const char *function);
+extern void dbox_invoke_event_handler(struct dynamicbox *handler, dynamicbox_event_type_e event);
+extern void dbox_invoke_fault_handler(dynamicbox_fault_type_e type, const char *pkgname, const char *filename, const char *function);
 
 extern struct dynamicbox_common *dbox_find_common_handle(const char *pkgname, const char *filename);
 extern struct dynamicbox *dbox_new_dynamicbox(const char *pkgname, const char *id, double timestamp, const char *cluster, const char *category);
@@ -51,16 +51,12 @@ extern void dbox_set_update_mode(struct dynamicbox_common *handler, int active_m
 extern void dbox_set_filename(struct dynamicbox_common *handler, const char *filename);
 extern void dbox_set_alt_icon(struct dynamicbox_common *handler, const char *icon);
 extern void dbox_set_alt_name(struct dynamicbox_common *handle, const char *name);
-extern int dbox_destroy_lock_file(struct dynamicbox_common *common, int is_gbar);
-extern int dbox_create_lock_file(struct dynamicbox_common *common, int is_gbar);
 extern int dbox_destroy_common_handle(struct dynamicbox_common *common);
 extern struct dynamicbox_common *dbox_create_common_handle(struct dynamicbox *handle, const char *pkgname, const char *cluster, const char *category);
 extern int dbox_sync_gbar_fb(struct dynamicbox_common *common);
 extern int dbox_sync_dbox_fb(struct dynamicbox_common *common);
 extern int dbox_common_unref(struct dynamicbox_common *common, struct dynamicbox *handle);
 extern int dbox_common_ref(struct dynamicbox_common *common, struct dynamicbox *handle);
-extern int dbox_fb_lock(int fd);
-extern int dbox_fb_unlock(int fd);
 extern struct dynamicbox_common *dbox_find_sharable_common_handle(const char *pkgname, const char *content, int w, int h, const char *cluster, const char *category);
 extern struct dynamicbox *dbox_find_dbox_in_show(struct dynamicbox_common *common);
 extern struct dynamicbox *dbox_get_dbox_nth(struct dynamicbox_common *common, int nth);
@@ -76,184 +72,198 @@ extern struct dynamicbox *dbox_unref(struct dynamicbox *handler, int destroy_com
 extern int dbox_send_delete(struct dynamicbox *handler, int type, dynamicbox_ret_cb cb, void *data);
 extern int dbox_delete_all(void);
 
-enum dynamicbox_state {
-	DBOX_STATE_CREATE = 0xBEEFbeef,
-	DBOX_STATE_DELETE = 0xDEADdead, /* Delete only for this client */
-	DBOX_STATE_DESTROYED = 0x00DEAD00
-};
+typedef enum dynamicbox_state {
+    DBOX_STATE_CREATE = 0xBEEFbeef,
+    DBOX_STATE_DELETE = 0xDEADdead, /* Delete only for this client */
+    DBOX_STATE_DESTROYED = 0x00DEAD00
+} dynamicbox_state_e;
 
 struct dynamicbox_common {
-	enum dynamicbox_state state;
+    dynamicbox_state_e state;
 
-	struct dlist *dynamicbox_list;
-	int refcnt;
+    struct dlist *dynamicbox_list;
+    int refcnt;
 
-	char *cluster;
-	char *category;
+    char *cluster;
+    char *category;
 
-	char *pkgname;
-	char *id;
+    char *pkgname;
+    char *id;
 
-	char *content;
-	char *title;
-	char *filename;
+    char *content;
+    char *title;
+    char *filename;
 
-	double timestamp;
+    double timestamp;
 
-	struct alt_info {
-		char *icon;
-		char *name;
-	} alt;
+    struct alt_info {
+        char *icon;
+        char *name;
+    } alt;
 
-	enum dynamicbox_delete_type delete_type;
+    dynamicbox_delete_type_e delete_type;
 
-	int is_user;
-	int is_gbar_created;
-	int is_pinned_up;
-	int is_active_update;
-	enum dynamicbox_visible_state visible;
+    int is_user;
+    int is_gbar_created;
+    int is_pinned_up;
+    int is_active_update;
+    dynamicbox_visible_state_e visible;
 
-	struct {
-		enum dynamicbox_dbox_type type;
-		struct fb_info *fb;
+    struct {
+        dynamicbox_dbox_type_e type;
+        struct fb_info *fb;
 
-		int size_list;
+        int size_list;
 
-		int width;
-		int height;
-		double priority;
+        int width;
+        int height;
+        double priority;
 
-		char *auto_launch;
-		double period;
-		int pinup_supported;
-		int mouse_event;
+        char *auto_launch;
+        double period;
+        int pinup_supported;
+        int mouse_event;
 
-		/* For the filtering event */
-		double x;
-		double y;
-		char *lock;
-		int lock_fd;
-		struct dynamicbox_damage_region last_damage;
-	} dbox;
+        /* For the filtering event */
+        double x;
+        double y;
 
-	struct {
-		enum dynamicbox_gbar_type type;
-		struct fb_info *fb;
+        /* For the extra buffer */
+        unsigned int *extra_buffer;
+        int last_extra_buffer_idx;
 
-		int width;
-		int height;
+        /* Lock */
+        dynamicbox_lock_info_t lock;
 
-		int default_width;
-		int default_height;
+        /* For damaged region */
+        struct dynamicbox_damage_region last_damage;
+    } dbox;
 
-		/* For the filtering event */
-		double x;
-		double y;
-		char *lock;
-		int lock_fd;
-		struct dynamicbox_damage_region last_damage;
-	} gbar;
+    struct {
+        dynamicbox_gbar_type_e type;
+        struct fb_info *fb;
 
-	int nr_of_sizes;
+        int width;
+        int height;
 
-	struct requested_flag {
-		unsigned int created:1;
-		unsigned int deleted:1;
-		unsigned int pinup:1;
-		unsigned int group_changed:1;
-		unsigned int period_changed:1;
-		unsigned int size_changed:1;
-		unsigned int gbar_created:1;
-		unsigned int gbar_destroyed:1;
-		unsigned int update_mode:1;
-		unsigned int access_event:1;
-		unsigned int key_event:1;
+        int default_width;
+        int default_height;
 
-		/*!
-		 * \note
-		 * Reserved
-		 */
-		unsigned int reserved:21;
-	} request;
+        /* For the filtering event */
+        double x;
+        double y;
+
+        /* For the extra buffer */
+        unsigned int *extra_buffer;
+        int last_extra_buffer_idx;
+
+        /* Lock */
+        dynamicbox_lock_info_t lock;
+
+        /* For damaged region */
+        struct dynamicbox_damage_region last_damage;
+    } gbar;
+
+    int nr_of_sizes;
+
+    struct requested_flag {
+        unsigned int created:1;
+        unsigned int deleted:1;
+        unsigned int pinup:1;
+        unsigned int group_changed:1;
+        unsigned int period_changed:1;
+        unsigned int size_changed:1;
+        unsigned int gbar_created:1;
+        unsigned int gbar_destroyed:1;
+        unsigned int update_mode:1;
+        unsigned int access_event:1;
+        unsigned int key_event:1;
+
+        /*!
+         * \note
+         * Reserved
+         */
+        unsigned int reserved:21;
+    } request;
 };
 
 struct job_item {
-	struct dynamicbox *handle;
-	dynamicbox_ret_cb cb;
-	int ret;
-	void *data;
+    struct dynamicbox *handle;
+    dynamicbox_ret_cb cb;
+    int ret;
+    void *data;
 };
 
 struct dynamicbox {
-	enum dynamicbox_state state;
+    dynamicbox_state_e state;
 
-	int refcnt;
-	int paused_updating;
+    int refcnt;
+    int paused_updating;
 
-	enum dynamicbox_visible_state visible;
-	struct dynamicbox_common *common;
+    dynamicbox_visible_state_e visible;
+    struct dynamicbox_common *common;
 
-	void *data;
+    void *data;
 
-	struct callback_table {
-		struct dynamicbox_script_operators dbox_ops;
-		struct dynamicbox_script_operators gbar_ops;
+    struct callback_table {
+        struct dynamicbox_script_operators dbox_ops;
+        struct dynamicbox_script_operators gbar_ops;
 
-		struct created {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} created;
+        struct created {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } created;
 
-		struct deleted {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} deleted;
+        struct deleted {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } deleted;
 
-		struct pinup {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} pinup;
+        struct pinup {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } pinup;
 
-		struct group_changed {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} group_changed;
+        struct group_changed {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } group_changed;
 
-		struct period_changed {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} period_changed;
+        struct period_changed {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } period_changed;
 
-		struct size_changed {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} size_changed;
+        struct size_changed {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } size_changed;
 
-		struct gbar_created {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} gbar_created;
+        struct gbar_created {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } gbar_created;
 
-		struct gbar_destroyed {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} gbar_destroyed;
+        struct gbar_destroyed {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } gbar_destroyed;
 
-		struct update_mode {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} update_mode;
+        struct update_mode {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } update_mode;
 
-		struct access_event {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} access_event;
+        struct access_event {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } access_event;
 
-		struct key_event {
-			dynamicbox_ret_cb cb;
-			void *data;
-		} key_event;
-	} cbs;
+        struct key_event {
+            dynamicbox_ret_cb cb;
+            void *data;
+        } key_event;
+    } cbs;
 };
 
 /* End of a file */

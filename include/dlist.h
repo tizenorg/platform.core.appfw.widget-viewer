@@ -15,18 +15,18 @@
  */
 
 #define dlist_remove_data(list, data) do { \
-	struct dlist *l; \
-	l = dlist_find_data(list, data); \
-	list = dlist_remove(list, l); \
+    struct dlist *l; \
+    l = dlist_find_data(list, data); \
+    list = dlist_remove(list, l); \
 } while (0)
 
 #define dlist_foreach(list, l, data) \
-	for ((l) = (list); (l) && ((data) = dlist_data(l)); (l) = dlist_next(l))
+    for ((l) = (list); (l) && ((data) = dlist_data(l)); (l) = dlist_next(l))
 
 #define dlist_foreach_safe(list, l, n, data) \
-	for ((l) = (list), (n) = dlist_next(l); \
-		(l) && ((data) = dlist_data(l)); \
-		(l) = (n), (n) = dlist_next(l))
+    for ((l) = (list), (n) = dlist_next(l); \
+        (l) && ((data) = dlist_data(l)); \
+        (l) = (n), (n) = dlist_next(l))
 
 struct dlist;
 

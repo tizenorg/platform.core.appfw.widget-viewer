@@ -20,9 +20,9 @@ extern const char *util_basename(const char *name);
 extern const char *util_uri_to_path(const char *uri);
 extern int util_unlink(const char *filename);
 
-#define SCHEMA_FILE	"file://"
-#define SCHEMA_PIXMAP	"pixmap://"
-#define SCHEMA_SHM	"shm://"
+#define SCHEMA_FILE   "file://"
+#define SCHEMA_PIXMAP "pixmap://"
+#define SCHEMA_SHM    "shm://"
 
 #define container_of(ptr, type, member) \
         ({ const typeof( ((type *)0)->member ) *__mptr = (ptr);    \

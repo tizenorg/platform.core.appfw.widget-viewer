@@ -35,6 +35,7 @@ BuildRequires: edje-bin
 BuildRequires: embryo-bin
 BuildRequires: gettext-devel
 BuildRequires: hash-signer
+Requires(post): signing-client
 
 %description
 w-add-viewer
@@ -64,12 +65,13 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 %define tizen_sign 1
 %define tizen_sign_base /usr/apps/%{_package_name}
-%define tizen_sign_level public
+%define tizen_sign_level platform
 %define tizen_author_sign 1
 %define tizen_dist_sign 1
 %make_install
 
 %post
+/usr/bin/signing-client/hash-signer-client.sh -a -d -p platform /usr/apps/${_package_name}
 
 %files
 %manifest %{_package_name}.manifest
