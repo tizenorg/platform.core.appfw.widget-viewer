@@ -40,28 +40,28 @@
 #define FILE_SERVICE_PORT    8209
 
 #define CRITICAL_SECTION_BEGIN(handle) \
-do { \
-    int ret; \
-    ret = pthread_mutex_lock(handle); \
-    if (ret != 0) { \
-        ErrPrint("Failed to lock: %s\n", strerror(ret)); \
-    } \
-} while (0)
+    do { \
+	int ret; \
+	ret = pthread_mutex_lock(handle); \
+	if (ret != 0) { \
+	    ErrPrint("Failed to lock: %s\n", strerror(ret)); \
+	} \
+    } while (0)
 
 #define CRITICAL_SECTION_END(handle) \
-do { \
-    int ret; \
-    ret = pthread_mutex_unlock(handle); \
-    if (ret != 0) { \
-        ErrPrint("Failed to unlock: %s\n", strerror(ret)); \
-    } \
-} while (0)
+    do { \
+	int ret; \
+	ret = pthread_mutex_unlock(handle); \
+	if (ret != 0) { \
+	    ErrPrint("Failed to unlock: %s\n", strerror(ret)); \
+	} \
+    } while (0)
 
 #define CANCEL_SECTION_BEGIN() do { \
     int ret; \
     ret = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL); \
     if (ret != 0) { \
-        ErrPrint("Unable to set cancelate state: %s\n", strerror(ret)); \
+	ErrPrint("Unable to set cancelate state: %s\n", strerror(ret)); \
     } \
 } while (0)
 
@@ -69,7 +69,7 @@ do { \
     int ret; \
     ret = pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL); \
     if (ret != 0) { \
-        ErrPrint("Unable to set cancelate state: %s\n", strerror(ret)); \
+	ErrPrint("Unable to set cancelate state: %s\n", strerror(ret)); \
     } \
 } while (0)
 
@@ -77,11 +77,11 @@ do { \
     int status; \
     status = close(p[PIPE_READ]); \
     if (status < 0) { \
-        ErrPrint("close: %s\n", strerror(errno)); \
+	ErrPrint("close: %s\n", strerror(errno)); \
     } \
     status = close(p[PIPE_WRITE]); \
     if (status < 0) { \
-        ErrPrint("close: %s\n", strerror(errno)); \
+	ErrPrint("close: %s\n", strerror(errno)); \
     } \
 } while (0)
 
@@ -135,8 +135,8 @@ static inline int put_event_ch(int fd, char ch)
 
     ret = write(fd, &ch, sizeof(ch));
     if (ret != sizeof(ch)) {
-        ErrPrint("write: %s\n", strerror(errno));
-        return ret;
+	ErrPrint("write: %s\n", strerror(errno));
+	return ret;
     }
 
     return 0;
@@ -149,8 +149,8 @@ static inline int get_event_ch(int fd)
 
     ret = read(fd, &ch, sizeof(ch));
     if (ret != sizeof(ch)) {
-        ErrPrint("read: %s\n", strerror(errno));
-        return ret;
+	ErrPrint("read: %s\n", strerror(errno));
+	return ret;
     }
 
     ret = (int)((unsigned int)ch);
@@ -172,14 +172,14 @@ static inline int file_service_open(void)
 
     addr = malloc(strlen(client_addr()) + 1);
     if (!addr) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        return -ENOMEM;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	return -ENOMEM;
     }
 
     if (sscanf(client_addr(), COM_CORE_REMOTE_SCHEME"%[^:]:%d", addr, &port) != 2) {
-        ErrPrint("Invalid URL\n");
-        free(addr);
-        return -EINVAL;
+	ErrPrint("Invalid URL\n");
+	free(addr);
+	return -EINVAL;
     }
 
     len = strlen(COM_CORE_REMOTE_SCHEME);
@@ -188,9 +188,9 @@ static inline int file_service_open(void)
 
     file_addr = malloc(len);
     if (!file_addr) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        free(addr);
-        return -ENOMEM;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	free(addr);
+	return -ENOMEM;
     }
 
     snprintf(file_addr, len, COM_CORE_REMOTE_SCHEME"%s:%d", addr, FILE_SERVICE_PORT);
@@ -209,11 +209,11 @@ static void write_item_to_pipe(struct request_item *item, int ret)
 {
     item->ret = DBOX_STATUS_ERROR_FAULT;
     if (write(s_info.evt_pipe[PIPE_WRITE], &item, sizeof(item)) != sizeof(item)) {
-        ErrPrint("write: %s\n", strerror(errno));
-        free(item->filename);
-        free(item->save_to);
-        free(item);
-        item = NULL;
+	ErrPrint("write: %s\n", strerror(errno));
+	free(item->filename);
+	free(item->save_to);
+	free(item);
+	item = NULL;
     }
 }
 
@@ -228,9 +228,9 @@ static void *file_service_main(void *data)
     fd_set set;
     int offset;
     enum {
-        RECV_INIT,
-        RECV_HEADER,
-        RECV_DATA,
+	RECV_INIT,
+	RECV_HEADER,
+	RECV_DATA,
     } recv_state;
     struct burst_head *head;
     struct burst_data *body;
@@ -244,266 +244,266 @@ static void *file_service_main(void *data)
     recv_state = RECV_INIT;
     select_fd = (s_info.file_service_fd > s_info.ctrl_pipe[PIPE_READ] ? s_info.file_service_fd : s_info.ctrl_pipe[PIPE_READ]) + 1;
     while (ret == 0) {
-        FD_ZERO(&set);
-        FD_SET(s_info.file_service_fd, &set);
-        FD_SET(s_info.ctrl_pipe[PIPE_READ], &set);
+	FD_ZERO(&set);
+	FD_SET(s_info.file_service_fd, &set);
+	FD_SET(s_info.ctrl_pipe[PIPE_READ], &set);
 
-        tv.tv_sec = 3;
-        tv.tv_usec = 0;
-        ret = select(select_fd , &set, NULL, NULL, &tv);
-        if (ret < 0) {
-            ret = -errno;
-            if (errno == EINTR) {
-                ErrPrint("INTERRUPTED\n");
-                ret = 0;
-                continue;
-            }
-            ErrPrint("Error: %s\n", strerror(errno));
-            break;
-        } else if (ret == 0) {
-            ErrPrint("Timeout\n");
-            ret = -ETIMEDOUT;
-            break;
-        }
+	tv.tv_sec = 3;
+	tv.tv_usec = 0;
+	ret = select(select_fd , &set, NULL, NULL, &tv);
+	if (ret < 0) {
+	    ret = -errno;
+	    if (errno == EINTR) {
+		ErrPrint("INTERRUPTED\n");
+		ret = 0;
+		continue;
+	    }
+	    ErrPrint("Error: %s\n", strerror(errno));
+	    break;
+	} else if (ret == 0) {
+	    ErrPrint("Timeout\n");
+	    ret = -ETIMEDOUT;
+	    break;
+	}
 
-        if (item && FD_ISSET(s_info.file_service_fd, &set)) {
-            switch (recv_state) {
-            case RECV_INIT:
-                if (head == NULL) {
-                    recvsz = sizeof(*head);
+	if (item && FD_ISSET(s_info.file_service_fd, &set)) {
+	    switch (recv_state) {
+		case RECV_INIT:
+		    if (head == NULL) {
+			recvsz = sizeof(*head);
 
-                    head = malloc(recvsz);
-                    if (!head) {
-                        ErrPrint("Heap: %s\n", strerror(errno));
-                        ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    }
+			head = malloc(recvsz);
+			if (!head) {
+			    ErrPrint("Heap: %s\n", strerror(errno));
+			    ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			}
 
-                    offset = 0;
-                    recv_state = RECV_HEADER;
-                }
-            case RECV_HEADER:
-                if (offset < recvsz) {
-                    ret = secure_socket_recv(s_info.file_service_fd, (char *)head + offset, recvsz - offset, NULL);
-                    if (ret > 0) {
-                        offset += ret;
-                    } else {
-                        free(head);
-                        head = NULL;
-                        recv_state = RECV_INIT;
-                        ret = DBOX_STATUS_ERROR_FAULT;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    }
-                }
+			offset = 0;
+			recv_state = RECV_HEADER;
+		    }
+		case RECV_HEADER:
+		    if (offset < recvsz) {
+			ret = secure_socket_recv(s_info.file_service_fd, (char *)head + offset, recvsz - offset, NULL);
+			if (ret > 0) {
+			    offset += ret;
+			} else {
+			    free(head);
+			    head = NULL;
+			    recv_state = RECV_INIT;
+			    ret = DBOX_STATUS_ERROR_FAULT;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			}
+		    }
 
-                if (offset == sizeof(*head)) {
-                    void *tmp;
+		    if (offset == sizeof(*head)) {
+			void *tmp;
 
-                    recvsz += head->flen;
+			recvsz += head->flen;
 
-                    tmp = realloc(head, recvsz);
-                    if (!tmp) {
-                        ErrPrint("Heap: %s\n", strerror(errno));
+			tmp = realloc(head, recvsz);
+			if (!tmp) {
+			    ErrPrint("Heap: %s\n", strerror(errno));
 
-                        free(head);
-                        head = NULL;
-                        recv_state = RECV_INIT;
+			    free(head);
+			    head = NULL;
+			    recv_state = RECV_INIT;
 
-                        ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    }
+			    ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			}
 
-                    head = tmp;
-                } else if (offset == recvsz) {
-                    DbgPrint("Filesize: %d, name[%s]\n", head->size, head->fname);
-                    if (strcmp(item->filename, head->fname)) {
-                        ErrPrint("Invalid data sequence (%s <> %s)\n", item->filename, head->fname);
+			head = tmp;
+		    } else if (offset == recvsz) {
+			DbgPrint("Filesize: %d, name[%s]\n", head->size, head->fname);
+			if (strcmp(item->filename, head->fname)) {
+			    ErrPrint("Invalid data sequence (%s <> %s)\n", item->filename, head->fname);
 
-                        free(head);
-                        head = NULL;
-                        recv_state = RECV_INIT;
-                        ret = DBOX_STATUS_ERROR_FAULT;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    }
+			    free(head);
+			    head = NULL;
+			    recv_state = RECV_INIT;
+			    ret = DBOX_STATUS_ERROR_FAULT;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			}
 
-                    file_fd = open(item->save_to, O_WRONLY|O_CREAT, 0644);
-                    if (file_fd < 0) {
-                        ErrPrint("open: %s\n", strerror(errno));
-                        free(head);
-                        head = NULL;
-                        recv_state = RECV_INIT;
+			file_fd = open(item->save_to, O_WRONLY|O_CREAT, 0644);
+			if (file_fd < 0) {
+			    ErrPrint("open: %s\n", strerror(errno));
+			    free(head);
+			    head = NULL;
+			    recv_state = RECV_INIT;
 
-                        ret = DBOX_STATUS_ERROR_IO_ERROR;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    }
+			    ret = DBOX_STATUS_ERROR_IO_ERROR;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			}
 
-                    recv_state = RECV_DATA;
-                    body = NULL;
+			recv_state = RECV_DATA;
+			body = NULL;
 
-                } else {
-                    ErrPrint("Invalid state\n");
-                    free(head);
-                    head = NULL;
-                    recv_state = RECV_INIT;
-                    ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
-                    write_item_to_pipe(item, ret);
-                    item = NULL;
-                }
-                break;
-            case RECV_DATA:
-                if (!body) {
-                    body = malloc(sizeof(*body));
-                    if (!body) {
-                        free(head);
-                        head = NULL;
-                        recv_state = RECV_INIT;
-                        ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    }
+		    } else {
+			ErrPrint("Invalid state\n");
+			free(head);
+			head = NULL;
+			recv_state = RECV_INIT;
+			ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+			write_item_to_pipe(item, ret);
+			item = NULL;
+		    }
+		    break;
+		case RECV_DATA:
+		    if (!body) {
+			body = malloc(sizeof(*body));
+			if (!body) {
+			    free(head);
+			    head = NULL;
+			    recv_state = RECV_INIT;
+			    ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			}
 
-                    recvsz = sizeof(*body);
-                    offset = 0;
-                }
+			recvsz = sizeof(*body);
+			offset = 0;
+		    }
 
-                ret = secure_socket_recv(s_info.file_service_fd, (char *)body + offset, recvsz - offset, NULL);
-                if (ret > 0) {
-                    offset += ret;
-                } else {
-                    free(head);
-                    head = NULL;
-                    free(body);
-                    body = NULL;
-                    recv_state = RECV_INIT;
-                    ret = DBOX_STATUS_ERROR_FAULT;
-                    write_item_to_pipe(item, ret);
-                    item = NULL;
-                    break;
-                }
+		    ret = secure_socket_recv(s_info.file_service_fd, (char *)body + offset, recvsz - offset, NULL);
+		    if (ret > 0) {
+			offset += ret;
+		    } else {
+			free(head);
+			head = NULL;
+			free(body);
+			body = NULL;
+			recv_state = RECV_INIT;
+			ret = DBOX_STATUS_ERROR_FAULT;
+			write_item_to_pipe(item, ret);
+			item = NULL;
+			break;
+		    }
 
-                if (offset == sizeof(*body)) {
-                    void *tmp;
+		    if (offset == sizeof(*body)) {
+			void *tmp;
 
-                    if (body->size < 0) {
-                        ErrPrint("body->size: %d\n", body->size);
-                        free(head);
-                        head = NULL;
-                        free(body);
-                        body = NULL;
-                        recv_state = RECV_INIT;
-                        ret = DBOX_STATUS_ERROR_FAULT;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    }
+			if (body->size < 0) {
+			    ErrPrint("body->size: %d\n", body->size);
+			    free(head);
+			    head = NULL;
+			    free(body);
+			    body = NULL;
+			    recv_state = RECV_INIT;
+			    ret = DBOX_STATUS_ERROR_FAULT;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			}
 
-                    recvsz += body->size;
+			recvsz += body->size;
 
-                    tmp = realloc(body, recvsz);
-                    if (!tmp) {
-                        ErrPrint("Heap: %s\n", strerror(errno));
-                        free(head);
-                        head = NULL;
+			tmp = realloc(body, recvsz);
+			if (!tmp) {
+			    ErrPrint("Heap: %s\n", strerror(errno));
+			    free(head);
+			    head = NULL;
 
-                        free(body);
-                        body = NULL;
-                        recv_state = RECV_INIT;
+			    free(body);
+			    body = NULL;
+			    recv_state = RECV_INIT;
 
-                        ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    }
-                } else if (offset == recvsz) {
-                    /* Flush this to the file */
-                    ret = write(file_fd, body->data, body->size);
-                    if (ret < 0) {
-                        ErrPrint("write: %s\n", strerror(errno));
-                        free(head);
-                        head = NULL;
+			    ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			}
+		    } else if (offset == recvsz) {
+			/* Flush this to the file */
+			ret = write(file_fd, body->data, body->size);
+			if (ret < 0) {
+			    ErrPrint("write: %s\n", strerror(errno));
+			    free(head);
+			    head = NULL;
 
-                        free(body);
-                        body = NULL;
-                        recv_state = RECV_INIT;
+			    free(body);
+			    body = NULL;
+			    recv_state = RECV_INIT;
 
-                        ret = DBOX_STATUS_ERROR_IO_ERROR;
-                        write_item_to_pipe(item, ret);
-                        item = NULL;
-                        break;
-                    } else {
-                        if (body->size != ret) {
-                            DbgPrint("Body is not flushed correctly: %d, %d\n", ret, body->size);
-                            ret = body->size;
-                        }
+			    ret = DBOX_STATUS_ERROR_IO_ERROR;
+			    write_item_to_pipe(item, ret);
+			    item = NULL;
+			    break;
+			} else {
+			    if (body->size != ret) {
+				DbgPrint("Body is not flushed correctly: %d, %d\n", ret, body->size);
+				ret = body->size;
+			    }
 
-                        file_offset += ret;
-                        if (file_offset == head->size) {
-                            if (close(file_fd) < 0) {
-                                ErrPrint("close: %s\n", strerror(errno));
-                            }
-                            ret = DBOX_STATUS_ERROR_NONE;
-                            write_item_to_pipe(item, ret);
-                            item = NULL;
-                        }
-                    }
+			    file_offset += ret;
+			    if (file_offset == head->size) {
+				if (close(file_fd) < 0) {
+				    ErrPrint("close: %s\n", strerror(errno));
+				}
+				ret = DBOX_STATUS_ERROR_NONE;
+				write_item_to_pipe(item, ret);
+				item = NULL;
+			    }
+			}
 
-                    free(body);
-                    body = NULL;
+			free(body);
+			body = NULL;
 
-                    free(head);
-                    head = NULL;
+			free(head);
+			head = NULL;
 
-                    recv_state = RECV_INIT;
-                } else {
-                    ErrPrint("Invalid state\n");
+			recv_state = RECV_INIT;
+		    } else {
+			ErrPrint("Invalid state\n");
 
-                    ret = -EFAULT;
-                    free(body);
-                    body = NULL;
-                    free(head);
-                    head = NULL;
-                    recv_state = RECV_INIT;
+			ret = -EFAULT;
+			free(body);
+			body = NULL;
+			free(head);
+			head = NULL;
+			recv_state = RECV_INIT;
 
-                    ret = DBOX_STATUS_ERROR_FAULT;
-                    write_item_to_pipe(item, ret);
-                    item = NULL;
-                }
-                break;
-            default:
-                ErrPrint("Unknown event: %d\n", recv_state);
-                ret = DBOX_STATUS_ERROR_FAULT;
-                write_item_to_pipe(item, ret);
-                item = NULL;
-                break;
-            }
-        } else if (item == NULL && recv_state == RECV_INIT && FD_ISSET(s_info.ctrl_pipe[PIPE_READ], &set)) {
-            int ch;
-            struct dlist *l;
+			ret = DBOX_STATUS_ERROR_FAULT;
+			write_item_to_pipe(item, ret);
+			item = NULL;
+		    }
+		    break;
+		default:
+		    ErrPrint("Unknown event: %d\n", recv_state);
+		    ret = DBOX_STATUS_ERROR_FAULT;
+		    write_item_to_pipe(item, ret);
+		    item = NULL;
+		    break;
+	    }
+	} else if (item == NULL && recv_state == RECV_INIT && FD_ISSET(s_info.ctrl_pipe[PIPE_READ], &set)) {
+	    int ch;
+	    struct dlist *l;
 
-            /* Only if the recv state is not changed, we can get next request item */
-            ch = get_event_ch(s_info.ctrl_pipe[PIPE_READ]);
-            if (ch == EVT_END_CH) {
-                DbgPrint("Service thread is canceled\n");
-                break;
-            }
+	    /* Only if the recv state is not changed, we can get next request item */
+	    ch = get_event_ch(s_info.ctrl_pipe[PIPE_READ]);
+	    if (ch == EVT_END_CH) {
+		DbgPrint("Service thread is canceled\n");
+		break;
+	    }
 
-            CRITICAL_SECTION_BEGIN(&s_info.file_svc_lock);
-            l = dlist_nth(s_info.request_list, 0);
-            item = dlist_data(l);
-            s_info.request_list = dlist_remove(s_info.request_list, l);
-            CRITICAL_SECTION_END(&s_info.file_svc_lock);
-        }
+	    CRITICAL_SECTION_BEGIN(&s_info.file_svc_lock);
+	    l = dlist_nth(s_info.request_list, 0);
+	    item = dlist_data(l);
+	    s_info.request_list = dlist_remove(s_info.request_list, l);
+	    CRITICAL_SECTION_END(&s_info.file_svc_lock);
+	}
     }
 
     return (void *)ret;
@@ -518,25 +518,25 @@ static gboolean evt_cb(GIOChannel *src, GIOCondition cond, gpointer data)
     fd = g_io_channel_unix_get_fd(src);
 
     if (!(cond & G_IO_IN)) {
-        DbgPrint("Client is disconencted\n");
-        return FALSE;
+	DbgPrint("Client is disconencted\n");
+	return FALSE;
     }
 
     if ((cond & G_IO_ERR) || (cond & G_IO_HUP) || (cond & G_IO_NVAL)) {
-        DbgPrint("Client connection is lost\n");
-        return FALSE;
+	DbgPrint("Client connection is lost\n");
+	return FALSE;
     }
 
     if (read(fd, &item, sizeof(item)) != sizeof(item)) {
-        ErrPrint("read: %s\n", strerror(errno));
+	ErrPrint("read: %s\n", strerror(errno));
     } else {
-        if (item->result_cb) {
-            item->result_cb(item->filename, item->save_to, item->ret, item->data);
-        }
+	if (item->result_cb) {
+	    item->result_cb(item->filename, item->save_to, item->ret, item->data);
+	}
 
-        free(item->filename);
-        free(item->save_to);
-        free(item);
+	free(item->filename);
+	free(item->save_to);
+	free(item);
     }
 
     return TRUE;
@@ -548,23 +548,23 @@ int file_service_send_request(const char *filename, const char *save_to, void (*
 
     item = malloc(sizeof(*item));
     if (!item) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        return -ENOMEM;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	return -ENOMEM;
     }
 
     item->filename = strdup(filename);
     if (!item->filename) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        free(item);
-        return -ENOMEM;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	free(item);
+	return -ENOMEM;
     }
 
     item->save_to = strdup(save_to);
     if (!item->save_to) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        free(item->filename);
-        free(item);
-        return -ENOMEM;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	free(item->filename);
+	free(item);
+	return -ENOMEM;
     }
 
     item->result_cb = result_cb;
@@ -583,100 +583,100 @@ int file_service_init(void)
     guint id;
 
     if (strncmp(client_addr(), COM_CORE_REMOTE_SCHEME, strlen(COM_CORE_REMOTE_SCHEME))) {
-        return 0;
+	return 0;
     }
 
     s_info.file_service_fd = file_service_open();
     if (s_info.file_service_fd < 0) {
-        return -EFAULT;
+	return -EFAULT;
     }
 
     if (pipe2(s_info.ctrl_pipe, O_NONBLOCK | O_CLOEXEC) < 0) {
-        ErrPrint("file service: %s\n", strerror(errno));
-        file_service_close(s_info.file_service_fd);
-        s_info.file_service_fd = -1;
-        return -EFAULT;
+	ErrPrint("file service: %s\n", strerror(errno));
+	file_service_close(s_info.file_service_fd);
+	s_info.file_service_fd = -1;
+	return -EFAULT;
     }
 
     if (pipe2(s_info.evt_pipe, O_NONBLOCK | O_CLOEXEC) < 0) {
-        ErrPrint("file service: %s\n", strerror(errno));
-        CLOSE_PIPE(s_info.ctrl_pipe);
-        file_service_close(s_info.file_service_fd);
-        s_info.file_service_fd = -1;
-        return -EFAULT;
+	ErrPrint("file service: %s\n", strerror(errno));
+	CLOSE_PIPE(s_info.ctrl_pipe);
+	file_service_close(s_info.file_service_fd);
+	s_info.file_service_fd = -1;
+	return -EFAULT;
     }
 
     status = pthread_mutex_init(&s_info.file_svc_lock, NULL);
     if (status != 0) {
-        ErrPrint("Mutex: %s\n", strerror(status));
-        CLOSE_PIPE(s_info.ctrl_pipe);
-        CLOSE_PIPE(s_info.evt_pipe);
-        file_service_close(s_info.file_service_fd);
-        s_info.file_service_fd = -1;
-        return -EFAULT;
+	ErrPrint("Mutex: %s\n", strerror(status));
+	CLOSE_PIPE(s_info.ctrl_pipe);
+	CLOSE_PIPE(s_info.evt_pipe);
+	file_service_close(s_info.file_service_fd);
+	s_info.file_service_fd = -1;
+	return -EFAULT;
     }
 
     gio = g_io_channel_unix_new(s_info.evt_pipe[PIPE_READ]);
     if (!gio) {
-        ErrPrint("io channel new\n");
-        status = pthread_mutex_destroy(&s_info.file_svc_lock);
-        if (status != 0) {
-            ErrPrint("destroy: %s\n", strerror(status));
-        }
-        CLOSE_PIPE(s_info.ctrl_pipe);
-        CLOSE_PIPE(s_info.evt_pipe);
-        file_service_close(s_info.file_service_fd);
-        s_info.file_service_fd = -1;
-        return -EFAULT;
+	ErrPrint("io channel new\n");
+	status = pthread_mutex_destroy(&s_info.file_svc_lock);
+	if (status != 0) {
+	    ErrPrint("destroy: %s\n", strerror(status));
+	}
+	CLOSE_PIPE(s_info.ctrl_pipe);
+	CLOSE_PIPE(s_info.evt_pipe);
+	file_service_close(s_info.file_service_fd);
+	s_info.file_service_fd = -1;
+	return -EFAULT;
     }
 
     g_io_channel_set_close_on_unref(gio, FALSE);
 
     id = g_io_add_watch(gio, G_IO_IN | G_IO_HUP | G_IO_ERR | G_IO_NVAL, (GIOFunc)evt_cb, NULL);
     if (id <= 0) {
-        GError *err = NULL;
-        ErrPrint("Failed to add IO watch\n");
-        g_io_channel_shutdown(gio, TRUE, &err);
-        if (err) {
-            ErrPrint("Shutdown: %s\n", err->message);
-            g_error_free(err);
-        }
-        g_io_channel_unref(gio);
+	GError *err = NULL;
+	ErrPrint("Failed to add IO watch\n");
+	g_io_channel_shutdown(gio, TRUE, &err);
+	if (err) {
+	    ErrPrint("Shutdown: %s\n", err->message);
+	    g_error_free(err);
+	}
+	g_io_channel_unref(gio);
 
-        status = pthread_mutex_destroy(&s_info.file_svc_lock);
-        if (status != 0) {
-            ErrPrint("destroy: %s\n", strerror(status));
-        }
-        CLOSE_PIPE(s_info.ctrl_pipe);
-        CLOSE_PIPE(s_info.evt_pipe);
-        file_service_close(s_info.file_service_fd);
-        s_info.file_service_fd = -1;
-        return -EIO;
+	status = pthread_mutex_destroy(&s_info.file_svc_lock);
+	if (status != 0) {
+	    ErrPrint("destroy: %s\n", strerror(status));
+	}
+	CLOSE_PIPE(s_info.ctrl_pipe);
+	CLOSE_PIPE(s_info.evt_pipe);
+	file_service_close(s_info.file_service_fd);
+	s_info.file_service_fd = -1;
+	return -EIO;
     }
 
     status = pthread_create(&s_info.file_svc_thid, NULL, file_service_main, NULL);
     if (status != 0) {
-        GError *err = NULL;
-        ErrPrint("Failed to add IO watch\n");
-        g_io_channel_shutdown(gio, TRUE, &err);
-        if (err) {
-            ErrPrint("Shutdown: %s\n", err->message);
-            g_error_free(err);
-        }
-        g_io_channel_unref(gio);
+	GError *err = NULL;
+	ErrPrint("Failed to add IO watch\n");
+	g_io_channel_shutdown(gio, TRUE, &err);
+	if (err) {
+	    ErrPrint("Shutdown: %s\n", err->message);
+	    g_error_free(err);
+	}
+	g_io_channel_unref(gio);
 
-        ErrPrint("file service: %s\n", strerror(status));
-        CLOSE_PIPE(s_info.ctrl_pipe);
-        CLOSE_PIPE(s_info.evt_pipe);
-        file_service_close(s_info.file_service_fd);
-        s_info.file_service_fd = -1;
+	ErrPrint("file service: %s\n", strerror(status));
+	CLOSE_PIPE(s_info.ctrl_pipe);
+	CLOSE_PIPE(s_info.evt_pipe);
+	file_service_close(s_info.file_service_fd);
+	s_info.file_service_fd = -1;
 
-        status = pthread_mutex_destroy(&s_info.file_svc_lock);
-        if (status != 0) {
-            ErrPrint("destroy: %s\n", strerror(status));
-        }
+	status = pthread_mutex_destroy(&s_info.file_svc_lock);
+	if (status != 0) {
+	    ErrPrint("destroy: %s\n", strerror(status));
+	}
 
-        return -EFAULT;
+	return -EFAULT;
     }
 
     g_io_channel_unref(gio);
@@ -689,21 +689,21 @@ int file_service_fini(void)
     int ret;
 
     if (strncmp(client_addr(), COM_CORE_REMOTE_SCHEME, strlen(COM_CORE_REMOTE_SCHEME))) {
-        return 0;
+	return 0;
     }
 
     (void)put_event_ch(s_info.ctrl_pipe[PIPE_WRITE], EVT_END_CH);
 
     ret = pthread_join(s_info.file_svc_thid, &svc_ret);
     if (ret != 0) {
-        ErrPrint("join: %s\n", strerror(ret));
+	ErrPrint("join: %s\n", strerror(ret));
     } else {
-        DbgPrint("file svc returns: %d\n", (int)svc_ret);
+	DbgPrint("file svc returns: %d\n", (int)svc_ret);
     }
 
     ret = pthread_mutex_destroy(&s_info.file_svc_lock);
     if (ret != 0) {
-        ErrPrint("destroy: %s\n", strerror(ret));
+	ErrPrint("destroy: %s\n", strerror(ret));
     }
 
     CLOSE_PIPE(s_info.evt_pipe);

@@ -46,8 +46,8 @@ struct command {
     void (*ret_cb)(dynamicbox_h handler, const struct packet *result, void *data);
     void *data;
     enum {
-        TYPE_ACK,
-        TYPE_NOACK
+	TYPE_ACK,
+	TYPE_NOACK
     } type;
 };
 
@@ -70,7 +70,7 @@ static inline struct command *pop_command(void)
 
     l = dlist_nth(s_info.cmd_list, 0);
     if (!l) {
-        return NULL;
+	return NULL;
     }
 
     command = dlist_data(l);
@@ -84,8 +84,8 @@ static inline struct command *create_command(dynamicbox_h handler, struct packet
 
     command = malloc(sizeof(*command));
     if (!command) {
-        ErrPrint("Failed to allocate mem for command\n");
-        return NULL;
+	ErrPrint("Failed to allocate mem for command\n");
+	return NULL;
     }
 
     command->handler = dbox_ref(handler);
@@ -106,8 +106,8 @@ static gboolean cmd_consumer(gpointer user_data)
 
     command = pop_command();
     if (!command) {
-        s_info.cmd_timer = 0;
-        return FALSE;
+	s_info.cmd_timer = 0;
+	return FALSE;
     }
 
     /*!
@@ -119,19 +119,19 @@ static gboolean cmd_consumer(gpointer user_data)
      * increate the reference counter of the item->param
      */
     if (command->type == TYPE_NOACK) {
-        if (com_core_packet_send_only(client_fd(), command->packet) < 0) {
-            ErrPrint("Failed to send a packet to master\n");
-        }
+	if (com_core_packet_send_only(client_fd(), command->packet) < 0) {
+	    ErrPrint("Failed to send a packet to master\n");
+	}
 
-        destroy_command(command);
+	destroy_command(command);
     } else {
-        if (com_core_packet_async_send(client_fd(), command->packet, 0u, done_cb, command) < 0) {
-            ErrPrint("Failed to send a packet to master\n");
-            if (command->ret_cb) {
-                command->ret_cb(command->handler, NULL, command->data);
-            }
-            destroy_command(command);
-        }
+	if (com_core_packet_async_send(client_fd(), command->packet, 0u, done_cb, command) < 0) {
+	    ErrPrint("Failed to send a packet to master\n");
+	    if (command->ret_cb) {
+		command->ret_cb(command->handler, NULL, command->data);
+	    }
+	    destroy_command(command);
+	}
     }
     return TRUE;
 }
@@ -145,12 +145,12 @@ static inline void prepend_command(struct command *command)
 void master_rpc_check_and_fire_consumer(void)
 {
     if (!s_info.cmd_list || s_info.cmd_timer || client_fd() < 0) {
-        return;
+	return;
     }
 
     s_info.cmd_timer = g_timeout_add(REQUEST_DELAY, cmd_consumer, NULL);
     if (!s_info.cmd_timer) {
-        ErrPrint("Failed to add timer\n");
+	ErrPrint("Failed to add timer\n");
     }
 }
 
@@ -162,27 +162,27 @@ static int done_cb(pid_t pid, int handle, const struct packet *packet, void *dat
     command = data;
 
     if (!packet) {
-        /*! \NOTE:
-         * Release resource even if
-         * we failed to finish the method call
-         */
-        command->ttl--;
-        if (command->ttl > 0) {
-            prepend_command(command);
-            return 0;
-        }
+	/*! \NOTE:
+	 * Release resource even if
+	 * we failed to finish the method call
+	 */
+	command->ttl--;
+	if (command->ttl > 0) {
+	    prepend_command(command);
+	    return 0;
+	}
 
-        goto out;
+	goto out;
     }
 
     if (packet_get(packet, "i", &ret) != 1) {
-        ErrPrint("Invalid result packet\n");
-        ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid result packet\n");
+	ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
 out:
     if (command->ret_cb) {
-        command->ret_cb(command->handler, packet, command->data);
+	command->ret_cb(command->handler, packet, command->data);
     }
 
     destroy_command(command);
@@ -205,9 +205,9 @@ int master_rpc_async_request(dynamicbox_h handler, struct packet *packet, int ur
 
     command = create_command(handler, packet);
     if (!command) {
-        ErrPrint("Failed to create a command\n");
-        packet_unref(packet);
-        return DBOX_STATUS_ERROR_FAULT;
+	ErrPrint("Failed to create a command\n");
+	packet_unref(packet);
+	return DBOX_STATUS_ERROR_FAULT;
     }
 
     command->ret_cb = ret_cb;
@@ -216,9 +216,9 @@ int master_rpc_async_request(dynamicbox_h handler, struct packet *packet, int ur
     command->type = TYPE_ACK;
 
     if (urgent) {
-        prepend_command(command);
+	prepend_command(command);
     } else {
-        push_command(command);
+	push_command(command);
     }
 
     packet_unref(packet);
@@ -231,9 +231,9 @@ int master_rpc_request_only(dynamicbox_h handler, struct packet *packet)
 
     command = create_command(handler, packet);
     if (!command) {
-        ErrPrint("Failed to create a command\n");
-        packet_unref(packet);
-        return DBOX_STATUS_ERROR_FAULT;
+	ErrPrint("Failed to create a command\n");
+	packet_unref(packet);
+	return DBOX_STATUS_ERROR_FAULT;
     }
 
     command->ret_cb = NULL;
@@ -253,22 +253,22 @@ int master_rpc_clear_fault_package(const char *pkgname)
     struct command *command;
 
     if (!pkgname) {
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     dlist_foreach_safe(s_info.cmd_list, l, n, command) {
-        if (!command->handler) {
-            continue;
-        }
+	if (!command->handler) {
+	    continue;
+	}
 
-        if (!strcmp(command->handler->common->pkgname, pkgname)) {
-            s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
-            if (command->ret_cb) {
-                command->ret_cb(command->handler, NULL, command->data);
-            }
+	if (!strcmp(command->handler->common->pkgname, pkgname)) {
+	    s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
+	    if (command->ret_cb) {
+		command->ret_cb(command->handler, NULL, command->data);
+	    }
 
-            destroy_command(command);
-        }
+	    destroy_command(command);
+	}
     }
 
     return 0;
@@ -281,13 +281,13 @@ int master_rpc_clear_all_request(void)
     struct dlist *n;
 
     dlist_foreach_safe(s_info.cmd_list, l, n, command) {
-        s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
+	s_info.cmd_list = dlist_remove(s_info.cmd_list, l);
 
-        if (command->ret_cb) {
-            command->ret_cb(command->handler, NULL, command->data);
-        }
+	if (command->ret_cb) {
+	    command->ret_cb(command->handler, NULL, command->data);
+	}
 
-        destroy_command(command);
+	destroy_command(command);
     }
 
     return 0;
@@ -300,15 +300,15 @@ int master_rpc_sync_request(struct packet *packet)
 
     result = com_core_packet_oneshot_send(client_addr(), packet, 0.0f);
     if (result) {
-        if (packet_get(result, "i", &ret) != 1) {
-            ErrPrint("Invalid result packet\n");
-            ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
-        }
+	if (packet_get(result, "i", &ret) != 1) {
+	    ErrPrint("Invalid result packet\n");
+	    ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
 
-        packet_unref(result);
+	packet_unref(result);
     } else {
-        ErrPrint("Failed to send a sync request\n");
-        ret = DBOX_STATUS_ERROR_FAULT;
+	ErrPrint("Failed to send a sync request\n");
+	ret = DBOX_STATUS_ERROR_FAULT;
     }
 
     packet_unref(packet);

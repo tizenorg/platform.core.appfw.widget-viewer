@@ -43,11 +43,11 @@ int util_check_extension(const char *filename, const char *check_ptr)
 
     name_len = strlen(filename);
     while (--name_len >= 0 && *check_ptr) {
-        if (filename[name_len] != *check_ptr) {
-            return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-        }
+	if (filename[name_len] != *check_ptr) {
+	    return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
 
-        check_ptr ++;
+	check_ptr ++;
     }
 
     return 0;
@@ -59,22 +59,22 @@ double util_timestamp(void)
     struct timespec ts;
 
     do {
-        if (clock_gettime(s_info.type, &ts) == 0) {
-            return ts.tv_sec + ts.tv_nsec / 1000000000.0f;
-        }
+	if (clock_gettime(s_info.type, &ts) == 0) {
+	    return ts.tv_sec + ts.tv_nsec / 1000000000.0f;
+	}
 
-        ErrPrint("%d: %s\n", s_info.type, strerror(errno));
-        if (s_info.type == CLOCK_MONOTONIC) {
-            s_info.type = CLOCK_REALTIME;
-        } else if (s_info.type == CLOCK_REALTIME) {
-            struct timeval tv;
-            if (gettimeofday(&tv, NULL) < 0) {
-                ErrPrint("gettimeofday: %s\n", strerror(errno));
-                break;
-            }
+	ErrPrint("%d: %s\n", s_info.type, strerror(errno));
+	if (s_info.type == CLOCK_MONOTONIC) {
+	    s_info.type = CLOCK_REALTIME;
+	} else if (s_info.type == CLOCK_REALTIME) {
+	    struct timeval tv;
+	    if (gettimeofday(&tv, NULL) < 0) {
+		ErrPrint("gettimeofday: %s\n", strerror(errno));
+		break;
+	    }
 
-            return tv.tv_sec + tv.tv_usec / 1000000.0f;
-        }
+	    return tv.tv_sec + tv.tv_usec / 1000000.0f;
+	}
     } while (1);
 
     return 0.0f;
@@ -82,9 +82,9 @@ double util_timestamp(void)
     struct timeval tv;
 
     if (gettimeofday(&tv, NULL) < 0) {
-        ErrPrint("gettimeofday: %s\n", strerror(errno));
-        tv.tv_sec = 0;
-        tv.tv_usec = 0;
+	ErrPrint("gettimeofday: %s\n", strerror(errno));
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
     }
 
     return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0f;
@@ -96,7 +96,7 @@ const char *util_basename(const char *name)
     int length;
     length = name ? strlen(name) : 0;
     if (!length) {
-        return ".";
+	return ".";
     }
 
     while (--length > 0 && name[length] != '/');
@@ -110,7 +110,7 @@ const char *util_uri_to_path(const char *uri)
 
     len = strlen(SCHEMA_FILE);
     if (strncasecmp(uri, SCHEMA_FILE, len)) {
-        return NULL;
+	return NULL;
     }
 
     return uri + len;
@@ -123,21 +123,21 @@ int util_unlink(const char *filename)
     int ret;
 
     if (!filename) {
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     desclen = strlen(filename) + 6; /* .desc */
     descfile = malloc(desclen);
     if (!descfile) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
     }
 
     ret = snprintf(descfile, desclen, "%s.desc", filename);
     if (ret < 0) {
-        ErrPrint("Error: %s\n", strerror(errno));
-        free(descfile);
-        return DBOX_STATUS_ERROR_FAULT;
+	ErrPrint("Error: %s\n", strerror(errno));
+	free(descfile);
+	return DBOX_STATUS_ERROR_FAULT;
     }
 
     (void)unlink(descfile);
