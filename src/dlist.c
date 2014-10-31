@@ -46,20 +46,20 @@ struct dlist *dlist_append(struct dlist *list, void *data)
 
     item = malloc(sizeof(*item));
     if (!item) {
-        return NULL;
+	return NULL;
     }
 
     item->next = NULL;
     item->data = data;
 
     if (!list) {
-        item->prev = item;
+	item->prev = item;
 
-        list = item;
+	list = item;
     } else {
-        item->prev = list->prev;
-        item->prev->next = item;
-        list->prev = item;
+	item->prev = list->prev;
+	item->prev->next = item;
+	list->prev = item;
     }
 
     assert(!list->prev->next && "item NEXT");
@@ -73,23 +73,23 @@ struct dlist *dlist_prepend(struct dlist *list, void *data)
 
     item = malloc(sizeof(*item));
     if (!item) {
-        return NULL;
+	return NULL;
     }
 
     item->data = data;
 
     if (!list) {
-        item->prev = item;
-        item->next = NULL;
+	item->prev = item;
+	item->next = NULL;
     } else {
-        if (list->prev->next) {
-            list->prev->next = item;
-        }
+	if (list->prev->next) {
+	    list->prev->next = item;
+	}
 
-        item->prev = list->prev;
-        item->next = list;
+	item->prev = list->prev;
+	item->next = list;
 
-        list->prev = item;
+	list->prev = item;
 
     }
 
@@ -99,17 +99,17 @@ struct dlist *dlist_prepend(struct dlist *list, void *data)
 struct dlist *dlist_remove(struct dlist *list, struct dlist *l)
 {
     if (!list || !l) {
-        return NULL;
+	return NULL;
     }
 
     if (l == list) {
-        list = l->next;
+	list = l->next;
     } else {
-        l->prev->next = l->next;
+	l->prev->next = l->next;
     }
 
     if (l->next) {
-        l->next->prev = l->prev;
+	l->next->prev = l->prev;
     }
     /*!
      * \note
@@ -120,7 +120,7 @@ struct dlist *dlist_remove(struct dlist *list, struct dlist *l)
      * If we didn't care about this, the head element(list) can indicates the invalid element.
      */
     else if (list) {
-        list->prev = l->prev;
+	list->prev = l->prev;
     }
 
     free(l);
@@ -133,9 +133,9 @@ struct dlist *dlist_find_data(struct dlist *list, void *data)
     void *_data;
 
     dlist_foreach(list, l, _data) {
-        if (data == _data) {
-            return l;
-        }
+	if (data == _data) {
+	    return l;
+	}
     }
 
     return NULL;
@@ -164,7 +164,7 @@ int dlist_count(struct dlist *l)
 
     i = 0;
     dlist_foreach(l, n, data) {
-        i++;
+	i++;
     }
 
     return i;
@@ -177,10 +177,10 @@ struct dlist *dlist_nth(struct dlist *l, int nth)
 
     i = 0;
     for (n = l; n; n = n->next) {
-        if (i == nth) {
-            return n;
-        }
-        i++;
+	if (i == nth) {
+	    return n;
+	}
+	i++;
     }
 
     return NULL;

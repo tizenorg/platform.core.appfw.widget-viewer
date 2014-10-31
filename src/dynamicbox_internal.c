@@ -74,18 +74,18 @@ static void del_ret_cb(dynamicbox_h handler, const struct packet *result, void *
     dbox_destroy_cb_info(info);
 
     if (!result) {
-        ErrPrint("Connection lost?\n");
-        ret = DBOX_STATUS_ERROR_FAULT;
+	ErrPrint("Connection lost?\n");
+	ret = DBOX_STATUS_ERROR_FAULT;
     } else if (packet_get(result, "i", &ret) != 1) {
-        ErrPrint("Invalid argument\n");
-        ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     if (ret == 0) {
-        handler->cbs.deleted.cb = cb;
-        handler->cbs.deleted.data = cbdata;
+	handler->cbs.deleted.cb = cb;
+	handler->cbs.deleted.data = cbdata;
     } else if (cb) {
-        cb(handler, ret, cbdata);
+	cb(handler, ret, cbdata);
     }
 
     /*!
@@ -105,35 +105,35 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
 
     common = calloc(1, sizeof(*common));
     if (!common) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
-        return NULL;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
+	return NULL;
     }
 
     common->pkgname = strdup(pkgname);
     if (!common->pkgname) {
-        free(common);
-        dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
-        return NULL;
+	free(common);
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
+	return NULL;
     }
 
     common->cluster = strdup(cluster);
     if (!common->cluster) {
-        ErrPrint("Error: %s\n", strerror(errno));
-        free(common->pkgname);
-        free(common);
-        dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
-        return NULL;
+	ErrPrint("Error: %s\n", strerror(errno));
+	free(common->pkgname);
+	free(common);
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
+	return NULL;
     }
 
     common->category = strdup(category);
     if (!common->category) {
-        ErrPrint("Error: %s\n", strerror(errno));
-        free(common->cluster);
-        free(common->pkgname);
-        free(common);
-        dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
-        return NULL;
+	ErrPrint("Error: %s\n", strerror(errno));
+	free(common->cluster);
+	free(common->pkgname);
+	free(common);
+	dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
+	return NULL;
     }
 
     /* Data provider will set this */
@@ -151,10 +151,10 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
     common->delete_type = DBOX_DELETE_PERMANENTLY;
 
     common->gbar.lock = NULL;
-    common->gbar.last_extra_buffer_idx = -1;
+    common->gbar.last_extra_buffer_idx = DBOX_PRIMARY_BUFFER;
 
     common->dbox.lock = NULL;
-    common->dbox.last_extra_buffer_idx = -1;
+    common->dbox.last_extra_buffer_idx = DBOX_PRIMARY_BUFFER;
 
     common->state = DBOX_STATE_CREATE;
     common->visible = DBOX_SHOW;
@@ -170,7 +170,7 @@ int dbox_destroy_common_handle(struct dynamicbox_common *common)
     common->state = DBOX_STATE_DESTROYED;
 
     if (common->filename) {
-        (void)util_unlink(common->filename);
+	(void)util_unlink(common->filename);
     }
 
     free(common->cluster);
@@ -183,13 +183,13 @@ int dbox_destroy_common_handle(struct dynamicbox_common *common)
     free(common->alt.name);
 
     if (common->dbox.fb) {
-        fb_destroy(common->dbox.fb);
-        common->dbox.fb = NULL;
+	fb_destroy(common->dbox.fb);
+	common->dbox.fb = NULL;
     }
 
     if (common->gbar.fb) {
-        fb_destroy(common->gbar.fb);
-        common->gbar.fb = NULL;
+	fb_destroy(common->gbar.fb);
+	common->gbar.fb = NULL;
     }
 
     return 0;
@@ -218,28 +218,28 @@ int dbox_set_group(struct dynamicbox_common *common, const char *cluster, const 
     void *ps = NULL;
 
     if (cluster) {
-        pc = strdup(cluster);
-        if (!pc) {
-            ErrPrint("Heap: %s (cluster: %s)\n", strerror(errno), cluster);
-            return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-        }
+	pc = strdup(cluster);
+	if (!pc) {
+	    ErrPrint("Heap: %s (cluster: %s)\n", strerror(errno), cluster);
+	    return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+	}
     }
 
     if (category) {
-        ps = strdup(category);
-        if (!ps) {
-            ErrPrint("Heap: %s (category: %s)\n", strerror(errno), category);
-            free(pc);
-            return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-        }
+	ps = strdup(category);
+	if (!ps) {
+	    ErrPrint("Heap: %s (category: %s)\n", strerror(errno), category);
+	    free(pc);
+	    return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+	}
     }
 
     if (common->cluster) {
-        free(common->cluster);
+	free(common->cluster);
     }
 
     if (common->category) {
-        free(common->category);
+	free(common->category);
     }
 
     common->cluster = pc;
@@ -257,7 +257,7 @@ void dbox_set_size(struct dynamicbox_common *common, int w, int h)
 
     size_type = dynamicbox_service_size_type(w, h);
     if (size_type != DBOX_SIZE_TYPE_UNKNOWN) {
-        common->dbox.mouse_event = dynamicbox_service_mouse_event(common->pkgname, size_type);
+	common->dbox.mouse_event = dynamicbox_service_mouse_event(common->pkgname, size_type);
     }
 }
 
@@ -287,14 +287,14 @@ void dbox_invoke_fault_handler(dynamicbox_fault_type_e event, const char *pkgnam
     s_info.fault_state = INFO_STATE_CALLBACK_IN_PROCESSING;
 
     dlist_foreach_safe(s_info.fault_list, l, n, info) {
-        if (!info->is_deleted && info->handler(event, pkgname, file, func, info->user_data) == EXIT_FAILURE) {
-            info->is_deleted = 1;
-        }
+	if (!info->is_deleted && info->handler(event, pkgname, file, func, info->user_data) == EXIT_FAILURE) {
+	    info->is_deleted = 1;
+	}
 
-        if (info->is_deleted) {
-            s_info.fault_list = dlist_remove(s_info.fault_list, l);
-            free(info);
-        }
+	if (info->is_deleted) {
+	    s_info.fault_list = dlist_remove(s_info.fault_list, l);
+	    free(info);
+	}
     }
 
     s_info.fault_state &= ~INFO_STATE_CALLBACK_IN_PROCESSING;
@@ -307,27 +307,27 @@ void dbox_invoke_event_handler(dynamicbox_h handler, dynamicbox_event_type_e eve
     struct event_info *info;
 
     if (event == DBOX_EVENT_DBOX_UPDATED && handler->common->refcnt > 1) {
-        if (handler->visible != DBOX_SHOW) {
-            DbgPrint("Update requested(pending) - %s\n", handler->common->pkgname);
-            handler->paused_updating++;
-            return;
-        } else {
-            handler->paused_updating = 0;
-        }
+	if (handler->visible != DBOX_SHOW) {
+	    DbgPrint("Update requested(pending) - %s\n", handler->common->pkgname);
+	    handler->paused_updating++;
+	    return;
+	} else {
+	    handler->paused_updating = 0;
+	}
     }
 
     s_info.event_state = INFO_STATE_CALLBACK_IN_PROCESSING;
 
     dlist_foreach_safe(s_info.event_list, l, n, info) {
-        if (!info->is_deleted && info->handler(handler, event, info->user_data) == EXIT_FAILURE) {
-            DbgPrint("Event handler returns EXIT_FAILURE\n");
-            info->is_deleted = 1;
-        }
+	if (!info->is_deleted && info->handler(handler, event, info->user_data) == EXIT_FAILURE) {
+	    DbgPrint("Event handler returns EXIT_FAILURE\n");
+	    info->is_deleted = 1;
+	}
 
-        if (info->is_deleted) {
-            s_info.event_list = dlist_remove(s_info.event_list, l);
-            free(info);
-        }
+	if (info->is_deleted) {
+	    s_info.event_list = dlist_remove(s_info.event_list, l);
+	    free(info);
+	}
     }
 
     s_info.event_state &= ~INFO_STATE_CALLBACK_IN_PROCESSING;
@@ -339,13 +339,13 @@ struct dynamicbox_common *dbox_find_common_handle(const char *pkgname, const cha
     struct dynamicbox_common *common;
 
     dlist_foreach(s_info.dynamicbox_common_list, l, common) {
-        if (!common->id) {
-            continue;
-        }
+	if (!common->id) {
+	    continue;
+	}
 
-        if (!strcmp(common->pkgname, pkgname) && !strcmp(common->id, id)) {
-            return common;
-        }
+	if (!strcmp(common->pkgname, pkgname) && !strcmp(common->id, id)) {
+	    return common;
+	}
     }
 
     return NULL;
@@ -357,9 +357,9 @@ struct dynamicbox_common *dbox_find_common_handle_by_timestamp(double timestamp)
     struct dynamicbox_common *common;
 
     dlist_foreach(s_info.dynamicbox_common_list, l, common) {
-        if (common->timestamp == timestamp) {
-            return common;
-        }
+	if (common->timestamp == timestamp) {
+	    return common;
+	}
     }
 
     return NULL;
@@ -371,15 +371,15 @@ dynamicbox_h dbox_new_dynamicbox(const char *pkgname, const char *id, double tim
 
     handler = calloc(1, sizeof(*handler));
     if (!handler) {
-        ErrPrint("Failed to create a new dynamicbox\n");
-        return NULL;
+	ErrPrint("Failed to create a new dynamicbox\n");
+	return NULL;
     }
 
     handler->common = dbox_create_common_handle(handler, pkgname, cluster, category);
     if (!handler->common) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        free(handler);
-        return NULL;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	free(handler);
+	return NULL;
     }
 
     dbox_common_ref(handler->common, handler);
@@ -399,8 +399,8 @@ int dbox_delete_all(void)
     dynamicbox_h handler;
 
     dlist_foreach_safe(s_info.dynamicbox_list, l, n, handler) {
-        dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
-        dbox_unref(handler, 1);
+	dbox_invoke_event_handler(handler, DBOX_EVENT_DELETED);
+	dbox_unref(handler, 1);
     }
 
     return DBOX_STATUS_ERROR_NONE;
@@ -411,11 +411,11 @@ int dbox_set_content(struct dynamicbox_common *common, const char *content)
     char *pc = NULL;
 
     if (content) {
-        pc = strdup(content);
-        if (!pc) {
-            ErrPrint("heap: %s [%s]\n", strerror(errno), content);
-            return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-        }
+	pc = strdup(content);
+	if (!pc) {
+	    ErrPrint("heap: %s [%s]\n", strerror(errno), content);
+	    return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+	}
     }
 
     free(common->content);
@@ -428,11 +428,11 @@ int dbox_set_title(struct dynamicbox_common *common, const char *title)
     char *pt = NULL;
 
     if (title) {
-        pt = strdup(title);
-        if (!pt) {
-            ErrPrint("heap: %s [%s]\n", strerror(errno), title);
-            return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
-        }
+	pt = strdup(title);
+	if (!pt) {
+	    ErrPrint("heap: %s [%s]\n", strerror(errno), title);
+	    return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+	}
     }
 
     free(common->title);
@@ -450,13 +450,13 @@ void dbox_set_auto_launch(struct dynamicbox_common *common, const char *auto_lau
     char *pa = NULL;
 
     if (!auto_launch || !strlen(auto_launch)) {
-        return;
+	return;
     }
 
     pa = strdup(auto_launch);
     if (!pa) {
-        ErrPrint("heap: %s, [%s]\n", strerror(errno), auto_launch);
-        return;
+	ErrPrint("heap: %s, [%s]\n", strerror(errno), auto_launch);
+	return;
     }
 
     free(common->dbox.auto_launch);
@@ -473,11 +473,11 @@ void dbox_set_id(struct dynamicbox_common *common, const char *id)
     char *pi = NULL;
 
     if (id) {
-        pi = strdup(id);
-        if (!pi) {
-            ErrPrint("heap: %s [%s]\n", strerror(errno), pi);
-            return;
-        }
+	pi = strdup(id);
+	if (!pi) {
+	    ErrPrint("heap: %s [%s]\n", strerror(errno), pi);
+	    return;
+	}
     }
 
     free(common->id);
@@ -487,18 +487,18 @@ void dbox_set_id(struct dynamicbox_common *common, const char *id)
 void dbox_set_filename(struct dynamicbox_common *common, const char *filename)
 {
     if (common->filename) {
-        if (common->dbox.type == DBOX_TYPE_FILE || common->dbox.type == DBOX_TYPE_TEXT) {
-            if (common->filename[0] && unlink(common->filename) < 0) {
-                ErrPrint("unlink: %s (%s)\n", strerror(errno), common->filename);
-            }
-        }
+	if (common->dbox.type == DBOX_TYPE_FILE || common->dbox.type == DBOX_TYPE_TEXT) {
+	    if (common->filename[0] && unlink(common->filename) < 0) {
+		ErrPrint("unlink: %s (%s)\n", strerror(errno), common->filename);
+	    }
+	}
 
-        free(common->filename);
+	free(common->filename);
     }
 
     common->filename = strdup(filename);
     if (!common->filename) {
-        ErrPrint("Heap: %s\n", strerror(errno));
+	ErrPrint("Heap: %s\n", strerror(errno));
     }
 }
 
@@ -507,10 +507,10 @@ void dbox_set_alt_icon(struct dynamicbox_common *common, const char *icon)
     char *_icon = NULL;
 
     if (icon && strlen(icon)) {
-        _icon = strdup(icon);
-        if (!_icon) {
-            ErrPrint("Heap: %s\n", strerror(errno));
-        }
+	_icon = strdup(icon);
+	if (!_icon) {
+	    ErrPrint("Heap: %s\n", strerror(errno));
+	}
     }
 
     free(common->alt.icon);
@@ -522,10 +522,10 @@ void dbox_set_alt_name(struct dynamicbox_common *common, const char *name)
     char *_name = NULL;
 
     if (name && strlen(name)) {
-        _name = strdup(name);
-        if (!_name) {
-            ErrPrint("Heap: %s\n", strerror(errno));
-        }
+	_name = strdup(name);
+	if (!_name) {
+	    ErrPrint("Heap: %s\n", strerror(errno));
+	}
     }
 
     free(common->alt.name);
@@ -537,34 +537,34 @@ int dbox_set_dbox_fb(struct dynamicbox_common *common, const char *filename)
     struct fb_info *fb;
 
     if (!common) {
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     fb = common->dbox.fb;
     if (fb && !strcmp(fb_id(fb), filename)) { /*!< BUFFER is not changed, */
-        return DBOX_STATUS_ERROR_NONE;
+	return DBOX_STATUS_ERROR_NONE;
     }
 
     common->dbox.fb = NULL;
 
     if (!filename || filename[0] == '\0') {
-        if (fb) {
-            fb_destroy(fb);
-        }
-        return DBOX_STATUS_ERROR_NONE;
+	if (fb) {
+	    fb_destroy(fb);
+	}
+	return DBOX_STATUS_ERROR_NONE;
     }
 
     common->dbox.fb = fb_create(filename, common->dbox.width, common->dbox.height);
     if (!common->dbox.fb) {
-        ErrPrint("Faield to create a FB\n");
-        if (fb) {
-            fb_destroy(fb);
-        }
-        return DBOX_STATUS_ERROR_FAULT;
+	ErrPrint("Faield to create a FB\n");
+	if (fb) {
+	    fb_destroy(fb);
+	}
+	return DBOX_STATUS_ERROR_FAULT;
     }
 
     if (fb) {
-        fb_destroy(fb);
+	fb_destroy(fb);
     }
 
     return DBOX_STATUS_ERROR_NONE;
@@ -575,34 +575,34 @@ int dbox_set_gbar_fb(struct dynamicbox_common *common, const char *filename)
     struct fb_info *fb;
 
     if (!common || common->state != DBOX_STATE_CREATE) {
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     fb = common->gbar.fb;
     if (fb && !strcmp(fb_id(fb), filename)) {
-        /* BUFFER is not changed, just update the content */
-        return DBOX_STATUS_ERROR_EXIST;
+	/* BUFFER is not changed, just update the content */
+	return DBOX_STATUS_ERROR_EXIST;
     }
     common->gbar.fb = NULL;
 
     if (!filename || filename[0] == '\0') {
-        if (fb) {
-            fb_destroy(fb);
-        }
-        return DBOX_STATUS_ERROR_NONE;
+	if (fb) {
+	    fb_destroy(fb);
+	}
+	return DBOX_STATUS_ERROR_NONE;
     }
 
     common->gbar.fb = fb_create(filename, common->gbar.width, common->gbar.height);
     if (!common->gbar.fb) {
-        ErrPrint("Failed to create a FB\n");
-        if (fb) {
-            fb_destroy(fb);
-        }
-        return DBOX_STATUS_ERROR_FAULT;
+	ErrPrint("Failed to create a FB\n");
+	if (fb) {
+	    fb_destroy(fb);
+	}
+	return DBOX_STATUS_ERROR_FAULT;
     }
 
     if (fb) {
-        fb_destroy(fb);
+	fb_destroy(fb);
     }
     return DBOX_STATUS_ERROR_NONE;
 }
@@ -655,7 +655,7 @@ void dbox_set_period(struct dynamicbox_common *common, double period)
 dynamicbox_h dbox_ref(dynamicbox_h handler)
 {
     if (!handler) {
-        return NULL;
+	return NULL;
     }
 
     handler->refcnt++;
@@ -665,93 +665,93 @@ dynamicbox_h dbox_ref(dynamicbox_h handler)
 dynamicbox_h dbox_unref(dynamicbox_h handler, int destroy_common)
 {
     if (!handler) {
-        return NULL;
+	return NULL;
     }
 
     handler->refcnt--;
     if (handler->refcnt > 0) {
-        return handler;
+	return handler;
     }
 
     if (handler->cbs.created.cb) {
-        handler->cbs.created.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.created.data);
-        handler->cbs.created.cb = NULL;
-        handler->cbs.created.data = NULL;
+	handler->cbs.created.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.created.data);
+	handler->cbs.created.cb = NULL;
+	handler->cbs.created.data = NULL;
     }
 
     if (handler->cbs.deleted.cb) {
-        handler->cbs.deleted.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.deleted.data);
-        handler->cbs.deleted.cb = NULL;
-        handler->cbs.deleted.data = NULL;
+	handler->cbs.deleted.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.deleted.data);
+	handler->cbs.deleted.cb = NULL;
+	handler->cbs.deleted.data = NULL;
     }
 
     if (handler->cbs.pinup.cb) {
-        handler->cbs.pinup.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.pinup.data);
-        handler->cbs.pinup.cb = NULL;
-        handler->cbs.pinup.data = NULL;
+	handler->cbs.pinup.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.pinup.data);
+	handler->cbs.pinup.cb = NULL;
+	handler->cbs.pinup.data = NULL;
     }
 
     if (handler->cbs.group_changed.cb) {
-        handler->cbs.group_changed.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.group_changed.data);
-        handler->cbs.group_changed.cb = NULL;
-        handler->cbs.group_changed.data = NULL;
+	handler->cbs.group_changed.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.group_changed.data);
+	handler->cbs.group_changed.cb = NULL;
+	handler->cbs.group_changed.data = NULL;
     }
 
     if (handler->cbs.period_changed.cb) {
-        handler->cbs.period_changed.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.period_changed.data);
-        handler->cbs.period_changed.cb = NULL;
-        handler->cbs.period_changed.data = NULL;
+	handler->cbs.period_changed.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.period_changed.data);
+	handler->cbs.period_changed.cb = NULL;
+	handler->cbs.period_changed.data = NULL;
     }
 
     if (handler->cbs.size_changed.cb) {
-        handler->cbs.size_changed.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.size_changed.data);
-        handler->cbs.size_changed.cb = NULL;
-        handler->cbs.size_changed.data = NULL;
+	handler->cbs.size_changed.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.size_changed.data);
+	handler->cbs.size_changed.cb = NULL;
+	handler->cbs.size_changed.data = NULL;
     }
 
     if (handler->cbs.gbar_created.cb) {
-        handler->cbs.gbar_created.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.gbar_created.data);
-        handler->cbs.gbar_created.cb = NULL;
-        handler->cbs.gbar_created.data = NULL;
+	handler->cbs.gbar_created.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.gbar_created.data);
+	handler->cbs.gbar_created.cb = NULL;
+	handler->cbs.gbar_created.data = NULL;
     }
 
     if (handler->cbs.gbar_destroyed.cb) {
-        handler->cbs.gbar_destroyed.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.gbar_destroyed.data);
-        handler->cbs.gbar_destroyed.cb = NULL;
-        handler->cbs.gbar_destroyed.data = NULL;
+	handler->cbs.gbar_destroyed.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.gbar_destroyed.data);
+	handler->cbs.gbar_destroyed.cb = NULL;
+	handler->cbs.gbar_destroyed.data = NULL;
     }
 
     if (handler->cbs.update_mode.cb) {
-        handler->cbs.update_mode.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.update_mode.data);
-        handler->cbs.update_mode.cb = NULL;
-        handler->cbs.update_mode.data = NULL;
+	handler->cbs.update_mode.cb(handler, DBOX_STATUS_ERROR_FAULT, handler->cbs.update_mode.data);
+	handler->cbs.update_mode.cb = NULL;
+	handler->cbs.update_mode.data = NULL;
     }
 
     if (handler->cbs.access_event.cb) {
-        handler->cbs.access_event.cb(handler, DBOX_ACCESS_STATUS_ERROR, handler->cbs.access_event.data);
-        handler->cbs.access_event.cb = NULL;
-        handler->cbs.access_event.data = NULL;
+	handler->cbs.access_event.cb(handler, DBOX_ACCESS_STATUS_ERROR, handler->cbs.access_event.data);
+	handler->cbs.access_event.cb = NULL;
+	handler->cbs.access_event.data = NULL;
     }
 
     if (handler->cbs.key_event.cb) {
-        handler->cbs.key_event.cb(handler, DBOX_KEY_STATUS_ERROR, handler->cbs.key_event.data);
-        handler->cbs.key_event.cb = NULL;
-        handler->cbs.key_event.data = NULL;
+	handler->cbs.key_event.cb(handler, DBOX_KEY_STATUS_ERROR, handler->cbs.key_event.data);
+	handler->cbs.key_event.cb = NULL;
+	handler->cbs.key_event.data = NULL;
     }
 
     dlist_remove_data(s_info.dynamicbox_list, handler);
 
     handler->state = DBOX_STATE_DESTROYED;
     if (dbox_common_unref(handler->common, handler) == 0) {
-        if (destroy_common) {
-            /*!
-             * \note
-             * Lock file should be deleted after all callbacks are processed.
-             */
-            (void)dynamicbox_service_destroy_lock(handler->common->dbox.lock);
-            handler->common->dbox.lock = NULL;
-            dbox_destroy_common_handle(handler->common);
-        }
+	if (destroy_common) {
+	    /*!
+	     * \note
+	     * Lock file should be deleted after all callbacks are processed.
+	     */
+	    (void)dynamicbox_service_destroy_lock(handler->common->dbox.lock);
+	    handler->common->dbox.lock = NULL;
+	    dbox_destroy_common_handle(handler->common);
+	}
     }
     free(handler);
     DbgPrint("Handler is released\n");
@@ -765,50 +765,50 @@ int dbox_send_delete(dynamicbox_h handler, int type, dynamicbox_ret_cb cb, void 
     int ret;
 
     if (handler->common->request.deleted) {
-        ErrPrint("Already in-progress\n");
-        if (cb) {
-            cb(handler, DBOX_STATUS_ERROR_NONE, data);
-        }
-        return DBOX_STATUS_ERROR_BUSY;
+	ErrPrint("Already in-progress\n");
+	if (cb) {
+	    cb(handler, DBOX_STATUS_ERROR_NONE, data);
+	}
+	return DBOX_STATUS_ERROR_BUSY;
     }
 
     if (!cb) {
-        cb = default_delete_cb;
+	cb = default_delete_cb;
     }
 
     packet = packet_create("delete", "ssid", handler->common->pkgname, handler->common->id, type, handler->common->timestamp);
     if (!packet) {
-        ErrPrint("Failed to build a param\n");
-        if (cb) {
-            cb(handler, DBOX_STATUS_ERROR_FAULT, data);
-        }
+	ErrPrint("Failed to build a param\n");
+	if (cb) {
+	    cb(handler, DBOX_STATUS_ERROR_FAULT, data);
+	}
 
-        return DBOX_STATUS_ERROR_FAULT;
+	return DBOX_STATUS_ERROR_FAULT;
     }
 
     cbinfo = dbox_create_cb_info(cb, data);
     if (!cbinfo) {
-        packet_destroy(packet);
-        ErrPrint("Failed to create cbinfo\n");
-        if (cb) {
-            cb(handler, DBOX_STATUS_ERROR_FAULT, data);
-        }
+	packet_destroy(packet);
+	ErrPrint("Failed to create cbinfo\n");
+	if (cb) {
+	    cb(handler, DBOX_STATUS_ERROR_FAULT, data);
+	}
 
-        return DBOX_STATUS_ERROR_FAULT;
+	return DBOX_STATUS_ERROR_FAULT;
     }
 
     ret = master_rpc_async_request(handler, packet, 0, del_ret_cb, cbinfo);
     if (ret < 0) {
-        /*!
-         * Packet is destroyed by master_rpc_async_request.
-         */
-        dbox_destroy_cb_info(cbinfo);
+	/*!
+	 * Packet is destroyed by master_rpc_async_request.
+	 */
+	dbox_destroy_cb_info(cbinfo);
 
-        if (cb) {
-            cb(handler, DBOX_STATUS_ERROR_FAULT, data);
-        }
+	if (cb) {
+	    cb(handler, DBOX_STATUS_ERROR_FAULT, data);
+	}
     } else {
-        handler->common->request.deleted = 1;
+	handler->common->request.deleted = 1;
     }
 
     return ret;
@@ -819,11 +819,11 @@ int dbox_sync_dbox_fb(struct dynamicbox_common *common)
     int ret;
 
     if (fb_type(dbox_get_dbox_fb(common)) == DBOX_FB_TYPE_FILE) {
-        (void)dynamicbox_service_acquire_lock(common->dbox.lock);
-        ret = fb_sync(dbox_get_dbox_fb(common), common->dbox.last_damage.x, common->dbox.last_damage.y, common->dbox.last_damage.w, common->dbox.last_damage.h);
-        (void)dynamicbox_service_release_lock(common->dbox.lock);
+	(void)dynamicbox_service_acquire_lock(common->dbox.lock);
+	ret = fb_sync(dbox_get_dbox_fb(common), common->dbox.last_damage.x, common->dbox.last_damage.y, common->dbox.last_damage.w, common->dbox.last_damage.h);
+	(void)dynamicbox_service_release_lock(common->dbox.lock);
     } else {
-        ret = fb_sync(dbox_get_dbox_fb(common), common->dbox.last_damage.x, common->dbox.last_damage.y, common->dbox.last_damage.w, common->dbox.last_damage.h);
+	ret = fb_sync(dbox_get_dbox_fb(common), common->dbox.last_damage.x, common->dbox.last_damage.y, common->dbox.last_damage.w, common->dbox.last_damage.h);
     }
 
     return ret;
@@ -834,11 +834,11 @@ int dbox_sync_gbar_fb(struct dynamicbox_common *common)
     int ret;
 
     if (fb_type(dbox_get_gbar_fb(common)) == DBOX_FB_TYPE_FILE) {
-        (void)dynamicbox_service_acquire_lock(common->gbar.lock);
-        ret = fb_sync(dbox_get_gbar_fb(common), common->gbar.last_damage.x, common->gbar.last_damage.y, common->gbar.last_damage.w, common->gbar.last_damage.h);
-        (void)dynamicbox_service_release_lock(common->gbar.lock);
+	(void)dynamicbox_service_acquire_lock(common->gbar.lock);
+	ret = fb_sync(dbox_get_gbar_fb(common), common->gbar.last_damage.x, common->gbar.last_damage.y, common->gbar.last_damage.w, common->gbar.last_damage.h);
+	(void)dynamicbox_service_release_lock(common->gbar.lock);
     } else {
-        ret = fb_sync(dbox_get_gbar_fb(common), common->gbar.last_damage.x, common->gbar.last_damage.y, common->gbar.last_damage.w, common->gbar.last_damage.h);
+	ret = fb_sync(dbox_get_gbar_fb(common), common->gbar.last_damage.x, common->gbar.last_damage.y, common->gbar.last_damage.w, common->gbar.last_damage.h);
     }
 
     return ret;
@@ -850,73 +850,73 @@ struct dynamicbox_common *dbox_find_sharable_common_handle(const char *pkgname, 
     struct dynamicbox_common *common;
 
     if (!conf_shared_content()) {
-        /*!
-         * Shared content option is turnned off.
-         */
-        return NULL;
+	/*!
+	 * Shared content option is turnned off.
+	 */
+	return NULL;
     }
 
     dlist_foreach(s_info.dynamicbox_common_list, l, common) {
-        if (common->state != DBOX_STATE_CREATE) {
-            continue;
-        }
+	if (common->state != DBOX_STATE_CREATE) {
+	    continue;
+	}
 
-        if (strcmp(common->pkgname, pkgname)) {
-            continue;
-        }
+	if (strcmp(common->pkgname, pkgname)) {
+	    continue;
+	}
 
-        if (strcmp(common->cluster, cluster)) {
-            DbgPrint("Cluster mismatched\n");
-            continue;
-        }
+	if (strcmp(common->cluster, cluster)) {
+	    DbgPrint("Cluster mismatched\n");
+	    continue;
+	}
 
-        if (strcmp(common->category, category)) {
-            DbgPrint("Category mismatched\n");
-            continue;
-        }
+	if (strcmp(common->category, category)) {
+	    DbgPrint("Category mismatched\n");
+	    continue;
+	}
 
-        if (common->content && content) {
-            if (strcmp(common->content, content)) {
-                DbgPrint("%s Content ([%s] <> [%s])\n", common->pkgname, common->content, content);
-                continue;    
-            }
-        } else {
-            int c1_len;
-            int c2_len;
+	if (common->content && content) {
+	    if (strcmp(common->content, content)) {
+		DbgPrint("%s Content ([%s] <> [%s])\n", common->pkgname, common->content, content);
+		continue;    
+	    }
+	} else {
+	    int c1_len;
+	    int c2_len;
 
-            /*!
-             * \note
-             * We assumes "" (ZERO length string) to NULL
-             */
-            c1_len = common->content ? strlen(common->content) : 0;
-            c2_len = content ? strlen(content) : 0;
-            if (c1_len != c2_len) {
-                DbgPrint("%s Content %p <> %p\n", common->pkgname, common->content, content);
-                continue;
-            }
-        }
+	    /*!
+	     * \note
+	     * We assumes "" (ZERO length string) to NULL
+	     */
+	    c1_len = common->content ? strlen(common->content) : 0;
+	    c2_len = content ? strlen(content) : 0;
+	    if (c1_len != c2_len) {
+		DbgPrint("%s Content %p <> %p\n", common->pkgname, common->content, content);
+		continue;
+	    }
+	}
 
-        if (common->request.size_changed) {
-            DbgPrint("Changing size\n");
-            /*!
-             * \note
-             * Do not re-use resizing instance.
-             * We will not use predicted size.
-             */
-            continue;
-        }
+	if (common->request.size_changed) {
+	    DbgPrint("Changing size\n");
+	    /*!
+	     * \note
+	     * Do not re-use resizing instance.
+	     * We will not use predicted size.
+	     */
+	    continue;
+	}
 
-        if (common->request.created) {
-            DbgPrint("Creating now but re-use it (%s)\n", common->pkgname);
-        }
+	if (common->request.created) {
+	    DbgPrint("Creating now but re-use it (%s)\n", common->pkgname);
+	}
 
-        if (common->dbox.width != w || common->dbox.height != h) {
-            DbgPrint("Size mismatched\n");
-            continue;
-        }
+	if (common->dbox.width != w || common->dbox.height != h) {
+	    DbgPrint("Size mismatched\n");
+	    continue;
+	}
 
-        DbgPrint("common handle is found: %p\n", common);
-        return common;
+	DbgPrint("common handle is found: %p\n", common);
+	return common;
     }
 
     return NULL;
@@ -928,10 +928,10 @@ dynamicbox_h dbox_find_dbox_in_show(struct dynamicbox_common *common)
     dynamicbox_h item;
 
     dlist_foreach(common->dynamicbox_list, l, item) {
-        if (item->visible == DBOX_SHOW) {
-            DbgPrint("%s visibility is not changed\n", common->pkgname);
-            return item;
-        }
+	if (item->visible == DBOX_SHOW) {
+	    DbgPrint("%s visibility is not changed\n", common->pkgname);
+	    return item;
+	}
     }
 
     return NULL;
@@ -953,8 +953,8 @@ int dbox_add_event_handler(dynamicbox_event_handler_cb dbox_cb, void *data)
     struct event_info *info;
     info = malloc(sizeof(*info));
     if (!info) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
     }
 
     info->handler = dbox_cb;
@@ -971,20 +971,20 @@ void *dbox_remove_event_handler(dynamicbox_event_handler_cb dbox_cb)
     struct dlist *l;
 
     dlist_foreach(s_info.event_list, l, info) {
-        if (info->handler == dbox_cb) {
-            void *data;
+	if (info->handler == dbox_cb) {
+	    void *data;
 
-            data = info->user_data;
+	    data = info->user_data;
 
-            if (s_info.event_state == INFO_STATE_CALLBACK_IN_PROCESSING) {
-                info->is_deleted = 1;
-            } else {
-                s_info.event_list = dlist_remove(s_info.event_list, l);
-                free(info);
-            }
+	    if (s_info.event_state == INFO_STATE_CALLBACK_IN_PROCESSING) {
+		info->is_deleted = 1;
+	    } else {
+		s_info.event_list = dlist_remove(s_info.event_list, l);
+		free(info);
+	    }
 
-            return data;
-        }
+	    return data;
+	}
     }
 
     return NULL;
@@ -995,8 +995,8 @@ int dbox_add_fault_handler(dynamicbox_fault_handler_cb dbox_cb, void *data)
     struct fault_info *info;
     info = malloc(sizeof(*info));
     if (!info) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
     }
 
     info->handler = dbox_cb;
@@ -1013,20 +1013,20 @@ void *dbox_remove_fault_handler(dynamicbox_fault_handler_cb dbox_cb)
     struct dlist *l;
 
     dlist_foreach(s_info.fault_list, l, info) {
-        if (info->handler == dbox_cb) {
-            void *data;
+	if (info->handler == dbox_cb) {
+	    void *data;
 
-            data = info->user_data;
+	    data = info->user_data;
 
-            if (s_info.fault_state == INFO_STATE_CALLBACK_IN_PROCESSING) {
-                info->is_deleted = 1;
-            } else {
-                s_info.fault_list = dlist_remove(s_info.fault_list, l);
-                free(info);
-            }
+	    if (s_info.fault_state == INFO_STATE_CALLBACK_IN_PROCESSING) {
+		info->is_deleted = 1;
+	    } else {
+		s_info.fault_list = dlist_remove(s_info.fault_list, l);
+		free(info);
+	    }
 
-            return data;
-        }
+	    return data;
+	}
     }
 
     return NULL;
@@ -1038,8 +1038,8 @@ struct cb_info *dbox_create_cb_info(dynamicbox_ret_cb cb, void *data)
 
     info = malloc(sizeof(*info));
     if (!info) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-        return NULL;
+	ErrPrint("Heap: %s\n", strerror(errno));
+	return NULL;
     }
 
     info->cb = cb;

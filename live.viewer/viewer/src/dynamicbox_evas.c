@@ -33,6 +33,7 @@
 #include <dynamicbox.h>
 #include <dynamicbox_service.h>
 #include <dynamicbox_errno.h>
+#include <dynamicbox_buffer.h>
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -112,8 +113,10 @@
 
 #define DBOX_CLASS_NAME "dynamicbox"
 
-#define DBOX_PRIMARY_BUFFER -1
 #define DBOX_KEEP_BUFFER    -2
+
+#define DEFAULT_CLUSTER "user,created"
+#define DEFAULT_CATEGORY "default"
 
 int errno;
 
@@ -3795,6 +3798,7 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
     struct widget_data *data;
     int idx;
     unsigned int resource_id;
+    int status;
 
     dynamicbox = dynamicbox_data(handle);
     if (!dynamicbox) {
@@ -3817,6 +3821,13 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 	case DBOX_EVENT_DBOX_EXTRA_BUFFER_CREATED:
 	    dynamicbox_get_affected_extra_buffer(handle, 0, &idx, &resource_id);
 	    DbgPrint("Extra buffer created for DBOX: %d (%u)\n", idx, resource_id);
+
+	    status = dynamicbox_acquire_extra_resource_id(handle, 0, idx, acquire_dbox_extra_resource_cb, data);
+	    if (status < 0) {
+		ErrPrint("Failed to acquire resource: %u (0x%X)\n", resource_id, status);
+		break;
+	    }
+
 	    if (!data->dbox_extra) {
 		data->dbox_extra = calloc(dynamicbox_option(DBOX_OPTION_EXTRA_BUFFER_CNT), sizeof(*data->dbox_extra));
 		if (!data->dbox_extra) {
@@ -3826,17 +3837,18 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 
 	    data->dbox_extra[idx] = resource_id;
 	    data->dbox_extra_cnt++;
-
-	    if (dynamicbox_acquire_extra_resource_id(handle, 0, idx, acquire_dbox_extra_resource_cb, data) < 0) {
-		ErrPrint("Failed to acquire resource: %u\n", resource_id);
-	    }
 	    break;
 	case DBOX_EVENT_DBOX_EXTRA_BUFFER_DESTROYED:
 	    dynamicbox_get_affected_extra_buffer(handle, 0, &idx, &resource_id);
 	    DbgPrint("Extra buffer destroyed for DBOX: %d (%u)\n", idx, resource_id);
 	    if (data->dbox_extra[idx] != resource_id) {
 		DbgPrint("Resource Id mismatched\n");
+		if (data->dbox_extra[idx] == 0u) {
+		    DbgPrint("Not acquired resourced\n");
+		    break;
+		}
 	    }
+
 	    data->dbox_extra[idx] = 0u;
 	    data->dbox_extra_cnt--;
 	    if (!data->dbox_extra_cnt) {
@@ -3858,6 +3870,7 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 		    ErrPrint("calloc: %s\n", strerror(errno));
 		}
 	    }
+
 	    data->gbar_extra[idx] = resource_id;
 	    data->gbar_extra_cnt++;
 
@@ -3885,7 +3898,6 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 	    break;
 	case DBOX_EVENT_DBOX_EXTRA_UPDATED:
 	    dynamicbox_get_affected_extra_buffer(handle, 0, &idx, &resource_id);
-	    DbgPrint("Extra buffer updated for DBOX: %d (%u)\n", idx, resource_id);
 	    if (!data->dbox_extra) {
 		ErrPrint("Extra buffer is not prepared yet\n");
 	    } else {
@@ -3897,7 +3909,6 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 	    break;
 	case DBOX_EVENT_GBAR_EXTRA_UPDATED:
 	    dynamicbox_get_affected_extra_buffer(handle, 1, &idx, &resource_id);
-	    DbgPrint("Extra buffer updated for GBAR: %d (%u)\n", idx, resource_id);
 	    if (!data->gbar_extra) {
 		ErrPrint("Extra buffer is not prepared yet\n");
 	    } else {
@@ -4102,11 +4113,11 @@ EAPI Evas_Object *evas_object_dynamicbox_add(Evas_Object *parent, const char *db
     }
 
     if (!cluster) {
-	cluster = "user,created";
+	cluster = DEFAULT_CLUSTER;
     }
 
     if (!category) {
-	category = "default";
+	category = DEFAULT_CATEGORY;
     }
 
     _cluster = strdup(cluster);

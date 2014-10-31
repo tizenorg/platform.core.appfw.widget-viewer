@@ -106,13 +106,13 @@ static int update_text(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block || !block->part || !block->data) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_text) {
-        ops->update_text(handle, (const char *)block->id, (const char *)block->part, (const char *)block->data);
+	ops->update_text(handle, (const char *)block->id, (const char *)block->part, (const char *)block->data);
     }
 
     return 0;
@@ -123,13 +123,13 @@ static int update_image(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block || !block->part) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_image) {
-        ops->update_image(handle, block->id, block->part, block->data, block->option);
+	ops->update_image(handle, block->id, block->part, block->data, block->option);
     }
 
     return 0;
@@ -140,13 +140,13 @@ static int update_script(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block || !block->part) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_script) {
-        ops->update_script(handle, block->id, block->target, block->part, block->data, block->option);
+	ops->update_script(handle, block->id, block->target, block->part, block->data, block->option);
     }
 
     return 0;
@@ -157,13 +157,13 @@ static int update_signal(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_signal) {
-        ops->update_signal(handle, block->id, block->data, block->part);
+	ops->update_signal(handle, block->id, block->data, block->part);
     }
 
     return 0;
@@ -175,18 +175,18 @@ static int update_drag(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block || !block->data || !block->part) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     if (sscanf(block->data, "%lfx%lf", &dx, &dy) != 2) {
-        ErrPrint("Invalid format of data\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid format of data\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_drag) {
-        ops->update_drag(handle, block->id, block->part, dx, dy);
+	ops->update_drag(handle, block->id, block->part, dx, dy);
     }
 
     return 0;
@@ -197,26 +197,26 @@ static int update_info(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block || !block->part || !block->data) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (!strcasecmp(block->part, INFO_SIZE)) {
-        int w, h;
+	int w, h;
 
-        if (sscanf(block->data, "%dx%d", &w, &h) != 2) {
-            ErrPrint("Invalid format (%s)\n", block->data);
-            return DBOX_STATUS_ERROR_INVALID_PARAMETER;
-        }
+	if (sscanf(block->data, "%dx%d", &w, &h) != 2) {
+	    ErrPrint("Invalid format (%s)\n", block->data);
+	    return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
 
-        if (ops->update_info_size) {
-            ops->update_info_size(handle, block->id, w, h);
-        }
+	if (ops->update_info_size) {
+	    ops->update_info_size(handle, block->id, w, h);
+	}
     } else if (!strcasecmp(block->part, INFO_CATEGORY)) {
-        if (ops->update_info_category) {
-            ops->update_info_category(handle, block->id, block->data);
-        }
+	if (ops->update_info_category) {
+	    ops->update_info_category(handle, block->id, block->data);
+	}
     }
 
     return 0;
@@ -227,13 +227,13 @@ static int update_access(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_access) {
-        ops->update_access(handle, block->id, block->part, block->data, block->option);
+	ops->update_access(handle, block->id, block->part, block->data, block->option);
     }
 
     return 0;
@@ -244,13 +244,13 @@ static int operate_access(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->operate_access) {
-        ops->operate_access(handle, block->id, block->part, block->data, block->option);
+	ops->operate_access(handle, block->id, block->part, block->data, block->option);
     }
 
     return 0;
@@ -261,13 +261,13 @@ static int update_color(dynamicbox_h handle, struct block *block, int is_gbar)
     struct dynamicbox_script_operators *ops;
 
     if (!block) {
-        ErrPrint("Invalid argument\n");
-        return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	ErrPrint("Invalid argument\n");
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_color) {
-        ops->update_color(handle, block->id, block->part, block->data);
+	ops->update_color(handle, block->id, block->part, block->data);
     }
 
     return 0;
@@ -279,7 +279,7 @@ static inline int update_begin(dynamicbox_h handle, int is_gbar)
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_begin) {
-        ops->update_begin(handle);
+	ops->update_begin(handle);
     }
 
     return 0;
@@ -291,7 +291,7 @@ static inline int update_end(dynamicbox_h handle, int is_gbar)
 
     ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.dbox_ops;
     if (ops->update_end) {
-        ops->update_end(handle);
+	ops->update_end(handle);
     }
 
     return 0;
@@ -307,22 +307,22 @@ static inline void consuming_parsed_block(dynamicbox_h handle, int is_gbar, stru
 {
     typedef int (*update_function_t)(dynamicbox_h handle, struct block *block, int is_gbar);
     static update_function_t updators[] = {
-        update_access,
-        operate_access,
-        update_color,
-        update_drag,
-        update_image,
-        update_info,
-        update_script,
-        update_signal,
-        update_text,
-        NULL
+	update_access,
+	operate_access,
+	update_color,
+	update_drag,
+	update_image,
+	update_info,
+	update_script,
+	update_signal,
+	update_text,
+	NULL
     };
 
     if (block->type >= 0 || block->type < TYPE_MAX) {
-        (void)updators[block->type](handle, block, is_gbar);
+	(void)updators[block->type](handle, block, is_gbar);
     } else {
-        ErrPrint("Block type[%d] is not valid\n", block->type);
+	ErrPrint("Block type[%d] is not valid\n", block->type);
     }
 }
 
@@ -336,46 +336,46 @@ static inline char *load_file(const char *filename)
 
     fd = open(filename, O_RDONLY);
     if (fd < 0) {
-        ErrPrint("open: %s\n", strerror(errno));
-        return NULL;
+	ErrPrint("open: %s\n", strerror(errno));
+	return NULL;
     }
 
     filesize = lseek(fd, 0L, SEEK_END);
     if (filesize == (off_t)-1) {
-        ErrPrint("lseek: %s\n", strerror(errno));
-        goto errout;
+	ErrPrint("lseek: %s\n", strerror(errno));
+	goto errout;
     }
 
     if (lseek(fd, 0L, SEEK_SET) < 0) {
-        ErrPrint("lseek: %s\n", strerror(errno));
-        goto errout;
+	ErrPrint("lseek: %s\n", strerror(errno));
+	goto errout;
     }
 
     filebuf = malloc(filesize + 1);
     if (!filebuf) {
-        ErrPrint("malloc: %s\n", strerror(errno));
-        goto errout;
+	ErrPrint("malloc: %s\n", strerror(errno));
+	goto errout;
     }
 
     while (readsize < filesize) {
-        ret = read(fd, filebuf + readsize, (size_t)filesize - readsize);
-        if (ret < 0) {
-            if (errno == EINTR) {
-                DbgPrint("Read is interrupted\n");
-                continue;
-            }
+	ret = read(fd, filebuf + readsize, (size_t)filesize - readsize);
+	if (ret < 0) {
+	    if (errno == EINTR) {
+		DbgPrint("Read is interrupted\n");
+		continue;
+	    }
 
-            ErrPrint("read: %s\n", strerror(errno));
-            free(filebuf);
-            filebuf = NULL;
-            break;
-        }
+	    ErrPrint("read: %s\n", strerror(errno));
+	    free(filebuf);
+	    filebuf = NULL;
+	    break;
+	}
 
-        readsize += ret;
+	readsize += ret;
     }
 
     if (filebuf) {
-        filebuf[readsize] = '\0';
+	filebuf[readsize] = '\0';
     }
 
     /*!
@@ -385,7 +385,7 @@ static inline char *load_file(const char *filename)
 
 errout:
     if (close(fd) < 0) {
-        ErrPrint("close: %s\n", strerror(errno));
+	ErrPrint("close: %s\n", strerror(errno));
     }
 
     return filebuf;
@@ -407,288 +407,288 @@ int parse_desc(struct dynamicbox_common *common, const char *filename, int is_gb
     struct dlist *handle_iterator;
     dynamicbox_h handler;
     enum state {
-        BEGIN,
-        FIELD,
-        DATA,
-        END,
-        DONE,
-        ERROR,
+	BEGIN,
+	FIELD,
+	DATA,
+	END,
+	DONE,
+	ERROR,
     } state;
 
     filebuf = load_file(filename);
     if (!filebuf) {
-        return DBOX_STATUS_ERROR_IO_ERROR;
+	return DBOX_STATUS_ERROR_IO_ERROR;
     }
 
     fileptr = filebuf;
 
     state = BEGIN;
     while (*fileptr && state != ERROR) {
-        switch (state) {
-        case BEGIN:
-            if (*fileptr == '{') {
-                block = calloc(1, sizeof(*block));
-                if (!block) {
-                    ErrPrint("calloc: %s\n", strerror(errno));
-                    state = ERROR;
-                    continue;
-                }
-                state = FIELD;
-                ptr = NULL;
-            }
-            break;
-        case FIELD:
-            if (isspace(*fileptr)) {
-                if (ptr != NULL) {
-                    *fileptr = '\0';
-                }
-            } else if (*fileptr == '=') {
-                *fileptr = '\0';
-                ptr = NULL;
-                state = DATA;
-            } else if (ptr == NULL) {
-                ptr = fileptr;
-                field_idx = 0;
-                field_len = 0;
+	switch (state) {
+	    case BEGIN:
+		if (*fileptr == '{') {
+		    block = calloc(1, sizeof(*block));
+		    if (!block) {
+			ErrPrint("calloc: %s\n", strerror(errno));
+			state = ERROR;
+			continue;
+		    }
+		    state = FIELD;
+		    ptr = NULL;
+		}
+		break;
+	    case FIELD:
+		if (isspace(*fileptr)) {
+		    if (ptr != NULL) {
+			*fileptr = '\0';
+		    }
+		} else if (*fileptr == '=') {
+		    *fileptr = '\0';
+		    ptr = NULL;
+		    state = DATA;
+		} else if (ptr == NULL) {
+		    ptr = fileptr;
+		    field_idx = 0;
+		    field_len = 0;
 
-                while (field_list[field_idx]) {
-                    if (field_list[field_idx][field_len] == *fileptr) {
-                        break;
-                    }
-                    field_idx++;
-                }
+		    while (field_list[field_idx]) {
+			if (field_list[field_idx][field_len] == *fileptr) {
+			    break;
+			}
+			field_idx++;
+		    }
 
-                if (!field_list[field_idx]) {
-                    ErrPrint("Invalid field\n");
-                    state = ERROR;
-                    continue;
-                }
+		    if (!field_list[field_idx]) {
+			ErrPrint("Invalid field\n");
+			state = ERROR;
+			continue;
+		    }
 
-                field_len++;
-            } else {
-                if (field_list[field_idx][field_len] != *fileptr) {
-                    field_idx++;
-                    while (field_list[field_idx]) {
-                        if (!strncmp(field_list[field_idx], fileptr - field_len, field_len)) {
-                            break;
-                        } else {
-                            field_idx++;
-                        }
-                    }
+		    field_len++;
+		} else {
+		    if (field_list[field_idx][field_len] != *fileptr) {
+			field_idx++;
+			while (field_list[field_idx]) {
+			    if (!strncmp(field_list[field_idx], fileptr - field_len, field_len)) {
+				break;
+			    } else {
+				field_idx++;
+			    }
+			}
 
-                    if (!field_list[field_idx]) {
-                        state = ERROR;
-                        ErrPrint("field is not valid\n");
-                        continue;
-                    }
-                }
+			if (!field_list[field_idx]) {
+			    state = ERROR;
+			    ErrPrint("field is not valid\n");
+			    continue;
+			}
+		    }
 
-                field_len++;
-            }
-            break;
-        case DATA:
-            switch (field_idx) {
-            case FIELD_TYPE:
-                if (ptr == NULL) {
-                    if (isspace(*fileptr)) {
-                        break;
-                    }
+		    field_len++;
+		}
+		break;
+	    case DATA:
+		switch (field_idx) {
+		    case FIELD_TYPE:
+			if (ptr == NULL) {
+			    if (isspace(*fileptr)) {
+				break;
+			    }
 
-                    if (*fileptr == '\0') {
-                        state = ERROR;
-                        ErrPrint("Type is not valid\n");
-                        continue;
-                    }
+			    if (*fileptr == '\0') {
+				state = ERROR;
+				ErrPrint("Type is not valid\n");
+				continue;
+			    }
 
-                    ptr = fileptr;
-                    type_idx = 0;
-                    type_len = 0;
-                }
+			    ptr = fileptr;
+			    type_idx = 0;
+			    type_len = 0;
+			}
 
-                if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
-                    *fileptr = '\0';
-                }
+			if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
+			    *fileptr = '\0';
+			}
 
-                if (type_list[type_idx][type_len] != *fileptr) {
-                    type_idx++;
-                    while (type_list[type_idx]) {
-                        if (!strncmp(type_list[type_idx], fileptr - type_len, type_len)) {
-                            break;
-                        } else {
-                            type_idx++;
-                        }
-                    }
+			if (type_list[type_idx][type_len] != *fileptr) {
+			    type_idx++;
+			    while (type_list[type_idx]) {
+				if (!strncmp(type_list[type_idx], fileptr - type_len, type_len)) {
+				    break;
+				} else {
+				    type_idx++;
+				}
+			    }
 
-                    if (!type_list[type_idx]) {
-                        state = ERROR;
-                        ErrPrint("type is not valid (%s)\n", fileptr - type_len);
-                        continue;
-                    }
-                }
+			    if (!type_list[type_idx]) {
+				state = ERROR;
+				ErrPrint("type is not valid (%s)\n", fileptr - type_len);
+				continue;
+			    }
+			}
 
-                if (!*fileptr) {
-                    block->type = type_idx;
-                    state = DONE;
-                    ptr = NULL;
-                }
+			if (!*fileptr) {
+			    block->type = type_idx;
+			    state = DONE;
+			    ptr = NULL;
+			}
 
-                type_len++;
-                break;
-            case FIELD_PART:
-                if (ptr == NULL) {
-                    ptr = fileptr;
-                }
+			type_len++;
+			break;
+		    case FIELD_PART:
+			if (ptr == NULL) {
+			    ptr = fileptr;
+			}
 
-                if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
-                    *fileptr = '\0';
-                }
+			if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
+			    *fileptr = '\0';
+			}
 
-                if (!*fileptr) {
-                    block->part = ptr;
-                    state = DONE;
-                    ptr = NULL;
-                }
-                break;
-            case FIELD_DATA:
-                if (ptr == NULL) {
-                    ptr = fileptr;
-                }
+			if (!*fileptr) {
+			    block->part = ptr;
+			    state = DONE;
+			    ptr = NULL;
+			}
+			break;
+		    case FIELD_DATA:
+			if (ptr == NULL) {
+			    ptr = fileptr;
+			}
 
-                if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
-                    *fileptr = '\0';
-                }
+			if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
+			    *fileptr = '\0';
+			}
 
-                if (!*fileptr) {
-                    block->data = ptr;
-                    state = DONE;
-                    ptr = NULL;
-                }
-                break;
-            case FIELD_OPTION:
-                if (ptr == NULL) {
-                    ptr = fileptr;
-                }
+			if (!*fileptr) {
+			    block->data = ptr;
+			    state = DONE;
+			    ptr = NULL;
+			}
+			break;
+		    case FIELD_OPTION:
+			if (ptr == NULL) {
+			    ptr = fileptr;
+			}
 
-                if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
-                    *fileptr = '\0';
-                }
+			if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
+			    *fileptr = '\0';
+			}
 
-                if (!*fileptr) {
-                    block->option = ptr;
-                    state = DONE;
-                    ptr = NULL;
-                }
-                break;
-            case FIELD_ID:
-                if (ptr == NULL) {
-                    ptr = fileptr;
-                }
+			if (!*fileptr) {
+			    block->option = ptr;
+			    state = DONE;
+			    ptr = NULL;
+			}
+			break;
+		    case FIELD_ID:
+			if (ptr == NULL) {
+			    ptr = fileptr;
+			}
 
-                if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
-                    *fileptr = '\0';
-                }
+			if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
+			    *fileptr = '\0';
+			}
 
-                if (!*fileptr) {
-                    block->id = ptr;
-                    state = DONE;
-                    ptr = NULL;
-                }
-                break;
-            case FIELD_TARGET:
-                if (ptr == NULL) {
-                    ptr = fileptr;
-                }
+			if (!*fileptr) {
+			    block->id = ptr;
+			    state = DONE;
+			    ptr = NULL;
+			}
+			break;
+		    case FIELD_TARGET:
+			if (ptr == NULL) {
+			    ptr = fileptr;
+			}
 
-                if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
-                    *fileptr = '\0';
-                }
+			if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
+			    *fileptr = '\0';
+			}
 
-                if (!*fileptr) {
-                    block->target = ptr;
-                    state = DONE;
-                    ptr = NULL;
-                }
-                break;
-            case FIELD_FILE:
-                if (ptr == NULL) {
-                    ptr = fileptr;
-                }
+			if (!*fileptr) {
+			    block->target = ptr;
+			    state = DONE;
+			    ptr = NULL;
+			}
+			break;
+		    case FIELD_FILE:
+			if (ptr == NULL) {
+			    ptr = fileptr;
+			}
 
-                if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
-                    *fileptr = '\0';
-                }
+			if (*fileptr && (*fileptr == '\n' || *fileptr == '\r' || *fileptr == '\f')) {
+			    *fileptr = '\0';
+			}
 
-                if (!*fileptr) {
-                    block->target = ptr;
-                    state = DONE;
-                    ptr = NULL;
-                }
-            default:
-                break;
-            }
+			if (!*fileptr) {
+			    block->target = ptr;
+			    state = DONE;
+			    ptr = NULL;
+			}
+		    default:
+			break;
+		}
 
-            break;
-        case DONE:
-            if (isspace(*fileptr)) {
-            } else if (*fileptr == '}') {
-                    state = BEGIN;
-                    block->filename = filename;
-                    block_list = dlist_append(block_list, block);
-                    block = NULL;
-            } else {
-                state = FIELD;
-                continue;
-            }
-            break;
-        case END:
-        default:
-            break;
-        }
+		break;
+	    case DONE:
+		if (isspace(*fileptr)) {
+		} else if (*fileptr == '}') {
+		    state = BEGIN;
+		    block->filename = filename;
+		    block_list = dlist_append(block_list, block);
+		    block = NULL;
+		} else {
+		    state = FIELD;
+		    continue;
+		}
+		break;
+	    case END:
+	    default:
+		break;
+	}
 
-        fileptr++;
+	fileptr++;
     }
 
     if (state != BEGIN) {
-        struct dlist *l;
-        struct dlist *n;
-        ErrPrint("State %d\n", state);
+	struct dlist *l;
+	struct dlist *n;
+	ErrPrint("State %d\n", state);
 
-        free(filebuf);
-        free(block);
+	free(filebuf);
+	free(block);
 
-        dlist_foreach_safe(block_list, l, n, block) {
-            free(block);
-            block_list = dlist_remove(block_list, l);
-        }
+	dlist_foreach_safe(block_list, l, n, block) {
+	    free(block);
+	    block_list = dlist_remove(block_list, l);
+	}
 
-        return DBOX_STATUS_ERROR_FAULT;
+	return DBOX_STATUS_ERROR_FAULT;
     }
 
-        
+
     block = dlist_data(dlist_prev(block_list));
     if (block) {
-        block->filebuf = filebuf;
+	block->filebuf = filebuf;
     } else {
-        ErrPrint("Last block is not exists (There is no parsed block)\n");
-        free(filebuf);
+	ErrPrint("Last block is not exists (There is no parsed block)\n");
+	free(filebuf);
     }
 
     ErrPrint("Begin: Set content for object\n");
     dlist_foreach(common->dynamicbox_list, l, handler) {
-        update_begin(handler, is_gbar);
+	update_begin(handler, is_gbar);
     }
 
     dlist_foreach_safe(block_list, l, n, block) {
-        dlist_foreach(common->dynamicbox_list, handle_iterator, handler) {
-            consuming_parsed_block(handler, is_gbar, block);
-        }
+	dlist_foreach(common->dynamicbox_list, handle_iterator, handler) {
+	    consuming_parsed_block(handler, is_gbar, block);
+	}
 
-        block_list = dlist_remove(block_list, l);
-        delete_block(block);
+	block_list = dlist_remove(block_list, l);
+	delete_block(block);
     }
 
     dlist_foreach(common->dynamicbox_list, l, handler) {
-        update_end(handler, is_gbar);
+	update_end(handler, is_gbar);
     }
     ErrPrint("End: Set content for object\n");
 
