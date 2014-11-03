@@ -3625,7 +3625,11 @@ EAPI int dynamicbox_emit_text_signal(dynamicbox_h handler, dynamicbox_text_event
 	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    if ((handler->common->dbox.type != DBOX_TYPE_TEXT && handler->common->gbar.type != GBAR_TYPE_TEXT) || !handler->common->id) {
+    if (handler->common->dbox.type != DBOX_TYPE_TEXT && handler->common->gbar.type != GBAR_TYPE_TEXT) {
+	DbgPrint("Not a text box, but send signal\n");
+    }
+
+    if (!handler->common->id) {
 	ErrPrint("Handler is not valid\n");
 	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
     }
