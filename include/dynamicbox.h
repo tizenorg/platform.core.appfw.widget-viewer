@@ -288,17 +288,17 @@ typedef enum dynamicbox_visible_state {
 typedef enum dynamicbox_access_info_type {
     DBOX_ACCESS_TYPE_NONE = 0x00,           /**< Initialized */
 
-        DBOX_ACCESS_TYPE_DOWN = 0x00,           /**< Mouse down */
-        DBOX_ACCESS_TYPE_MOVE = 0x01,           /**< Mouse move */
-        DBOX_ACCESS_TYPE_UP   = 0x02,           /**< Mouse up */
+    DBOX_ACCESS_TYPE_DOWN = 0x00,           /**< Mouse down */
+    DBOX_ACCESS_TYPE_MOVE = 0x01,           /**< Mouse move */
+    DBOX_ACCESS_TYPE_UP   = 0x02,           /**< Mouse up */
 
-        DBOX_ACCESS_TYPE_HIGHLIGHT      = 0x00, /**< Highlight */
-        DBOX_ACCESS_TYPE_HIGHLIGHT_NEXT = 0x01, /**< Highlight next */
-        DBOX_ACCESS_TYPE_HIGHLIGHT_PREV = 0x02, /**< Highlight prev */
-        DBOX_ACCESS_TYPE_UNHIGHLIGHT    = 0x03, /**< Unhighlight */
+    DBOX_ACCESS_TYPE_HIGHLIGHT      = 0x00, /**< Highlight */
+    DBOX_ACCESS_TYPE_HIGHLIGHT_NEXT = 0x01, /**< Highlight next */
+    DBOX_ACCESS_TYPE_HIGHLIGHT_PREV = 0x02, /**< Highlight prev */
+    DBOX_ACCESS_TYPE_UNHIGHLIGHT    = 0x03, /**< Unhighlight */
 
-        DBOX_ACCESS_TYPE_DISABLE = 0x00,        /**< Disable */
-        DBOX_ACCESS_TYPE_ENABLE  = 0x01         /**< Enable */
+    DBOX_ACCESS_TYPE_DISABLE = 0x00,        /**< Disable */
+    DBOX_ACCESS_TYPE_ENABLE  = 0x01         /**< Enable */
 } dynamicbox_access_info_type_e;
 
 /**
