@@ -25,6 +25,7 @@ struct dynamicbox_data {
 };
 
 extern int htt_main(Evas_Object *win);
+extern int set_score(Evas_Object *win, const char *source, const char *emission);
 
 static int dbox_create(const char *id, const char *content, int w, int h, void *data)
 {
@@ -94,7 +95,7 @@ static int dbox_resize(const char *id, int w, int h, void *data)
 	return 0;
 }
 
-static int dbox_destroy(const char *id, int reason, void *data)
+static int dbox_destroy(const char *id, dynamicbox_destroy_type_e reason, void *data)
 {
 	struct dynamicbox_data *dbox_data;
 
@@ -197,6 +198,7 @@ static int dbox_script_event(const char *id, const char *emission, const char *s
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
+	set_score(dbox_data->win, source, emission);
 	/**
 	 * @TODO:
 	 */
