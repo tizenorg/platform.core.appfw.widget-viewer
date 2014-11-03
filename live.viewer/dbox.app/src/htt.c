@@ -2,10 +2,13 @@
 #include <stdlib.h>
 
 const char *enemies[] = { "sistar", "girlsday", "fx", "2ne1", "kara", "missa", "apink", "crayonpop", "4minute", "tara" };
-static Eina_List *enemy_list = NULL;
-static Evas_Object *bricks[9];
-static Evas_Object *score;
-static int score_val = 0;
+
+struct instance {
+    Eina_List *enemy_list;
+    Evas_Object *bricks[9];
+    Evas_Object *score;
+    int score_val;
+};
 
 Evas_Object *create_enemy(Evas *e)
 {
@@ -24,23 +27,27 @@ Evas_Object *create_enemy(Evas *e)
 
 Eina_Bool create_enemy_timer_cb(void *data)
 {
-   Evas *e = data;
+   Evas *e;
+   struct instance *inst;
+
+   e = evas_object_evas_get(data);
+   inst = evas_object_data_get(data, "instance");
 
    Evas_Object *enemy = create_enemy(e);
 
-   enemy_list = eina_list_append(enemy_list, enemy);
+   inst->enemy_list = eina_list_append(inst->enemy_list, enemy);
 
    return ECORE_CALLBACK_RENEW;
 }
 
-void remove_brick()
+void remove_brick(struct instance *inst)
 {
    int i;
 
    for (i = 0; i < 9; i++)
    {
-      if (!evas_object_visible_get(bricks[i])) continue;
-      evas_object_hide(bricks[i]);
+      if (!evas_object_visible_get(inst->bricks[i])) continue;
+      evas_object_hide(inst->bricks[i]);
       return;
    }
 
@@ -52,16 +59,19 @@ Eina_Bool move_enemy_timer_cb(void *data)
    Eina_List *l, *l_next;
    Evas_Object *enemy;
    Evas_Coord x, y;
+   struct instance *inst;
 
-   EINA_LIST_FOREACH_SAFE(enemy_list, l, l_next, enemy)
+   inst = evas_object_data_get(data, "instance");
+
+   EINA_LIST_FOREACH_SAFE(inst->enemy_list, l, l_next, enemy)
    {
       evas_object_geometry_get(enemy, &x, &y, NULL, NULL);
 
       if (y >= 400)
       {
-         enemy_list = eina_list_remove(enemy_list, enemy);
+         inst->enemy_list = eina_list_remove(inst->enemy_list, enemy);
          evas_object_del(enemy);
-         remove_brick();
+         remove_brick(inst);
       }
       else
       {
@@ -83,24 +93,41 @@ Evas_Object *create_brick(Evas *e, Evas_Coord x, Evas_Coord y)
    return img;
 }
 
-void attack(const char *input)
+void attack(Evas_Object *win, const char *input)
 {
    Eina_List *l, *l_next;
    Evas_Object *enemy;
+   struct instance *inst;
 
-   EINA_LIST_FOREACH_SAFE(enemy_list, l, l_next, enemy)
+   inst = evas_object_data_get(win, "instance");
+
+   EINA_LIST_FOREACH_SAFE(inst->enemy_list, l, l_next, enemy)
    {
       if (!strcmp(evas_object_text_text_get(enemy), input))
       {
-         enemy_list = eina_list_remove(enemy_list, enemy);
+         inst->enemy_list = eina_list_remove(inst->enemy_list, enemy);
          evas_object_del(enemy);
-         score_val += 100;
+         inst->score_val += 100;
       }
    }
 
+/*
    char buf[100];
-   snprintf(buf, sizeof(buf), "Score: %d", score_val);
-   evas_object_text_text_set(score, buf);
+   snprintf(buf, sizeof(buf), "Score: %d", inst->score_val);
+   evas_object_text_text_set(inst->score, buf);
+*/
+}
+
+void set_score(Evas_Object *win, const char *source, const char *emission)
+{
+    char *buf;
+    struct instance *inst;
+
+    inst = evas_object_data_get(win, "instance");
+
+    buf = malloc(strlen(source) + strlen(emission) + 100);
+    snprintf(buf, strlen(source) + strlen(emission) + 100, "%s/%s", source, emission);
+    evas_object_text_text_set(inst->score, buf);
 }
 
 void key_down_cb(void *data, Evas *evas, Evas_Object *obj, void *event_info)
@@ -118,7 +145,7 @@ void key_down_cb(void *data, Evas *evas, Evas_Object *obj, void *event_info)
 //   printf("%s %s %s %s (%d)\n", ev->keyname, ev->key, ev->string, ev->compose, ev->keycode);
    if (!strcmp(ev->keyname, "space") || !strcmp(ev->keyname, "Return"))
    {
-      attack(buf);
+      attack(obj, buf);
       evas_object_text_text_set(input, "");
       cur = 0;
       return;
@@ -143,6 +170,13 @@ void key_down_cb(void *data, Evas *evas, Evas_Object *obj, void *event_info)
 
 int htt_main(Evas_Object *win)
 {
+   struct instance *inst;
+
+   inst = calloc(1, sizeof(*inst));
+   if (!inst) {
+      return -ENOMEM;
+   }
+
    srand((unsigned int) time(NULL));
 
    Evas *e = evas_object_evas_get(win);
@@ -159,15 +193,15 @@ int htt_main(Evas_Object *win)
    evas_object_resize(ocean, 500, 20);
    evas_object_show(ocean);
 
-   bricks[0] = create_brick(e, 225, 355);
-   bricks[1] = create_brick(e, 250, 355);
-   bricks[2] = create_brick(e, 275, 355);
-   bricks[3] = create_brick(e, 225, 370);
-   bricks[4] = create_brick(e, 250, 370);
-   bricks[5] = create_brick(e, 275, 370);
-   bricks[6] = create_brick(e, 225, 385);
-   bricks[7] = create_brick(e, 250, 385);
-   bricks[8] = create_brick(e, 275, 385);
+   inst->bricks[0] = create_brick(e, 225, 355);
+   inst->bricks[1] = create_brick(e, 250, 355);
+   inst->bricks[2] = create_brick(e, 275, 355);
+   inst->bricks[3] = create_brick(e, 225, 370);
+   inst->bricks[4] = create_brick(e, 250, 370);
+   inst->bricks[5] = create_brick(e, 275, 370);
+   inst->bricks[6] = create_brick(e, 225, 385);
+   inst->bricks[7] = create_brick(e, 250, 385);
+   inst->bricks[8] = create_brick(e, 275, 385);
 
    Evas_Object *entry = evas_object_image_filled_add(e);
    evas_object_image_file_set(entry, RESDIR"/entry.png", NULL);
@@ -175,12 +209,12 @@ int htt_main(Evas_Object *win)
    evas_object_resize(entry, 90, 30);
    evas_object_show(entry);
 
-   score = evas_object_text_add(e);
-   evas_object_text_font_set(score, "DejaVu", 12);
-   evas_object_text_text_set(score, "Score: 0");
-   evas_object_color_set(score, 0, 0, 0, 255);
-   evas_object_resize(score, 100, 30);
-   evas_object_show(score);
+   inst->score = evas_object_text_add(e);
+   evas_object_text_font_set(inst->score, "DejaVu", 12);
+   evas_object_text_text_set(inst->score, "Score: 0");
+   evas_object_color_set(inst->score, 0, 0, 0, 255);
+   evas_object_resize(inst->score, 100, 30);
+   evas_object_show(inst->score);
 
    Evas_Object *input = evas_object_text_add(e);
    evas_object_text_font_set(input, "DejaVu", 12);
@@ -189,8 +223,10 @@ int htt_main(Evas_Object *win)
    evas_object_resize(input, 100, 30);
    evas_object_show(input);
 
-   ecore_timer_add(2, create_enemy_timer_cb, e);
-   ecore_timer_add(0.8, move_enemy_timer_cb, e);
+   ecore_timer_add(2, create_enemy_timer_cb, win);
+   ecore_timer_add(0.8, move_enemy_timer_cb, win);
+
+   evas_object_data_set(win, "instance", inst);
 
    evas_object_event_callback_add(win, EVAS_CALLBACK_KEY_DOWN, key_down_cb, input);
    return 0;

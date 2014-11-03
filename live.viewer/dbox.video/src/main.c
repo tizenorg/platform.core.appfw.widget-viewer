@@ -12,6 +12,7 @@
 #include <dynamicbox_errno.h>
 #include <dynamicbox_buffer.h>
 
+#include <dynamicbox_provider.h>
 #include <dynamicbox_provider_buffer.h>
 
 #include <aul.h>
