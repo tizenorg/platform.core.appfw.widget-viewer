@@ -550,11 +550,12 @@ int fb_release_buffer(void *data)
 		info = buffer->info;
 
 		buffer->state = DBOX_FB_STATE_DESTROYED;
-		free(buffer);
 
 		if (info && info->buffer == buffer) {
 		    info->buffer = NULL;
 		}
+
+		free(buffer);
 	    }
 	    break;
 	default:
