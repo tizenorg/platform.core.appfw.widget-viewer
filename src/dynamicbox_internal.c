@@ -151,10 +151,10 @@ struct dynamicbox_common *dbox_create_common_handle(dynamicbox_h handle, const c
     common->delete_type = DBOX_DELETE_PERMANENTLY;
 
     common->gbar.lock = NULL;
-    common->gbar.last_extra_buffer_idx = DBOX_PRIMARY_BUFFER;
+    common->gbar.last_extra_buffer_idx = DBOX_UNKNOWN_BUFFER;
 
     common->dbox.lock = NULL;
-    common->dbox.last_extra_buffer_idx = DBOX_PRIMARY_BUFFER;
+    common->dbox.last_extra_buffer_idx = DBOX_UNKNOWN_BUFFER;
 
     common->state = DBOX_STATE_CREATE;
     common->visible = DBOX_SHOW;

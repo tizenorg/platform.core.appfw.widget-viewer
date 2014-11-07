@@ -791,11 +791,6 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 
     dbox_set_filename(common, safe_file);
 
-    if (common->request.created) {
-	DbgPrint("Creation is not done yet. waiting create event(%s)\n", id);
-	goto out;
-    }
-
     if (dbox_text_dbox(common)) {
 	const char *common_filename;
 
@@ -833,7 +828,7 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 	ret = DBOX_STATUS_ERROR_NONE;
     }
 
-    if (ret == (int)DBOX_STATUS_ERROR_NONE) {
+    if (ret == (int)DBOX_STATUS_ERROR_NONE && !common->request.created) {
 	struct dlist *l;
 	struct dlist *n;
 
@@ -1867,6 +1862,23 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		cb(handler, ret, cbdata);
 	    } else {
 		dbox_invoke_event_handler(handler, DBOX_EVENT_CREATED);
+	    }
+
+	    /**
+	     * If there is any updates before get this event,
+	     * Invoke all update event forcely
+	     */
+	    switch (common->dbox.last_extra_buffer_idx) {
+	    case DBOX_UNKNOWN_BUFFER:
+		break;
+	    case DBOX_PRIMARY_BUFFER:
+		DbgPrint("Primary buffer updated\n");
+		dbox_invoke_event_handler(handler, DBOX_EVENT_DBOX_UPDATED);
+		break;
+	    default:
+		DbgPrint("Extra buffer updated\n");
+		dbox_invoke_event_handler(handler, DBOX_EVENT_DBOX_EXTRA_UPDATED);
+		break;
 	    }
 	}
     }
