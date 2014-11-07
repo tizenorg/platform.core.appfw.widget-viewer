@@ -791,11 +791,6 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 
     dbox_set_filename(common, safe_file);
 
-    if (common->request.created) {
-	DbgPrint("Creation is not done yet. waiting create event(%s)\n", id);
-	goto out;
-    }
-
     if (dbox_text_dbox(common)) {
 	const char *common_filename;
 
@@ -833,7 +828,7 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 	ret = DBOX_STATUS_ERROR_NONE;
     }
 
-    if (ret == (int)DBOX_STATUS_ERROR_NONE) {
+    if (ret == (int)DBOX_STATUS_ERROR_NONE && !common->request.created) {
 	struct dlist *l;
 	struct dlist *n;
 
