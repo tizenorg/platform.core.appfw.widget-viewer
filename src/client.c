@@ -1863,6 +1863,23 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 	    } else {
 		dbox_invoke_event_handler(handler, DBOX_EVENT_CREATED);
 	    }
+
+	    /**
+	     * If there is any updates before get this event,
+	     * Invoke all update event forcely
+	     */
+	    switch (common->dbox.last_extra_buffer_idx) {
+	    case DBOX_UNKNOWN_BUFFER:
+		break;
+	    case DBOX_PRIMARY_BUFFER:
+		DbgPrint("Primary buffer updated\n");
+		dbox_invoke_event_handler(handler, DBOX_EVENT_DBOX_UPDATED);
+		break;
+	    default:
+		DbgPrint("Extra buffer updated\n");
+		dbox_invoke_event_handler(handler, DBOX_EVENT_DBOX_EXTRA_UPDATED);
+		break;
+	    }
 	}
     }
 
