@@ -1,8 +1,0 @@
-<manifest>
-    <define>
-        <domain name="com.samsung.w-add-viewer"/>
-    </define>
-    <request>
-        <domain name="com.samsung.w-add-viewer"/>
-    </request>
-</manifest>
