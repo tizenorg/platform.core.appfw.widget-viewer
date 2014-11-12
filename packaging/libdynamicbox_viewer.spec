@@ -18,6 +18,7 @@ BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(dynamicbox_service)
 BuildRequires: pkgconfig(vconf)
+BuildRequires: model-build-features
 
 %if %{with wayland}
 %else
@@ -25,7 +26,7 @@ BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(xext)
 %endif
 
-%if "%{sec_product_feature_livebox}" == "0"
+%if "%{model_build_feature_livebox}" == "0"
 ExclusiveArch:
 %endif
 
