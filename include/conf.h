@@ -18,12 +18,12 @@
  * \note
  * milli seconds
  */
-#define MAX_LOG_FILE	3
-#define MAX_LOG_LINE	1000
-#define SLAVE_LOG_PATH	"/tmp/.dbox.service/log/"
+#define MAX_LOG_FILE    3
+#define MAX_LOG_LINE    1000
+#define SLAVE_LOG_PATH    "/tmp/.dbox.service/log/"
 
 #if !defined(VCONFKEY_MASTER_STARTED)
-#define VCONFKEY_MASTER_STARTED	"memory/data-provider-master/started"
+#define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"
 #endif
 
 #if !defined(VCONFKEY_MASTER_CLIENT_ADDR)
@@ -38,5 +38,11 @@ extern void conf_set_shared_content(int flag);
 extern int conf_shared_content(void);
 extern double conf_event_filter(void);
 extern void conf_set_event_filter(double filter);
+extern void conf_set_direct_update(int flag);
+extern int conf_direct_update(void);
+extern int conf_extra_buffer_count(void);
+extern void conf_set_extra_buffer_count(int buffer_count);
+extern dynamicbox_status_e conf_last_status(void);
+extern void conf_set_last_status(dynamicbox_status_e status);
 
 /* End of a file */

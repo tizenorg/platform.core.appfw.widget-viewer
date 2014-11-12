@@ -17,6 +17,8 @@
 extern int client_init(int use_thread);
 extern int client_fd(void);
 extern const char *client_addr(void);
+extern const char *client_direct_addr(void);
+extern int client_direct_fd(void);
 extern int client_fini(void);
 
 /* End of a file */

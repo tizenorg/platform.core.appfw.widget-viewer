@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT(livebox-viewer C)
+PROJECT(dynamicbox_viewer C)
 
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "\${prefix}")
@@ -22,19 +22,20 @@ pkg_check_modules(pkgs REQUIRED
 	com-core
 	sqlite3
 	db-util
-	livebox-service
+	dynamicbox_service
 	vconf
 )
 
 SET(BUILD_SOURCE
-	src/dlist.c
-	src/livebox.c
-	src/util.c
-	src/desc_parser.c
-	src/master_rpc.c
 	src/client.c
-	src/file_service.c
 	src/conf.c
+	src/desc_parser.c
+	src/dlist.c
+	src/dynamicbox.c
+	src/dynamicbox_internal.c
+	src/file_service.c
+	src/master_rpc.c
+	src/util.c
 )
 
 IF (X11_SUPPORT)
@@ -71,7 +72,7 @@ SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fvisibility=hidden -Wall -Werror -Winline -g"
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
 
 ADD_DEFINITIONS("-DPREFIX=\"${PREFIX}\"")
-ADD_DEFINITIONS("-DLOG_TAG=\"LIVEBOX_VIEWER\"")
+ADD_DEFINITIONS("-DLOG_TAG=\"DYNAMICBOX_VIEWER\"")
 ADD_DEFINITIONS("-DNDEBUG")
 ADD_DEFINITIONS("-D_USE_ECORE_TIME_GET")
 #ADD_DEFINITIONS("-DFLOG")
@@ -91,5 +92,7 @@ SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${PROJECT_NAME}
 
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/livebox.h DESTINATION include/${PROJECT_NAME})
+		
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox.h DESTINATION include/${PROJECT_NAME})
+
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "lib${PROJECT_NAME}")

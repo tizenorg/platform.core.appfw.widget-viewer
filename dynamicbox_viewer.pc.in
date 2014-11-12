@@ -3,9 +3,9 @@ exec_prefix=@EXEC_PREFIX@
 libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
-Name: livebox-viewer
-Description: livebox supporting library
+Name: dynamicbox-viewer
+Description: Support development of the Dynamic Box Viewer
 Version: @VERSION@
-Libs: -L${libdir} -llivebox-viewer
+Libs: -L${libdir} -ldynamicbox_viewer
 Cflags: -I${includedir}
 cppflags: -I${includedir}

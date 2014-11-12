@@ -1,10 +1,10 @@
 %bcond_with wayland
 
-Name: liblivebox-viewer
+Name: libdynamicbox_viewer
 Summary: Library for developing the application
-Version: 0.31.0
+Version: 1.0.0
 Release: 1
-Group: HomeTF/Livebox
+Group: HomeTF/DynamicBox
 License: Flora
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
@@ -16,7 +16,7 @@ BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(com-core)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
-BuildRequires: pkgconfig(livebox-service)
+BuildRequires: pkgconfig(dynamicbox_service)
 BuildRequires: pkgconfig(vconf)
 
 %if %{with wayland}
@@ -30,15 +30,15 @@ ExclusiveArch:
 %endif
 
 %description
-API for creating a new instance of the livebox and managing its life-cycle.
+API for creating a new instance of the dynamicbox and managing its life-cycle.
 
 %package devel
-Summary: Livebox viewer development library (dev)
+Summary: Development Library for Dynamic Box Viewer Application (dev)
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
 %description devel
-Header and package configuration files for the livebox viewer development
+Header and package configuration files for the dynamicbox viewer development
 
 %prep
 %setup -q
@@ -65,18 +65,17 @@ export WAYLAND_SUPPORT=Off
 export X11_SUPPORT=On
 %endif
 
-%cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT}
+%cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT} -DDYNAMICBOX_ENABLED=On
 make %{?jobs:-j%jobs}
 
 %install
 rm -rf %{buildroot}
 %make_install
-mkdir -p %{buildroot}/%{_datarootdir}/license
 
-%post -n liblivebox-viewer -p /sbin/ldconfig
-%postun -n liblivebox-viewer -p /sbin/ldconfig
+%post -n %{name} -p /sbin/ldconfig
+%postun -n %{name} -p /sbin/ldconfig
 
-%files -n liblivebox-viewer
+%files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/*.so*
@@ -85,7 +84,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %files devel
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_includedir}/livebox-viewer/livebox.h
+%{_includedir}/dynamicbox_viewer/dynamicbox.h
 %{_libdir}/pkgconfig/*.pc
 
 # End of a file
