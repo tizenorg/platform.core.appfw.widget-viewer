@@ -18,6 +18,7 @@ BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(dynamicbox_service)
 BuildRequires: pkgconfig(vconf)
+BuildRequires: pkgconfig(livebox-service)
 
 %if %{with wayland}
 %else
@@ -87,4 +88,34 @@ rm -rf %{buildroot}
 %{_includedir}/dynamicbox_viewer/dynamicbox.h
 %{_libdir}/pkgconfig/*.pc
 
+#################################################
+# liblivebox-viewer (for old version)
+%package -n liblivebox-viewer
+Summary: Library for developing the dynamicbox viewer (old version)
+Group: HomeTF/Dynamicbox
+License: Flora
+Requires: libdynamicbox_viewer
+
+%description -n liblivebox-viewer
+Provider APIs to develop the dynamicbox viewer applications. (old version)
+
+%package -n liblivebox-viewer-devel
+Summary: Header & package configuration files to support development of the dynamicbox viewer applications. (old version)
+Group: Development/Libraries
+Requires: liblivebox-viewer
+
+%description -n liblivebox-viewer-devel
+Dynamicbox provider application development library (dev) (old version)
+
+%files -n liblivebox-viewer
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_libdir}/liblivebox-viewer.so*
+%{_datarootdir}/license/liblivebox-viewer
+
+%files -n liblivebox-viewer-devel
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_includedir}/livebox-viewer/livebox.h
+%{_libdir}/pkgconfig/livebox-viewer.pc
 # End of a file

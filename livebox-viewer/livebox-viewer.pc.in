@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=@EXEC_PREFIX@
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: livebox-viewer
+Description: livebox supporting library
+Version: @VERSION@
+Libs: -L${libdir} -llivebox-viewer
+Cflags: -I${includedir}
+cppflags: -I${includedir}
