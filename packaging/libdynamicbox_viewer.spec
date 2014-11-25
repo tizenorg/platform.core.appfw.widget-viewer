@@ -79,14 +79,14 @@ rm -rf %{buildroot}
 %files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_libdir}/*.so*
-%{_datarootdir}/license/*
+%{_libdir}/libdynamicbox_viewer.so*
+%{_datarootdir}/license/libdynamicbox_viewer
 
 %files devel
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/dynamicbox_viewer/dynamicbox.h
-%{_libdir}/pkgconfig/*.pc
+%{_libdir}/pkgconfig/dynamicbox_viewer.pc
 
 #################################################
 # liblivebox-viewer (for old version)
