@@ -16,9 +16,9 @@ BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(com-core)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
+BuildRequires: pkgconfig(livebox-service)
 BuildRequires: pkgconfig(dynamicbox_service)
 BuildRequires: pkgconfig(vconf)
-BuildRequires: pkgconfig(livebox-service)
 
 %if %{with wayland}
 %else
@@ -118,4 +118,5 @@ Dynamicbox provider application development library (dev) (old version)
 %defattr(-,root,root,-)
 %{_includedir}/livebox-viewer/livebox.h
 %{_libdir}/pkgconfig/livebox-viewer.pc
+
 # End of a file
