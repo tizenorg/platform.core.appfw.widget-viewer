@@ -51,8 +51,6 @@
 FILE *__file_log_fp;
 #endif
 
-#define EAPI __attribute__((visibility("default")))
-
 static int default_launch_handler(dynamicbox_h handler, const char *appid, void *data);
 
 static struct info {

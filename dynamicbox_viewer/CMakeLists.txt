@@ -1,0 +1,98 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT(dynamicbox_viewer C)
+
+SET(PREFIX ${CMAKE_INSTALL_PREFIX})
+SET(EXEC_PREFIX "\${prefix}")
+SET(PROJECT_NAME "${PROJECT_NAME}")
+SET(LIBDIR "\${exec_prefix}/lib")
+SET(INCLUDEDIR "\${prefix}/include/${PROJECT_NAME}")
+SET(VERSION_MAJOR 1)
+SET(VERSION "${VERSION_MAJOR}.0.0")
+
+SET(CMAKE_SKIP_BUILD_RPATH true)
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+INCLUDE(FindPkgConfig)
+pkg_check_modules(pkgs REQUIRED
+	dlog
+	aul
+	glib-2.0
+	gio-2.0
+	com-core
+	sqlite3
+	db-util
+	dynamicbox_service
+	vconf
+)
+
+SET(BUILD_SOURCE
+	src/client.c
+	src/conf.c
+	src/desc_parser.c
+	src/dlist.c
+	src/dynamicbox.c
+	src/dynamicbox_internal.c
+	src/file_service.c
+	src/master_rpc.c
+	src/util.c
+)
+
+IF (X11_SUPPORT)
+pkg_check_modules(pkgs_extra REQUIRED
+	x11
+	xext
+)
+
+SET(BUILD_SOURCE
+	${BUILD_SOURCE}
+	src/fb.c
+)
+ADD_DEFINITIONS("-DHAVE_X11")
+ENDIF (X11_SUPPORT)
+
+IF (WAYLAND_SUPPORT)
+SET(BUILD_SOURCE
+	${BUILD_SOURCE}
+	src/fb_wayland.c
+)
+ADD_DEFINITIONS("-DHAVE_WAYLAND")
+ENDIF (WAYLAND_SUPPORT)
+
+FOREACH(flag ${pkgs_CFLAGS})
+	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
+ENDFOREACH(flag)
+
+FOREACH(flag ${pkgs_extra_CFLAGS})
+	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
+ENDFOREACH(flag)
+
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fvisibility=hidden -Wall -Werror -Winline -g")
+
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
+
+ADD_DEFINITIONS("-DPREFIX=\"${PREFIX}\"")
+ADD_DEFINITIONS("-DLOG_TAG=\"DYNAMICBOX_VIEWER\"")
+ADD_DEFINITIONS("-DNDEBUG")
+ADD_DEFINITIONS("-D_USE_ECORE_TIME_GET")
+#ADD_DEFINITIONS("-DFLOG")
+ADD_DEFINITIONS("-DMASTER_PKGNAME=\"data-provider-master\"")
+ADD_DEFINITIONS("-DINFO_SOCKET=\"/opt/usr/share/live_magazine/.live.socket\"")
+ADD_DEFINITIONS("-DCLIENT_SOCKET=\"/opt/usr/share/live_magazine/.client.socket\"")
+ADD_DEFINITIONS("-DSLAVE_SOCKET=\"/opt/usr/share/live_magazine/.slave.socket\"")
+ADD_DEFINITIONS("-DSERVICE_SOCKET=\"/opt/usr/share/live_magazine/.service.socket\"")
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${BUILD_SOURCE})
+
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${VERSION_MAJOR})
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pkgs_LDFLAGS} ${pkgs_extra_LDFLAGS} "-lpthread")
+
+CONFIGURE_FILE(${PROJECT_NAME}.pc.in ${PROJECT_NAME}.pc @ONLY)
+SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${PROJECT_NAME}.pc")
+
+INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
+		
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/dynamicbox.h DESTINATION include/${PROJECT_NAME})
+
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "lib${PROJECT_NAME}")
