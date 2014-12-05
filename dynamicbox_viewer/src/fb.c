@@ -33,6 +33,7 @@
 
 #include <dlog.h>
 #include <dynamicbox_errno.h> /* For error code */
+#include <dynamicbox_service.h> /* For buffer event data */
 #include <dynamicbox_buffer.h>
 
 #include "debug.h"
