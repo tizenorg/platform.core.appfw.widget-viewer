@@ -6,7 +6,6 @@ includedir=@INCLUDEDIR@
 Name: livebox-viewer
 Description: livebox supporting library
 Version: @VERSION@
-Requires.private: libdynamicbox_viewer
 Libs: -L${libdir} -llivebox-viewer -ldynamicbox_viewer
 Cflags: -I${includedir}
 cppflags: -I${includedir}
