@@ -6,6 +6,7 @@ includedir=@INCLUDEDIR@
 Name: dynamicbox-viewer
 Description: Support development of the Dynamic Box Viewer
 Version: @VERSION@
+Requires.private: dynamicbox_service
 Libs: -L${libdir} -ldynamicbox_viewer
 Cflags: -I${includedir}
 cppflags: -I${includedir}
