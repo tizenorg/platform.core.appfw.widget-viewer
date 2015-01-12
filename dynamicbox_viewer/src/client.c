@@ -788,7 +788,6 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
     common->dbox.last_damage.w = w;
     common->dbox.last_damage.h = h;
     common->dbox.last_extra_buffer_idx = DBOX_PRIMARY_BUFFER;
-
     dbox_set_filename(common, safe_file);
 
     if (dbox_text_dbox(common)) {
@@ -802,6 +801,7 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 	 * DESC parser will call the "text event callback".
 	 * Don't need to call global event callback in this case.
 	 */
+	dbox_unlink_filename(common);
 	goto out;
     } else if (dbox_get_dbox_fb(common)) {
 	/*!
@@ -836,6 +836,7 @@ static struct packet *master_dbox_updated(pid_t pid, int handle, const struct pa
 	    dbox_invoke_event_handler(handler, DBOX_EVENT_DBOX_UPDATED);
 	}
     }
+    dbox_unlink_filename(common);
 
 out:
     return NULL;

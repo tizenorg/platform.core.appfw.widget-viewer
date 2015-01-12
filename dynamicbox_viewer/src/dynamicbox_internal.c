@@ -484,15 +484,18 @@ void dbox_set_id(struct dynamicbox_common *common, const char *id)
     common->id = pi;
 }
 
+void dbox_unlink_filename(struct dynamicbox_common *common)
+{
+    if (common->dbox.type == DBOX_TYPE_FILE || common->dbox.type == DBOX_TYPE_TEXT) {
+	if (common->filename && common->filename[0] && unlink(common->filename) < 0) {
+	    ErrPrint("unlink: %s (%s)\n", strerror(errno), common->filename);
+	}
+    }
+}
+
 void dbox_set_filename(struct dynamicbox_common *common, const char *filename)
 {
     if (common->filename) {
-	if (common->dbox.type == DBOX_TYPE_FILE || common->dbox.type == DBOX_TYPE_TEXT) {
-	    if (common->filename[0] && unlink(common->filename) < 0) {
-		ErrPrint("unlink: %s (%s)\n", strerror(errno), common->filename);
-	    }
-	}
-
 	free(common->filename);
     }
 
