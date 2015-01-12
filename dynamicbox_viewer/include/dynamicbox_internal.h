@@ -49,6 +49,7 @@ extern int dbox_text_gbar(struct dynamicbox_common *handler);
 extern void dbox_set_period(struct dynamicbox_common *handler, double period);
 extern void dbox_set_update_mode(struct dynamicbox_common *handler, int active_mode);
 extern void dbox_set_filename(struct dynamicbox_common *handler, const char *filename);
+extern void dbox_unlink_filename(struct dynamicbox_common *common);
 extern void dbox_set_alt_icon(struct dynamicbox_common *handler, const char *icon);
 extern void dbox_set_alt_name(struct dynamicbox_common *handle, const char *name);
 extern int dbox_destroy_common_handle(struct dynamicbox_common *common);

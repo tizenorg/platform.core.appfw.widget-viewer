@@ -336,7 +336,7 @@ static inline char *load_file(const char *filename)
 
     fd = open(filename, O_RDONLY);
     if (fd < 0) {
-	ErrPrint("open: %s\n", strerror(errno));
+	ErrPrint("open: %s (%s)\n", strerror(errno), filename);
 	return NULL;
     }
 
