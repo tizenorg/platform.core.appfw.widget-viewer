@@ -95,13 +95,13 @@ static int default_launch_handler(dynamicbox_h handler, const char *appid, void 
 
 	   ret = app_control_create(&service);
 	   if (ret == APP_CONTROL_ERROR_NONE) {
-	   app_control_set_package(service, handler->common->dbox.auto_launch);
-	   app_control_send_launch_request(service, NULL, NULL);
-	   app_control_destroy(service);
+		   app_control_set_package(service, handler->common->dbox.auto_launch);
+		   app_control_send_launch_request(service, NULL, NULL);
+		   app_control_destroy(service);
 	   } else {
-	   ErrPrint("Failed to launch an app %s (%d)\n", handler->common->dbox.auto_launch, ret);
+		   ErrPrint("Failed to launch an app %s (%d)\n", handler->common->dbox.auto_launch, ret);
 	   }
-	 */
+	*/
 
 	return ret > 0 ? DBOX_STATUS_ERROR_NONE : DBOX_STATUS_ERROR_FAULT;
 }
@@ -3717,7 +3717,11 @@ EAPI int dynamicbox_subscribe_category(const char *category)
 	struct packet *packet;
 	unsigned int cmd = CMD_SUBSCRIBE_CATEGORY;
 
-	packet = packet_create_noack((const char *)&cmd, "s", category ? category : "");
+	if (!category) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	packet = packet_create_noack((const char *)&cmd, "s", category);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return DBOX_STATUS_ERROR_FAULT;
@@ -3730,6 +3734,10 @@ EAPI int dynamicbox_unsubscribe_category(const char *category)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_UNSUBSCRIBE_CATEGORY;
+
+	if (!category) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
 
 	packet = packet_create_noack((const char *)&cmd, "s", category ? category : "");
 	if (!packet) {
