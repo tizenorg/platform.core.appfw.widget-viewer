@@ -3714,14 +3714,30 @@ EAPI int dynamicbox_unsubscribe_group(const char *cluster, const char *category)
 
 EAPI int dynamicbox_subscribe_category(const char *category)
 {
-	/* Send subscribe_category request to the master */
-	return DBOX_STATUS_ERROR_NOT_IMPLEMENTED;
+	struct packet *packet;
+	unsigned int cmd = CMD_SUBSCRIBE_CATEGORY;
+
+	packet = packet_create_noack((const char *)&cmd, "s", category ? category : "");
+	if (!packet) {
+		ErrPrint("Failed to create a packet\n");
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	return master_rpc_request_only(NULL, packet);
 }
 
 EAPI int dynamicbox_unsubscribe_category(const char *category)
 {
-	/* Send unsubscribe_category request to the master */
-	return DBOX_STATUS_ERROR_NOT_IMPLEMENTED;
+	struct packet *packet;
+	unsigned int cmd = CMD_UNSUBSCRIBE_CATEGORY;
+
+	packet = packet_create_noack((const char *)&cmd, "s", category ? category : "");
+	if (!packet) {
+		ErrPrint("Failed to create a packet\n");
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	return master_rpc_request_only(NULL, packet);
 }
 
 EAPI int dynamicbox_refresh(dynamicbox_h handler, int force)
