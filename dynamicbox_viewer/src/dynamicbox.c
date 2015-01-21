@@ -3712,6 +3712,18 @@ EAPI int dynamicbox_unsubscribe_group(const char *cluster, const char *category)
 	return master_rpc_request_only(NULL, packet);
 }
 
+EAPI int dynamicbox_subscribe_category(const char *category)
+{
+	/* Send subscribe_category request to the master */
+	return DBOX_STATUS_ERROR_NOT_IMPLEMENTED;
+}
+
+EAPI int dynamicbox_unsubscribe_category(const char *category)
+{
+	/* Send unsubscribe_category request to the master */
+	return DBOX_STATUS_ERROR_NOT_IMPLEMENTED;
+}
+
 EAPI int dynamicbox_refresh(dynamicbox_h handler, int force)
 {
 	struct packet *packet;

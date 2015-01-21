@@ -1280,7 +1280,7 @@ extern void *dynamicbox_data(dynamicbox_h handler);
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
  * @see dynamicbox_unsubscribe_group()
  */
-extern int dynamicbox_subscribe_group(const char *cluster, const char *category);
+extern int dynamicbox_subscribe_group(const char *cluster, const char *sub_cluster);
 
 /**
  * @internal
@@ -1295,7 +1295,38 @@ extern int dynamicbox_subscribe_group(const char *cluster, const char *category)
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
  * @see dynamicbox_subscribe_group()
  */
-extern int dynamicbox_unsubscribe_group(const char *cluster, const char *category);
+extern int dynamicbox_unsubscribe_group(const char *cluster, const char *sub_cluster);
+
+/**
+ * @internal
+ * @brief Subscribe events of dynamicboxes which is categorized by given "category" string.
+ *        "category" is written in the XML file of each dynamicbox manifest file.
+ *        After subscribe the category, the master will send created event for all created dynamicboxes,
+ *        Also it will notify client when a new dynamicbox is created.
+ * @since_tizen 2.4
+ * @param[in] category Category name
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @return int
+ * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
+ * @see dynamicbox_unsubscribe_category()
+ */
+extern int dynamicbox_subscribe_category(const char *category);
+
+/**
+ * @internal
+ * @brief Unsubscribe events of dynamicboxes.
+ * @since_tizen 2.4
+ * @param[in] category Category name
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @return int
+ * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
+ * @see dynamicbox_subscribe_category()
+ */
+extern int dynamicbox_unsubscribe_category(const char *category);
 
 /**
  * @internal
