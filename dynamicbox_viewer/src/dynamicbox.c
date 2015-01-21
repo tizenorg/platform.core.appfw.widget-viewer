@@ -3739,7 +3739,7 @@ EAPI int dynamicbox_unsubscribe_category(const char *category)
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	packet = packet_create_noack((const char *)&cmd, "s", category ? category : "");
+	packet = packet_create_noack((const char *)&cmd, "s", category);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
 		return DBOX_STATUS_ERROR_FAULT;
