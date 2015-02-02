@@ -5406,13 +5406,13 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 	int status;
 
 	dynamicbox = dynamicbox_data(handle);
-	if (!dynamicbox) {
-		ErrPrint("dynamicbox object is not exists\n");
-		return 0;
+	if (dynamicbox) {
+		data = get_smart_data(dynamicbox);
+	} else {
+		data = NULL;
 	}
 
-	data = get_smart_data(dynamicbox);
-	if (!data || data->is.field.deleted) {
+	if (!dynamicbox || !data || data->is.field.deleted) {
 		ErrPrint("Failed to get smart data\n");
 		dynamicbox_set_data(handle, NULL);
 		if (event == DBOX_EVENT_CREATED) {
