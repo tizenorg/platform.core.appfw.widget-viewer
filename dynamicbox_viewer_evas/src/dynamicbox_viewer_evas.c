@@ -379,6 +379,7 @@ struct image_option {
 static int dynamicbox_fault_handler(enum dynamicbox_fault_type fault, const char *pkgname, const char *filename, const char *funcname, void *data);
 static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_event_type event, void *data);
 
+static int dbox_system_created(struct dynamicbox *handle, struct widget_data *data);
 static void dbox_created_cb(struct dynamicbox *handle, int ret, void *cbdata);
 static void dbox_overlay_loading(struct widget_data *data);
 static void dbox_overlay_faulted(struct widget_data *data);
@@ -4128,6 +4129,63 @@ static void dbox_update_pixmap_object(struct widget_data *data, Evas_Object *dbo
 	}
 }
 
+static int dbox_system_created(struct dynamicbox *handle, struct widget_data *data)
+{
+	int ret;
+	struct dynamicbox_evas_event_info info;
+
+	if (data->state != WIDGET_DATA_CREATED) {
+		ErrPrint("Invalid widget data: %p, %s\n", data, dynamicbox_pkgname(handle));
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (dynamicbox_type(handle, 0)) {
+	case DBOX_CONTENT_TYPE_IMAGE:
+		ret = dbox_create_image_object(data);
+		break;
+	case DBOX_CONTENT_TYPE_RESOURCE_ID:
+		if (!s_info.conf.field.force_to_buffer) {
+			ret = dbox_create_pixmap_object(data);
+			break;
+		}
+	case DBOX_CONTENT_TYPE_BUFFER:
+		ret = dbox_create_buffer_object(data);
+		break;
+	case DBOX_CONTENT_TYPE_TEXT:
+		ret = dbox_create_text_object(data);
+		break;
+	case DBOX_CONTENT_TYPE_UIFW:
+		ret = dbox_create_plug_object(data);
+		break;
+	case DBOX_CONTENT_TYPE_INVALID:
+	default:
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		break;
+	}
+
+	if (ret == DBOX_STATUS_ERROR_NONE) {
+		info.error = DBOX_STATUS_ERROR_NONE;
+		info.pkgname = data->dbox_id;
+		info.event = DBOX_EVENT_CREATED;
+
+		data->is.field.created = 1;
+
+		update_visibility(data);
+		smart_callback_call(data, DYNAMICBOX_SMART_SIGNAL_DBOX_CREATED, &info);
+
+		/**
+		 * In case of using the direct update path,
+		 * sometimes the provider can send the updated event faster than created event.
+		 * In that case, the viewer cannot recognize the updated content of a dbox.
+		 * So for the safety, I added this to forcely update the dbox at the first time
+		 * Right after creating its instance.
+		 */
+		append_dbox_dirty_object_list(data, DBOX_KEEP_BUFFER);
+	}
+
+	return ret;
+}
+
 static void dbox_created_cb(struct dynamicbox *handle, int ret, void *cbdata)
 {
 	struct widget_data *data = cbdata;
@@ -5445,10 +5503,17 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 							is_handled = 1;
 
 							if (dynamicbox) {
+								int ret;
 								dynamicbox_set_data(handle, dynamicbox);
 								DbgPrint("Update DBox: %p\n", dynamicbox);
 								data = get_smart_data(dynamicbox);
-								dbox_created_cb(handle, DBOX_STATUS_ERROR_NONE, widget_ref(data));
+								ret = dbox_system_created(handle, data);
+								if (ret != DBOX_STATUS_ERROR_NONE) {
+									/* Delete request will generate the DELETED event for this viewer */
+									evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
+									evas_object_del(dynamicbox);
+									dynamicbox = NULL;
+								}
 							}
 							break;
 						}
@@ -5472,6 +5537,7 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 							if (cnt <= 0) {
 								/* Delete dynamicbox, if no one cares it */
 								if (dynamicbox) {
+									DbgPrint("No one cares\n");
 									evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
 									evas_object_del(dynamicbox);
 									dynamicbox = NULL;
@@ -5482,10 +5548,17 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 							is_handled = 1;
 
 							if (dynamicbox) {
+								int ret;
 								dynamicbox_set_data(handle, dynamicbox);
 								DbgPrint("Update DBox: %p\n", dynamicbox);
 								data = get_smart_data(dynamicbox);
-								dbox_created_cb(handle, DBOX_STATUS_ERROR_NONE, widget_ref(data));
+								ret = dbox_system_created(handle, data);
+								if (ret != DBOX_STATUS_ERROR_NONE) {
+									/* Delete request will generate the DELETED event for this viewer */
+									evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
+									evas_object_del(dynamicbox);
+									dynamicbox = NULL;
+								}
 							}
 							break;
 						}
@@ -5502,6 +5575,7 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 		} else {
 			ErrPrint("Failed to get smart data\n");
 		}
+
 		return 0;
 	}
 
