@@ -135,7 +135,7 @@ Provider APIs to develop the dynamicbox viewer EFL application.
 %package -n libdynamicbox_viewer_evas-devel
 Summary: Header & package configuration files to support development of the dynamicbox viewer applications. (for EFL app)
 Group: Development/Libraries
-Requires: libdynamicbox_viewer
+Requires: libdynamicbox_viewer_evas
 
 %description -n libdynamicbox_viewer_evas-devel
 Dynamicbox provider application development library (dev) (EFL version)
