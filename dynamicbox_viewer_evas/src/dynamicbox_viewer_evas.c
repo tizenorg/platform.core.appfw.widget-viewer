@@ -5446,7 +5446,9 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 						}
 					}
 				}
-			} else {
+			}
+
+			if (is_handled == 0) {
 				char *category;
 				category = dynamicbox_service_category(dynamicbox_pkgname(handle));
 				if (category) {
