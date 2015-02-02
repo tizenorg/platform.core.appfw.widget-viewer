@@ -5413,8 +5413,8 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 	}
 
 	if (!dynamicbox || !data || data->is.field.deleted) {
-		ErrPrint("Failed to get smart data\n");
 		dynamicbox_set_data(handle, NULL);
+
 		if (event == DBOX_EVENT_CREATED) {
 			const char *cluster = NULL;
 			const char *sub_cluster = NULL;
@@ -5441,7 +5441,15 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 								}
 							}
 
+							DbgPrint("Subscribed Group: (%s)(%s)\n", cluster, sub_cluster);
 							is_handled = 1;
+
+							if (dynamicbox) {
+								dynamicbox_set_data(handle, dynamicbox);
+								DbgPrint("Update DBox: %p\n", dynamicbox);
+								data = get_smart_data(dynamicbox);
+								dbox_created_cb(handle, DBOX_STATUS_ERROR_NONE, widget_ref(data));
+							}
 							break;
 						}
 					}
@@ -5470,7 +5478,15 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 								}
 							}
 
+							DbgPrint("Subscribed Category: (%s)(%s)\n", category, info->category);
 							is_handled = 1;
+
+							if (dynamicbox) {
+								dynamicbox_set_data(handle, dynamicbox);
+								DbgPrint("Update DBox: %p\n", dynamicbox);
+								data = get_smart_data(dynamicbox);
+								dbox_created_cb(handle, DBOX_STATUS_ERROR_NONE, widget_ref(data));
+							}
 							break;
 						}
 					}
@@ -5483,6 +5499,8 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 				DbgPrint("System created dynamicbox is not supported\n");
 				(void)dynamicbox_del(handle, DBOX_DELETE_PERMANENTLY, NULL, NULL);
 			}
+		} else {
+			ErrPrint("Failed to get smart data\n");
 		}
 		return 0;
 	}
