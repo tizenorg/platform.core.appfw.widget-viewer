@@ -8,7 +8,7 @@ Group: HomeTF/DynamicBox
 License: Flora
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
-BuildRequires: cmake, gettext-tools, coreutils
+BuildRequires: cmake, gettext-tools, coreutils, edje-bin
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
@@ -19,6 +19,7 @@ BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(livebox-service)
 BuildRequires: pkgconfig(dynamicbox_service)
 BuildRequires: pkgconfig(vconf)
+BuildRequires: pkgconfig(elementary)
 BuildRequires: model-build-features
 
 %if %{with wayland}
@@ -119,5 +120,37 @@ Dynamicbox provider application development library (dev) (old version)
 %defattr(-,root,root,-)
 %{_includedir}/livebox-viewer/livebox.h
 %{_libdir}/pkgconfig/livebox-viewer.pc
+
+#################################################
+# libdynamicbox_viewer_evas
+%package -n libdynamicbox_viewer_evas
+Summary: Library for developing the dynamicbox viewer evas
+Group: HomeTF/Dynamicbox
+License: Flora
+Requires: libdynamicbox_viewer
+
+%description -n libdynamicbox_viewer_evas
+Provider APIs to develop the dynamicbox viewer EFL application.
+
+%package -n libdynamicbox_viewer_evas-devel
+Summary: Header & package configuration files to support development of the dynamicbox viewer applications. (for EFL app)
+Group: Development/Libraries
+Requires: libdynamicbox_viewer_evas
+
+%description -n libdynamicbox_viewer_evas-devel
+Dynamicbox provider application development library (dev) (EFL version)
+
+%files -n libdynamicbox_viewer_evas
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_libdir}/libdynamicbox_viewer_evas.so*
+%{_datadir}/dynamicbox_viewer_evas/*
+%{_datarootdir}/license/libdynamicbox_viewer_evas
+
+%files -n libdynamicbox_viewer_evas-devel
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_includedir}/dynamicbox_viewer_evas/dynamicbox_viewer_evas.h
+%{_libdir}/pkgconfig/dynamicbox_viewer_evas.pc
 
 # End of a file
