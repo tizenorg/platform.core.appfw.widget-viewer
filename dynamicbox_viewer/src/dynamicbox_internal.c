@@ -387,6 +387,8 @@ dynamicbox_h dbox_new_dynamicbox(const char *pkgname, const char *id, double tim
 	handler->common->timestamp = timestamp;
 	handler->common->state = DBOX_STATE_CREATE;
 	handler->visible = DBOX_SHOW;
+	handler->state = DBOX_STATE_CREATE;
+	handler = dbox_ref(handler);
 	s_info.dynamicbox_list = dlist_append(s_info.dynamicbox_list, handler);
 
 	return dbox_ref(handler);
