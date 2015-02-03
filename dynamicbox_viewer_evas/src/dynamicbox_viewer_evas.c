@@ -4180,7 +4180,7 @@ static int dbox_system_created(struct dynamicbox *handle, struct widget_data *da
 		 * So for the safety, I added this to forcely update the dbox at the first time
 		 * Right after creating its instance.
 		 */
-		append_dbox_dirty_object_list(data, DBOX_KEEP_BUFFER);
+		append_dbox_dirty_object_list(data, DBOX_PRIMARY_BUFFER);
 	}
 
 	return ret;
@@ -5455,6 +5455,102 @@ static Evas_Object *create_dynamicbox_object(struct dynamicbox *handle)
 	return dynamicbox;
 }
 
+static inline int handle_subscribed_group(struct dynamicbox *handle)
+{
+	const char *cluster = NULL;
+	const char *sub_cluster = NULL;
+	Eina_List *l;
+	struct subscribe_group *group;
+
+	if (dynamicbox_get_group(handle, &cluster, &sub_cluster) != DBOX_STATUS_ERROR_NONE) {
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	if (!cluster || !sub_cluster) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	EINA_LIST_FOREACH(s_info.subscribed_group_list, l, group) {
+		if (!strcasecmp(group->cluster, cluster) && !strcasecmp(group->sub_cluster, sub_cluster)) {
+			int nr;
+			Evas_Object *dynamicbox;
+
+			DbgPrint("Subscribed Group: (%s)(%s)\n", cluster, sub_cluster);
+
+			/* Subscribed object, Create this */
+			dynamicbox = create_dynamicbox_object(handle);
+			if (!dynamicbox) {
+				ErrPrint("Failed to create a dbox object\n");
+				(void)dynamicbox_del(handle, DBOX_DELETE_PERMANENTLY, NULL, NULL);
+				return DBOX_STATUS_ERROR_FAULT;
+			}
+
+			dynamicbox_set_data(handle, dynamicbox);
+
+			/* Emit RAW_CREATE event */
+			nr = invoke_raw_event_callback(DYNAMICBOX_EVAS_RAW_CREATE, dynamicbox_pkgname(handle), dynamicbox, DBOX_STATUS_ERROR_NONE);
+			if (nr <= 0 || dbox_system_created(handle, get_smart_data(dynamicbox)) != DBOX_STATUS_ERROR_NONE) {
+				/*
+				 * Deleting evas object will invoke delete callback.
+				 * Then it will invoke the RAW_DELETE event and execute the proper procedures for deleting object 
+				 */
+				evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
+				evas_object_del(dynamicbox);
+			}
+
+			return DBOX_STATUS_ERROR_NONE;
+		}
+	}
+
+	return DBOX_STATUS_ERROR_NOT_EXIST;
+}
+
+static inline int handle_subscribed_category(struct dynamicbox *handle)
+{
+	char *category;
+	Eina_List *l;
+	struct subscribe_category *info;
+
+	category = dynamicbox_service_category(dynamicbox_pkgname(handle));
+	if (!category) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	EINA_LIST_FOREACH(s_info.subscribed_category_list, l, info) {
+		if (!strcmp(category, info->category)) {
+			int nr;
+			Evas_Object *dynamicbox;
+
+			DbgPrint("Subscribed Category: (%s)(%s)\n", category, info->category);
+
+			dynamicbox = create_dynamicbox_object(handle);
+			if (!dynamicbox) {
+				ErrPrint("Failed to create a dbox object\n");
+				(void)dynamicbox_del(handle, DBOX_DELETE_PERMANENTLY, NULL, NULL);
+				free(category);
+				return DBOX_STATUS_ERROR_FAULT;
+			}
+
+			dynamicbox_set_data(handle, dynamicbox);
+
+			/* Subscribed object, Create this */
+			nr = invoke_raw_event_callback(DYNAMICBOX_EVAS_RAW_CREATE, dynamicbox_pkgname(handle), dynamicbox, DBOX_STATUS_ERROR_NONE);
+			if (nr <= 0 || dbox_system_created(handle, get_smart_data(dynamicbox)) != DBOX_STATUS_ERROR_NONE) {
+				/* Delete dynamicbox, if no one cares it */
+				DbgPrint("No one cares\n");
+				evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
+				evas_object_del(dynamicbox);
+			}
+
+			free(category);
+			return DBOX_STATUS_ERROR_NONE;
+		}
+	}
+
+	free(category);
+	return DBOX_STATUS_ERROR_NOT_EXIST;
+}
+
 static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_event_type event, void *cbdata)
 {
 	Evas_Object *dynamicbox;
@@ -5474,104 +5570,16 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 		dynamicbox_set_data(handle, NULL);
 
 		if (event == DBOX_EVENT_CREATED) {
-			const char *cluster = NULL;
-			const char *sub_cluster = NULL;
-			Evas_Object *dynamicbox = NULL;
-			int is_handled = 0;
-
-			if (dynamicbox_get_group(handle, &cluster, &sub_cluster) == DBOX_STATUS_ERROR_NONE) {
-				if (cluster && sub_cluster) {
-					Eina_List *l;
-					struct subscribe_group *group;
-
-					EINA_LIST_FOREACH(s_info.subscribed_group_list, l, group) {
-						if (!strcasecmp(group->cluster, cluster) && !strcasecmp(group->sub_cluster, sub_cluster)) {
-							int cnt;
-							dynamicbox = create_dynamicbox_object(handle);
-							/* Subscribed object, Create this */
-							cnt = invoke_raw_event_callback(DYNAMICBOX_EVAS_RAW_CREATE, dynamicbox_pkgname(handle), dynamicbox, DBOX_STATUS_ERROR_NONE);
-							if (cnt <= 0) {
-								/* Delete dynamicbox, if no one cares it */
-								if (dynamicbox) {
-									evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
-									evas_object_del(dynamicbox);
-									dynamicbox = NULL;
-								}
-							}
-
-							DbgPrint("Subscribed Group: (%s)(%s)\n", cluster, sub_cluster);
-							is_handled = 1;
-
-							if (dynamicbox) {
-								int ret;
-								dynamicbox_set_data(handle, dynamicbox);
-								DbgPrint("Update DBox: %p\n", dynamicbox);
-								data = get_smart_data(dynamicbox);
-								ret = dbox_system_created(handle, data);
-								if (ret != DBOX_STATUS_ERROR_NONE) {
-									/* Delete request will generate the DELETED event for this viewer */
-									evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
-									evas_object_del(dynamicbox);
-									dynamicbox = NULL;
-								}
-							}
-							break;
-						}
-					}
-				}
+			if (handle_subscribed_group(handle) == DBOX_STATUS_ERROR_NONE) {
+				return 0;
 			}
 
-			if (is_handled == 0) {
-				char *category;
-				category = dynamicbox_service_category(dynamicbox_pkgname(handle));
-				if (category) {
-					Eina_List *l;
-					struct subscribe_category *info;
-
-					EINA_LIST_FOREACH(s_info.subscribed_category_list, l, info) {
-						if (!strcmp(category, info->category)) {
-							int cnt;
-							dynamicbox = create_dynamicbox_object(handle);
-							/* Subscribed object, Create this */
-							cnt = invoke_raw_event_callback(DYNAMICBOX_EVAS_RAW_CREATE, dynamicbox_pkgname(handle), dynamicbox, DBOX_STATUS_ERROR_NONE);
-							if (cnt <= 0) {
-								/* Delete dynamicbox, if no one cares it */
-								if (dynamicbox) {
-									DbgPrint("No one cares\n");
-									evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
-									evas_object_del(dynamicbox);
-									dynamicbox = NULL;
-								}
-							}
-
-							DbgPrint("Subscribed Category: (%s)(%s)\n", category, info->category);
-							is_handled = 1;
-
-							if (dynamicbox) {
-								int ret;
-								dynamicbox_set_data(handle, dynamicbox);
-								DbgPrint("Update DBox: %p\n", dynamicbox);
-								data = get_smart_data(dynamicbox);
-								ret = dbox_system_created(handle, data);
-								if (ret != DBOX_STATUS_ERROR_NONE) {
-									/* Delete request will generate the DELETED event for this viewer */
-									evas_object_dynamicbox_set_permanent_delete(dynamicbox, EINA_TRUE);
-									evas_object_del(dynamicbox);
-									dynamicbox = NULL;
-								}
-							}
-							break;
-						}
-					}
-
-					free(category);
-				}
+			if (handle_subscribed_category(handle) == DBOX_STATUS_ERROR_NONE) {
+				return 0;
 			}
 
-			if (is_handled == 0) {
-				DbgPrint("System created dynamicbox is not supported\n");
-				(void)dynamicbox_del(handle, DBOX_DELETE_PERMANENTLY, NULL, NULL);
-			}
+			DbgPrint("System created dynamicbox is not supported\n");
+			(void)dynamicbox_del(handle, DBOX_DELETE_PERMANENTLY, NULL, NULL);
 		} else {
 			ErrPrint("Failed to get smart data\n");
 		}
