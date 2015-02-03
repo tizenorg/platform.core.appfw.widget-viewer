@@ -3085,6 +3085,7 @@ static void append_dbox_dirty_object_list(struct widget_data *data, int idx)
 	}
 
 	if (dynamicbox_visibility(data->handle) != DBOX_SHOW) {
+		DbgPrint("Box is not visible\n");
 		return;
 	}
 
@@ -3111,7 +3112,7 @@ static void append_dbox_dirty_object_list(struct widget_data *data, int idx)
 		 * Do we have to discard these all changes? or just flush them?
 		 struct widget_data *item;
 		 EINA_LIST_FREE(s_info.dbox_dirty_objects, item) {
-		 dynamicbox_event_dbox_updated(item);
+			dynamicbox_event_dbox_updated(item);
 		 }
 		 */
 		eina_list_free(s_info.dbox_dirty_objects);
@@ -4042,11 +4043,17 @@ static void replace_pixmap(struct dynamicbox *handle, int gbar, Evas_Object *con
 
 		old_pixmap = old_surface->data.x11.pixmap;
 
-		surface.data.x11.visual = old_surface->data.x11.visual;
-		evas_object_image_native_surface_set(content, &surface);
+		if (old_pixmap != pixmap) {
+			surface.data.x11.visual = old_surface->data.x11.visual;
+			evas_object_image_native_surface_set(content, &surface);
 
-		if (old_pixmap && handle) {
-			dynamicbox_release_resource_id(handle, gbar, old_pixmap);
+			if (old_pixmap && handle) {
+				dynamicbox_release_resource_id(handle, gbar, old_pixmap);
+			}
+
+			DbgPrint("Replaced: %u (%u)\n", pixmap, old_pixmap);
+		} else {
+			DbgPrint("Same resource, reuse it [%u]\n", pixmap);
 		}
 	}
 }
@@ -4097,6 +4104,7 @@ static void dbox_update_pixmap_object(struct widget_data *data, Evas_Object *dbo
 		}
 
 		if (data->is.field.dbox_pixmap_acquire_requested) {
+			DbgPrint("Pixmap is not requested\n");
 			return;
 		}
 
@@ -5564,6 +5572,7 @@ static int dynamicbox_event_handler(struct dynamicbox *handle, enum dynamicbox_e
 		data = get_smart_data(dynamicbox);
 	} else {
 		data = NULL;
+		DbgPrint("DynamicBox Object is not exists, create it?\n");
 	}
 
 	if (!dynamicbox || !data || data->is.field.deleted) {
