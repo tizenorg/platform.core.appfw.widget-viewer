@@ -35,9 +35,8 @@ extern "C" {
  */
 
 /**
- * @internal
  * @brief Structure definition for a Dynamic Box instance.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef struct dynamicbox *dynamicbox_h;
 
@@ -190,10 +189,9 @@ typedef enum dynamicbox_type {
 } dynamicbox_type_e;
 
 /**
- * @internal
  * @brief Enumeration for Dynamicbox event type.
  * @details These events will be sent from the provider.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_event_type {                    /**< dynamicbox_event_handler_set Event list */
     DBOX_EVENT_DBOX_UPDATED,                    /**< Contents of the given dynamicbox is updated */
@@ -239,9 +237,8 @@ typedef enum dynamicbox_event_type {                    /**< dynamicbox_event_ha
 } dynamicbox_event_type_e;
 
 /**
- * @internal
  * @brief Enumeration for Dynamicbox option types.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_option_type {
     DBOX_OPTION_MANUAL_SYNC,           /**< Sync frame manually */
@@ -265,10 +262,9 @@ typedef enum dynamicbox_fault_type {
 } dynamicbox_fault_type_e;
 
 /**
- * @internal
  * @brief Enumeration for Dynamicbox visible states.
  * @details Must be sync'd with a provider.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_visible_state {
     DBOX_SHOW            = 0x00,                /**< Dynamicbox is shown. Default state */
@@ -422,9 +418,8 @@ typedef void (*dynamicbox_ret_cb)(dynamicbox_h handle, int ret, void *data);
 typedef int (*dynamicbox_fault_handler_cb)(enum dynamicbox_fault_type type, const char *dbox_id, const char *file, const char *func, void *data);
 
 /**
- * @internal
  * @brief Event handler
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] handler Dynamic Box Event handler
  * @param[in] event Event type for Dynamic Box
  * @param[in] data Callback Data
@@ -435,9 +430,8 @@ typedef int (*dynamicbox_fault_handler_cb)(enum dynamicbox_fault_type type, cons
 typedef int (*dynamicbox_event_handler_cb)(dynamicbox_h handler, dynamicbox_event_type_e event, void *data);
 
 /**
- * @internal
  * @brief Auto launch handler
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] handler DynamicBox Handler
  * @param[in] appid UI Application Id, which should be launched
  * @param[in] data callback data
@@ -457,7 +451,7 @@ typedef int (*dynamicbox_auto_launch_handler_cb)(dynamicbox_h handler, const cha
  * @param[in] event_filter If the dynamicbox_feed_mouse_event() is called again in this secs, it will be ignored and the dynamicbox_feed_mouse_event() will returns DBOX_STATUS_ERROR_BUSY status code
  * @param[in] use_thread If this value has true, the viewer library will create a new thread to communicate with master service
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int Integer, Dynamicbox status code
  * @retval #DBOX_STATUS_ERROR_NONE if successfully initialized.
  * @retval #DBOX_STATUS_ERROR_OUT_OF_MEMORY If a memory is not enough to do this operation.
@@ -472,7 +466,7 @@ extern int dynamicbox_init(void *disp, int prevent_overwrite, double event_filte
  * @brief Finalizes the dynamicbox system.
  * @since_tizen 2.3
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_SUCCES if success
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER if dynamicbox_init is not called
@@ -481,11 +475,10 @@ extern int dynamicbox_init(void *disp, int prevent_overwrite, double event_filte
 extern int dynamicbox_fini(void);
 
 /**
- * @internal
  * @brief Notifies the status of a client ("it is paused") to the provider.
- * @since_tizen 2.3
- * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE if success
  * @retval #DBOX_STATUS_ERROR_FAULT if it failed to send state (paused) info
@@ -494,11 +487,10 @@ extern int dynamicbox_fini(void);
 extern int dynamicbox_viewer_set_paused(void);
 
 /**
- * @internal
  * @brief Notifies the status of client ("it is resumed") to the provider.
- * @since_tizen 2.3
- * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE if success
  * @retval #DBOX_STATUS_ERROR_FAULT if it failed to send state (resumed) info
@@ -551,7 +543,7 @@ extern int dynamicbox_viewer_set_resumed(void);
  * @param[in] cb After the request is sent to the master provider, this callback will be called
  * @param[in] data This data will be passed to the callback
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return handle
  * @retval Handle Dynamicbox handle but not yet initialized
  * @retval @c NULL if it fails to create a handle
@@ -574,7 +566,7 @@ extern dynamicbox_h dynamicbox_add(const char *dbox_id, const char *content, con
  * @param[in] cb Return callback
  * @param[in] data User data for return callback
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Already in process
@@ -601,9 +593,10 @@ extern int dynamicbox_del(dynamicbox_h handler, dynamicbox_delete_type_e type, d
 extern int dynamicbox_add_event_handler(dynamicbox_event_handler_cb cb, void *data);
 
 /**
- * @internal
  * @brief Unsets the dynamicbox event handler.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @param[in] cb Event handler
  * @return void * Event handler data
  * @retval pointer Pointer of 'data' which is used with the dynamicbox_set_event_handler
@@ -627,9 +620,9 @@ extern void *dynamicbox_remove_event_handler(dynamicbox_event_handler_cb cb);
 extern int dynamicbox_add_fault_handler(dynamicbox_fault_handler_cb cb, void *data);
 
 /**
- * @internal
  * @brief Unsets the dynamicbox fault event handler.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel N/P
  * @param[in] cb Event handler
  * @return void * Callback data which is set via dynamicbox_set_fault_handler
  * @retval pointer Pointer of 'data' which is used with the dynamicbox_set_fault_handler
@@ -652,7 +645,7 @@ extern void *dynamicbox_remove_fault_handler(dynamicbox_fault_handler_cb cb);
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully sent a request
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -685,7 +678,9 @@ extern int dynamicbox_activate(const char *dbox_id, dynamicbox_ret_cb cb, void *
  *
  * Special mode dynamicbox size
  * 0x0=720x1280, DBOX_SIZE_TYPE_0x0
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @remarks
  *    This is an ASYNCHRONOUS API.
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new dynamicbox,
@@ -695,7 +690,7 @@ extern int dynamicbox_activate(const char *dbox_id, dynamicbox_ret_cb cb, void *
  * @param[in] cb Result callback of the resize operation
  * @param[in] data User data for return callback
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous request of resize is in progress
@@ -714,7 +709,7 @@ extern int dynamicbox_resize(dynamicbox_h handler, dynamicbox_size_type_e type, 
  * @param[in] x Rational X of the content width
  * @param[in] y Rational Y of the content height
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -736,7 +731,7 @@ extern int dynamicbox_click(dynamicbox_h handler, double x, double y);
  * @param[in] cb Result callback for changing the cluster/category of a dynamicbox
  * @param[in] data User data for the result callback
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE Request is successfully sent. the return callback will be called
  * @retval #DBOX_STATUS_ERROR_BUSY Previous request is not finished yet
@@ -763,9 +758,9 @@ extern int dynamicbox_set_group(dynamicbox_h handler, const char *cluster, const
 extern int dynamicbox_get_group(dynamicbox_h handler, const char **cluster, const char **category);
 
 /**
- * @internal
  * @brief Gets the period of the dynamicbox handler.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel N/P
  * @remarks If this function returns 0.0f, it means the dynamicbox has no update period or the handle is not valid.
  *    This function only works after the return callback of dynamicbox_create fucntion is called.
  *    If this returns negative value, you can get the reason of failure using dynamicbox_last_status()
@@ -790,7 +785,7 @@ extern double dynamicbox_period(dynamicbox_h handler);
  * @param[in] cb Result callback of changing the update period of this dynamicbox
  * @param[in] data User data for the result callback
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -802,11 +797,11 @@ extern double dynamicbox_period(dynamicbox_h handler);
 extern int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox_ret_cb cb, void *data);
 
 /**
- * @internal
  * @brief Checks whether the given dynamicbox is a text type or not.
  * @remarks
  *    If this returns DBOX_CONTENT_TYPE_INVALID, you can get the reason of failure using dynamicbox_last_status()
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel N/P
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @return dynamicbox_type
@@ -821,10 +816,11 @@ extern int dynamicbox_set_period(dynamicbox_h handler, double period, dynamicbox
 extern dynamicbox_type_e dynamicbox_type(dynamicbox_h handler, int gbar);
 
 /**
- * @internal
  * @brief Checks if the given dynamicbox is created by user or not.
  * @remarks if this returns negative value, you can get the reason of failure using dynamicbox_last_status()
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @details If the dynamicbox instance is created by a system this will return 0.
  * @param[in] handler Handler of a dynamicbox instance
  * @return int
@@ -849,12 +845,12 @@ extern int dynamicbox_is_created_by_user(dynamicbox_h handler);
 extern const char *dynamicbox_content(dynamicbox_h handler);
 
 /**
- * @internal
  * @brief Gets the sub cluster title string of the given dynamicbox.
  * @details This API is now used for accessibility.
  *  Each box should set their content as a string to be read by TTS.
  *  So if the box has focused on the homescreen, the homescreen will read text using this API.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel N/P
  * @remarks The title returned by this API can be read by TTS.
  *  But it is just recomendation for the homescreen.
  *  So, to read it or not depends on its implementation.
@@ -880,10 +876,10 @@ extern const char *dynamicbox_title(dynamicbox_h handler);
 extern const char *dynamicbox_filename(dynamicbox_h handler);
 
 /**
- * @internal
  * @brief Gets the package name of the given dynamicbox handler.
  * @remarks if this returns @c NULL, you can get the reason of failure using dynamicbox_last_status()
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel N/P
  * @param[in] handler Handler of a dynamicbox instance
  * @return const char *
  * @retval pkgname Package name
@@ -892,10 +888,10 @@ extern const char *dynamicbox_filename(dynamicbox_h handler);
 extern const char *dynamicbox_pkgname(dynamicbox_h handler);
 
 /**
- * @internal
  * @brief Gets the priority of a current content.
  * @remarks if this returns negative value, you can get the reason of failure using dynamicbox_last_status()
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel N/P
  * @param[in] handler Handler of a dynamicbox instance
  * @return double
  * @retval 0.0f Handler is @c NULL
@@ -911,7 +907,7 @@ extern double dynamicbox_priority(dynamicbox_h handler);
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return void *
  * @retval address Address of a Frame Buffer
  * @retval @c NULL If it fails to get buffer address
@@ -919,12 +915,13 @@ extern double dynamicbox_priority(dynamicbox_h handler);
 extern void *dynamicbox_acquire_buffer(dynamicbox_h handler, int gbar);
 
 /**
- * @internal
  * @brief Releases the buffer of a dynamicbox (only for the buffer type).
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @param[in] buffer Buffer
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
@@ -945,11 +942,12 @@ extern int dynamicbox_release_buffer(void *buffer);
 extern int dynamicbox_buffer_refcnt(void *buffer);
 
 /**
- * @internal
  * @brief Gets the size of the Dynamicbox.
  * @remarks
  *   If this returns DBOX_SIZE_TYPE_UNKNOWN, you can get the reason of failure using dynamicbox_last_status()
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @param[in] handler Handler of a dynamicbox instance
  * @return dynamicbox_size_type_e
  * @retval #DBOX_SIZE_TYPE_NxM N by M size
@@ -1006,7 +1004,7 @@ extern int dynamicbox_buffer_size(dynamicbox_h handler, int gbar);
  * @param[in] x Coordinates of X axis
  * @param[in] y Coordinates of Y axis
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -1030,7 +1028,7 @@ extern int dynamicbox_feed_mouse_event(dynamicbox_h handler, dynamicbox_mouse_ev
  * @param[in] cb Result callback function
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -1053,7 +1051,7 @@ extern int dynamicbox_feed_access_event(dynamicbox_h handler, dynamicbox_access_
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -1079,7 +1077,7 @@ extern int dynamicbox_feed_key_event(dynamicbox_h handler, dynamicbox_key_event_
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @see dynamicbox_ret_cb
@@ -1139,7 +1137,7 @@ extern int dynamicbox_has_glance_bar(dynamicbox_h handler);
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -1159,7 +1157,7 @@ extern int dynamicbox_create_glance_bar(dynamicbox_h handler, double x, double y
  * @param[in] x 0.0 ~ 1.0, 0.0 indicates the coordinate X of left of dynamicbox
  * @param[in] y 0.0 ~ 1.0, 0.0 indicates the coordinate Y of top of dynamicbox
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE If sending a request for updating position of the Glance Bar has been done successfully
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1177,7 +1175,7 @@ extern int dynamicbox_move_glance_bar(dynamicbox_h handler, double x, double y);
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1230,7 +1228,7 @@ extern int dynamicbox_set_text_handler(dynamicbox_h handler, int gbar, dynamicbo
  * @param[in] cb Result callback
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1274,7 +1272,7 @@ extern void *dynamicbox_data(dynamicbox_h handler);
  * @param[in] cluster Cluster ("*" can be used for subscribe all cluster's dynamicboxes event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe dynamicboxes events of all category(sub-cluster) in a given "cluster")
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
@@ -1289,7 +1287,7 @@ extern int dynamicbox_subscribe_group(const char *cluster, const char *sub_clust
  * @param[in] cluster Cluster("*" can be used for subscribe all cluster's dynamicboxes event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe all sub-cluster's dynamicboxes event in a given "cluster")
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_NONE Successfully requested
@@ -1339,7 +1337,7 @@ extern int dynamicbox_unsubscribe_category(const char *category);
  * @param[in] category Sub-cluster ID
  * @param[in] force 1 if the boxes should be updated even if they are paused
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1349,13 +1347,14 @@ extern int dynamicbox_unsubscribe_category(const char *category);
 extern int dynamicbox_refresh_group(const char *cluster, const char *category, int force);
 
 /**
- * @internal
  * @brief Refreshes a dynamicbox.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] force 1 if the box should be updated even if it is paused
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1365,12 +1364,12 @@ extern int dynamicbox_refresh_group(const char *cluster, const char *category, i
 extern int dynamicbox_refresh(dynamicbox_h handler, int force);
 
 /**
- * @internal
  * @brief Gets Resource Id of a dynamicbox content.
  * @details This function doesn't guarantee the life-cycle of the resource id.
  *   If the service provider destroyed the resource id, you will not know about it.
  *   So you should validate it before accessing it.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel N/P
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @return int
@@ -1393,7 +1392,7 @@ extern unsigned int dynamicbox_resource_id(const dynamicbox_h handler, int gbar)
  * @param[in] cb Callback function which will be called with result of acquiring dbox resource id
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1420,7 +1419,7 @@ extern int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynami
  * @param[in] cb Callback function which will be called with result of acquiring dbox resource id
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1433,16 +1432,17 @@ extern int dynamicbox_acquire_resource_id(dynamicbox_h handler, int gbar, dynami
 extern int dynamicbox_acquire_extra_resource_id(dynamicbox_h handler, int gbar, int idx, dynamicbox_ret_cb cb, void *data);
 
 /**
- * @internal
  * @brief Releases the Resource Id of a dynamicbox.
  * @details After a client gets a new Resource Id or does not need to keep the current Resource Id anymore, use this function to release it.
  *   If there is no user for a given Resource Id, the Resource Id will be destroyed.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @param[in] resource_id Resource Id of given dynamicbox handler
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1453,13 +1453,14 @@ extern int dynamicbox_acquire_extra_resource_id(dynamicbox_h handler, int gbar, 
 extern int dynamicbox_release_resource_id(dynamicbox_h handler, int gbar, unsigned int resource_id);
 
 /**
- * @internal
  * @brief Updates a visible state of the dynamicbox.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] state Configure the current visible state of a dynamicbox
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY
@@ -1501,7 +1502,7 @@ extern dynamicbox_visible_state_e dynamicbox_visibility(dynamicbox_h handler);
  * @param[in] cb Result callback function
  * @param[in] data Callback data
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_BUSY
@@ -1533,7 +1534,7 @@ extern int dynamicbox_is_active_update(dynamicbox_h handler);
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_NONE If success
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid handle
@@ -1594,7 +1595,7 @@ extern const char *dynamicbox_alternative_name(dynamicbox_h handler);
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -1611,7 +1612,7 @@ extern int dynamicbox_acquire_buffer_lock(dynamicbox_h handler, int gbar);
  * @param[in] handler Handler of a dynamicbox instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel platform
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @return int
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -1621,7 +1622,6 @@ extern int dynamicbox_acquire_buffer_lock(dynamicbox_h handler, int gbar);
 extern int dynamicbox_release_buffer_lock(dynamicbox_h handler, int gbar);
 
 /**
- * @internal
  * @brief Sets options for controlling a dynamicbox sub-system.
  * @details
  *   #DBOX_OPTION_FRAME_DROP_FOR_RESIZE
@@ -1636,7 +1636,8 @@ extern int dynamicbox_release_buffer_lock(dynamicbox_h handler, int gbar);
  *       If this option is turnned on, even though you create a new dynamicbox,
  *       if there are already added same instances that have same contents, the instance will not be created again.
  *       Instead of creating a new instance, a viewer will provide an old instance with a new handle.
- * @since_tizen 2.3
+ * @since_tizen 2.4
+ * @privlevel N/P
  * @param[in] option Option which will be affected by this call
  * @param[in] state New value for given option
  * @return int
