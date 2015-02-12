@@ -176,19 +176,14 @@
  *
  * int main(int argc, char *argv[])
  * {
- *     app_event_callback_s event_callback;
+ *     ui_app_lifecycle_callback_s event_callback;
  *     event_callback.create = _create_cb;
  *     event_callback.terminate = _terminate_cb;
  *     event_callback.pause = _pause_cb;
  *     event_callback.resume = _resume_cb;
  *     event_callback.app_control = _app_control;
- *     event_callback.low_memory = NULL;
- *     event_callback.low_battery = NULL;
- *     event_callback.device_orientation = NULL;
- *     event_callback.language_changed = _language_changed;
- *     event_callback.region_format_changed = NULL;
  *     
- *     return app_efl_main(&argc, &argv, &event_callback, &main_info);
+ *     return ui_app_main(&argc, &argv, &event_callback, &main_info);
  * }
  * @endocde
  *
