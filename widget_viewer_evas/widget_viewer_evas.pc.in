@@ -4,7 +4,7 @@ libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
 Name: widget_viewer_evas
-Description: Support development of the Dynamic Box Viewer EVAS Frontend library
+Description: Support development of the widget Viewer EVAS Frontend library
 Version: @VERSION@
 Requires: widget_service widget_viewer
 Libs: -L${libdir} -lwidget_viewer_evas

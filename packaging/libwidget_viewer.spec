@@ -4,7 +4,7 @@ Name: libwidget_viewer
 Summary: Library for developing the application
 Version: 1.0.0
 Release: 1
-Group: HomeTF/DynamicBox
+Group: HomeTF/widget
 License: Flora
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
@@ -36,7 +36,7 @@ ExclusiveArch:
 API for creating a new instance of the widget and managing its life-cycle.
 
 %package devel
-Summary: Development Library for Dynamic Box Viewer Application (dev)
+Summary: Development Library for widget Viewer Application (dev)
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 

@@ -4,7 +4,7 @@ libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
 Name: widget-viewer
-Description: Support development of the Dynamic Box Viewer
+Description: Support development of the widget Viewer
 Version: @VERSION@
 Requires: widget_service
 Libs: -L${libdir} -lwidget_viewer

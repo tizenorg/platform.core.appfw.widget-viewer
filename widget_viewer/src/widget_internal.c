@@ -250,14 +250,14 @@ int _widget_set_group(struct widget_common *common, const char *cluster, const c
 
 void _widget_set_size(struct widget_common *common, int w, int h)
 {
-	int size_type;
+	widget_size_type_e size_type;
 
 	common->widget.width = w;
 	common->widget.height = h;
 
-	size_type = widget_service_size_type(w, h);
+	widget_service_get_size_type(w, h, &size_type);
 	if (size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
-		common->widget.mouse_event = widget_service_mouse_event(common->pkgname, size_type);
+		widget_service_get_need_of_mouse_event(common->pkgname, size_type, &common->widget.mouse_event);
 	}
 }
 

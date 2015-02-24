@@ -64,7 +64,7 @@ extern struct widget *_widget_get_widget_nth(struct widget_common *common, int n
 extern void *_widget_remove_event_handler(widget_event_handler_cb widget_cb);
 extern int _widget_add_event_handler(widget_event_handler_cb widget_cb, void *data);
 extern int _widget_add_fault_handler(widget_fault_handler_cb widget_cb, void *data);
-extern void *widget_remove_fault_handler(widget_fault_handler_cb widget_cb);
+extern void *widget_viewer_remove_fault_handler(widget_fault_handler_cb widget_cb);
 extern struct cb_info *_widget_create_cb_info(widget_ret_cb cb, void *data);
 extern void _widget_destroy_cb_info(struct cb_info *info);
 

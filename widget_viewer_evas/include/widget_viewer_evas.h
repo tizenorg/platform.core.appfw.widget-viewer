@@ -36,7 +36,7 @@ extern "C" {
 #define WIDGET_SMART_SIGNAL_GBAR_CREATED          "gbar,created"          /**< GBAR is created */
 #define WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED   "flickdown,cancelled"   /**< Flick down is canceld */
 #define WIDGET_SMART_SIGNAL_CONTROL_SCROLLER      "control,scroller"      /**< Control Scroller */
-#define WIDGET_SMART_SIGNAL_WIDGET_DELETED          "widget,deleted"          /**< DynamicBox is deleted */
+#define WIDGET_SMART_SIGNAL_WIDGET_DELETED          "widget,deleted"          /**< widget is deleted */
 #define WIDGET_SMART_SIGNAL_PERIOD_CHANGED        "widget,period,changed"   /**< Period is changed */
 
 /**
@@ -230,7 +230,7 @@ extern const char *evas_object_widget_title(Evas_Object *widget);
  * @brief Get the widget Id
  * @since_tizen 2.4
  * @param[in] widget widget Object
- * @return const char * Dynamic Box Id
+ * @return const char * widget Id
  * @retval NULL if an error occurred
  */
 extern const char *evas_object_widget_widget_id(Evas_Object *widget);
@@ -283,7 +283,7 @@ extern void evas_object_widget_disable_loading(Evas_Object *widget);
  * @since_tizen 2.4
  * @details This is very similiar with evas_object_widget_cancel_click(), but this will sends mouse_up event explicitly.\n
  *          Also feed the ON_HOLD event before feeds mouse_up event.
- * @param[in] widget Dynamic Box
+ * @param[in] widget widget
  * @return int
  */
 extern int evas_object_widget_force_mouse_up(Evas_Object *widget);
