@@ -484,7 +484,7 @@ extern int widget_viewer_fini(void);
  * @retval #WIDGET_STATUS_ERROR_FAULT if it failed to send state (paused) info
  * @see widget_client_set_resumed()
  */
-extern int widget_viewer_set_paused(void);
+extern int widget_viewer_notify_paused_status_of_viewer(void);
 
 /**
  * @brief Notifies the status of client ("it is resumed") to the provider.
@@ -496,7 +496,7 @@ extern int widget_viewer_set_paused(void);
  * @retval #WIDGET_STATUS_ERROR_FAULT if it failed to send state (resumed) info
  * @see widget_client_set_paused()
  */
-extern int widget_viewer_set_resumed(void);
+extern int widget_viewer_notify_resumed_status_of_viewer(void);
 
 /**
  * @internal

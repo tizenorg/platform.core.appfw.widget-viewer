@@ -3915,7 +3915,7 @@ EAPI widget_visible_state_e widget_viewer_get_visibility(widget_h handle)
 	return handle->visible;
 }
 
-EAPI int widget_viewer_set_paused(void)
+EAPI int widget_viewer_notify_paused_status_of_viewer(void)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_CLIENT_PAUSED;
@@ -3929,7 +3929,7 @@ EAPI int widget_viewer_set_paused(void)
 	return master_rpc_request_only(NULL, packet);
 }
 
-EAPI int widget_viewer_set_resumed(void)
+EAPI int widget_viewer_notify_resumed_status_of_viewer(void)
 {
 	struct packet *packet;
 	unsigned int cmd = CMD_CLIENT_RESUMED;
