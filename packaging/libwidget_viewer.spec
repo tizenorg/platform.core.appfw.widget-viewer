@@ -16,7 +16,6 @@ BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(com-core)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
-BuildRequires: pkgconfig(livebox-service)
 BuildRequires: pkgconfig(widget_service)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(elementary)
@@ -28,7 +27,7 @@ BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(xext)
 %endif
 
-%if "%{model_build_feature_livebox}" == "0"
+%if "%{model_build_feature_widget}" == "0"
 ExclusiveArch:
 %endif
 

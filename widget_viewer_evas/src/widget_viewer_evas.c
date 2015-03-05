@@ -2023,7 +2023,7 @@ static int do_text_operate_access(Evas_Object *layout, const char *part, const c
 
 	memset(&action_info, 0, sizeof(action_info));
 
-	/* OPERATION is defined in liblivebox package */
+	/* OPERATION is defined in libwidget package */
 	if (!strcasecmp(operation, "set,hl")) {
 		if (part) {
 			Evas_Object *content;
