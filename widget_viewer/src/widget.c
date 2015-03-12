@@ -1562,7 +1562,7 @@ EAPI int widget_viewer_add_fault_handler(widget_fault_handler_cb widget_cb, void
 		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	return widget_viewer_add_fault_handler(widget_cb, data);
+	return _widget_add_fault_handler(widget_cb, data);
 }
 
 EAPI void *widget_viewer_remove_fault_handler(widget_fault_handler_cb widget_cb)
@@ -1571,7 +1571,7 @@ EAPI void *widget_viewer_remove_fault_handler(widget_fault_handler_cb widget_cb)
 		return NULL;
 	}
 
-	return widget_viewer_remove_fault_handler(widget_cb);
+	return _widget_remove_fault_handler(widget_cb);
 }
 
 EAPI int widget_viewer_add_event_handler(widget_event_handler_cb widget_cb, void *data)
@@ -1581,7 +1581,7 @@ EAPI int widget_viewer_add_event_handler(widget_event_handler_cb widget_cb, void
 		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
-	return widget_viewer_add_event_handler(widget_cb, data);
+	return _widget_add_event_handler(widget_cb, data);
 }
 
 EAPI void *widget_viewer_remove_event_handler(widget_event_handler_cb widget_cb)
@@ -1590,7 +1590,7 @@ EAPI void *widget_viewer_remove_event_handler(widget_event_handler_cb widget_cb)
 		return NULL;
 	}
 
-	return widget_viewer_remove_event_handler(widget_cb);
+	return _widget_remove_event_handler(widget_cb);
 }
 
 EAPI int widget_viewer_set_update_mode(widget_h handle, int active_update, widget_ret_cb cb, void *data)
