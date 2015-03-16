@@ -33,6 +33,7 @@
 #include <com-core_packet.h>
 #include <widget_errno.h>
 #include <widget_service.h>
+#include <widget_service_internal.h>
 #include <widget_cmd_list.h>
 #include <widget_buffer.h>
 #include <secure_socket.h>

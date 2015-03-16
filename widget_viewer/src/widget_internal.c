@@ -9,6 +9,7 @@
 
 #include <widget_errno.h>
 #include <widget_service.h>
+#include <widget_service_internal.h>
 #include <widget_buffer.h>
 
 #include <packet.h>

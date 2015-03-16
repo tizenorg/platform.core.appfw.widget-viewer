@@ -32,6 +32,7 @@
 
 #include <widget_viewer.h>
 #include <widget_service.h>
+#include <widget_service_internal.h>
 #include <widget_errno.h>
 #include <widget_buffer.h>
 
@@ -6585,7 +6586,7 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 	data->is.field.disable_loading = 1;
 }
 
-EAPI void widget_viewer_evas_activate(Evas_Object *widget)
+EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
 

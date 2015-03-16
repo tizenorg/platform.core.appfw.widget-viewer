@@ -189,54 +189,6 @@ typedef enum widget_type {
 } widget_type_e;
 
 /**
- * @brief Enumeration for widget event type.
- * @details These events will be sent from the provider.
- * @since_tizen 2.4
- */
-typedef enum widget_event_type {                    /**< widget_event_handler_set Event list */
-    WIDGET_EVENT_WIDGET_UPDATED,                    /**< Contents of the given widget is updated */
-    WIDGET_EVENT_WIDGET_EXTRA_UPDATED,
-    WIDGET_EVENT_GBAR_UPDATED,                    /**< Contents of the given pd is updated */
-    WIDGET_EVENT_GBAR_EXTRA_UPDATED,
-
-    WIDGET_EVENT_CREATED,                         /**< A new widget is created */
-    WIDGET_EVENT_DELETED,                         /**< A widget is deleted */
-
-    WIDGET_EVENT_GROUP_CHANGED,                   /**< Group (Cluster/Sub-cluster) information is changed */
-    WIDGET_EVENT_PINUP_CHANGED,                   /**< PINUP status is changed */
-    WIDGET_EVENT_PERIOD_CHANGED,                  /**< Update period is changed */
-
-    WIDGET_EVENT_WIDGET_SIZE_CHANGED,               /**< widget size is changed */
-    WIDGET_EVENT_GBAR_SIZE_CHANGED,               /**< Glance Bar size is changed */
-
-    WIDGET_EVENT_GBAR_CREATED,                    /**< If a Glance Bar is created even if you didn't call the widget_create_glance_bar API */
-    WIDGET_EVENT_GBAR_DESTROYED,                  /**< If a Glance Bar is destroyed even if you didn't call the widget_destroy_glance_bar API */
-
-    WIDGET_EVENT_HOLD_SCROLL,                     /**< If the screen should be freezed */
-    WIDGET_EVENT_RELEASE_SCROLL,                  /**< If the screen can be scrolled */
-
-    WIDGET_EVENT_WIDGET_UPDATE_BEGIN,               /**< widget content update is started */
-    WIDGET_EVENT_WIDGET_UPDATE_END,                 /**< widget content update is finished */
-
-    WIDGET_EVENT_GBAR_UPDATE_BEGIN,               /**< Glance Bar content update is started */
-    WIDGET_EVENT_GBAR_UPDATE_END,                 /**< Glance Bar content update is finished */
-
-    WIDGET_EVENT_UPDATE_MODE_CHANGED,             /**< widget Update mode is changed */
-
-    WIDGET_EVENT_REQUEST_CLOSE_GBAR,              /**< widget requests to close the Glance Bar */
-
-    WIDGET_EVENT_EXTRA_INFO_UPDATED,              /**< Extra information is updated */
-
-    WIDGET_EVENT_WIDGET_EXTRA_BUFFER_CREATED,       /**< WIDGET Extra Buffer created event */
-    WIDGET_EVENT_GBAR_EXTRA_BUFFER_CREATED,       /**< GBAR Extra Buffer created event */
-
-    WIDGET_EVENT_WIDGET_EXTRA_BUFFER_DESTROYED,     /**< WIDGET Extra Buffer destroyed event */
-    WIDGET_EVENT_GBAR_EXTRA_BUFFER_DESTROYED,     /**< WIDGET Extra Buffer destroyed event */
-
-    WIDGET_EVENT_IGNORED = 0xFF                   /**< Request is ignored */
-} widget_event_type_e;
-
-/**
  * @brief Enumeration for widget option types.
  * @since_tizen 2.4
  */
@@ -307,7 +259,7 @@ typedef struct widget_access_event_info {
     double y;                                   /**< Y Coordinates that the event occurred */
     widget_access_info_type_e type;         /**< Accessibility event type */
     int info;                                   /**< Extra information for this event */
-} *widget_access_event_info_t;
+} *widget_access_event_info_s;
 
 /**
  * @internal
@@ -319,7 +271,7 @@ typedef struct widget_damage_region {
     int y;                                  /**< Coordinates Y of Left-Top corner */
     int w;                                  /**< Damage'd Width */
     int h;                                  /**< Damage'd Height */
-} widget_damage_region_t;
+} widget_damage_region_s;
 
 /**
  * @internal
@@ -329,7 +281,7 @@ typedef struct widget_damage_region {
 typedef struct widget_mouse_event_info {
     double x;                                   /**< X coordinates of Mouse Event */
     double y;                                   /**< Y coordinates of Mouse Event */
-} *widget_mouse_event_info_t;
+} *widget_mouse_event_info_s;
 
 /**
  * @internal
@@ -338,7 +290,7 @@ typedef struct widget_mouse_event_info {
  */
 typedef struct widget_key_event_info {
     unsigned int keycode;                       /**< Key code */
-} *widget_key_event_info_t;
+} *widget_key_event_info_s;
 
 /**
  * @internal
@@ -354,7 +306,7 @@ typedef struct widget_text_event {
         double ex;
         double ey;
     } geometry;
-} *widget_text_event_t;
+} *widget_text_event_s;
 
 /**
  * @internal
@@ -376,7 +328,7 @@ typedef struct widget_script_operators {
     int (*update_access)(widget_h handle, const char *id, const char *part, const char *text, const char *option); /**< Update access information */
     int (*operate_access)(widget_h handle, const char *id, const char *part, const char *operation, const char *option); /**< Update access operation */
     int (*update_color)(widget_h handle, const char *id, const char *part, const char *data); /**< Update color */
-} *widget_script_operator_t;
+} *widget_script_operator_s;
 
 /**
  * @internal
@@ -524,7 +476,7 @@ extern int widget_viewer_notify_resumed_status_of_viewer(void);
  * 23x23=680x653, #WIDGET_SIZE_TYPE_EASY_3x3
  *
  * Special widget
- * 0x0=720x1280, #WIDGET_SIZE_TYPE_0x0
+ * 0x0=720x1280, #WIDGET_SIZE_TYPE_FULL
  * @since_tizen 2.3
  * @remarks
  *    This is an ASYNCHRONOUS API.
@@ -678,7 +630,7 @@ extern int widget_viewer_activate_faulted_widget(const char *widget_id, widget_r
  * 23x23=680x653, WIDGET_SIZE_TYPE_EASY_3x3
  *
  * Special mode widget size
- * 0x0=720x1280, WIDGET_SIZE_TYPE_0x0
+ * 0x0=720x1280, WIDGET_SIZE_TYPE_FULL
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -1016,7 +968,7 @@ extern int widget_viewer_get_buffer_size(widget_h handle, int gbar);
  * @see widget_feed_access_event()
  * @see widget_feed_key_event()
  */
-extern int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type_e type, widget_mouse_event_info_t info);
+extern int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type_e type, widget_mouse_event_info_s info);
 
 /**
  * @internal
@@ -1040,7 +992,7 @@ extern int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_ty
  * @see widget_feed_mouse_event()
  * @see widget_feed_key_event()
  */
-extern int widget_viewer_feed_access_event(widget_h handle, widget_access_event_type_e type, widget_access_event_info_t info, widget_ret_cb cb, void *data);
+extern int widget_viewer_feed_access_event(widget_h handle, widget_access_event_type_e type, widget_access_event_info_s info, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1063,7 +1015,7 @@ extern int widget_viewer_feed_access_event(widget_h handle, widget_access_event_
  * @see widget_feed_mouse_event()
  * @see widget_feed_access_event()
  */
-extern int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e type, widget_key_event_info_t info, widget_ret_cb cb, void *data);
+extern int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e type, widget_key_event_info_s info, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1211,7 +1163,7 @@ extern int widget_viewer_glance_bar_is_created(widget_h handle);
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see widget_set_gbar_text_handler()
  */
-extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_script_operator_t ops);
+extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_script_operator_s ops);
 
 /**
  * @internal
@@ -1238,7 +1190,7 @@ extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_scri
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
  * @see widget_ret_cb
  */
-extern int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_t event_info, widget_ret_cb cb, void *data);
+extern int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1558,7 +1510,7 @@ extern int widget_viewer_sync_buffer(widget_h handle, int gbar);
  * @retval #WIDGET_STATUS_ERROR_NONE if success
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid handle
  */
-extern int widget_viewer_get_damaged_region(widget_h handle, int gbar, const widget_damage_region_t *region);
+extern int widget_viewer_get_damaged_region(widget_h handle, int gbar, const widget_damage_region_s *region);
 
 /**
  * @internal

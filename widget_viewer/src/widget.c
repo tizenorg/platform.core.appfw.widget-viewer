@@ -31,6 +31,7 @@
 #include <com-core_packet.h>
 #include <packet.h>
 #include <widget_service.h>
+#include <widget_service_internal.h>
 #include <widget_errno.h>
 #include <widget_cmd_list.h>
 #include <widget_buffer.h>
@@ -2133,7 +2134,7 @@ EAPI int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, voi
 	return ret;
 }
 
-EAPI int widget_viewer_feed_access_event(widget_h handle, widget_access_event_type_e type, widget_access_event_info_t info, widget_ret_cb cb, void *data)
+EAPI int widget_viewer_feed_access_event(widget_h handle, widget_access_event_type_e type, widget_access_event_info_s info, widget_ret_cb cb, void *data)
 {
 	int w = 1;
 	int h = 1;
@@ -2270,7 +2271,7 @@ EAPI int widget_viewer_feed_access_event(widget_h handle, widget_access_event_ty
 	return ret;
 }
 
-EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type_e type, widget_mouse_event_info_t info)
+EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type_e type, widget_mouse_event_info_s info)
 {
 	int w = 1;
 	int h = 1;
@@ -2441,7 +2442,7 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 	return send_mouse_event(handle, (const char *)&cmd, info->x * w, info->y * h);
 }
 
-EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e type, widget_key_event_info_t info, widget_ret_cb cb, void *data)
+EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e type, widget_key_event_info_s info, widget_ret_cb cb, void *data)
 {
 	int ret;
 	unsigned int cmd;
@@ -3656,7 +3657,7 @@ EAPI const char *widget_viewer_get_title_string(widget_h handle)
 	return handle->common->title;
 }
 
-EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_t event_info, widget_ret_cb cb, void *data)
+EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
@@ -4127,7 +4128,7 @@ EAPI int widget_viewer_set_auto_launch_handler(widget_auto_launch_handler_cb wid
 	return WIDGET_STATUS_ERROR_NONE;
 }
 
-EAPI int widget_viewer_get_damaged_region(widget_h handle, int gbar, const widget_damage_region_t *region)
+EAPI int widget_viewer_get_damaged_region(widget_h handle, int gbar, const widget_damage_region_s *region)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");

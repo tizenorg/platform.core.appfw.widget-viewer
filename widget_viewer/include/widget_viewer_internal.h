@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+#ifndef __WIDGET_VIEWER_INTERNAL_H
+#define __WIDGET_VIEWER_INTERNAL_H
+
+#include "widget_viewer.h"
+
 struct cb_info {
     widget_ret_cb cb;
     void *data;
@@ -266,5 +271,7 @@ struct widget {
         } key_event;
     } cbs;
 };
+
+#endif /* __WIDGET_VIEWER_INTERNAL_H */
 
 /* End of a file */
