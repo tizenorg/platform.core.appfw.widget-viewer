@@ -30,22 +30,34 @@ extern "C" {
  * @sine_tizen 2.4
  * @brief Event names for smart callback of widget events. You can listen some events from widget by calling evas_object_smart_callback_add.
  * @see #widget_evas_event_info_s
+ * @see evas_object_smart_callback_add
  */
 #define WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED   "widget,create,aborted"   /**< widget creation is aborted */
 #define WIDGET_SMART_SIGNAL_WIDGET_CREATED          "widget,created"          /**< widget is created */
 #define WIDGET_SMART_SIGNAL_WIDGET_RESIZE_ABORTED   "widget,resize,aborted"   /**< Resizing widget is aborted */
 #define WIDGET_SMART_SIGNAL_WIDGET_RESIZED          "widget,resized"          /**< widget is resized */
 #define WIDGET_SMART_SIGNAL_WIDGET_FAULTED          "widget,faulted"          /**< widget has faulted */
-#define WIDGET_SMART_SIGNAL_UPDATED               "updated"               /**< widget content is updated */
-#define WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED    "info,updated"          /**< widget extra info is updated */
-#define WIDGET_SMART_SIGNAL_PROVIDER_DISCONNECTED "provider,disconnected" /**< Provider is disconnected */
-#define WIDGET_SMART_SIGNAL_CONTROL_SCROLLER      "control,scroller"      /**< Control Scroller */
+#define WIDGET_SMART_SIGNAL_UPDATED                 "updated"                 /**< widget content is updated */
+#define WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED      "info,updated"            /**< widget extra info is updated */
+#define WIDGET_SMART_SIGNAL_PROVIDER_DISCONNECTED   "provider,disconnected"   /**< Provider is disconnected */
+#define WIDGET_SMART_SIGNAL_CONTROL_SCROLLER        "control,scroller"        /**< Control Scroller */
 #define WIDGET_SMART_SIGNAL_WIDGET_DELETED          "widget,deleted"          /**< widget is deleted */
-#define WIDGET_SMART_SIGNAL_PERIOD_CHANGED        "widget,period,changed"   /**< Period is changed */
+#define WIDGET_SMART_SIGNAL_PERIOD_CHANGED          "widget,period,changed"   /**< Period is changed */
 
 /**
  * @sine_tizen 2.4
- * @brief Data structure for smart callback user parameter
+ * @brief Data structure which will be sent as a parameter of smart callback for signals WIDGET_SMART_SIGNAL_XXX
+ * @see #WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED
+ * @see #WIDGET_SMART_SIGNAL_WIDGET_CREATED
+ * @see #WIDGET_SMART_SIGNAL_WIDGET_RESIZE_ABORTED
+ * @see #WIDGET_SMART_SIGNAL_WIDGET_RESIZED
+ * @see #WIDGET_SMART_SIGNAL_WIDGET_FAULTED
+ * @see #WIDGET_SMART_SIGNAL_UPDATED
+ * @see #WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED
+ * @see #WIDGET_SMART_SIGNAL_PROVIDER_DISCONNECTED
+ * @see #WIDGET_SMART_SIGNAL_CONTROL_SCROLLER
+ * @see #WIDGET_SMART_SIGNAL_WIDGET_DELETED
+ * @see #WIDGET_SMART_SIGNAL_PERIOD_CHANGED
  */
 typedef struct widget_evas_event_info {
     const char *pkgname;       /**< widget application id */
@@ -115,81 +127,14 @@ extern int widget_viewer_evas_fini(void);
  * @param[in] parent Evas Object of parent
  * @param[in] widget_id widget id
  * @param[in] content_info Contents that will be given to the widget instance
- * @param[in] cluster Main group
- * @param[in] category Sub group
  * @param[in] period Update period (@c WIDGET_DEFAULT_PERIOD can be used for this; this argument will be used to specify the period of updating contents of a widget)
  * @return Evas_Object*
- * @retval NULL if it fails to create a new widget object and you can get the reason of failure using widget_last_status()
+ * @retval NULL if it fails to create a new widget object and you can get the reason of failure using get_last_result()
  * @see #widget_service_get_widget_id
  * @see #widget_service_get_content_string
  * @see #widget_service_get_category
  */
-extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, const char *cluster, const char *category, double period);
-
-/**
- * @brief Subscribes an event for widgets only in a given cluster and sub-cluster.
- * @details If you wrote a view-only client,
- *   you can receive the event of specific widgets which belong to a given cluster/category.
- *   But you cannot modify their attributes (such as size, ...).
- * @since_tizen 2.4
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] cluster Cluster ("*" can be used for subscribe all cluster's widgets event; If you use the "*", value in the category will be ignored)
- * @param[in] category Category ("*" can be used for subscribe widgets events of all category(sub-cluster) in a given "cluster")
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
- * @see widget_viewer_evas_unsubscribe_group()
- */
-extern int widget_viewer_evas_subscribe_group(const char *cluster, const char *sub_cluster);
-
-
-/**
- * @brief Unsubscribes an event for the widgets, but you will receive already added widgets events.
- * @since_tizen 2.3
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] cluster Cluster("*" can be used for subscribe all cluster's widgets event; If you use the "*", value in the category will be ignored)
- * @param[in] category Category ("*" can be used for subscribe all sub-cluster's widgets event in a given "cluster")
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
- * @see widget_subscribe_group()
- */
-extern int widget_viewer_evas_unsubscribe_group(const char *cluster, const char *sub_cluster);
-
-/**
- * @brief Subscribes events of widgets which is categorized by given "category" string.
- *        "category" is written in the XML file of each widget manifest file.
- *        After subscribe the category, the master will send created event for all created widgets,
- *        Also it will notify client when a new widget is created.
- * @since_tizen 2.4
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] category Category name
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
- * @see widget_viewer_evas_unsubscribe_category()
- */
-extern int widget_viewer_evas_subscribe_category(const char *category);
-
-/**
- * @brief Unsubscribes events of widgets.
- * @since_tizen 2.4
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] category Category name
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
- * @see widget_viewer_evas_subscribe_category()
- */
-extern int widget_viewer_evas_unsubscribe_category(const char *category);
+extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period);
 
 /**
  * @brief Notifies the status of a client ("it is paused") to the provider.
@@ -197,9 +142,9 @@ extern int widget_viewer_evas_unsubscribe_category(const char *category);
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_FAULT if it failed to send state (paused) info
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_FAULT if it failed to send state (paused) info
  * @see widget_viewer_evas_notify_paused_status_of_viewer()
  */
 extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
@@ -210,9 +155,9 @@ extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_FAULT if it failed to send state (resumed) info
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @see widget_viewer_evas_notify_resumed_status_of_viewer()
  */
 extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
@@ -223,9 +168,9 @@ extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget widget Evas object
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_FAULT if it failed to send state (resumed) info
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  */
 extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
 
@@ -235,9 +180,9 @@ extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget widget Evas object
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_FAULT if it failed to send state (resumed) info
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  */
 extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
 
@@ -246,9 +191,9 @@ extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
  * @since_tizen 2.4
  * @param[in] type Configuration item
  * @param[in] value Its value
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid option
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid option
  * @see #widget_evas_conf
  */
 extern int widget_viewer_evas_set_option(enum widget_evas_conf type, int value);
@@ -261,7 +206,7 @@ extern int widget_viewer_evas_set_option(enum widget_evas_conf type, int value);
  * @return content string to be recognize content of the widget
  * @retval NULL if there is no specific content string.
  */
-extern const char *widget_viewer_evas_get_content_string(Evas_Object *widget);
+extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
 
 /**
  * @brief Gets summarized string of the widget content for accessibility.
@@ -412,6 +357,32 @@ extern int widget_viewer_evas_is_widget(Evas_Object *widget);
  * @return void
  */
 extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
+
+/**
+ * @brief Emits a text signal to the given widget only if it is a text type.
+ * @since_tizen 2.3.1
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
+ *    This function is Asynchronous, so you will get the result from @a cb, if you failed to send request to create a new widget,
+ *    This function will returns proper error code
+ * @param[in] handle Handle of a widget instance
+ * @param[in] emission Emission string
+ * @param[in] source Source string
+ * @param[in] sx Start X
+ * @param[in] sy Start Y
+ * @param[in] ex End X
+ * @param[in] ey End Y
+ * @param[in] cb Result callback
+ * @param[in] data Callback data
+ * @privlevel platform
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @return int
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
+ * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
+ * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
+ * @see widget_ret_cb
+ */
+extern int widget_viewer_evas_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data);
 
 #ifdef __cplusplus
 }

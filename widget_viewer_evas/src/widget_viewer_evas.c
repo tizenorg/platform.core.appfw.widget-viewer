@@ -87,7 +87,7 @@
 #endif
 
 #if !defined(WIDGET_VIEWER_EVAS_RESOURCE_EDJ)
-#define WIDGET_VIEWER_EVAS_RESOURCE_EDJ "/usr/share/widget_viewer_evas/res/edje/widget.edj"
+#define WIDGET_VIEWER_EVAS_RESOURCE_EDJ "/usr/share/widget_viewer_evas/res/edje/widget_viewer_evas.edj"
 #endif
 
 #if !defined(WIDGET_VIEWER_EVAS_UNKNOWN)
@@ -527,7 +527,7 @@ static int append_script_object(struct widget_data *data, int gbar, const char *
 	so = malloc(sizeof(*so));
 	if (!so) {
 		ErrPrint("malloc: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	if (id) {
@@ -535,7 +535,7 @@ static int append_script_object(struct widget_data *data, int gbar, const char *
 		if (!so->id) {
 			ErrPrint("strdup: %s\n", strerror(errno));
 			free(so);
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	} else {
 		so->id = NULL;
@@ -553,7 +553,7 @@ static int append_script_object(struct widget_data *data, int gbar, const char *
 	}
 
 	elm_object_signal_callback_add(child, "*", "*", script_signal_forwarder, data);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static inline void reset_scroller(struct widget_data *data)
@@ -1278,7 +1278,7 @@ static int do_text_update_color(Evas_Object *layout, const char *part, const cha
 			r + 2, g + 2, b + 2, a + 2);	/* SHADOW */
 	if (ret != 12) {
 		DbgPrint("part[%s] rgba[%s]\n", part, data);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ret = edje_object_color_class_set(elm_layout_edje_get(layout), part,
@@ -1286,7 +1286,7 @@ static int do_text_update_color(Evas_Object *layout, const char *part, const cha
 			r[1], g[1], b[1], a[1], /* OUTLINE */
 			r[2], g[2], b[2], a[2]); /* SHADOW */
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static void update_focus_chain(Evas_Object *parent, Evas_Object *ao)
@@ -1349,7 +1349,7 @@ static int do_text_update_access(Evas_Object *parent, Evas_Object *layout, const
 			ao = elm_access_object_register(edje_part, parent);
 			if (!ao) {
 				ErrPrint("Unable to register an access object(%s)\n", part);
-				return WIDGET_STATUS_ERROR_NONE;
+				return WIDGET_ERROR_NONE;
 			}
 
 			evas_object_data_set(edje_part, "ao", ao);
@@ -1367,7 +1367,7 @@ static int do_text_update_access(Evas_Object *parent, Evas_Object *layout, const
 			DbgPrint("[%s] Remove access object(%p)\n", part, ao);
 			elm_access_object_unregister(ao);
 
-			return WIDGET_STATUS_ERROR_NONE;
+			return WIDGET_ERROR_NONE;
 		}
 
 		utf8 = elm_entry_markup_to_utf8(text);
@@ -1380,7 +1380,7 @@ static int do_text_update_access(Evas_Object *parent, Evas_Object *layout, const
 			DbgPrint("[%s] Remove access object(%p)\n", part, ao);
 			elm_access_object_unregister(ao);
 
-			return WIDGET_STATUS_ERROR_NONE;
+			return WIDGET_ERROR_NONE;
 		}
 
 		elm_access_info_set(ao, ELM_ACCESS_INFO, utf8);
@@ -1391,7 +1391,7 @@ static int do_text_update_access(Evas_Object *parent, Evas_Object *layout, const
 		ErrPrint("Unable to get text part[%s]\n", part);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static void parse_aspect(struct image_option *img_opt, const char *value, int len)
@@ -1741,7 +1741,7 @@ static int do_text_update_text(Evas_Object *parent, Evas_Object *layout, const c
 			ao = elm_access_object_register(edje_part, parent);
 			if (!ao) {
 				ErrPrint("Unable to register an access object(%s)\n", part);
-				return WIDGET_STATUS_ERROR_NONE;
+				return WIDGET_ERROR_NONE;
 			}
 
 			evas_object_data_set(edje_part, "ao", ao);
@@ -1759,7 +1759,7 @@ static int do_text_update_text(Evas_Object *parent, Evas_Object *layout, const c
 			DbgPrint("[%s] Remove access object(%p)\n", part, ao);
 			elm_access_object_unregister(ao);
 
-			return WIDGET_STATUS_ERROR_NONE;
+			return WIDGET_ERROR_NONE;
 		}
 
 		utf8 = elm_entry_markup_to_utf8(text);
@@ -1772,7 +1772,7 @@ static int do_text_update_text(Evas_Object *parent, Evas_Object *layout, const c
 			DbgPrint("[%s] Remove access object(%p)\n", part, ao);
 			elm_access_object_unregister(ao);
 
-			return WIDGET_STATUS_ERROR_NONE;
+			return WIDGET_ERROR_NONE;
 		}
 
 		elm_access_info_set(ao, ELM_ACCESS_INFO, utf8);
@@ -1783,7 +1783,7 @@ static int do_text_update_text(Evas_Object *parent, Evas_Object *layout, const c
 		ErrPrint("Unable to get text part[%s]\n", part);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int do_text_update_image(Evas_Object *layout, const char *part, const char *data, const char *option)
@@ -1810,13 +1810,13 @@ static int do_text_update_image(Evas_Object *layout, const char *part, const cha
 
 	if (!data || !strlen(data) || access(data, R_OK) != 0) {
 		ErrPrint("Skip image: %s, deleted\n", part);
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	content = evas_object_image_add(evas_object_evas_get(layout));
 	if (!content) {
 		ErrPrint("Failed to add an image object\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	evas_object_image_preload(content, EINA_FALSE);
@@ -1828,7 +1828,7 @@ static int do_text_update_image(Evas_Object *layout, const char *part, const cha
 	if (err != EVAS_LOAD_ERROR_NONE) {
 		ErrPrint("Load error: %s\n", evas_load_error_str(err));
 		evas_object_del(content);
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	apply_shadow_effect(&img_opt, content);
@@ -1867,7 +1867,7 @@ static int do_text_update_image(Evas_Object *layout, const char *part, const cha
 
 			if (!part_w || !part_h || !w || !h) {
 				evas_object_del(content);
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 
 			content = crop_image(content, data, part_w, part_h, w, h, &img_opt);
@@ -1903,7 +1903,7 @@ static int do_text_update_image(Evas_Object *layout, const char *part, const cha
 
 			if (!part_w || !part_h || !w || !h) {
 				evas_object_del(content);
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 
 			content = crop_image(content, data, part_w, part_h, w, h, &img_opt);
@@ -1936,7 +1936,7 @@ static int do_text_update_image(Evas_Object *layout, const char *part, const cha
 
 			if (!part_w || !part_h || !w || !h) {
 				evas_object_del(content);
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 
 			content = crop_image(content, data, part_w, part_h, w, h, &img_opt);
@@ -1973,7 +1973,7 @@ static int do_text_update_image(Evas_Object *layout, const char *part, const cha
 	 * This object is not registered as an access object.
 	 * So the developer should add it to access list manually, using DESC_ACCESS block.
 	 */
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int do_text_update_script(struct widget_data *data, int gbar, Evas_Object *layout, const char *id, const char *part, const char *file, const char *group)
@@ -1988,21 +1988,21 @@ static int do_text_update_script(struct widget_data *data, int gbar, Evas_Object
 
 	if (!file || !strlen(file) || access(file, R_OK) != 0) {
 		ErrPrint("path: %s (%s), Delete old object\n", file, strerror(errno));
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	content = elm_layout_add(layout);
 	if (!content) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (elm_layout_file_set(content, file, group) == EINA_FALSE) {
 		evas_object_del(content);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = append_script_object(data, gbar, id, layout, content);
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		evas_object_del(content);
 		return ret;
 	}
@@ -2014,7 +2014,7 @@ static int do_text_update_script(struct widget_data *data, int gbar, Evas_Object
 	 *
 	 * elm_object_signal_callback_add(obj, "*", "*", script_signal_cb, handle);
 	 */
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int do_text_operate_access(Evas_Object *layout, const char *part, const char *operation, const char *option)
@@ -2036,7 +2036,7 @@ static int do_text_operate_access(Evas_Object *layout, const char *part, const c
 			content = elm_object_part_content_get(layout, part);
 			if (!content) {
 				ErrPrint("Invalid part: %s\n", part);
-				return WIDGET_STATUS_ERROR_NONE;
+				return WIDGET_ERROR_NONE;
 			}
 
 			evas_object_geometry_get(content, &x, &y, &w, &h);
@@ -2046,7 +2046,7 @@ static int do_text_operate_access(Evas_Object *layout, const char *part, const c
 		} else if (option && sscanf(option, "%dx%d", &action_info.x, &action_info.y) == 2) {
 		} else {
 			ErrPrint("Insufficient info for HL\n");
-			return WIDGET_STATUS_ERROR_NONE;
+			return WIDGET_ERROR_NONE;
 		}
 
 		DbgPrint("TXxTY: %dx%d\n", action_info.x, action_info.y);
@@ -2076,7 +2076,7 @@ static int do_text_operate_access(Evas_Object *layout, const char *part, const c
 		DbgPrint("Reset Focus\n");
 		elm_object_focus_custom_chain_set(layout, NULL);
 	}
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int gbar_text_update_begin(widget_h handle)
@@ -2084,12 +2084,12 @@ static int gbar_text_update_begin(widget_h handle)
 	struct widget_data *data;
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	DbgPrint("Begin text update: [%s]\n", data->widget_id);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int gbar_text_update_end(widget_h handle)
@@ -2097,12 +2097,12 @@ static int gbar_text_update_end(widget_h handle)
 	struct widget_data *data;
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	DbgPrint("End text update: [%s]\n", data->widget_id);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int gbar_text_update_text(widget_h handle, const char *id, const char *part, const char *data)
@@ -2112,13 +2112,13 @@ static int gbar_text_update_text(widget_h handle, const char *id, const char *pa
 
 	widget_data = get_smart_data_from_handle(handle);
 	if (!widget_data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(widget_data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_text(widget_data->parent, layout, part, data);
@@ -2131,13 +2131,13 @@ static int gbar_text_update_image(widget_h handle, const char *id, const char *p
 
 	widget_data = get_smart_data_from_handle(handle);
 	if (!widget_data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(widget_data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_image(layout, part, data, option);
@@ -2150,13 +2150,13 @@ static int gbar_text_update_script(widget_h handle, const char *id, const char *
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_script(data, 1, layout, new_id, part, file, group);
@@ -2169,17 +2169,17 @@ static int gbar_text_update_signal(widget_h handle, const char *id, const char *
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	elm_object_signal_emit(layout, signal, emission);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int gbar_text_update_drag(widget_h handle, const char *id, const char *part, double dx, double dy)
@@ -2189,17 +2189,17 @@ static int gbar_text_update_drag(widget_h handle, const char *id, const char *pa
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	edje_object_part_drag_value_set(elm_layout_edje_get(layout), part, dx, dy);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int gbar_text_update_info_size(widget_h handle, const char *id, int w, int h)
@@ -2209,19 +2209,19 @@ static int gbar_text_update_info_size(widget_h handle, const char *id, int w, in
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	DbgPrint("Resize to %dx%d\n", w, h);
 	evas_object_resize(layout, w, h);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int gbar_text_update_info_category(widget_h handle, const char *id, const char *category)
@@ -2231,18 +2231,18 @@ static int gbar_text_update_info_category(widget_h handle, const char *id, const
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	DbgPrint("Update category: %s\n", category);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int gbar_text_update_access(widget_h handle, const char *id, const char *part, const char *text, const char *option)
@@ -2252,13 +2252,13 @@ static int gbar_text_update_access(widget_h handle, const char *id, const char *
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_access(data->parent, layout, part, text, option);
@@ -2271,13 +2271,13 @@ static int gbar_text_operate_access(widget_h handle, const char *id, const char 
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_operate_access(layout, part, operation, option);
@@ -2290,13 +2290,13 @@ static int gbar_text_update_color(widget_h handle, const char *id, const char *p
 
 	widget_data = get_smart_data_from_handle(handle);
 	if (!widget_data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(widget_data, 1, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_color(layout, part, data);
@@ -2354,13 +2354,13 @@ static void gbar_create_text_object(struct widget_data *data)
 		}
 
 		ret = append_script_object(data, 1, NULL, NULL, gbar_content);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			evas_object_del(gbar_content);
 			ErrPrint("Failed to append this to script object list\n");
 			return;
 		}
 
-		if (widget_viewer_set_text_handler(data->handle, 1, &operator) != WIDGET_STATUS_ERROR_NONE) {
+		if (widget_viewer_set_text_handler(data->handle, 1, &operator) != WIDGET_ERROR_NONE) {
 			evas_object_del(gbar_content);
 			ErrPrint("Failed to set text handler for [%s]\n", data->widget_id);
 			return;
@@ -2406,7 +2406,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 		return;
 	}
 
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		DbgPrint("Create GBAR: 0x%X\n", ret);
 		info.error = ret;
 		info.event = WIDGET_EVENT_GBAR_CREATED;
@@ -2431,7 +2431,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 		data->gbar_layout = elm_layout_add(data->parent);
 		if (!data->gbar_layout) {
 			ErrPrint("Failed to add an edje\n");
-			info.error = WIDGET_STATUS_ERROR_FAULT;
+			info.error = WIDGET_ERROR_FAULT;
 			info.event = WIDGET_EVENT_GBAR_CREATED;
 			info.pkgname = data->widget_id;
 			smart_callback_call(data, WIDGET_SMART_SIGNAL_GBAR_ABORTED, &info);
@@ -2458,7 +2458,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 			evas_object_del(data->gbar_layout);
 			data->gbar_layout = NULL;
 
-			info.error = WIDGET_STATUS_ERROR_IO_ERROR;
+			info.error = WIDGET_ERROR_IO_ERROR;
 			info.event = WIDGET_EVENT_GBAR_CREATED;
 			info.pkgname = data->widget_id;
 			smart_callback_call(data, WIDGET_SMART_SIGNAL_GBAR_ABORTED, &info);
@@ -2504,7 +2504,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 	case WIDGET_CONTENT_TYPE_UIFW:
 		ErrPrint("Not implemented - TYPE_UIFW for GBAR\n");
 	default:
-		info.error = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		info.error = WIDGET_ERROR_INVALID_PARAMETER;
 		info.event = WIDGET_EVENT_GBAR_CREATED;
 		info.pkgname = data->widget_id;
 		ret = widget_viewer_destroy_glance_bar(data->handle, __widget_destroy_gbar_cb, widget_ref(data));
@@ -2526,7 +2526,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 	}
 
 	data->is.field.gbar_created = 1;
-	info.error = WIDGET_STATUS_ERROR_NONE;
+	info.error = WIDGET_ERROR_NONE;
 	info.event = WIDGET_EVENT_GBAR_CREATED;
 	info.pkgname = data->widget_id;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_GBAR_CREATED, &info);
@@ -2588,7 +2588,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 	if (s_info.conf.field.support_gbar && data->is.field.flick_down && data->y - data->down.y < CLICK_REGION) {
 		DbgPrint("Flick down is canceled\n");
 		data->is.field.flick_down = 0;
-		info.error = WIDGET_STATUS_ERROR_CANCEL;
+		info.error = WIDGET_ERROR_CANCELED;
 		smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
 	}
 
@@ -2601,7 +2601,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 				elm_object_signal_emit(data->widget_layout, "tilt", "content");
 			}
 			DbgPrint("Flick down is canceled\n");
-			info.error = WIDGET_STATUS_ERROR_CANCEL;
+			info.error = WIDGET_ERROR_CANCELED;
 			smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
 		} else if (s_info.conf.field.support_gbar && !data->is.field.gbar_created) {
 			double rx;
@@ -2609,7 +2609,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 			int gbar_w;
 			int gbar_h;
 
-			if (widget_viewer_get_glance_bar_size(data->handle, &gbar_w, &gbar_h) != WIDGET_STATUS_ERROR_NONE) {
+			if (widget_viewer_get_glance_bar_size(data->handle, &gbar_w, &gbar_h) != WIDGET_ERROR_NONE) {
 				gbar_w = 0;
 				gbar_h = 0;
 			}
@@ -2659,7 +2659,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 			if (ret < 0) {
 				widget_unref(data);
 				DbgPrint("Flick down is canceled\n");
-				info.error = WIDGET_STATUS_ERROR_CANCEL;
+				info.error = WIDGET_ERROR_CANCELED;
 				smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
 			}
 			DbgPrint("Create GBAR: %d (%lfx%lf)\n", ret, rx, ry);
@@ -2708,7 +2708,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 		}
 
 		if (!data->is.field.flick_down) {
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			if (data->is.field.gbar_created) {
 				ret = widget_viewer_destroy_glance_bar(data->handle, __widget_destroy_gbar_cb, widget_ref(data));
 				if (ret < 0) {
@@ -2749,7 +2749,7 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 		data->is.field.flick_down = 0;
 		info.pkgname = data->widget_id;
 		info.event = WIDGET_EVENT_GBAR_CREATED;
-		info.error = WIDGET_STATUS_ERROR_CANCEL;
+		info.error = WIDGET_ERROR_CANCELED;
 
 		smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
 	}
@@ -2798,7 +2798,7 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 			data->is.field.flick_down = 0;
 			info.pkgname = data->widget_id;
 			info.event = WIDGET_EVENT_GBAR_CREATED;
-			info.error = WIDGET_STATUS_ERROR_CANCEL;
+			info.error = WIDGET_ERROR_CANCELED;
 			smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
 			DbgPrint("Flick down is canceled\n");
 		}
@@ -2816,7 +2816,7 @@ static char *get_package_icon(struct widget_data *data)
 	char *uiapp;
 
 	if (data->size_type == WIDGET_SIZE_TYPE_UNKNOWN) {
-		icon = widget_service_get_i18n_icon(data->widget_id, NULL);
+		icon = widget_service_get_icon(data->widget_id, NULL);
 	} else {
 		icon = widget_service_get_preview_image_path(data->widget_id, data->size_type);
 	}
@@ -2883,7 +2883,7 @@ static void activate_ret_cb(struct widget *handle, int ret, void *cbdata)
 	__widget_overlay_disable(data, 1);
 
 	DbgPrint("Activated (%s): %d\n", data->widget_id, ret);
-	if (!data->is.field.deleted && (ret == WIDGET_STATUS_ERROR_NONE || ret == WIDGET_STATUS_ERROR_INVALID_PARAMETER)) {
+	if (!data->is.field.deleted && (ret == WIDGET_ERROR_NONE || ret == WIDGET_ERROR_INVALID_PARAMETER)) {
 		int type;
 		Evas_Coord w, h;
 		struct acquire_data acquire_data = {
@@ -3442,7 +3442,7 @@ static int do_force_mouse_up(struct widget_data *data)
 	}
 
 	if (!data->is.field.pressed) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	evas_object_geometry_get(data->widget, &x, &y, &w, &h);
@@ -3488,10 +3488,10 @@ static int do_force_mouse_up(struct widget_data *data)
 	data->is.field.flick_down = 0;
 	info.pkgname = data->widget_id;
 	info.event = WIDGET_EVENT_GBAR_CREATED;
-	info.error = WIDGET_STATUS_ERROR_CANCEL;
+	info.error = WIDGET_ERROR_CANCELED;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
 	DbgPrint("Flick down is canceled\n");
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static void __widget_move(Evas_Object *widget, Evas_Coord x, Evas_Coord y)
@@ -3596,14 +3596,14 @@ static int widget_create_plug_object(struct widget_data *data)
 	acquire_data.content = elm_plug_add(s_info.win);
 	if (!acquire_data.content) {
 		ErrPrint("Failed to add a plug object\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	DbgPrint("Try to connect to %s\n", widget_viewer_get_filename(data->handle));
 	if (!elm_plug_connect(acquire_data.content, widget_viewer_get_filename(data->handle), 0, EINA_TRUE)) {
 		ErrPrint("Cannot connect plug[%s]", widget_viewer_get_filename(data->handle));
 		evas_object_del(acquire_data.content);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	elm_object_part_content_set(data->widget_layout, "widget,content", acquire_data.content);
@@ -3611,7 +3611,7 @@ static int widget_create_plug_object(struct widget_data *data)
 	acquire_data.w = data->widget_width;
 	acquire_data.h = data->widget_height;
 	update_widget_geometry(&acquire_data);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_create_image_object(struct widget_data *data)
@@ -3631,20 +3631,20 @@ static int widget_create_image_object(struct widget_data *data)
 		acquire_data.content = elm_layout_add(data->parent);
 		if (!acquire_data.content) {
 			ErrPrint("Failed to create an edje object\n");
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		if (elm_layout_file_set(acquire_data.content, WIDGET_VIEWER_EVAS_RESOURCE_EDJ, WIDGET_VIEWER_EVAS_RESOURCE_IMG) == EINA_FALSE) {
 			ErrPrint("Failed to load edje object: %s(%s)\n", WIDGET_VIEWER_EVAS_RESOURCE_EDJ, WIDGET_VIEWER_EVAS_RESOURCE_IMG);
 			evas_object_del(acquire_data.content);
-			return WIDGET_STATUS_ERROR_IO_ERROR;
+			return WIDGET_ERROR_IO_ERROR;
 		}
 
 		front_image = elm_image_add(acquire_data.content);
 		if (!front_image) {
 			ErrPrint("Failed to add front_image object\n");
 			evas_object_del(acquire_data.content);
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		DbgPrint("Default size %dx%d\n", data->widget_width, data->widget_height);
@@ -3658,7 +3658,7 @@ static int widget_create_image_object(struct widget_data *data)
 			front_image = elm_image_add(acquire_data.content);
 			if (!front_image) {
 				ErrPrint("Failed to add front_image object\n");
-				return WIDGET_STATUS_ERROR_FAULT;
+				return WIDGET_ERROR_FAULT;
 			}
 
 			elm_object_part_content_set(acquire_data.content, "front,content", front_image);
@@ -3673,7 +3673,7 @@ static int widget_create_image_object(struct widget_data *data)
 	acquire_data.w = data->widget_width;
 	acquire_data.h = data->widget_height;
 	update_widget_geometry(&acquire_data);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_create_buffer_object(struct widget_data *data)
@@ -3685,7 +3685,7 @@ static int widget_create_buffer_object(struct widget_data *data)
 		widget_viewer_get_content_string = evas_object_image_filled_add(data->e);
 		if (!widget_viewer_get_content_string) {
 			ErrPrint("Failed to create an image object\n");
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		evas_object_image_colorspace_set(widget_viewer_get_content_string, EVAS_COLORSPACE_ARGB8888);
@@ -3693,7 +3693,7 @@ static int widget_create_buffer_object(struct widget_data *data)
 		elm_object_part_content_set(data->widget_layout, "widget,content", widget_viewer_get_content_string);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_text_update_begin(widget_h handle)
@@ -3701,12 +3701,12 @@ static int widget_text_update_begin(widget_h handle)
 	struct widget_data *data;
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	DbgPrint("Begin text update: [%s]\n", data->widget_id);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_text_update_end(widget_h handle)
@@ -3714,12 +3714,12 @@ static int widget_text_update_end(widget_h handle)
 	struct widget_data *data;
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	DbgPrint("End text update: [%s]\n", data->widget_id);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_text_update_text(widget_h handle, const char *id, const char *part, const char *data)
@@ -3729,13 +3729,13 @@ static int widget_text_update_text(widget_h handle, const char *id, const char *
 
 	widget_data = get_smart_data_from_handle(handle);
 	if (!widget_data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(widget_data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_text(widget_data->parent, layout, part, data);
@@ -3748,13 +3748,13 @@ static int widget_text_update_image(widget_h handle, const char *id, const char 
 
 	widget_data = get_smart_data_from_handle(handle);
 	if (!widget_data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(widget_data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_image(layout, part, data, option);
@@ -3767,13 +3767,13 @@ static int widget_text_update_script(widget_h handle, const char *id, const char
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_script(data, 0, layout, new_id, part, file, group);
@@ -3786,17 +3786,17 @@ static int widget_text_update_signal(widget_h handle, const char *id, const char
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	elm_object_signal_emit(layout, signal, emission);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_text_update_drag(widget_h handle, const char *id, const char *part, double dx, double dy)
@@ -3806,17 +3806,17 @@ static int widget_text_update_drag(widget_h handle, const char *id, const char *
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	edje_object_part_drag_value_set(elm_layout_edje_get(layout), part, dx, dy);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_text_update_info_size(widget_h handle, const char *id, int w, int h)
@@ -3826,19 +3826,19 @@ static int widget_text_update_info_size(widget_h handle, const char *id, int w, 
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	DbgPrint("Resize to %dx%d\n", w, h);
 	evas_object_resize(layout, w, h);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_text_update_info_category(widget_h handle, const char *id, const char *category)
@@ -3848,18 +3848,18 @@ static int widget_text_update_info_category(widget_h handle, const char *id, con
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	DbgPrint("Update category: %s\n", category);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_text_update_access(widget_h handle, const char *id, const char *part, const char *text, const char *option)
@@ -3869,13 +3869,13 @@ static int widget_text_update_access(widget_h handle, const char *id, const char
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_access(data->parent, layout, part, text, option);
@@ -3888,13 +3888,13 @@ static int widget_text_operate_access(widget_h handle, const char *id, const cha
 
 	data = get_smart_data_from_handle(handle);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_operate_access(layout, part, operation, option);
@@ -3907,13 +3907,13 @@ static int widget_text_update_color(widget_h handle, const char *id, const char 
 
 	widget_data = get_smart_data_from_handle(handle);
 	if (!widget_data) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	layout = find_script_object(widget_data, 0, id);
 	if (!layout) {
 		ErrPrint("Target[%s] is not exists\n", id);
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	return do_text_update_color(layout, part, data);
@@ -3946,7 +3946,7 @@ static int widget_create_text_object(struct widget_data *data)
 		widget_viewer_get_content_string = elm_layout_add(data->widget_layout);
 		if (!widget_viewer_get_content_string) {
 			ErrPrint("Failed to create a layout object\n");
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		script_file = widget_service_get_widget_script_path(data->widget_id);
@@ -3954,38 +3954,38 @@ static int widget_create_text_object(struct widget_data *data)
 		if (!script_file || !script_group) {
 			evas_object_del(widget_viewer_get_content_string);
 			ErrPrint("Invalid script info ([%s] - [%s])\n", script_file, script_group);
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		if (access(script_file, R_OK) != 0) {
 			ErrPrint("Unable to access [%s] - %s\n", script_file, strerror(errno));
 			evas_object_del(widget_viewer_get_content_string);
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		if (elm_layout_file_set(widget_viewer_get_content_string, script_file, script_group) == EINA_FALSE) {
 			evas_object_del(widget_viewer_get_content_string);
 			ErrPrint("Failed to load an edje file ([%s] - [%s])\n", script_file, script_group);
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		ret = append_script_object(data, 0, NULL, NULL, widget_viewer_get_content_string);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			evas_object_del(widget_viewer_get_content_string);
 			ErrPrint("Failed to append this to script object list\n");
 			return ret;
 		}
 
-		if (widget_viewer_set_text_handler(data->handle, 0, &operator) != WIDGET_STATUS_ERROR_NONE) {
+		if (widget_viewer_set_text_handler(data->handle, 0, &operator) != WIDGET_ERROR_NONE) {
 			evas_object_del(widget_viewer_get_content_string);
 			ErrPrint("Failed to set text handler for [%s]\n", data->widget_id);
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		elm_object_part_content_set(data->widget_layout, "widget,content", widget_viewer_get_content_string);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int widget_create_pixmap_object(struct widget_data *data)
@@ -3997,7 +3997,7 @@ static int widget_create_pixmap_object(struct widget_data *data)
 		widget_viewer_get_content_string = evas_object_image_filled_add(data->e);
 		if (!widget_viewer_get_content_string) {
 			ErrPrint("Failed to create an image object\n");
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		evas_object_image_colorspace_set(widget_viewer_get_content_string, EVAS_COLORSPACE_ARGB8888);
@@ -4007,7 +4007,7 @@ static int widget_create_pixmap_object(struct widget_data *data)
 		elm_object_part_content_set(data->widget_layout, "widget,content", widget_viewer_get_content_string);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static void __widget_resize_pixmap_object(struct widget_data *data)
@@ -4132,7 +4132,7 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 		acquire_data->h = h;
 
 		ret = widget_viewer_acquire_resource_id(data->handle, 0, acquire_widget_pixmap_cb, acquire_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			widget_unref(data);
 			free(acquire_data);
 		} else {
@@ -4157,7 +4157,7 @@ static int widget_system_created(struct widget *handle, struct widget_data *data
 
 	if (data->state != WIDGET_DATA_CREATED) {
 		ErrPrint("Invalid widget data: %p, %s\n", data, widget_viewer_get_pkgname(handle));
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	widget_viewer_get_type(handle, 0, &widget_type);
@@ -4182,12 +4182,12 @@ static int widget_system_created(struct widget *handle, struct widget_data *data
 		break;
 	case WIDGET_CONTENT_TYPE_INVALID:
 	default:
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
-	if (ret == WIDGET_STATUS_ERROR_NONE) {
-		info.error = WIDGET_STATUS_ERROR_NONE;
+	if (ret == WIDGET_ERROR_NONE) {
+		info.error = WIDGET_ERROR_NONE;
 		info.pkgname = data->widget_id;
 		info.event = WIDGET_EVENT_CREATED;
 
@@ -4220,7 +4220,7 @@ static void __widget_created_cb(struct widget *handle, int ret, void *cbdata)
 		return;
 	}
 
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		DbgPrint("Failed to create: %X\n", ret);
 		data->handle = NULL;
 
@@ -4239,9 +4239,9 @@ static void __widget_created_cb(struct widget *handle, int ret, void *cbdata)
 			DbgPrint("Display tap to load (%p) [%s]\n", data, data->widget_id);
 			smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &fault_event);
 
-			ret = WIDGET_STATUS_ERROR_FAULT;
+			ret = WIDGET_ERROR_FAULT;
 		} else {
-			ret = WIDGET_STATUS_ERROR_CANCEL;
+			ret = WIDGET_ERROR_CANCELED;
 		}
 
 		data->is.field.send_delete = 0;
@@ -4273,12 +4273,12 @@ static void __widget_created_cb(struct widget *handle, int ret, void *cbdata)
 		break;
 	case WIDGET_CONTENT_TYPE_INVALID:
 	default:
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
-	if (ret == WIDGET_STATUS_ERROR_NONE) {
-		info.error = WIDGET_STATUS_ERROR_NONE;
+	if (ret == WIDGET_ERROR_NONE) {
+		info.error = WIDGET_ERROR_NONE;
 		info.pkgname = data->widget_id;
 		info.event = WIDGET_EVENT_CREATED;
 
@@ -4336,7 +4336,7 @@ static void __widget_resize_cb(struct widget *handle, int ret, void *cbdata)
 		return;
 	}
 
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		info.error = ret;
 		info.event = WIDGET_EVENT_WIDGET_SIZE_CHANGED;
 		info.pkgname = data->widget_id;
@@ -4683,16 +4683,16 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 		if (type > 0 && type != WIDGET_SIZE_TYPE_UNKNOWN) {
 			ret = widget_viewer_resize_widget(data->handle, type, __widget_resize_cb, widget_ref(data));
 		} else {
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			/* This will be decreased soon ... */
 			widget_ref(data);
 		}
 
 		evas_object_resize(data->widget_layout, data->widget_width, data->widget_height);
-		if (ret == WIDGET_STATUS_ERROR_ALREADY) {
+		if (ret == WIDGET_ERROR_ALREADY_EXIST) {
 			DbgPrint("Same size\n");
 			widget_unref(data);
-		} else if (ret == WIDGET_STATUS_ERROR_NONE) {
+		} else if (ret == WIDGET_ERROR_NONE) {
 			DbgPrint("Resize request is successfully sent\n");
 			widget_service_get_need_of_touch_effect(data->widget_id, type, &need_of_touch_effect);
 			data->is.field.touch_effect = need_of_touch_effect;
@@ -4989,7 +4989,7 @@ static void __widget_event_extra_info_updated(struct widget_data *data)
 
 	info.pkgname = data->widget_id;
 	info.event = WIDGET_EVENT_EXTRA_INFO_UPDATED;
-	info.error = WIDGET_STATUS_ERROR_NONE;
+	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED, &info);
 }
 
@@ -5054,7 +5054,7 @@ static void __widget_event_widget_updated(struct widget_data *data)
 
 	info.pkgname = data->widget_id;
 	info.event = WIDGET_EVENT_WIDGET_UPDATED;
-	info.error = WIDGET_STATUS_ERROR_NONE;
+	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_UPDATED, &info);
 }
 
@@ -5221,7 +5221,7 @@ static void gbar_update_pixmap_object(struct widget_data *data, Evas_Object *gba
 		acquire_data->data = widget_ref(data);
 
 		ret = widget_viewer_acquire_resource_id(data->handle, 1, acquire_gbar_pixmap_cb, acquire_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			ErrPrint("Failed to acquire gbar resource id\n");
 			free(acquire_data);
 			DbgPrint("Unref %p %s\n", data, data->widget_id);
@@ -5275,7 +5275,7 @@ static void __widget_event_gbar_updated(struct widget_data *data)
 		return;
 	}
 
-	if (widget_viewer_get_glance_bar_size(data->handle, &w, &h) != WIDGET_STATUS_ERROR_NONE) {
+	if (widget_viewer_get_glance_bar_size(data->handle, &w, &h) != WIDGET_ERROR_NONE) {
 		ErrPrint("Failed to get gbar_size\n");
 		w = 0;
 		h = 0;
@@ -5330,7 +5330,7 @@ static void __widget_event_deleted(struct widget_data *data)
 	data->is.field.send_delete = 0;
 	info.pkgname = data->widget_id;
 	info.event = WIDGET_EVENT_DELETED;
-	info.error = data->is.field.faulted ? WIDGET_STATUS_ERROR_FAULT : WIDGET_STATUS_ERROR_NONE;
+	info.error = data->is.field.faulted ? WIDGET_ERROR_FAULT : WIDGET_ERROR_NONE;
 
 	/**
 	 * Even if the widget object tries to be deleted from WIDGET_DELETED event callback,
@@ -5385,7 +5385,7 @@ static void __widget_event_period_changed(struct widget_data *data)
 
 	info.pkgname = data->widget_id;
 	info.event = WIDGET_EVENT_PERIOD_CHANGED;
-	info.error = WIDGET_STATUS_ERROR_NONE;
+	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_PERIOD_CHANGED, &info);
 }
 
@@ -5417,7 +5417,7 @@ static void __widget_event_hold_scroll(struct widget_data *data)
 
 	info.pkgname = data->widget_id;
 	info.event = WIDGET_EVENT_HOLD_SCROLL;
-	info.error = WIDGET_STATUS_ERROR_NONE;
+	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_CONTROL_SCROLLER, &info);
 }
 
@@ -5428,7 +5428,7 @@ static void __widget_event_release_scroll(struct widget_data *data)
 
 	info.pkgname = data->widget_id;
 	info.event = WIDGET_EVENT_RELEASE_SCROLL;
-	info.error = WIDGET_STATUS_ERROR_NONE;
+	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_CONTROL_SCROLLER, &info);
 }
 
@@ -5470,7 +5470,7 @@ static Evas_Object *create_widget_object(struct widget *handle)
 	Evas_Object *widget;
 	double period;
 
-	if (widget_viewer_get_group(handle, &cluster, &sub_cluster) != WIDGET_STATUS_ERROR_NONE) {
+	if (widget_viewer_get_group(handle, &cluster, &sub_cluster) != WIDGET_ERROR_NONE) {
 		ErrPrint("Unable to get the group info\n");
 	}
 
@@ -5482,7 +5482,6 @@ static Evas_Object *create_widget_object(struct widget *handle)
 
 	widget = widget_viewer_evas_add_widget(s_info.win,
 						widget_viewer_get_pkgname(handle), widget_viewer_get_content_string(handle),
-						cluster, sub_cluster,
 						period);
 
 	data = evas_object_smart_data_get(widget);
@@ -5509,12 +5508,12 @@ static inline int handle_subscribed_group(struct widget *handle)
 	Eina_List *l;
 	struct subscribe_group *group;
 
-	if (widget_viewer_get_group(handle, &cluster, &sub_cluster) != WIDGET_STATUS_ERROR_NONE) {
-		return WIDGET_STATUS_ERROR_FAULT;
+	if (widget_viewer_get_group(handle, &cluster, &sub_cluster) != WIDGET_ERROR_NONE) {
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!cluster || !sub_cluster) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	EINA_LIST_FOREACH(s_info.subscribed_group_list, l, group) {
@@ -5529,14 +5528,14 @@ static inline int handle_subscribed_group(struct widget *handle)
 			if (!widget) {
 				ErrPrint("Failed to create a widget object\n");
 				(void)widget_viewer_delete_widget(handle, WIDGET_DELETE_PERMANENTLY, NULL, NULL);
-				return WIDGET_STATUS_ERROR_FAULT;
+				return WIDGET_ERROR_FAULT;
 			}
 
 			widget_viewer_set_data(handle, widget);
 
 			/* Emit RAW_CREATE event */
-			nr = invoke_raw_event_callback(WIDGET_VIEWER_EVAS_RAW_CREATE, widget_viewer_get_pkgname(handle), widget, WIDGET_STATUS_ERROR_NONE);
-			if (nr <= 0 || widget_system_created(handle, get_smart_data(widget)) != WIDGET_STATUS_ERROR_NONE) {
+			nr = invoke_raw_event_callback(WIDGET_VIEWER_EVAS_RAW_CREATE, widget_viewer_get_pkgname(handle), widget, WIDGET_ERROR_NONE);
+			if (nr <= 0 || widget_system_created(handle, get_smart_data(widget)) != WIDGET_ERROR_NONE) {
 				/*
 				 * Deleting evas object will invoke delete callback.
 				 * Then it will invoke the RAW_DELETE event and execute the proper procedures for deleting object 
@@ -5545,11 +5544,11 @@ static inline int handle_subscribed_group(struct widget *handle)
 				evas_object_del(widget);
 			}
 
-			return WIDGET_STATUS_ERROR_NONE;
+			return WIDGET_ERROR_NONE;
 		}
 	}
 
-	return WIDGET_STATUS_ERROR_NOT_EXIST;
+	return WIDGET_ERROR_NOT_EXIST;
 }
 
 static inline int handle_subscribed_category(struct widget *handle)
@@ -5560,7 +5559,7 @@ static inline int handle_subscribed_category(struct widget *handle)
 
 	category = widget_service_get_category(widget_viewer_get_pkgname(handle));
 	if (!category) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	EINA_LIST_FOREACH(s_info.subscribed_category_list, l, info) {
@@ -5575,14 +5574,14 @@ static inline int handle_subscribed_category(struct widget *handle)
 				ErrPrint("Failed to create a widget object\n");
 				(void)widget_viewer_delete_widget(handle, WIDGET_DELETE_PERMANENTLY, NULL, NULL);
 				free(category);
-				return WIDGET_STATUS_ERROR_FAULT;
+				return WIDGET_ERROR_FAULT;
 			}
 
 			widget_viewer_set_data(handle, widget);
 
 			/* Subscribed object, Create this */
-			nr = invoke_raw_event_callback(WIDGET_VIEWER_EVAS_RAW_CREATE, widget_viewer_get_pkgname(handle), widget, WIDGET_STATUS_ERROR_NONE);
-			if (nr <= 0 || widget_system_created(handle, get_smart_data(widget)) != WIDGET_STATUS_ERROR_NONE) {
+			nr = invoke_raw_event_callback(WIDGET_VIEWER_EVAS_RAW_CREATE, widget_viewer_get_pkgname(handle), widget, WIDGET_ERROR_NONE);
+			if (nr <= 0 || widget_system_created(handle, get_smart_data(widget)) != WIDGET_ERROR_NONE) {
 				/* Delete widget, if no one cares it */
 				DbgPrint("No one cares\n");
 				widget_viewer_evas_set_permanent_delete(widget, EINA_TRUE);
@@ -5590,12 +5589,12 @@ static inline int handle_subscribed_category(struct widget *handle)
 			}
 
 			free(category);
-			return WIDGET_STATUS_ERROR_NONE;
+			return WIDGET_ERROR_NONE;
 		}
 	}
 
 	free(category);
-	return WIDGET_STATUS_ERROR_NOT_EXIST;
+	return WIDGET_ERROR_NOT_EXIST;
 }
 
 static int widget_event_handler(struct widget *handle, enum widget_event_type event, void *cbdata)
@@ -5618,11 +5617,11 @@ static int widget_event_handler(struct widget *handle, enum widget_event_type ev
 		widget_viewer_set_data(handle, NULL);
 
 		if (event == WIDGET_EVENT_CREATED) {
-			if (handle_subscribed_group(handle) == WIDGET_STATUS_ERROR_NONE) {
+			if (handle_subscribed_group(handle) == WIDGET_ERROR_NONE) {
 				return 0;
 			}
 
-			if (handle_subscribed_category(handle) == WIDGET_STATUS_ERROR_NONE) {
+			if (handle_subscribed_category(handle) == WIDGET_ERROR_NONE) {
 				return 0;
 			}
 
@@ -5635,7 +5634,7 @@ static int widget_event_handler(struct widget *handle, enum widget_event_type ev
 		return 0;
 	}
 
-	switch (event) {
+	switch ((int)event) {
 	case WIDGET_EVENT_WIDGET_EXTRA_BUFFER_CREATED:
 		widget_viewer_get_affected_extra_buffer(handle, 0, &idx, &resource_id);
 		DbgPrint("Extra buffer created for WIDGET: %d (%u)\n", idx, resource_id);
@@ -5833,7 +5832,7 @@ static int widget_fault_handler(enum widget_fault_type fault, const char *pkgnam
 				DbgPrint("Faulted: %s (%p)\n", pkgname, data);
 				data->is.field.faulted = 1;
 				__widget_overlay_faulted(data);
-				info.error = WIDGET_STATUS_ERROR_FAULT;
+				info.error = WIDGET_ERROR_FAULT;
 				info.pkgname = data->widget_id;
 				info.event = WIDGET_FAULT_DEACTIVATED;
 				smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_FAULTED, &info);
@@ -5851,7 +5850,7 @@ static int widget_fault_handler(enum widget_fault_type fault, const char *pkgnam
 				DbgPrint("Disconnected: %s (%p)\n", pkgname, data);
 				data->is.field.faulted = 1;
 				__widget_overlay_faulted(data);
-				info.error = WIDGET_STATUS_ERROR_FAULT;
+				info.error = WIDGET_ERROR_FAULT;
 				info.pkgname = data->widget_id;
 				info.event = WIDGET_FAULT_PROVIDER_DISCONNECTED;
 				smart_callback_call(data, WIDGET_SMART_SIGNAL_PROVIDER_DISCONNECTED, &info);
@@ -5878,13 +5877,13 @@ EAPI int widget_viewer_evas_init(Evas_Object *win, int force_to_buffer)
 	}
 
 	ret = widget_viewer_add_event_handler(widget_event_handler, NULL);
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		ErrPrint("Failed to set handler\n");
 		widget_viewer_fini();
 	} else {
 		DbgPrint("Event handler registered\n");
 		ret = widget_viewer_add_fault_handler(widget_fault_handler, NULL);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			ErrPrint("Failed to set fault handler\n");
 			widget_viewer_remove_event_handler(widget_event_handler);
 			widget_viewer_fini();
@@ -5917,7 +5916,7 @@ EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 	return widget_viewer_notify_paused_status_of_viewer();
 }
 
-EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, const char *cluster, const char *category, double period)
+EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
 	struct widget_data *data;
 	Evas_Object *widget;
@@ -5925,17 +5924,11 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	char *_content_info;
 	char *_cluster;
 	char *_category;
+	char *cluster = DEFAULT_CLUSTER;
+	char *category = DEFAULT_CATEGORY;
 
 	if (!parent || !widget_id) {
 		return NULL;
-	}
-
-	if (!cluster) {
-		cluster = DEFAULT_CLUSTER;
-	}
-
-	if (!category) {
-		category = DEFAULT_CATEGORY;
 	}
 
 	_cluster = strdup(cluster);
@@ -6016,7 +6009,7 @@ EAPI int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, int
 
 	data = get_smart_data(widget);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	data->view_port.x = x;
@@ -6024,7 +6017,7 @@ EAPI int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, int
 	data->view_port.w = w;
 	data->view_port.h = h;
 	s_info.conf.field.user_view_port = 1;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, int *w, int *h)
@@ -6033,7 +6026,7 @@ EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, i
 
 	data = get_smart_data(widget);
 	if (!data) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (x) {
@@ -6052,7 +6045,7 @@ EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, i
 		*h = data->view_port.h;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_set_option(enum widget_evas_conf type, int value)
@@ -6106,7 +6099,7 @@ EAPI int widget_viewer_evas_set_option(enum widget_evas_conf type, int value)
 		break;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
@@ -6115,7 +6108,7 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
@@ -6127,7 +6120,7 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
@@ -6140,7 +6133,7 @@ EAPI int widget_viewer_evas_destroy_glance_bar(Evas_Object *widget)
 
 	data = get_smart_data(widget);
 	if (!data || data->state != WIDGET_DATA_CREATED || !data->is.field.created || !data->handle || !data->is.field.gbar_created) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ret = widget_viewer_destroy_glance_bar(data->handle, __widget_destroy_gbar_cb, widget_ref(data));
@@ -6151,7 +6144,7 @@ EAPI int widget_viewer_evas_destroy_glance_bar(Evas_Object *widget)
 	return ret;
 }
 
-EAPI const char *widget_viewer_evas_get_content_string(Evas_Object *widget)
+EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 {
 	struct widget_data *data;
 
@@ -6251,7 +6244,7 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return do_force_mouse_up(data);
@@ -6269,7 +6262,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	evas_object_geometry_get(data->widget_layout, NULL, NULL, &w, &h);
@@ -6285,7 +6278,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6294,7 +6287,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_HIGHLIGHT;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_HIGHLIGHT, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6302,7 +6295,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6311,7 +6304,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_UNHIGHLIGHT;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_HIGHLIGHT, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6319,7 +6312,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6328,7 +6321,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_HIGHLIGHT_NEXT;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_HIGHLIGHT, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6336,7 +6329,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6345,7 +6338,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_HIGHLIGHT_NEXT;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_HIGHLIGHT, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6353,7 +6346,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6362,7 +6355,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_NONE; /* meaningless */
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_ACTIVATE, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6370,7 +6363,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6381,26 +6374,26 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		case 0:
 			ainfo.type = WIDGET_ACCESS_TYPE_DOWN;
 			ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_SCROLL, &ainfo, access_ret_cb, cb_data);
-			if (ret != WIDGET_STATUS_ERROR_NONE) {
+			if (ret != WIDGET_ERROR_NONE) {
 				free(cb_data);
 			}
 			break;
 		case 1:
 			ainfo.type = WIDGET_ACCESS_TYPE_MOVE;
 			ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_SCROLL, &ainfo, access_ret_cb, cb_data);
-			if (ret != WIDGET_STATUS_ERROR_NONE) {
+			if (ret != WIDGET_ERROR_NONE) {
 				free(cb_data);
 			}
 			break;
 		case 2:
 			ainfo.type = WIDGET_ACCESS_TYPE_UP;
 			ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_SCROLL, &ainfo, access_ret_cb, cb_data);
-			if (ret != WIDGET_STATUS_ERROR_NONE) {
+			if (ret != WIDGET_ERROR_NONE) {
 				free(cb_data);
 			}
 			break;
 		default:
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			free(cb_data);
 			break;
 		}
@@ -6409,7 +6402,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6417,7 +6410,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data->obj = widget;
 		ainfo.type = WIDGET_ACCESS_TYPE_NONE;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_MOUSE, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6425,7 +6418,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6433,7 +6426,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data->obj = widget;
 		ainfo.type = WIDGET_ACCESS_TYPE_UP;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_ACTION, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6441,7 +6434,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6450,7 +6443,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_DOWN;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_ACTION, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6458,7 +6451,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6467,7 +6460,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_NONE;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_VALUE_CHANGE, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6475,7 +6468,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6484,7 +6477,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_NONE;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_BACK, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6492,7 +6485,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6501,7 +6494,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_NONE;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_OVER, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6509,7 +6502,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6518,7 +6511,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_ENABLE;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_ENABLE, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
@@ -6526,7 +6519,7 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 		cb_data = calloc(1, sizeof(*cb_data));
 		if (!cb_data) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 
 		cb_data->ret_cb = ret_cb;
@@ -6535,12 +6528,12 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 
 		ainfo.type = WIDGET_ACCESS_TYPE_DISABLE;
 		ret = widget_viewer_feed_access_event(data->handle, WIDGET_ACCESS_ENABLE, &ainfo, access_ret_cb, cb_data);
-		if (ret != WIDGET_STATUS_ERROR_NONE) {
+		if (ret != WIDGET_ERROR_NONE) {
 			free(cb_data);
 		}
 		break;
 	default:
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
@@ -6623,7 +6616,7 @@ EAPI int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_ty
 	cbdata = calloc(1, sizeof(*cbdata));
 	if (!cbdata) {
 		ErrPrint("calloc: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	cbdata->cb = cb;
@@ -6638,10 +6631,10 @@ EAPI int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_ty
 		break;
 	default:
 		free(cbdata);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_event_type type, void (*cb)(struct widget_evas_raw_event_info *info, void *data), void *data)
@@ -6671,7 +6664,7 @@ EAPI int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_event_
 		break;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, int status)
@@ -6681,12 +6674,12 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, int status)
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	data->is.field.freeze_visibility = 1;
 	data->freezed_visibility = status;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
@@ -6696,12 +6689,12 @@ EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	data->is.field.freeze_visibility = 0;
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget)
@@ -6725,7 +6718,7 @@ EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filena
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	fp = fopen(filename, "w+");
@@ -6745,7 +6738,7 @@ EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filena
 		fclose(fp);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_is_widget(Evas_Object *widget)
@@ -6781,26 +6774,26 @@ EAPI int widget_viewer_evas_subscribe_group(const char *cluster, const char *sub
 	int ret;
 
 	if (!cluster || !sub_cluster) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	EINA_LIST_FOREACH(s_info.subscribed_group_list, l, group) {
 		if (!strcasecmp(group->cluster, cluster) && !strcasecmp(group->sub_cluster, sub_cluster)) {
-			return WIDGET_STATUS_ERROR_ALREADY;
+			return WIDGET_ERROR_ALREADY_EXIST;
 		}
 	}
 
 	group = calloc(1, sizeof(*group));
 	if (!group) {
 		ErrPrint("calloc: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	group->cluster = strdup(cluster);
 	if (!group->cluster) {
 		ErrPrint("strdup: %s\n", strerror(errno));
 		free(group);
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	group->sub_cluster = strdup(sub_cluster);
@@ -6808,11 +6801,11 @@ EAPI int widget_viewer_evas_subscribe_group(const char *cluster, const char *sub
 		ErrPrint("strdup: %s\n", strerror(errno));
 		free(group->cluster);
 		free(group);
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	ret = widget_viewer_subscribe_group(cluster, sub_cluster);
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		free(group->sub_cluster);
 		free(group->cluster);
 		free(group);
@@ -6821,7 +6814,7 @@ EAPI int widget_viewer_evas_subscribe_group(const char *cluster, const char *sub
 
 	s_info.subscribed_group_list = eina_list_append(s_info.subscribed_group_list, group);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_unsubscribe_group(const char *cluster, const char *sub_cluster)
@@ -6831,7 +6824,7 @@ EAPI int widget_viewer_evas_unsubscribe_group(const char *cluster, const char *s
 	Eina_List *n;
 
 	if (!cluster || !sub_cluster) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	EINA_LIST_FOREACH_SAFE(s_info.subscribed_group_list, l, n, group) {
@@ -6844,7 +6837,7 @@ EAPI int widget_viewer_evas_unsubscribe_group(const char *cluster, const char *s
 		}
 	}
 
-	return WIDGET_STATUS_ERROR_NOT_EXIST;
+	return WIDGET_ERROR_NOT_EXIST;
 }
 
 EAPI int widget_viewer_evas_subscribe_category(const char *category)
@@ -6854,37 +6847,37 @@ EAPI int widget_viewer_evas_subscribe_category(const char *category)
 	int ret;
 
 	if (!category) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	EINA_LIST_FOREACH(s_info.subscribed_category_list, l, item) {
 		if (!strcmp(item->category, item->category)) {
-			return WIDGET_STATUS_ERROR_ALREADY;
+			return WIDGET_ERROR_ALREADY_EXIST;
 		}
 	}
 
 	item = calloc(1, sizeof(*item));
 	if (!item) {
 		ErrPrint("calloc: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	item->category = strdup(category);
 	if (!item->category) {
 		ErrPrint("strdup: %s\n", strerror(errno));
 		free(item);
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	ret = widget_viewer_subscribe_category(category);
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		free(item->category);
 		free(item);
 		return ret;
 	}
 
 	s_info.subscribed_category_list = eina_list_append(s_info.subscribed_category_list, item);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
@@ -6894,7 +6887,7 @@ EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
 	struct subscribe_category *item;
 
 	if (!category) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	EINA_LIST_FOREACH_SAFE(s_info.subscribed_category_list, l, n, item) {
@@ -6906,7 +6899,12 @@ EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
 		}
 	}
 
-	return WIDGET_STATUS_ERROR_NOT_EXIST;
+	return WIDGET_ERROR_NOT_EXIST;
+}
+
+EAPI int widget_viewer_evas_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data)
+{
+	return widget_viewer_emit_text_signal(handle, event_info, cb, data);
 }
 
 /* End of a file */

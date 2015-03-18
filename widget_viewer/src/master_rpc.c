@@ -177,7 +177,7 @@ static int done_cb(pid_t pid, int handle, const struct packet *packet, void *dat
 
 	if (packet_get(packet, "i", &ret) != 1) {
 		ErrPrint("Invalid result packet\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 out:
@@ -207,7 +207,7 @@ int master_rpc_async_request(widget_h handler, struct packet *packet, int urgent
 	if (!command) {
 		ErrPrint("Failed to create a command\n");
 		packet_unref(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	command->ret_cb = ret_cb;
@@ -222,7 +222,7 @@ int master_rpc_async_request(widget_h handler, struct packet *packet, int urgent
 	}
 
 	packet_unref(packet);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int master_rpc_request_only(widget_h handler, struct packet *packet)
@@ -233,7 +233,7 @@ int master_rpc_request_only(widget_h handler, struct packet *packet)
 	if (!command) {
 		ErrPrint("Failed to create a command\n");
 		packet_unref(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	command->ret_cb = NULL;
@@ -243,7 +243,7 @@ int master_rpc_request_only(widget_h handler, struct packet *packet)
 
 	push_command(command);
 	packet_unref(packet);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int master_rpc_clear_fault_package(const char *pkgname)
@@ -253,7 +253,7 @@ int master_rpc_clear_fault_package(const char *pkgname)
 	struct command *command;
 
 	if (!pkgname) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	dlist_foreach_safe(s_info.cmd_list, l, n, command) {
@@ -302,13 +302,13 @@ int master_rpc_sync_request(struct packet *packet)
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Invalid result packet\n");
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to send a sync request\n");
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	}
 
 	packet_unref(packet);

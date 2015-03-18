@@ -485,11 +485,11 @@ extern int widget_viewer_notify_resumed_status_of_viewer(void);
  *    It can be initialized only after getting the return callback with "ret == #WIDGET_STATUS_ERROR_NONE"
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new widget,
  *    This function will returns proper error code
- *    If this returns @c NULL, you can get the reason of failure using widget_last_status()
+ *    If this returns @c NULL, you can get the reason of failure using get_last_result()
  * @param[in] widget_id widget Id
  * @param[in] content Contents that will be given to the widget instance
- * @param[in] cluster Main group
- * @param[in] category Sub group
+ * @param[in] cluster Identifier to group widgets which will be decided in runtime.
+ * @param[in] category Identifier to group widgets declared in the manifest file by the widget provider.
  * @param[in] period Update period (@c WIDGET_DEFAULT_PERIOD can be used for this; this argument will be used to specify the period of updating contents of a widget)
  * @param[in] type Size type (defined from libwidget-service package)
  * @param[in] cb After the request is sent to the master provider, this callback will be called
@@ -598,7 +598,7 @@ extern void *widget_viewer_remove_fault_handler(widget_fault_handler_cb cb);
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
+ * @return #WIDGET_STATUS_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully sent a request
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -644,7 +644,7 @@ extern int widget_viewer_activate_faulted_widget(const char *widget_id, widget_r
  * @param[in] data User data for return callback
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
+ * @return #WIDGET_STATUS_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_BUSY Previous request of resize is in progress
@@ -752,7 +752,7 @@ extern int widget_viewer_set_period(widget_h handle, double period, widget_ret_c
 /**
  * @brief Checks whether the given widget is a text type or not.
  * @remarks
- *    If this returns WIDGET_CONTENT_TYPE_INVALID, you can get the reason of failure using widget_last_status()
+ *    If this returns WIDGET_CONTENT_TYPE_INVALID, you can get the reason of failure using get_last_result()
  * @since_tizen 2.4
  * @privlevel N/P
  * @param[in] handle Handle of a widget instance
@@ -770,7 +770,7 @@ extern int widget_viewer_get_type(widget_h handle, int gbar, widget_type_e *widg
 
 /**
  * @brief Checks if the given widget is created by user or not.
- * @remarks if this returns negative value, you can get the reason of failure using widget_last_status()
+ * @remarks if this returns negative value, you can get the reason of failure using get_last_result()
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -788,7 +788,7 @@ extern int widget_viewer_is_created_by_user(widget_h handle);
 /**
  * @internal
  * @brief Gets content information string of the given widget.
- * @remarks if this returns @c NULL, you can get the reason of failure using widget_last_status()
+ * @remarks if this returns @c NULL, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3
  * @param[in] handle Handle of a widget instance
  * @return const char *
@@ -807,7 +807,7 @@ extern const char *widget_viewer_get_content_string(widget_h handle);
  * @remarks The title returned by this API can be read by TTS.
  *  But it is just recomendation for the homescreen.
  *  So, to read it or not depends on its implementation.
- *  if this returns @c NULL, you can get the reason of failure using widget_last_status()
+ *  if this returns @c NULL, you can get the reason of failure using get_last_result()
  * @param[in] handle Handle of a widget instance
  * @return const char *
  * @retval sub Cluster name
@@ -819,7 +819,7 @@ extern const char *widget_viewer_get_title_string(widget_h handle);
  * @internal
  * @brief Gets the filename of the given widget, if it is an IMAGE type widget.
  * @details If the box is developed as an image format to represent its contents, the homescreen should know its image file name.
- * @remarks if this returns @c NULL, you can get the reason of failure using widget_last_status()
+ * @remarks if this returns @c NULL, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3
  * @param[in] handle Handle of a widget instance
  * @return const char *
@@ -830,7 +830,7 @@ extern const char *widget_viewer_get_filename(widget_h handle);
 
 /**
  * @brief Gets the package name of the given widget handle.
- * @remarks if this returns @c NULL, you can get the reason of failure using widget_last_status()
+ * @remarks if this returns @c NULL, you can get the reason of failure using get_last_result()
  * @since_tizen 2.4
  * @privlevel N/P
  * @param[in] handle Handle of a widget instance
@@ -842,7 +842,7 @@ extern const char *widget_viewer_get_pkgname(widget_h handle);
 
 /**
  * @brief Gets the priority of a current content.
- * @remarks if this returns negative value, you can get the reason of failure using widget_last_status()
+ * @remarks if this returns negative value, you can get the reason of failure using get_last_result()
  * @since_tizen 2.4
  * @privlevel N/P
  * @param[in] handle Handle of a widget instance
@@ -897,7 +897,7 @@ extern int widget_viewer_get_buffer_reference_count(void *buffer);
 /**
  * @brief Gets the size of the widget.
  * @remarks
- *   If this returns WIDGET_SIZE_TYPE_UNKNOWN, you can get the reason of failure using widget_last_status()
+ *   If this returns WIDGET_SIZE_TYPE_UNKNOWN, you can get the reason of failure using get_last_result()
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -915,7 +915,7 @@ extern int widget_viewer_get_size_type(widget_h handle, widget_size_type_e *size
  * @param[in] handle Handle of a widget instance
  * @param[out] w Width of glance bar in pixels
  * @param[out] h Height of glance bar in pixels
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
+ * @return #WIDGET_STATUS_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters are used
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
@@ -931,7 +931,7 @@ extern int widget_viewer_get_glance_bar_size(widget_h handle, int *w, int *h);
  * @param[in] cnt size of array
  * @param[out] cnt Count of returned size types
  * @param[out] size_list Array of size types
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
+ * @return #WIDGET_STATUS_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
@@ -1431,7 +1431,7 @@ extern int widget_viewer_set_visibility(widget_h handle, widget_visible_state_e 
  * @internal
  * @brief Gets the current visible state of a widget.
  * @remarks
- *   If this returns WIDGET_VISIBLE_ERROR, you can get the reason of failure using widget_last_status()
+ *   If this returns WIDGET_VISIBLE_ERROR, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3
  * @param[in] handle Handle of a widget instance
  * @return widget_visible_state
@@ -1474,7 +1474,7 @@ extern int widget_viewer_set_update_mode(widget_h handle, int active_update, wid
  * @internal
  * @brief Checks the active update mode of the given widget.
  * @remarks
- *   If this returns negative value, you can get the reason of failure using widget_last_status()
+ *   If this returns negative value, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3
  * @param[in] handle Handle of a widget instance
  * @return int
@@ -1517,7 +1517,7 @@ extern int widget_viewer_get_damaged_region(widget_h handle, int gbar, const wid
  * @brief Gets an alternative icon of the given widget instance.
  * @details If the box should be represented as a shortcut icon, this function will get the alternative icon.
  * @remarks
- *   If this returns @c NULL, you can get the reason of failure using widget_last_status()
+ *   If this returns @c NULL, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3
  * @param[in] handle Handle of a widget instance
  * @return const char *
@@ -1532,7 +1532,7 @@ extern const char *widget_viewer_get_alternative_icon(widget_h handle);
  * @brief Gets an alternative name of the given widget instance.
  * @details If the box should be represented as a shortcut name, this function will get the alternative name.
  * @remarks
- *   If this returns @c NULL, you can get the reason of failure using widget_last_status()
+ *   If this returns @c NULL, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3
  * @param[in] handle Handle of a widget instance
  * @return const char *
@@ -1609,7 +1609,7 @@ extern int widget_viewer_set_option(widget_option_type_e option, int state);
  * @internal
  * @brief Gets options of a widget sub-system.
  * @remarks
- *   If this returns negative value, you can get the reason of failure using widget_last_status()
+ *   If this returns negative value, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3
  * @param[in] option Type of option
  * @return int
@@ -1628,7 +1628,7 @@ extern int widget_viewer_get_option(widget_option_type_e option);
  * @since_tizen 2.3
  * @param[in] launch_handler Handle for launching an app manually
  * @param[in] data Callback data which will be given a data for launch_handler
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
+ * @return #WIDGET_STATUS_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_NONE Succeed to set new handle. there is no other cases
  */

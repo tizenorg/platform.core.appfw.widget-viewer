@@ -143,7 +143,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 		goto out;
 	}
 
-	if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (status == (int)WIDGET_ERROR_NONE) {
 		new_content = strdup(content);
 		if (new_content) {
 			free(common->content);
@@ -151,7 +151,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			common->is_pinned_up = pinup;
 		} else {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			status = WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			status = WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
 
@@ -170,7 +170,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			handler->cbs.pinup.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+		} else if (status == (int)WIDGET_ERROR_NONE) {
 			_widget_invoke_event_handler(handler, WIDGET_EVENT_PINUP_CHANGED);
 		}
 	}
@@ -259,8 +259,8 @@ static struct packet *master_deleted(pid_t pid, int handle, const struct packet 
 			handler->cbs.created.cb = NULL;
 			handler->cbs.created.data = NULL;
 
-			if (reason == (int)WIDGET_STATUS_ERROR_NONE) {
-				reason = WIDGET_STATUS_ERROR_CANCEL;
+			if (reason == (int)WIDGET_ERROR_NONE) {
+				reason = WIDGET_ERROR_CANCELED;
 			}
 
 			cb(handler, reason, cbdata);
@@ -334,7 +334,7 @@ static struct packet *master_widget_update_begin(pid_t pid, int handle, const st
 
 		ret = _widget_sync_widget_fb(common);
 
-		if (ret != (int)WIDGET_STATUS_ERROR_NONE) {
+		if (ret != (int)WIDGET_ERROR_NONE) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
 		} else {
 			struct dlist *l;
@@ -380,7 +380,7 @@ static struct packet *master_gbar_update_begin(pid_t pid, int handle, const stru
 		(void)_widget_set_gbar_fb(common, fbfile);
 
 		ret = _widget_sync_gbar_fb(common);
-		if (ret != (int)WIDGET_STATUS_ERROR_NONE) {
+		if (ret != (int)WIDGET_ERROR_NONE) {
 			ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, fbfile, ret);
 		} else {
 			struct dlist *l;
@@ -721,20 +721,20 @@ static struct packet *master_extra_updated(pid_t pid, int handle, const struct p
 		if (conf_frame_drop_for_resizing() && common->request.size_changed) {
 			/* Just for skipping the update event callback call, After request to resize buffer, update event will be discarded */
 			DbgPrint("Discards obsoloted update event\n");
-			ret = WIDGET_STATUS_ERROR_BUSY;
+			ret = WIDGET_ERROR_RESOURCE_BUSY;
 		} else {
 			if (!conf_manual_sync()) {
 				ret = _widget_sync_widget_fb(common);
-				if (ret != (int)WIDGET_STATUS_ERROR_NONE) {
+				if (ret != (int)WIDGET_ERROR_NONE) {
 					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 				}
 			} else {
-				ret = WIDGET_STATUS_ERROR_NONE;
+				ret = WIDGET_ERROR_NONE;
 			}
 		}
 	}
 
-	if (!common->request.created && ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (!common->request.created && ret == (int)WIDGET_ERROR_NONE) {
 		struct dlist *l;
 		struct dlist *n;
 
@@ -812,24 +812,24 @@ static struct packet *master_widget_updated(pid_t pid, int handle, const struct 
 		if (conf_frame_drop_for_resizing() && common->request.size_changed) {
 			/* Just for skipping the update event callback call, After request to resize buffer, update event will be discarded */
 			DbgPrint("Discards obsoloted update event\n");
-			ret = WIDGET_STATUS_ERROR_BUSY;
+			ret = WIDGET_ERROR_RESOURCE_BUSY;
 		} else {
 			(void)_widget_set_widget_fb(common, fbfile);
 
 			if (!conf_manual_sync()) {
 				ret = _widget_sync_widget_fb(common);
-				if (ret != (int)WIDGET_STATUS_ERROR_NONE) {
+				if (ret != (int)WIDGET_ERROR_NONE) {
 					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
 				}
 			} else {
-				ret = WIDGET_STATUS_ERROR_NONE;
+				ret = WIDGET_ERROR_NONE;
 			}
 		}
 	} else {
-		ret = WIDGET_STATUS_ERROR_NONE;
+		ret = WIDGET_ERROR_NONE;
 	}
 
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE && !common->request.created) {
+	if (ret == (int)WIDGET_ERROR_NONE && !common->request.created) {
 		struct dlist *l;
 		struct dlist *n;
 
@@ -880,7 +880,7 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 		goto out;
 	}
 
-	common->is_gbar_created = (status == (int)WIDGET_STATUS_ERROR_NONE);
+	common->is_gbar_created = (status == (int)WIDGET_ERROR_NONE);
 	common->request.gbar_created = 0;
 
 	if (common->is_gbar_created) {
@@ -935,7 +935,7 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 			 * Because, in the create callback, user can call create_gbar function again.
 			 */
 			cb(handler, status, cbdata);
-		} else if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+		} else if (status == (int)WIDGET_ERROR_NONE) {
 			_widget_invoke_event_handler(handler, WIDGET_EVENT_GBAR_CREATED);
 		} 
 	}
@@ -997,7 +997,7 @@ static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct 
 			 * Because, in the create callback, user can call destroy_gbar function again.
 			 */
 			cb(handler, status, cbdata);
-		} else if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+		} else if (status == (int)WIDGET_ERROR_NONE) {
 			_widget_invoke_event_handler(handler, WIDGET_EVENT_GBAR_DESTROYED);
 		}
 	}
@@ -1366,7 +1366,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 		goto out;
 	}
 
-	if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (status == (int)WIDGET_ERROR_NONE) {
 		_widget_set_update_mode(common, active_mode);
 	}
 
@@ -1383,7 +1383,7 @@ static struct packet *master_update_mode(pid_t pid, int handle, const struct pac
 			handler->cbs.update_mode.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+		} else if (status == (int)WIDGET_ERROR_NONE) {
 			_widget_invoke_event_handler(handler, WIDGET_EVENT_UPDATE_MODE_CHANGED);
 		}
 	}
@@ -1436,7 +1436,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		 * So the GBAR has no private resized event handler.
 		 * Notify it via global event handler only.
 		 */
-		if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+		if (status == (int)WIDGET_ERROR_NONE) {
 			struct dlist *l;
 
 			_widget_set_gbarsize(common, w, h);
@@ -1450,7 +1450,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 		struct dlist *l;
 		struct dlist *n;
 
-		if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+		if (status == (int)WIDGET_ERROR_NONE) {
 			_widget_set_size(common, w, h);
 
 			/*!
@@ -1487,7 +1487,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 				handler->cbs.size_changed.data = NULL;
 
 				cb(handler, status, cbdata);
-			} else if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+			} else if (status == (int)WIDGET_ERROR_NONE) {
 				_widget_invoke_event_handler(handler, WIDGET_EVENT_WIDGET_SIZE_CHANGED);
 			}
 		}
@@ -1526,7 +1526,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 		goto out;
 	}
 
-	if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (status == (int)WIDGET_ERROR_NONE) {
 		_widget_set_period(common, period);
 	}
 
@@ -1544,7 +1544,7 @@ static struct packet *master_period_changed(pid_t pid, int handle, const struct 
 			handler->cbs.period_changed.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+		} else if (status == (int)WIDGET_ERROR_NONE) {
 			_widget_invoke_event_handler(handler, WIDGET_EVENT_PERIOD_CHANGED);
 		}
 	}
@@ -1588,7 +1588,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 		goto out;
 	}
 
-	if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (status == (int)WIDGET_ERROR_NONE) {
 		(void)_widget_set_group(common, cluster, category);
 	}
 
@@ -1606,7 +1606,7 @@ static struct packet *master_group_changed(pid_t pid, int handle, const struct p
 			handler->cbs.group_changed.data = NULL;
 
 			cb(handler, status, cbdata);
-		} else if (status == (int)WIDGET_STATUS_ERROR_NONE) {
+		} else if (status == (int)WIDGET_ERROR_NONE) {
 			_widget_invoke_event_handler(handler, WIDGET_EVENT_GROUP_CHANGED);
 		}
 	}
@@ -1688,7 +1688,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 			&widget_type, &gbar_type, &period, &title, &is_pinned_up);
 	if (ret != 22) {
 		ErrPrint("Invalid argument\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
@@ -1708,7 +1708,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 		handler = _widget_new_widget(pkgname, id, timestamp, cluster, category);
 		if (!handler) {
 			ErrPrint("Failed to create a new widget\n");
-			ret = WIDGET_STATUS_ERROR_FAULT;
+			ret = WIDGET_ERROR_FAULT;
 			goto out;
 		}
 		common = handler->common;
@@ -1721,7 +1721,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 				 * This is not possible!!!
 				 */
 				ErrPrint("Invalid handler\n");
-				ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				ret = WIDGET_ERROR_INVALID_PARAMETER;
 				goto out;
 			}
 
@@ -1742,7 +1742,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 					content, cluster, category,
 					widget_fname, gbar_fname);
 
-			ret = WIDGET_STATUS_ERROR_ALREADY;
+			ret = WIDGET_ERROR_ALREADY_EXIST;
 			goto out;
 		}
 
@@ -1901,7 +1901,7 @@ out:
 						 */
 					}
 				} else if (handler->state != WIDGET_STATE_DELETE) {
-					handler->cbs.created.cb(handler, WIDGET_STATUS_ERROR_CANCEL, handler->cbs.created.data);
+					handler->cbs.created.cb(handler, WIDGET_ERROR_CANCELED, handler->cbs.created.data);
 					_widget_unref(handler, 1);
 				}
 			} else {
@@ -1918,7 +1918,7 @@ out:
 		 * Do not clear this to use this from the deleted event callback.
 		 * if this value is not cleared when the deleted event callback check it,
 		 * it means that the created function is not called yet.
-		 * Then the call the deleted event callback with WIDGET_STATUS_ERROR_CANCEL errno.
+		 * Then the call the deleted event callback with WIDGET_ERROR_CANCELED errno.
 		 */
 	}
 
@@ -2070,14 +2070,14 @@ static inline int make_connection(void)
 	s_info.fd = com_core_packet_client_init(client_addr(), 0, s_table);
 	if (s_info.fd < 0) {
 		ErrPrint("Try this again later\n");
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	packet = packet_create((const char *)&cmd, "ds", util_timestamp(), client_direct_addr());
 	if (!packet) {
 		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 1, acquire_cb, NULL);
@@ -2085,10 +2085,10 @@ static inline int make_connection(void)
 		ErrPrint("Master RPC returns %d\n", ret);
 		com_core_packet_client_fini(s_info.fd);
 		s_info.fd = -1;
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int connected_cb(int handle, void *data)
@@ -2106,7 +2106,7 @@ static void master_started_cb(keynode_t *node, void *data)
 	}
 
 	DbgPrint("Master state: %d\n", state);
-	if (state == 1 && make_connection() == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (state == 1 && make_connection() == (int)WIDGET_ERROR_NONE) {
 		int ret;
 		ret = vconf_ignore_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb);
 		if (ret < 0) {
@@ -2216,7 +2216,7 @@ int client_init(int use_thread)
 		s_info.client_addr = strdup(CLIENT_SOCKET);
 		if (!s_info.client_addr) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
 
@@ -2242,7 +2242,7 @@ int client_init(int use_thread)
 	}
 
 	master_started_cb(NULL, NULL);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int client_fd(void)
@@ -2291,7 +2291,7 @@ int client_fini(void)
 
 	free(s_info.direct_addr);
 	s_info.direct_addr = NULL;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 /* End of a file */

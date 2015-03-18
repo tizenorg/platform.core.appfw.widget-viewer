@@ -107,7 +107,7 @@ static int update_text(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block || !block->part || !block->data) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -124,7 +124,7 @@ static int update_image(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -141,7 +141,7 @@ static int update_script(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -158,7 +158,7 @@ static int update_signal(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -176,12 +176,12 @@ static int update_drag(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block || !block->data || !block->part) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (sscanf(block->data, "%lfx%lf", &dx, &dy) != 2) {
 		ErrPrint("Invalid format of data\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -198,7 +198,7 @@ static int update_info(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block || !block->part || !block->data) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -207,7 +207,7 @@ static int update_info(widget_h handle, struct block *block, int is_gbar)
 
 		if (sscanf(block->data, "%dx%d", &w, &h) != 2) {
 			ErrPrint("Invalid format (%s)\n", block->data);
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		if (ops->update_info_size) {
@@ -228,7 +228,7 @@ static int update_access(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -245,7 +245,7 @@ static int operate_access(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -262,7 +262,7 @@ static int update_color(widget_h handle, struct block *block, int is_gbar)
 
 	if (!block) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	ops = is_gbar ? &handle->cbs.gbar_ops : &handle->cbs.widget_ops;
@@ -417,7 +417,7 @@ int parse_desc(struct widget_common *common, const char *filename, int is_gbar)
 
 	filebuf = load_file(filename);
 	if (!filebuf) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	fileptr = filebuf;
@@ -661,7 +661,7 @@ int parse_desc(struct widget_common *common, const char *filename, int is_gbar)
 			block_list = dlist_remove(block_list, l);
 		}
 
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 
@@ -692,7 +692,7 @@ int parse_desc(struct widget_common *common, const char *filename, int is_gbar)
 	}
 	ErrPrint("End: Set content for object\n");
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 /* End of a file */

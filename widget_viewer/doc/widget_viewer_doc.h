@@ -163,7 +163,7 @@
  * {
  *      int ret;
  *	ret = widget_init(NULL, 1, 0.0f, 1);
- *      if (ret != WIDGET_STATUS_ERROR_NONE) {
+ *      if (ret != WIDGET_ERROR_NONE) {
  *          LOGE("Failed to initialize the widget viewer");
  *      }
  *      return true;

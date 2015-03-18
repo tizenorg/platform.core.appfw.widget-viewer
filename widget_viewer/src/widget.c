@@ -104,7 +104,7 @@ static int default_launch_handler(widget_h handle, const char *appid, void *data
 	   }
 	*/
 
-	return ret > 0 ? WIDGET_STATUS_ERROR_NONE : WIDGET_STATUS_ERROR_FAULT;
+	return ret > 0 ? WIDGET_ERROR_NONE : WIDGET_ERROR_FAULT;
 }
 
 static inline void default_create_cb(widget_h handle, int ret, void *data)
@@ -162,11 +162,11 @@ static void update_mode_cb(widget_h handle, const struct packet *result, void *d
 	int ret;
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto errout;
 	}
 
@@ -184,7 +184,7 @@ errout:
 	handle->common->request.update_mode = 0;
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -196,11 +196,11 @@ static void resize_cb(widget_h handle, const struct packet *result, void *data)
 	int ret;
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto errout;
 	}
 
@@ -227,7 +227,7 @@ errout:
 	handle->common->request.size_changed = 0;
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -246,10 +246,10 @@ static void text_signal_cb(widget_h handle, const struct packet *result, void *d
 	_widget_destroy_cb_info(info);
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (cb) {
@@ -263,11 +263,11 @@ static void set_group_ret_cb(widget_h handle, const struct packet *result, void 
 	int ret;
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto errout;
 	}
 
@@ -284,7 +284,7 @@ errout:
 	handle->common->request.group_changed = 0;
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -296,11 +296,11 @@ static void period_ret_cb(widget_h handle, const struct packet *result, void *da
 	int ret;
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto errout;
 	}
 
@@ -317,7 +317,7 @@ errout:
 	handle->common->request.period_changed = 0;
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -329,10 +329,10 @@ static void gbar_create_cb(widget_h handle, const struct packet *result, void *d
 	int ret;
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto errout;
 	}
 
@@ -350,7 +350,7 @@ errout:
 	handle->common->request.gbar_created = 0;
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -370,9 +370,9 @@ static void activated_cb(widget_h handle, const struct packet *result, void *dat
 	_widget_destroy_cb_info(info);
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "is", &ret, &pkgname) != 2) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (cb) {
@@ -393,13 +393,13 @@ static void gbar_destroy_cb(widget_h handle, const struct packet *result, void *
 
 	if (!result) {
 		ErrPrint("Result is NIL (may connection lost)\n");
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid parameter\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.gbar_destroyed.cb = cb;
 		handle->cbs.gbar_destroyed.data = cbdata;
 	} else {
@@ -424,9 +424,9 @@ static void _delete_cluster_cb(widget_h handle, const struct packet *result, voi
 	_widget_destroy_cb_info(info);
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (cb) {
@@ -446,9 +446,9 @@ static void _delete_category_cb(widget_h handle, const struct packet *result, vo
 	_widget_destroy_cb_info(info);
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (cb) {
@@ -466,19 +466,19 @@ static int _widget_acquire_widget_pixmap(widget_h handle, widget_ret_cb cb, void
 
 	id = fb_id(handle->common->widget.fb);
 	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create((const char *)&cmd, "ss", handle->common->pkgname, handle->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, widget_pixmap_acquired_cb, cbinfo);
@@ -492,7 +492,7 @@ static int _widget_acquire_widget_pixmap(widget_h handle, widget_ret_cb cb, void
 static void widget_pixmap_acquired_cb(widget_h handle, const struct packet *result, void *data)
 {
 	int pixmap;
-	int ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+	int ret = WIDGET_ERROR_INVALID_PARAMETER;
 	widget_ret_cb cb;
 	void *cbdata;
 	struct cb_info *info = data;
@@ -507,11 +507,11 @@ static void widget_pixmap_acquired_cb(widget_h handle, const struct packet *resu
 		pixmap = 0;
 	}
 
-	if (ret == (int)WIDGET_STATUS_ERROR_BUSY) {
+	if (ret == (int)WIDGET_ERROR_RESOURCE_BUSY) {
 		ret = _widget_acquire_widget_pixmap(handle, cb, cbdata);
 		DbgPrint("Busy, Try again: %d\n", ret);
 		/* Try again */
-	} else if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+	} else if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 		if (cb) {
 			cb(handle, pixmap, cbdata);
 		}
@@ -530,7 +530,7 @@ static void widget_pixmap_acquired_cb(widget_h handle, const struct packet *resu
 static void widget_xpixmap_acquired_cb(widget_h handle, const struct packet *result, void *data)
 {
 	int pixmap;
-	int ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+	int ret = WIDGET_ERROR_INVALID_PARAMETER;
 	widget_ret_cb cb;
 	void *cbdata;
 	struct cb_info *info = data;
@@ -550,7 +550,7 @@ static void widget_xpixmap_acquired_cb(widget_h handle, const struct packet *res
 	}
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -567,13 +567,13 @@ static int widget_acquire_gbar_extra_pixmap(widget_h handle, int idx, widget_ret
 	packet = packet_create((const char *)&cmd, "ssi", handle->common->pkgname, handle->common->id, idx);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, gbar_xpixmap_acquired_cb, cbinfo);
@@ -598,13 +598,13 @@ static int widget_acquire_widget_extra_pixmap(widget_h handle, int idx, widget_r
 	packet = packet_create((const char *)&cmd, "ssi", handle->common->pkgname, handle->common->id, idx);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, widget_xpixmap_acquired_cb, cbinfo);
@@ -629,19 +629,19 @@ static int widget_acquire_gbar_pixmap(widget_h handle, widget_ret_cb cb, void *d
 
 	id = fb_id(handle->common->gbar.fb);
 	if (!id || strncasecmp(id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create((const char *)&cmd, "ss", handle->common->pkgname, handle->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, gbar_pixmap_acquired_cb, cbinfo);
@@ -670,10 +670,10 @@ static void gbar_xpixmap_acquired_cb(widget_h handle, const struct packet *resul
 
 	if (!result) {
 		pixmap = 0; /* PIXMAP 0 means error */
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "ii", &pixmap, &ret) != 2) {
 		pixmap = 0;
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (cb) {
@@ -682,7 +682,7 @@ static void gbar_xpixmap_acquired_cb(widget_h handle, const struct packet *resul
 	}
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -703,17 +703,17 @@ static void gbar_pixmap_acquired_cb(widget_h handle, const struct packet *result
 
 	if (!result) {
 		pixmap = 0; /* PIXMAP 0 means error */
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "ii", &pixmap, &ret) != 2) {
 		pixmap = 0;
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	if (ret == (int)WIDGET_STATUS_ERROR_BUSY) {
+	if (ret == (int)WIDGET_ERROR_RESOURCE_BUSY) {
 		ret = widget_acquire_gbar_pixmap(handle, cb, cbdata);
 		DbgPrint("Busy, Try again: %d\n", ret);
 		/* Try again */
-	} else if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+	} else if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 		if (cb) {
 			cb(handle, pixmap, cbdata);
 		}
@@ -735,7 +735,7 @@ static void pinup_done_cb(widget_h handle, const struct packet *result, void *da
 	int ret;
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto errout;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		goto errout;
@@ -754,7 +754,7 @@ errout:
 	handle->common->request.pinup = 0;
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -766,16 +766,16 @@ static void key_ret_cb(widget_h handle, const struct packet *result, void *data)
 	int ret;
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		return;
 	}
 
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		goto errout;
 	}
 
@@ -787,7 +787,7 @@ errout:
 	handle->common->request.key_event = 0;
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -799,16 +799,16 @@ static void access_ret_cb(widget_h handle, const struct packet *result, void *da
 	int ret;
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		return;
 	}
 
 	if (packet_get(result, "i", &ret) != 1) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		return;
 	}
 
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		goto errout;
 	}
 
@@ -821,7 +821,7 @@ errout:
 	handle->common->request.access_event = 0;
 
 	if (handle->common->state != WIDGET_STATE_DELETE) {
-		if (ret == (int)WIDGET_STATUS_ERROR_NOT_EXIST && handle->refcnt == 2) {
+		if (ret == (int)WIDGET_ERROR_NOT_EXIST && handle->refcnt == 2) {
 			_widget_invoke_event_handler(handle, WIDGET_EVENT_DELETED);
 			_widget_unref(handle, 1);
 		}
@@ -838,7 +838,7 @@ static int send_access_event(widget_h handle, const char *event, int x, int y, i
 	packet = packet_create(event, "ssdiii", handle->common->pkgname, handle->common->id, timestamp, x, y, type);
 	if (!packet) {
 		ErrPrint("Failed to build packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_async_request(handle, packet, 0, access_ret_cb, NULL);
@@ -853,7 +853,7 @@ static int send_key_event(widget_h handle, const char *event, unsigned int keyco
 	packet = packet_create(event, "ssdi", handle->common->pkgname, handle->common->id, timestamp, keycode);
 	if (!packet) {
 		ErrPrint("Failed to build packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_async_request(handle, packet, 0, key_ret_cb, NULL);
@@ -868,7 +868,7 @@ static int send_mouse_event(widget_h handle, const char *event, int x, int y)
 	packet = packet_create_noack(event, "ssdii", handle->common->pkgname, handle->common->id, timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(handle, packet);
@@ -886,18 +886,18 @@ static int initialize_widget(void *disp, int use_thread)
 	}
 #endif
 	ret = widget_service_init();
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		return ret;
 	}
 
 	ret = fb_init(disp);
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		widget_service_fini();
 		return ret;
 	}
 
 	ret = client_init(use_thread);
-	if (ret != WIDGET_STATUS_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE) {
 		fb_fini();
 		widget_service_fini();
 		return ret;
@@ -948,13 +948,13 @@ static int job_add(widget_h handle, widget_ret_cb job_cb, int ret, void *data)
 
 	if (!job_cb) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	item = malloc(sizeof(*item));
 	if (!item) {
 		ErrPrint("Heap: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	item->handle = _widget_ref(handle);
@@ -971,7 +971,7 @@ static int job_add(widget_h handle, widget_ret_cb job_cb, int ret, void *data)
 		}
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static void new_ret_cb(widget_h handle, const struct packet *result, void *data)
@@ -986,9 +986,9 @@ static void new_ret_cb(widget_h handle, const struct packet *result, void *data)
 	_widget_destroy_cb_info(info);
 
 	if (!result) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (ret >= 0) {
@@ -1029,16 +1029,16 @@ static int create_real_instance(widget_h handle, widget_ret_cb cb, void *data)
 			common->widget.period, common->widget.width, common->widget.height);
 	if (!packet) {
 		ErrPrint("Failed to create a new packet\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
-		return WIDGET_STATUS_ERROR_FAULT;
+		set_last_result(WIDGET_ERROR_FAULT);
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		ErrPrint("Failed to create a cbinfo\n");
 		packet_destroy(packet);
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	/*!
@@ -1050,11 +1050,11 @@ static int create_real_instance(widget_h handle, widget_ret_cb cb, void *data)
 	if (ret < 0) {
 		ErrPrint("Failed to send a new packet\n");
 		_widget_destroy_cb_info(cbinfo);
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
-		return WIDGET_STATUS_ERROR_FAULT;
+		set_last_result(WIDGET_ERROR_FAULT);
+		return WIDGET_ERROR_FAULT;
 	}
 	handle->common->request.created = 1;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static void create_cb(widget_h handle, int ret, void *data)
@@ -1081,14 +1081,14 @@ static int create_fake_instance(widget_h handle, widget_ret_cb cb, void *data)
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		ErrPrint("Failed to create a cbinfo\n");
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
-	if (job_add(handle, create_cb, WIDGET_STATUS_ERROR_NONE, cbinfo) != WIDGET_STATUS_ERROR_NONE) {
+	if (job_add(handle, create_cb, WIDGET_ERROR_NONE, cbinfo) != WIDGET_ERROR_NONE) {
 		_widget_destroy_cb_info(cbinfo);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static void refresh_for_paused_updating_cb(widget_h handle, int ret, void *data)
@@ -1113,35 +1113,35 @@ static int _widget_set_visibility(widget_h handle, widget_visible_state_e state)
 		need_to_add_job = !!handle->paused_updating;
 	} else if (handle->common->visible == WIDGET_SHOW && state != WIDGET_SHOW) {
 		if (!!_widget_find_widget_in_show(handle->common)) {
-			return WIDGET_STATUS_ERROR_NONE;
+			return WIDGET_ERROR_NONE;
 		}
 	} else if (handle->common->visible == WIDGET_SHOW && state == WIDGET_SHOW && handle->paused_updating) {
-		if (job_add(handle, refresh_for_paused_updating_cb, WIDGET_STATUS_ERROR_NONE, NULL) < 0) {
+		if (job_add(handle, refresh_for_paused_updating_cb, WIDGET_ERROR_NONE, NULL) < 0) {
 			ErrPrint("Unable to add a new job for refreshing box\n");
 		}
 
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	} else {
 		/*!
 		 * \brief
 		 * No need to send this to the master
 		 */
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	packet = packet_create_noack((const char *)&cmd, "ssi", handle->common->pkgname, handle->common->id, (int)state);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_request_only(handle, packet);
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		DbgPrint("[%s] visibility is changed 0x[%x]\n", handle->common->pkgname, state);
 		handle->common->visible = state;
 
 		if (need_to_add_job) {
-			if (job_add(handle, refresh_for_paused_updating_cb, WIDGET_STATUS_ERROR_NONE, NULL) < 0) {
+			if (job_add(handle, refresh_for_paused_updating_cb, WIDGET_ERROR_NONE, NULL) < 0) {
 				ErrPrint("Unable to add a new job for refreshing box\n");
 			}
 		}
@@ -1188,7 +1188,7 @@ static void _job_del_cb(widget_h handle, int type, void *data)
 	if (handle->common->state != WIDGET_STATE_CREATE) {
 		DbgPrint("[%s] %d\n", handle->common->pkgname, handle->refcnt);
 		if (cb) {
-			cb(handle, WIDGET_STATUS_ERROR_NONE, data);
+			cb(handle, WIDGET_ERROR_NONE, data);
 		}
 
 		return;
@@ -1209,7 +1209,7 @@ static void _job_del_cb(widget_h handle, int type, void *data)
 			 * call it at here.
 			 */
 			if (cb) {
-				cb(handle, WIDGET_STATUS_ERROR_NONE, data);
+				cb(handle, WIDGET_ERROR_NONE, data);
 			}
 		}
 
@@ -1217,7 +1217,7 @@ static void _job_del_cb(widget_h handle, int type, void *data)
 		_widget_send_delete(handle, type, cb, data);
 	} else {
 		if (cb) {
-			cb(handle, WIDGET_STATUS_ERROR_NONE, data);
+			cb(handle, WIDGET_ERROR_NONE, data);
 		}
 
 		DbgPrint("Before unref: %d\n", handle->common->refcnt);
@@ -1284,7 +1284,7 @@ EAPI int widget_viewer_init(void *disp, int prevent_overwrite, double event_filt
 {
 	if (s_info.init_count > 0) {
 		s_info.init_count++;
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	/*!
@@ -1302,19 +1302,19 @@ EAPI int widget_viewer_fini(void)
 {
 	if (s_info.init_count <= 0) {
 		ErrPrint("Doesn't initialized\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	s_info.init_count--;
 	if (s_info.init_count > 0) {
 		ErrPrint("init count : %d\n", s_info.init_count);
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	client_fini();
 	fb_fini();
 	widget_service_fini();
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI widget_h widget_viewer_add_widget(const char *pkgname, const char *content, const char *cluster, const char *category, double period, widget_size_type_e type, widget_ret_cb cb, void *data)
@@ -1327,21 +1327,21 @@ EAPI widget_h widget_viewer_add_widget(const char *pkgname, const char *content,
 	if (!pkgname || !cluster || !category) {
 		ErrPrint("Invalid arguments: pkgname[%p], cluster[%p], category[%p]\n",
 				pkgname, cluster, category);
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	widgetid = _widget_pkgname(pkgname);
 	if (!widgetid) {
 		ErrPrint("Invalid package: %s\n", pkgname);
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (widget_service_is_enabled(widgetid) == 0) {
 		DbgPrint("Livebox [%s](%s) is disabled package\n", widgetid, pkgname);
 		free(widgetid);
-		widget_set_last_status(WIDGET_STATUS_ERROR_DISABLED);
+		set_last_result(WIDGET_ERROR_DISABLED);
 		return NULL;
 	}
 
@@ -1353,7 +1353,7 @@ EAPI widget_h widget_viewer_add_widget(const char *pkgname, const char *content,
 	if (!handle) {
 		ErrPrint("Error: %s\n", strerror(errno));
 		free(widgetid);
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -1440,24 +1440,24 @@ EAPI widget_h widget_viewer_add_widget(const char *pkgname, const char *content,
 
 EAPI int widget_viewer_get_period(widget_h handle, double *period)
 {
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 	double result_period = -1.0f;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE || period == NULL) {
 		ErrPrint("Handler is not valid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Hnalder is not valid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
@@ -1478,38 +1478,38 @@ EAPI int widget_viewer_set_period(widget_h handle, double period, widget_ret_cb 
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->request.period_changed) {
 		ErrPrint("Previous request for changing period is not finished\n");
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	if (!handle->common->is_user) {
 		ErrPrint("CA Livebox is not able to change the period\n");
-		return WIDGET_STATUS_ERROR_PERMISSION_DENIED;
+		return WIDGET_ERROR_PERMISSION_DENIED;
 	}
 
 	if (handle->common->widget.period == period) {
 		DbgPrint("No changes\n");
-		return WIDGET_STATUS_ERROR_ALREADY;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
 	packet = packet_create((const char *)&cmd, "ssd", handle->common->pkgname, handle->common->id, period);
 	if (!packet) {
 		ErrPrint("Failed to build a packet %s\n", handle->common->pkgname);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!cb) {
@@ -1517,7 +1517,7 @@ EAPI int widget_viewer_set_period(widget_h handle, double period, widget_ret_cb 
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, period_ret_cb, NULL);
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.period_changed.cb = cb;
 		handle->cbs.period_changed.data = data;
 		handle->common->request.period_changed = 1;
@@ -1532,12 +1532,12 @@ EAPI int widget_viewer_delete_widget(widget_h handle, widget_delete_type_e type,
 
 	if (!handle) {
 		ErrPrint("Handler is NIL\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is already deleted\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle->state = WIDGET_STATE_DELETE;
@@ -1545,22 +1545,22 @@ EAPI int widget_viewer_delete_widget(widget_h handle, widget_delete_type_e type,
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		ErrPrint("Failed to create a cbinfo\n");
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
-	if (job_add(handle, _job_del_cb, type, cbinfo) != WIDGET_STATUS_ERROR_NONE) {
+	if (job_add(handle, _job_del_cb, type, cbinfo) != WIDGET_ERROR_NONE) {
 		ErrPrint("Failed to add a new job\n");
 		_widget_destroy_cb_info(cbinfo);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_add_fault_handler(widget_fault_handler_cb widget_cb, void *data)
 {
 	if (!widget_cb) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return _widget_add_fault_handler(widget_cb, data);
@@ -1579,7 +1579,7 @@ EAPI int widget_viewer_add_event_handler(widget_event_handler_cb widget_cb, void
 {
 	if (!widget_cb) {
 		ErrPrint("Invalid argument widget_cb is nil\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return _widget_add_event_handler(widget_cb, data);
@@ -1602,35 +1602,35 @@ EAPI int widget_viewer_set_update_mode(widget_h handle, int active_update, widge
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is Invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is Invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is Invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->request.update_mode) {
 		ErrPrint("Previous update_mode cb is not finished yet\n");
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	if (handle->common->is_active_update == active_update) {
-		return WIDGET_STATUS_ERROR_ALREADY;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
 	if (!handle->common->is_user) {
-		return WIDGET_STATUS_ERROR_PERMISSION_DENIED;
+		return WIDGET_ERROR_PERMISSION_DENIED;
 	}
 
 	packet = packet_create((const char *)&cmd, "ssi", handle->common->pkgname, handle->common->id, active_update);
 	if (!packet) {
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!cb) {
@@ -1638,7 +1638,7 @@ EAPI int widget_viewer_set_update_mode(widget_h handle, int active_update, widge
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, update_mode_cb, NULL);
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.update_mode.cb = cb;
 		handle->cbs.update_mode.data = data;
 		handle->common->request.update_mode = 1;
@@ -1651,16 +1651,16 @@ EAPI int widget_viewer_is_active_update(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is Invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is Invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return handle->common->is_active_update;
@@ -1681,17 +1681,17 @@ EAPI int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, w
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	/*!
@@ -1702,22 +1702,22 @@ EAPI int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, w
 	 */
 	if (handle->cbs.size_changed.cb) {
 		ErrPrint("Previous resize request is not finished yet\n");
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	if (widget_service_get_size(type, &w, &h) != 0) {
 		ErrPrint("Invalid size type\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->widget.width == w && handle->common->widget.height == h) {
 		DbgPrint("No changes\n");
-		return WIDGET_STATUS_ERROR_ALREADY;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
 	if (!handle->common->is_user) {
 		ErrPrint("CA Livebox is not able to be resized\n");
-		return WIDGET_STATUS_ERROR_PERMISSION_DENIED;
+		return WIDGET_ERROR_PERMISSION_DENIED;
 	}
 
 	if (handle->common->refcnt <= 1) {
@@ -1728,7 +1728,7 @@ EAPI int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, w
 		packet = packet_create((const char *)&cmd, "ssii", handle->common->pkgname, handle->common->id, w, h);
 		if (!packet) {
 			ErrPrint("Failed to build param\n");
-			return WIDGET_STATUS_ERROR_FAULT;
+			return WIDGET_ERROR_FAULT;
 		}
 
 		if (!cb) {
@@ -1736,7 +1736,7 @@ EAPI int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, w
 		}
 
 		ret = master_rpc_async_request(handle, packet, 0, resize_cb, NULL);
-		if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+		if (ret == (int)WIDGET_ERROR_NONE) {
 			handle->cbs.size_changed.cb = cb;
 			handle->cbs.size_changed.data = data;
 			handle->common->request.size_changed = 1;
@@ -1760,7 +1760,7 @@ EAPI int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, w
 			common = _widget_create_common_handle(handle, old_common->pkgname, old_common->cluster, old_common->category);
 			if (!common) {
 				ErrPrint("Failed to create common handle\n");
-				return WIDGET_STATUS_ERROR_FAULT;
+				return WIDGET_ERROR_FAULT;
 			}
 
 			_widget_set_size(common, w, h);
@@ -1813,10 +1813,10 @@ EAPI int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, w
 			cbinfo = _widget_create_cb_info(cb, data);
 			if (!cbinfo) {
 				ErrPrint("Failed to create a cbinfo\n");
-				ret = WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+				ret = WIDGET_ERROR_OUT_OF_MEMORY;
 			} else {
-				ret = job_add(handle, _resize_job_cb, WIDGET_STATUS_ERROR_NONE, cbinfo);
-				if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+				ret = job_add(handle, _resize_job_cb, WIDGET_ERROR_NONE, cbinfo);
+				if (ret == (int)WIDGET_ERROR_NONE) {
 					struct widget_common *old_common;
 
 					old_common = handle->common;
@@ -1851,17 +1851,17 @@ EAPI int widget_viewer_send_click_event(widget_h handle, double x, double y)
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->widget.auto_launch) {
@@ -1879,7 +1879,7 @@ EAPI int widget_viewer_send_click_event(widget_h handle, double x, double y)
 	packet = packet_create_noack((const char *)&cmd, "sssddd", handle->common->pkgname, handle->common->id, "clicked", timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_request_only(handle, packet);
@@ -1890,17 +1890,17 @@ EAPI int widget_viewer_has_glance_bar(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return !!handle->common->gbar.fb;
@@ -1910,17 +1910,17 @@ EAPI int widget_viewer_glance_bar_is_created(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->gbar.fb || !handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return handle->common->is_gbar_created;
@@ -1934,17 +1934,17 @@ EAPI int widget_viewer_create_glance_bar(widget_h handle, double x, double y, wi
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->gbar.fb || !handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	/*!
@@ -1953,12 +1953,12 @@ EAPI int widget_viewer_create_glance_bar(widget_h handle, double x, double y, wi
 	 */
 	if (handle->common->is_gbar_created) {
 		DbgPrint("GBAR is already created\n");
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	if (handle->common->request.gbar_created) {
 		ErrPrint("Previous request is not completed yet\n");
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	/*!
@@ -1966,7 +1966,7 @@ EAPI int widget_viewer_create_glance_bar(widget_h handle, double x, double y, wi
 	 * Turn off the gbar_destroyed request flag
 	 */
 	if (handle->common->request.gbar_destroyed) {
-		if (job_add(handle, _turn_off_gbar_destroyed_flag_cb, WIDGET_STATUS_ERROR_CANCEL, NULL) < 0) {
+		if (job_add(handle, _turn_off_gbar_destroyed_flag_cb, WIDGET_ERROR_CANCELED, NULL) < 0) {
 			ErrPrint("Failed to add gbar_destroyed job\n");
 		}
 	}
@@ -1974,7 +1974,7 @@ EAPI int widget_viewer_create_glance_bar(widget_h handle, double x, double y, wi
 	packet = packet_create((const char *)&cmd, "ssdd", handle->common->pkgname, handle->common->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!cb) {
@@ -1983,7 +1983,7 @@ EAPI int widget_viewer_create_glance_bar(widget_h handle, double x, double y, wi
 
 	DbgPrint("PERF_WIDGET\n");
 	ret = master_rpc_async_request(handle, packet, 0, gbar_create_cb, NULL);
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.gbar_created.cb = cb;
 		handle->cbs.gbar_created.data = data;
 		handle->common->request.gbar_created = 1;
@@ -1999,28 +1999,28 @@ EAPI int widget_viewer_move_glance_bar(widget_h handle, double x, double y)
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->gbar.fb || !handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->is_gbar_created) {
 		ErrPrint("GBAR is not created\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create_noack((const char *)&cmd, "ssdd", handle->common->pkgname, handle->common->id, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(handle, packet);
@@ -2034,20 +2034,20 @@ EAPI int widget_viewer_activate_faulted_widget(const char *pkgname, widget_ret_c
 	int ret;
 
 	if (!pkgname) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create((const char *)&cmd, "s", pkgname);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		ErrPrint("Unable to create cbinfo\n");
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 0, activated_cb, cbinfo);
@@ -2067,17 +2067,17 @@ EAPI int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, voi
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->gbar.fb || !handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	/*!
@@ -2088,12 +2088,12 @@ EAPI int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, voi
 	 */
 	if (!handle->common->is_gbar_created && !handle->common->request.gbar_created) {
 		ErrPrint("GBAR is not created\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->request.gbar_destroyed) {
 		ErrPrint("GBAR destroy request is already sent\n");
-		return WIDGET_STATUS_ERROR_ALREADY;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
 	/*!
@@ -2101,7 +2101,7 @@ EAPI int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, voi
 	 * Disable the gbar_created request flag
 	 */
 	if (handle->common->request.gbar_created) {
-		if (job_add(handle, _turn_off_gbar_created_flag_cb, WIDGET_STATUS_ERROR_CANCEL, NULL) < 0) {
+		if (job_add(handle, _turn_off_gbar_created_flag_cb, WIDGET_ERROR_CANCELED, NULL) < 0) {
 			ErrPrint("Failed to add a new job\n");
 		}
 	}
@@ -2111,7 +2111,7 @@ EAPI int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, voi
 	packet = packet_create((const char *)&cmd, "ss", handle->common->pkgname, handle->common->id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!cb) {
@@ -2121,7 +2121,7 @@ EAPI int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, voi
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, gbar_destroy_cb, cbinfo);
@@ -2143,28 +2143,28 @@ EAPI int widget_viewer_feed_access_event(widget_h handle, widget_access_event_ty
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->request.access_event) {
 		ErrPrint("Previous access event is not yet done\n");
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	if (type & WIDGET_ACCESS_EVENT_GBAR_MASK) {
 		if (!handle->common->is_gbar_created) {
 			ErrPrint("GBAR is not created\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		w = handle->common->gbar.width;
@@ -2207,7 +2207,7 @@ EAPI int widget_viewer_feed_access_event(widget_h handle, widget_access_event_ty
 			ret = info->type;
 			break;
 		default:
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 	} else if (type & WIDGET_ACCESS_EVENT_WIDGET_MASK) {
@@ -2250,11 +2250,11 @@ EAPI int widget_viewer_feed_access_event(widget_h handle, widget_access_event_ty
 			ret = info->type;
 			break;
 		default:
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 	} else {
 		ErrPrint("Invalid event type\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!cb) {
@@ -2262,7 +2262,7 @@ EAPI int widget_viewer_feed_access_event(widget_h handle, widget_access_event_ty
 	}
 
 	ret = send_access_event(handle, (const char *)&cmd, info->x * w, info->y * h, ret);
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.access_event.cb = cb;
 		handle->cbs.access_event.data = data;
 		handle->common->request.access_event = 1;
@@ -2279,22 +2279,22 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!(type & WIDGET_MOUSE_EVENT_MASK)) {
 		ErrPrint("Invalid content event is used\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (type & WIDGET_MOUSE_EVENT_GBAR_MASK) {
@@ -2302,17 +2302,17 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 
 		if (!handle->common->is_gbar_created) {
 			ErrPrint("GBAR is not created\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		if (!handle->common->gbar.fb) {
 			ErrPrint("Handler is not valid\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		if (type & WIDGET_MOUSE_EVENT_MOVE) {
 			if (fabs(info->x - handle->common->gbar.x) < conf_event_filter() && fabs(info->y - handle->common->gbar.y) < conf_event_filter()) {
-				return WIDGET_STATUS_ERROR_BUSY;
+				return WIDGET_ERROR_RESOURCE_BUSY;
 			}
 		} else if (type & WIDGET_MOUSE_EVENT_SET) {
 			flag = 0;
@@ -2361,7 +2361,7 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 			break;
 		default:
 			ErrPrint("Invalid event type\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 	} else if (type & WIDGET_MOUSE_EVENT_WIDGET_MASK) {
@@ -2369,12 +2369,12 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 
 		if (!handle->common->widget.fb) {
 			ErrPrint("Handler is not valid\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		if (type & WIDGET_MOUSE_EVENT_MOVE) {
 			if (fabs(info->x - handle->common->widget.x) < conf_event_filter() && fabs(info->y - handle->common->widget.y) < conf_event_filter()) {
-				return WIDGET_STATUS_ERROR_BUSY;
+				return WIDGET_ERROR_RESOURCE_BUSY;
 			}
 		} else if (type & WIDGET_MOUSE_EVENT_SET) {
 			flag = 0;
@@ -2402,19 +2402,19 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 			break;
 		case WIDGET_MOUSE_EVENT_MOVE | WIDGET_MOUSE_EVENT_MASK:
 			if (!handle->common->widget.mouse_event) {
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 			cmd = CMD_WIDGET_MOUSE_MOVE;
 			break;
 		case WIDGET_MOUSE_EVENT_SET | WIDGET_MOUSE_EVENT_MASK:
 			if (!handle->common->widget.mouse_event) {
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 			cmd = CMD_WIDGET_MOUSE_SET;
 			break;
 		case WIDGET_MOUSE_EVENT_UNSET | WIDGET_MOUSE_EVENT_MASK:
 			if (!handle->common->widget.mouse_event) {
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 			cmd = CMD_WIDGET_MOUSE_UNSET;
 			break;
@@ -2432,11 +2432,11 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 			break;
 		default:
 			ErrPrint("Invalid event type\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 	} else {
 		ErrPrint("Invalid event type\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return send_mouse_event(handle, (const char *)&cmd, info->x * w, info->y * h);
@@ -2449,38 +2449,38 @@ EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e t
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!(type & WIDGET_KEY_EVENT_MASK)) {
 		ErrPrint("Invalid key event is used\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->request.key_event) {
 		ErrPrint("Previous key event is not completed yet\n");
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	if (type & WIDGET_MOUSE_EVENT_GBAR_MASK) {
 		if (!handle->common->is_gbar_created) {
 			ErrPrint("GBAR is not created\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		if (!handle->common->gbar.fb) {
 			ErrPrint("Handler is not valid\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		if (type & WIDGET_KEY_EVENT_DOWN) {
@@ -2519,13 +2519,13 @@ EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e t
 			break;
 		default:
 			ErrPrint("Invalid event type\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 	} else if (type & WIDGET_MOUSE_EVENT_WIDGET_MASK) {
 		if (!handle->common->widget.fb) {
 			ErrPrint("Handler is not valid\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		if (type & WIDGET_KEY_EVENT_DOWN) {
@@ -2560,11 +2560,11 @@ EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e t
 			break;
 		default:
 			ErrPrint("Invalid event type\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 	} else {
 		ErrPrint("Invalid event type\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!cb) {
@@ -2572,7 +2572,7 @@ EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e t
 	}
 
 	ret = send_key_event(handle, (const char *)&cmd, info->keycode);
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.key_event.cb = cb;
 		handle->cbs.key_event.data = data;
 		handle->common->request.key_event = 1;
@@ -2603,7 +2603,7 @@ EAPI const char *widget_viewer_get_filename(widget_h handle)
 	}
 
 	/* Oooops */
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	return util_uri_to_path(handle->common->id);
 }
 
@@ -2614,17 +2614,17 @@ EAPI int widget_viewer_get_glance_bar_size(widget_h handle, int *w, int *h)
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!w) {
@@ -2642,31 +2642,31 @@ EAPI int widget_viewer_get_glance_bar_size(widget_h handle, int *w, int *h)
 		*h = handle->common->gbar.height;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_get_size_type(widget_h handle, widget_size_type_e *size_type)
 {
 	int w;
 	int h;
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 	widget_size_type_e result_size_type = WIDGET_SIZE_TYPE_UNKNOWN;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE || size_type == NULL) {
 		ErrPrint("Handler is invalid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
@@ -2679,14 +2679,14 @@ EAPI int widget_viewer_get_size_type(widget_h handle, widget_size_type_e *size_t
 		if (!fb_is_created(handle->common->widget.fb)) {
 			w = 0;
 			h = 0;
-			ret = WIDGET_STATUS_ERROR_NOT_EXIST;
+			ret = WIDGET_ERROR_NOT_EXIST;
 		}
 		break;
 	default:
 		break;
 	}
 
-	if ((ret = widget_service_get_size_type(w, h, &result_size_type)) != WIDGET_STATUS_ERROR_NONE) {
+	if ((ret = widget_service_get_size_type(w, h, &result_size_type)) != WIDGET_ERROR_NONE) {
 		ErrPrint("widget_service_get_size_type failed : %d\n", ret);
 		goto out;
 	}
@@ -2707,43 +2707,43 @@ EAPI int widget_viewer_set_group(widget_h handle, const char *cluster, const cha
 
 	if (!handle) {
 		ErrPrint("Handler is NIL\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!cluster || !category || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->request.group_changed) {
 		ErrPrint("Previous group changing request is not finished yet\n");
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	if (!handle->common->is_user) {
 		ErrPrint("CA Livebox is not able to change the group\n");
-		return WIDGET_STATUS_ERROR_PERMISSION_DENIED;
+		return WIDGET_ERROR_PERMISSION_DENIED;
 	}
 
 	if (!strcmp(handle->common->cluster, cluster) && !strcmp(handle->common->category, category)) {
 		DbgPrint("No changes\n");
-		return WIDGET_STATUS_ERROR_ALREADY;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
 	packet = packet_create((const char *)&cmd, "ssss", handle->common->pkgname, handle->common->id, cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!cb) {
@@ -2751,7 +2751,7 @@ EAPI int widget_viewer_set_group(widget_h handle, const char *cluster, const cha
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, set_group_ret_cb, NULL);
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.group_changed.cb = cb;
 		handle->cbs.group_changed.data = data;
 		handle->common->request.group_changed = 1;
@@ -2764,27 +2764,27 @@ EAPI int widget_viewer_get_group(widget_h handle, const char **cluster, const ch
 {
 	if (!handle) {
 		ErrPrint("Handler is NIL\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!cluster || !category || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	*cluster = handle->common->cluster;
 	*category = handle->common->category;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_get_supported_sizes(widget_h handle, int *cnt, widget_size_type_e *size_list)
@@ -2794,22 +2794,22 @@ EAPI int widget_viewer_get_supported_sizes(widget_h handle, int *cnt, widget_siz
 
 	if (!handle || !size_list) {
 		ErrPrint("Invalid argument, handle(%p), size_list(%p)\n", handle, size_list);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!cnt || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	for (j = i = 0; i < WIDGET_NR_OF_SIZE_LIST; i++) {
@@ -2823,53 +2823,53 @@ EAPI int widget_viewer_get_supported_sizes(widget_h handle, int *cnt, widget_siz
 	}
 
 	*cnt = j;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI const char *widget_viewer_get_pkgname(widget_h handle)
 {
 	if (!handle) {
 		ErrPrint("Handler is NIL\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	return handle->common->pkgname;
 }
 
 EAPI int widget_viewer_get_priority(widget_h handle, double *priority)
 {
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 	double result_priority = -1.0f;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE || priority == NULL) {
 		ErrPrint("Handler is invalid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid (%p)\n", handle);
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
@@ -2892,13 +2892,13 @@ EAPI int widget_delete_cluster(const char *cluster, widget_ret_cb cb, void *data
 	packet = packet_create((const char *)&cmd, "s", cluster);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 0, _delete_cluster_cb, cbinfo);
@@ -2919,13 +2919,13 @@ EAPI int widget_delete_category(const char *cluster, const char *category, widge
 	packet = packet_create((const char *)&cmd, "ss", cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(NULL, packet, 0, _delete_category_cb, cbinfo);
@@ -2938,26 +2938,26 @@ EAPI int widget_delete_category(const char *cluster, const char *category, widge
 
 EAPI int widget_viewer_get_type(widget_h handle, int gbar, widget_type_e *widget_type)
 {
-	int ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+	int ret = WIDGET_ERROR_INVALID_PARAMETER;
 	widget_type_e result_widget_type = WIDGET_CONTENT_TYPE_INVALID;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE || widget_type == NULL) {
 		ErrPrint("Handler is invalid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		result_widget_type = WIDGET_CONTENT_TYPE_INVALID;
 		goto out;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		result_widget_type =  WIDGET_CONTENT_TYPE_INVALID;
 		goto out;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		result_widget_type =  WIDGET_CONTENT_TYPE_INVALID;
 		goto out;
 	}
@@ -3023,12 +3023,12 @@ EAPI int widget_viewer_set_text_handler(widget_h handle, int gbar, struct widget
 {
 	if (!handle) {
 		ErrPrint("Handler is NIL\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (gbar) {
@@ -3037,28 +3037,28 @@ EAPI int widget_viewer_set_text_handler(widget_h handle, int gbar, struct widget
 		memcpy(&handle->cbs.widget_ops, ops, sizeof(*ops));
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, int idx, widget_ret_cb cb, void *data)
 {
 	if (idx < 0) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (gbar) {
@@ -3071,11 +3071,11 @@ EAPI int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, int 
 		 * handle->common.gbar.type == unknown
 		 */
 		if (!handle->common->gbar.extra_buffer) {
-			return WIDGET_STATUS_ERROR_NOT_EXIST;
+			return WIDGET_ERROR_NOT_EXIST;
 		}
 
 		if (idx >= conf_extra_buffer_count()) {
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		return widget_acquire_gbar_extra_pixmap(handle, idx, cb, data);
@@ -3090,12 +3090,12 @@ EAPI int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, int 
 		 */
 		if (!handle->common->widget.extra_buffer) {
 			ErrPrint("Extra buffer is not prepared\n");
-			return WIDGET_STATUS_ERROR_NOT_EXIST;
+			return WIDGET_ERROR_NOT_EXIST;
 		}
 
 		if (idx >= conf_extra_buffer_count()) {
 			ErrPrint("Invalid parameter: %d / %d\n", idx, conf_extra_buffer_count());
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		return widget_acquire_widget_extra_pixmap(handle, idx, cb, data);
@@ -3106,30 +3106,30 @@ EAPI int widget_viewer_acquire_resource_id(widget_h handle, int gbar, widget_ret
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (gbar) {
 		if (handle->common->gbar.type != GBAR_TYPE_SCRIPT && handle->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		return widget_acquire_gbar_pixmap(handle, cb, data);
 	} else {
 		if (handle->common->widget.type != WIDGET_TYPE_SCRIPT && handle->common->widget.type != WIDGET_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
-			return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		return _widget_acquire_widget_pixmap(handle, cb, data);
@@ -3153,7 +3153,7 @@ EAPI int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned i
 
 	if (resource_id == 0 /* || handle->state != WIDGET_STATE_CREATE */) {
 		ErrPrint("Pixmap is invalid [%d]\n", resource_id);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (gbar) {
@@ -3178,12 +3178,12 @@ EAPI int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned i
 		} else {
 			if (!handle->common /* || handle-common->state != WIDGET_STATE_CREATE */) {
 				ErrPrint("Handler is invalid\n");
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 
 			if (!handle->common->id) {
 				ErrPrint("Invalid handle\n");
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 
 			/**
@@ -3222,12 +3222,12 @@ EAPI int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned i
 		} else {
 			if (!handle->common /* || handle->common->state != WIDGET_STATE_CREATE */) {
 				ErrPrint("Handler is invalid\n");
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 
 			if (!handle->common->id) {
 				ErrPrint("Invalid handle\n");
-				return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+				return WIDGET_ERROR_INVALID_PARAMETER;
 			}
 
 			/**
@@ -3249,7 +3249,7 @@ EAPI int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned i
 	packet = packet_create_noack((const char *)&cmd, "ssi", pkgname, id, resource_id);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(handle, packet);
@@ -3258,25 +3258,25 @@ EAPI int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned i
 EAPI unsigned int widget_extra_resource_id(const widget_h handle, int gbar, int idx)
 {
 	if (idx < 0) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return 0u;
 	}
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return 0u;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return 0u;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return 0u;
 	}
 
@@ -3291,7 +3291,7 @@ EAPI unsigned int widget_extra_resource_id(const widget_h handle, int gbar, int 
 		 */
 
 		if (!handle->common->gbar.extra_buffer || handle->common->gbar.last_extra_buffer_idx < 0) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 			return 0u;
 		}
 
@@ -3307,7 +3307,7 @@ EAPI unsigned int widget_extra_resource_id(const widget_h handle, int gbar, int 
 		 */
 
 		if (!handle->common->widget.extra_buffer || handle->common->widget.last_extra_buffer_idx < 0) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 			return 0u;
 		}
 
@@ -3319,51 +3319,51 @@ EAPI int widget_viewer_get_resource_id(const widget_h handle, int gbar, unsigned
 {
 	const char *id;
 	unsigned int pixmap = 0u;
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE || resouce_id == NULL) {
 		ErrPrint("Handler is invalid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (gbar) {
 		if (handle->common->gbar.type != GBAR_TYPE_SCRIPT && handle->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Invalid handle\n");
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			goto out;
 		}
 
 		id = fb_id(handle->common->gbar.fb);
 		if (id && sscanf(id, SCHEMA_PIXMAP "%u", &pixmap) != 1) {
 			ErrPrint("PIXMAP Id is not valid\n");
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			goto out;
 		}
 	}
 	else {
 		if (handle->common->widget.type != WIDGET_TYPE_SCRIPT && handle->common->widget.type != WIDGET_TYPE_BUFFER) {
 			ErrPrint("Invalid handle\n");
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			goto out;
 		}
 
 		id = fb_id(handle->common->widget.fb);
 		if (id && sscanf(id, SCHEMA_PIXMAP "%u", &pixmap) != 1) {
 			ErrPrint("PIXMAP Id is not valid\n");
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			goto out;
 		}
 	}
@@ -3379,25 +3379,25 @@ EAPI void *widget_viewer_acquire_buffer(widget_h handle, int gbar)
 	if (gbar) {
 		if (!handle || handle->state != WIDGET_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (!handle->common->id) {
 			ErrPrint("Invalid handle\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (handle->common->gbar.type != GBAR_TYPE_SCRIPT && handle->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
@@ -3405,25 +3405,25 @@ EAPI void *widget_viewer_acquire_buffer(widget_h handle, int gbar)
 	} else {
 		if (!handle || handle->state != WIDGET_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 			ErrPrint("Handler is invalid\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (!handle->common->id) {
 			ErrPrint("Invalid handle\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (handle->common->widget.type != WIDGET_TYPE_SCRIPT && handle->common->widget.type != WIDGET_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
@@ -3445,20 +3445,20 @@ EAPI int widget_viewer_get_buffer_size(widget_h handle, int gbar)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (gbar) {
@@ -3472,20 +3472,20 @@ EAPI int widget_viewer_is_created_by_user(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return handle->common->is_user;
@@ -3499,33 +3499,33 @@ EAPI int widget_viewer_set_pinup(widget_h handle, int flag, widget_ret_cb cb, vo
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->request.pinup) {
 		ErrPrint("Previous pinup request is not finished\n");
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	if (handle->common->is_pinned_up == flag) {
 		DbgPrint("No changes\n");
-		return WIDGET_STATUS_ERROR_ALREADY;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
 	packet = packet_create((const char *)&cmd, "ssi", handle->common->pkgname, handle->common->id, flag);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!cb) {
@@ -3533,7 +3533,7 @@ EAPI int widget_viewer_set_pinup(widget_h handle, int flag, widget_ret_cb cb, vo
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, pinup_done_cb, NULL);
-	if (ret == (int)WIDGET_STATUS_ERROR_NONE) {
+	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.pinup.cb = cb;
 		handle->cbs.pinup.data = data;
 		handle->common->request.pinup = 1;
@@ -3546,20 +3546,20 @@ EAPI int widget_viewer_is_pinned_up(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return handle->common->is_pinned_up;
@@ -3569,20 +3569,20 @@ EAPI int widget_viewer_has_pinup(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	return handle->common->widget.pinup_supported;
@@ -3592,29 +3592,29 @@ EAPI int widget_viewer_set_data(widget_h handle, void *data)
 {
 	if (!handle) {
 		ErrPrint("Handler is NIL\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle->data = data;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI void *widget_viewer_get_data(widget_h handle)
 {
 	if (!handle) {
 		ErrPrint("Handler is NIL\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -3625,17 +3625,17 @@ EAPI const char *widget_viewer_get_content_string(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	return handle->common->content;
 }
 
@@ -3643,17 +3643,17 @@ EAPI const char *widget_viewer_get_title_string(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	return handle->common->title;
 }
 
@@ -3668,12 +3668,12 @@ EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s eve
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (handle->common->widget.type != WIDGET_TYPE_TEXT && handle->common->gbar.type != GBAR_TYPE_TEXT) {
@@ -3682,12 +3682,12 @@ EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s eve
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!event_info) {
 		ErrPrint("Invalid event info\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	emission = event_info->emission;
@@ -3707,13 +3707,13 @@ EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s eve
 			event_info->geometry.ex, event_info->geometry.ey);
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
 	if (!cbinfo) {
 		packet_destroy(packet);
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(handle, packet, 0, text_signal_cb, cbinfo);
@@ -3738,7 +3738,7 @@ EAPI int widget_viewer_subscribe_group(const char *cluster, const char *category
 	packet = packet_create_noack((const char *)&cmd, "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -3759,7 +3759,7 @@ EAPI int widget_viewer_unsubscribe_group(const char *cluster, const char *catego
 	packet = packet_create_noack((const char *)&cmd, "ss", cluster ? cluster : "", category ? category : "");
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -3771,13 +3771,13 @@ EAPI int widget_viewer_subscribe_category(const char *category)
 	unsigned int cmd = CMD_SUBSCRIBE_CATEGORY;
 
 	if (!category) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create_noack((const char *)&cmd, "s", category);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -3789,13 +3789,13 @@ EAPI int widget_viewer_unsubscribe_category(const char *category)
 	unsigned int cmd = CMD_UNSUBSCRIBE_CATEGORY;
 
 	if (!category) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create_noack((const char *)&cmd, "s", category);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -3808,23 +3808,23 @@ EAPI int widget_viewer_refresh(widget_h handle, int force)
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create_noack((const char *)&cmd, "ssi", handle->common->pkgname, handle->common->id, force);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(handle, packet);
@@ -3837,13 +3837,13 @@ EAPI int widget_viewer_refresh_group(const char *cluster, const char *category, 
 
 	if (!cluster || !category) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create_noack((const char *)&cmd, "ssi", cluster, category, force);
 	if (!packet) {
 		ErrPrint("Failed to create a packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -3856,30 +3856,30 @@ EAPI int widget_viewer_set_visibility(widget_h handle, widget_visible_state_e st
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->is_user) {
 		/* System cluster widget cannot be changed its visible states */
 		if (state == WIDGET_HIDE_WITH_PAUSE) {
 			ErrPrint("CA Livebox is not able to change the visibility\n");
-			return WIDGET_STATUS_ERROR_PERMISSION_DENIED;
+			return WIDGET_ERROR_PERMISSION_DENIED;
 		}
 	}
 
 	if (handle->visible == state) {
 		DbgPrint("%s has no changes\n", handle->common->pkgname);
-		return WIDGET_STATUS_ERROR_ALREADY;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
 	old_state = handle->visible;
@@ -3897,19 +3897,19 @@ EAPI widget_visible_state_e widget_viewer_get_visibility(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return WIDGET_VISIBLE_ERROR;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return WIDGET_VISIBLE_ERROR;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return WIDGET_VISIBLE_ERROR;
 	}
 
@@ -3924,7 +3924,7 @@ EAPI int widget_viewer_notify_paused_status_of_viewer(void)
 	packet = packet_create_noack((const char *)&cmd, "d", util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a pause packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -3938,7 +3938,7 @@ EAPI int widget_viewer_notify_resumed_status_of_viewer(void)
 	packet = packet_create_noack((const char *)&cmd, "d", util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a resume packet\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	return master_rpc_request_only(NULL, packet);
@@ -3948,17 +3948,17 @@ EAPI int widget_viewer_sync_buffer(widget_h handle, int gbar)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (gbar) {
@@ -3972,13 +3972,13 @@ EAPI const char *widget_viewer_get_alternative_icon(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handle);
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -3989,13 +3989,13 @@ EAPI const char *widget_viewer_get_alternative_name(widget_h handle)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handle);
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -4004,21 +4004,21 @@ EAPI const char *widget_viewer_get_alternative_name(widget_h handle)
 
 EAPI int widget_viewer_acquire_buffer_lock(widget_h handle, int is_gbar)
 {
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid[%p]\n", handle);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid[%p]\n", handle);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (is_gbar) {
@@ -4027,26 +4027,26 @@ EAPI int widget_viewer_acquire_buffer_lock(widget_h handle, int is_gbar)
 		ret = widget_service_acquire_lock(handle->common->widget.lock);
 	}
 
-	return ret == 0 ? WIDGET_STATUS_ERROR_NONE : WIDGET_STATUS_ERROR_FAULT;
+	return ret == 0 ? WIDGET_ERROR_NONE : WIDGET_ERROR_FAULT;
 }
 
 EAPI int widget_viewer_release_buffer_lock(widget_h handle, int is_gbar)
 {
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid[%p]\n", handle);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (is_gbar) {
@@ -4055,12 +4055,12 @@ EAPI int widget_viewer_release_buffer_lock(widget_h handle, int is_gbar)
 		ret = widget_service_release_lock(handle->common->widget.lock);
 	}
 
-	return ret == 0 ? WIDGET_STATUS_ERROR_NONE : WIDGET_STATUS_ERROR_FAULT;
+	return ret == 0 ? WIDGET_ERROR_NONE : WIDGET_ERROR_FAULT;
 }
 
 EAPI int widget_viewer_set_option(widget_option_type_e option, int state)
 {
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 
 	switch (option) {
 	case WIDGET_OPTION_MANUAL_SYNC:
@@ -4080,10 +4080,10 @@ EAPI int widget_viewer_set_option(widget_option_type_e option, int state)
 		break;
 	case WIDGET_OPTION_EXTRA_BUFFER_CNT:
 		ErrPrint("Permission denied\n");
-		ret = WIDGET_STATUS_ERROR_PERMISSION_DENIED;
+		ret = WIDGET_ERROR_PERMISSION_DENIED;
 		break;
 	default:
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
@@ -4094,7 +4094,7 @@ EAPI int widget_viewer_get_option(widget_option_type_e option)
 {
 	int ret;
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	switch (option) {
 	case WIDGET_OPTION_MANUAL_SYNC:
 		ret = conf_manual_sync();
@@ -4112,8 +4112,8 @@ EAPI int widget_viewer_get_option(widget_option_type_e option)
 		ret = conf_extra_buffer_count();
 		break;
 	default:
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		break;
 	}
 
@@ -4125,24 +4125,24 @@ EAPI int widget_viewer_set_auto_launch_handler(widget_auto_launch_handler_cb wid
 	s_info.launch.handle = widget_launch_handler;
 	s_info.launch.data = data;
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_get_damaged_region(widget_h handle, int gbar, const widget_damage_region_s *region)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid[%p]\n", handle);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (gbar) {
@@ -4151,7 +4151,7 @@ EAPI int widget_viewer_get_damaged_region(widget_h handle, int gbar, const widge
 		region = &handle->common->gbar.last_damage;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_get_affected_extra_buffer(widget_h handle, int gbar, int *idx, unsigned int *resource_id)
@@ -4161,17 +4161,17 @@ EAPI int widget_viewer_get_affected_extra_buffer(widget_h handle, int gbar, int 
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Invalid handle\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!handle->common->id) {
 		ErrPrint("Handler is not valid[%p]\n", handle);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!idx) {
@@ -4184,21 +4184,21 @@ EAPI int widget_viewer_get_affected_extra_buffer(widget_h handle, int gbar, int 
 
 	if (gbar) {
 		if (!handle->common->gbar.extra_buffer || handle->common->gbar.last_extra_buffer_idx < 0) {
-			return WIDGET_STATUS_ERROR_NOT_EXIST;
+			return WIDGET_ERROR_NOT_EXIST;
 		}
 
 		*idx = handle->common->gbar.last_extra_buffer_idx;
 		*resource_id = handle->common->gbar.extra_buffer[*idx];
 	} else {
 		if (!handle->common->widget.extra_buffer || handle->common->widget.last_extra_buffer_idx < 0) {
-			return WIDGET_STATUS_ERROR_NOT_EXIST;
+			return WIDGET_ERROR_NOT_EXIST;
 		}
 
 		*idx = handle->common->widget.last_extra_buffer_idx;
 		*resource_id = handle->common->widget.extra_buffer[*idx];
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 /* End of a file */

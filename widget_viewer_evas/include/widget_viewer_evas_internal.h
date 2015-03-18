@@ -95,6 +95,75 @@ extern int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, v
  * @return int
  */
 extern int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filename);
+
+
+/**
+ * @brief Subscribes an event for widgets only in a given cluster and sub-cluster.
+ * @details If you wrote a view-only client,
+ *   you can receive the event of specific widgets which belong to a given cluster/category.
+ *   But you cannot modify their attributes (such as size, ...).
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] cluster Cluster ("*" can be used for subscribe all cluster's widgets event; If you use the "*", value in the category will be ignored)
+ * @param[in] category Category ("*" can be used for subscribe widgets events of all category(sub-cluster) in a given "cluster")
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
+ * @retval #WIDGET_ERROR_NONE Successfully requested
+ * @see widget_viewer_evas_unsubscribe_group()
+ */
+extern int widget_viewer_evas_subscribe_group(const char *cluster, const char *sub_cluster);
+
+
+/**
+ * @brief Unsubscribes an event for the widgets, but you will receive already added widgets events.
+ * @since_tizen 2.3
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] cluster Cluster("*" can be used for subscribe all cluster's widgets event; If you use the "*", value in the category will be ignored)
+ * @param[in] category Category ("*" can be used for subscribe all sub-cluster's widgets event in a given "cluster")
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
+ * @retval #WIDGET_ERROR_NONE Successfully requested
+ * @see widget_subscribe_group()
+ */
+extern int widget_viewer_evas_unsubscribe_group(const char *cluster, const char *sub_cluster);
+
+/**
+ * @brief Subscribes events of widgets which is categorized by given "category" string.
+ *        "category" is written in the XML file of each widget manifest file.
+ *        After subscribe the category, the master will send created event for all created widgets,
+ *        Also it will notify client when a new widget is created.
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] category Category name
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
+ * @retval #WIDGET_ERROR_NONE Successfully requested
+ * @see widget_viewer_evas_unsubscribe_category()
+ */
+extern int widget_viewer_evas_subscribe_category(const char *category);
+
+/**
+ * @brief Unsubscribes events of widgets.
+ * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] category Category name
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
+ * @retval #WIDGET_ERROR_NONE Successfully requested
+ * @see widget_viewer_evas_subscribe_category()
+ */
+extern int widget_viewer_evas_unsubscribe_category(const char *category);
+
+
+
 #ifdef __cplusplus
 }
 #endif
