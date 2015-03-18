@@ -86,7 +86,7 @@
 #endif
 
 #if !defined(WIDGET_VIEWER_EVAS_RESOURCE_EDJ)
-#define WIDGET_VIEWER_EVAS_RESOURCE_EDJ "/usr/share/widget_viewer_evas/res/edje/widget.edj"
+#define WIDGET_VIEWER_EVAS_RESOURCE_EDJ "/usr/share/widget_viewer_evas/res/edje/widget_viewer_evas.edj"
 #endif
 
 #if !defined(WIDGET_VIEWER_EVAS_UNKNOWN)
