@@ -128,7 +128,7 @@ struct widget_common {
         char *auto_launch;
         double period;
         int pinup_supported;
-        int mouse_event;
+        bool mouse_event;
 
         /* For the filtering event */
         double x;

@@ -47,6 +47,9 @@
 #include "conf.h"
 
 #define EAPI __attribute__((visibility("default")))
+#if !defined(WIDGET_COUNT_OF_SIZE_TYPE)
+	#define WIDGET_COUNT_OF_SIZE_TYPE 13
+#endif
 
 #if defined(FLOG)
 FILE *__file_log_fp;
@@ -1427,13 +1430,9 @@ EAPI widget_h widget_viewer_add_widget(const char *pkgname, const char *content,
 		}
 	}
 
-	handle->visible = WIDGET_SHOW;
+	handle->visible = WIDGET_HIDE_WITH_PAUSE;
 	handle->state = WIDGET_STATE_CREATE;
 	handle = _widget_ref(handle);
-
-	if (handle->common->visible != WIDGET_SHOW) {
-		_widget_set_visibility(handle, WIDGET_SHOW);
-	}
 
 	return handle;
 }
@@ -2812,7 +2811,7 @@ EAPI int widget_viewer_get_supported_sizes(widget_h handle, int *cnt, widget_siz
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	for (j = i = 0; i < WIDGET_NR_OF_SIZE_LIST; i++) {
+	for (j = i = 0; i < WIDGET_COUNT_OF_SIZE_TYPE; i++) {
 		if (handle->common->widget.size_list & (0x01 << i)) {
 			if (j == *cnt) {
 				break;
@@ -4196,6 +4195,32 @@ EAPI int widget_viewer_get_affected_extra_buffer(widget_h handle, int gbar, int 
 
 		*idx = handle->common->widget.last_extra_buffer_idx;
 		*resource_id = handle->common->widget.extra_buffer[*idx];
+	}
+
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_viewer_get_instance_id(widget_h handle, char **instance_id)
+{
+	if (!handle || handle->state != WIDGET_STATE_CREATE || !instance_id) {
+		ErrPrint("Invalid handle\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
+		ErrPrint("Invalid handle\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!handle->common->id) {
+		ErrPrint("Handler is not valid[%p]\n", handle);
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	*instance_id = strdup(handle->common->id);
+	if (!*instance_id) {
+		ErrPrint("Out of memory: %s\n", strerror(errno));
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	return WIDGET_ERROR_NONE;

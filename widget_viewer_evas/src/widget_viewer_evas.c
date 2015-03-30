@@ -30,9 +30,9 @@
 
 #include <ail.h>
 
-#include <widget_viewer.h>
 #include <widget_service.h>
 #include <widget_service_internal.h>
+#include <widget_viewer.h>
 #include <widget_errno.h>
 #include <widget_buffer.h>
 
@@ -44,6 +44,10 @@
 
 #include "widget_viewer_evas.h"
 #include "widget_viewer_evas_internal.h"
+
+#if !defined(WIDGET_COUNT_OF_SIZE_TYPE)
+	#define WIDGET_COUNT_OF_SIZE_TYPE 13
+#endif
 
 #if !defined(SECURE_LOGD)
 #define SECURE_LOGD LOGD
@@ -157,8 +161,9 @@ static struct {
 			unsigned int sensitive_move: 1;
 			unsigned int render_animator: 1;
 			unsigned int auto_render_selector: 1;
+			unsigned int skip_acquire: 1;
 
-			unsigned int reserved: 19;
+			unsigned int reserved: 18;
 		} field;
 		unsigned int mask;
 	} conf;
@@ -277,7 +282,7 @@ struct widget_data {
 
 	int widget_width;
 	int widget_height;
-	int size_type;
+	widget_size_type_e size_type;
 
 	union {
 		struct {
@@ -609,12 +614,12 @@ static int invoke_raw_event_callback(enum widget_evas_raw_event_type type, const
 	return cnt;
 }
 
-static int find_size_type(struct widget_data *data, int w, int h)
+static widget_size_type_e find_size_type(struct widget_data *data, int w, int h)
 {
-	int cnt = WIDGET_NR_OF_SIZE_LIST;
+	int cnt = WIDGET_COUNT_OF_SIZE_TYPE;
 	int i;
-	int _w[WIDGET_NR_OF_SIZE_LIST];
-	int _h[WIDGET_NR_OF_SIZE_LIST];
+	int _w[WIDGET_COUNT_OF_SIZE_TYPE];
+	int _h[WIDGET_COUNT_OF_SIZE_TYPE];
 	widget_size_type_e type = WIDGET_SIZE_TYPE_UNKNOWN;
 	int find;
 	int ret_type = WIDGET_SIZE_TYPE_UNKNOWN;
@@ -1011,7 +1016,9 @@ static void __widget_pixmap_del_cb(void *cbdata, Evas *e, Evas_Object *obj, void
 	struct widget_data *data = cbdata;
 
 	if (data->widget_pixmap) {
-		widget_viewer_release_resource_id(data->handle, 0, data->widget_pixmap);
+		if (!s_info.conf.field.skip_acquire) {
+			widget_viewer_release_resource_id(data->handle, 0, data->widget_pixmap);
+		}
 		data->widget_pixmap = 0;
 	}
 
@@ -1020,8 +1027,10 @@ static void __widget_pixmap_del_cb(void *cbdata, Evas *e, Evas_Object *obj, void
 
 		for (idx = 0; idx < widget_viewer_get_option(WIDGET_OPTION_EXTRA_BUFFER_CNT); idx++) {
 			if (data->widget_extra[idx] != 0u) {
-				if (widget_viewer_release_resource_id(data->handle, 0, data->widget_extra[idx]) < 0) {
-					ErrPrint("Failed to release %u\n", data->widget_extra[idx]);
+				if (!s_info.conf.field.skip_acquire) {
+					if (widget_viewer_release_resource_id(data->handle, 0, data->widget_extra[idx]) < 0) {
+						ErrPrint("Failed to release %u\n", data->widget_extra[idx]);
+					}
 				}
 				data->widget_extra[idx] = 0u;
 			}
@@ -1037,7 +1046,9 @@ static void gbar_pixmap_del_cb(void *cbdata, Evas *e, Evas_Object *obj, void *ev
 	struct widget_data *data = cbdata;
 
 	if (data->gbar_pixmap) {
-		widget_viewer_release_resource_id(data->handle, 1, data->gbar_pixmap);
+		if (!s_info.conf.field.skip_acquire) {
+			widget_viewer_release_resource_id(data->handle, 1, data->gbar_pixmap);
+		}
 		data->gbar_pixmap = 0;
 	}
 
@@ -1046,8 +1057,10 @@ static void gbar_pixmap_del_cb(void *cbdata, Evas *e, Evas_Object *obj, void *ev
 
 		for (idx = 0; idx < widget_viewer_get_option(WIDGET_OPTION_EXTRA_BUFFER_CNT); idx++) {
 			if (data->gbar_extra[idx] != 0u) {
-				if (widget_viewer_release_resource_id(data->handle, 0, data->gbar_extra[idx]) < 0) {
-					ErrPrint("Failed to release %u\n", data->gbar_extra[idx]);
+				if (!s_info.conf.field.skip_acquire) {
+					if (widget_viewer_release_resource_id(data->handle, 0, data->gbar_extra[idx]) < 0) {
+						ErrPrint("Failed to release %u\n", data->gbar_extra[idx]);
+					}
 				}
 				data->gbar_extra[idx] = 0u;
 			}
@@ -1202,7 +1215,10 @@ static void __widget_destroy_gbar_cb(struct widget *handle, int ret, void *cbdat
 				pixmap = surface->data.x11.pixmap;
 				evas_object_del(gbar_content);
 
-				widget_viewer_release_resource_id(data->handle, 1, (int)pixmap);
+				if (!s_info.conf.field.skip_acquire) {
+					widget_viewer_release_resource_id(data->handle, 1, (int)pixmap);
+				}
+
 				if (pixmap == data->gbar_pixmap) {
 					data->gbar_pixmap = 0;
 				}
@@ -2884,7 +2900,7 @@ static void activate_ret_cb(struct widget *handle, int ret, void *cbdata)
 
 	DbgPrint("Activated (%s): %d\n", data->widget_id, ret);
 	if (!data->is.field.deleted && (ret == WIDGET_ERROR_NONE || ret == WIDGET_ERROR_INVALID_PARAMETER)) {
-		int type;
+		widget_size_type_e type;
 		Evas_Coord w, h;
 		struct acquire_data acquire_data = {
 			.data = data,
@@ -3286,7 +3302,7 @@ static void replace_gbar_pixmap_with_image(struct widget_data *data)
 	evas_object_del(gbar_content);
 }
 
-static void __widget_destroy_widget_cb(struct widget *handle, int ret, void *_data)
+static void __widget_destroy_widget_cb(widget_h handle, int ret, void *_data)
 {
 	struct widget_data *data = _data;
 
@@ -3339,7 +3355,7 @@ static void __widget_del(Evas_Object *widget)
 		widget_viewer_set_data(data->handle, NULL);
 
 		if (data->is.field.send_delete) {
-			int delete_type;
+			widget_delete_type_e delete_type;
 
 			if (data->is.field.permanent_delete) {
 				delete_type = WIDGET_DELETE_PERMANENTLY;
@@ -4058,7 +4074,9 @@ static void replace_pixmap(struct widget *handle, int gbar, Evas_Object *content
 			evas_object_image_native_surface_set(content, &surface);
 
 			if (old_pixmap && handle) {
-				widget_viewer_release_resource_id(handle, gbar, old_pixmap);
+				if (!s_info.conf.field.skip_acquire) {
+					widget_viewer_release_resource_id(handle, gbar, old_pixmap);
+				}
 			}
 
 			DbgPrint("Replaced: %u (%u)\n", pixmap, old_pixmap);
@@ -4074,10 +4092,13 @@ static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cb
 	struct widget_data *data = acquire_data->data;
 
 	data->is.field.widget_pixmap_acquire_requested = 0;
+	__widget_overlay_disable(data, 0);
 
 	if (pixmap == 0) {
 		DbgPrint("Pixmap gotten (0)\n");
-		free(acquire_data);
+		if (!s_info.conf.field.skip_acquire) {
+			free(acquire_data);
+		}
 		widget_unref(data);
 		return;
 	}
@@ -4094,7 +4115,9 @@ static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cb
 	update_widget_geometry(acquire_data);
 
 	widget_unref(data);
-	free(acquire_data);
+	if (!s_info.conf.field.skip_acquire) {
+		free(acquire_data);
+	}
 }
 
 static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object *widget_content, int w, int h)
@@ -4104,6 +4127,7 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 
 	if (data->widget_latest_idx == WIDGET_PRIMARY_BUFFER) {
 		unsigned int resource_id;
+
 		widget_viewer_get_resource_id(data->handle, 0, &resource_id);
 		if (data->widget_pixmap == resource_id) {
 			if (data->widget_extra) {
@@ -4115,8 +4139,20 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 			return;
 		}
 
+		if (s_info.conf.field.skip_acquire && resource_id != 0) {
+			struct acquire_data local_acquire_data = {
+				.data = widget_ref(data),
+				.content = widget_content,
+				.w = w,
+				.h = h,
+			};
+
+			acquire_widget_pixmap_cb(data->handle, resource_id, &local_acquire_data);
+			return;
+		}
+
 		if (data->is.field.widget_pixmap_acquire_requested) {
-			DbgPrint("Pixmap is not requested\n");
+			DbgPrint("Pixmap is not acquired\n");
 			return;
 		}
 
@@ -4158,6 +4194,15 @@ static int widget_system_created(struct widget *handle, struct widget_data *data
 	if (data->state != WIDGET_DATA_CREATED) {
 		ErrPrint("Invalid widget data: %p, %s\n", data, widget_viewer_get_pkgname(handle));
 		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	widget_viewer_get_size_type(handle, &data->size_type);
+
+	if (data->size_type == WIDGET_SIZE_TYPE_UNKNOWN || widget_service_get_size(data->size_type, &data->widget_width, &data->widget_height) < 0) {
+		ErrPrint("Failed to get size info: %s\n", widget_viewer_get_pkgname(handle));
+		
+	} else {
+		DbgPrint("System created WIDGET size is (%d)%dx%d\n", data->size_type, data->widget_width, data->widget_height);
 	}
 
 	widget_viewer_get_type(handle, 0, &widget_type);
@@ -4608,9 +4653,9 @@ static void __widget_overlay_faulted(struct widget_data *data)
 static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 {
 	struct widget_data *data;
-	int type;
-	int need_of_touch_effect = 0;
-	int need_of_mouse_event = 0;
+	widget_size_type_e type;
+	bool need_of_touch_effect = false;
+	bool need_of_mouse_event = false;
 
 	data = evas_object_smart_data_get(widget);
 	if (!data) {
@@ -4633,9 +4678,30 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 		}
 	}
 
-	data->widget_width = w;
-	data->widget_height = h;
-	data->size_type = type;
+	if (!widget_viewer_is_created_by_user(data->handle)) {
+		/**
+		 * Viewer should not be able to resize the box
+		 */
+		ErrPrint("System created Widget is not able to be resized (%s)\n", widget_viewer_get_pkgname(data->handle));
+
+		/* But update its size by handle's size */
+		widget_viewer_get_size_type(data->handle, &data->size_type);
+
+		if (data->size_type == WIDGET_SIZE_TYPE_UNKNOWN || widget_service_get_size(data->size_type, &data->widget_width, &data->widget_height)) {
+			ErrPrint("Unable to get default size from handle\n");
+			/*
+			* In this case, just depends on user's request.
+			* Because, there is no other information which we can use.
+			*/
+			data->size_type = type;
+			data->widget_width = w;
+			data->widget_height = h;
+		}
+	} else {
+		data->widget_width = w;
+		data->widget_height = h;
+		data->size_type = type;
+	}
 
 	if (data->is.field.faulted) {
 		evas_object_resize(data->widget_layout, data->widget_width, data->widget_height);
@@ -4722,7 +4788,9 @@ static void __widget_show(Evas_Object *widget)
 	evas_object_show(data->stage);
 	evas_object_show(data->widget_layout);
 
-	update_visibility(data);
+	if (!s_info.conf.field.manual_pause_resume) {
+		update_visibility(data);
+	}
 }
 
 static void __widget_hide(Evas_Object *widget)
@@ -4743,7 +4811,9 @@ static void __widget_hide(Evas_Object *widget)
 	evas_object_hide(data->stage);
 	evas_object_hide(data->widget_layout);
 
-	update_visibility(data);
+	if (!s_info.conf.field.manual_pause_resume) {
+		update_visibility(data);
+	}
 }
 
 static void __widget_color_set(Evas_Object *widget, int r, int g, int b, int a)
@@ -5031,6 +5101,7 @@ static void __widget_event_widget_updated(struct widget_data *data)
 	switch (widget_type) {
 	case WIDGET_CONTENT_TYPE_IMAGE:
 		__widget_update_image_object(data, widget_viewer_get_content_string, w, h);
+		__widget_overlay_disable(data, 0);
 		break;
 	case WIDGET_CONTENT_TYPE_RESOURCE_ID:
 		if (!s_info.conf.field.force_to_buffer) {
@@ -5039,9 +5110,11 @@ static void __widget_event_widget_updated(struct widget_data *data)
 		}
 	case WIDGET_CONTENT_TYPE_BUFFER:
 		__widget_update_buffer_object(data, widget_viewer_get_content_string, w, h);
+		__widget_overlay_disable(data, 0);
 		break;
 	case WIDGET_CONTENT_TYPE_TEXT:
 		__widget_update_text_object(data, widget_viewer_get_content_string, w, h);
+		__widget_overlay_disable(data, 0);
 		break;
 	case WIDGET_CONTENT_TYPE_UIFW:
 		break;
@@ -5049,8 +5122,6 @@ static void __widget_event_widget_updated(struct widget_data *data)
 	default:
 		break;
 	}
-
-	__widget_overlay_disable(data, 0);
 
 	info.pkgname = data->widget_id;
 	info.event = WIDGET_EVENT_WIDGET_UPDATED;
@@ -5135,7 +5206,9 @@ static void acquire_gbar_pixmap_cb(struct widget *handle, int pixmap, void *cbda
 		ErrPrint("Failed to acquire pixmap\n");
 		DbgPrint("Unref %p %s\n", data, data->widget_id);
 		widget_unref(data);
-		free(acquire_data);
+		if (!s_info.conf.field.skip_acquire) {
+			free(acquire_data);
+		}
 		return;
 	}
 
@@ -5158,7 +5231,9 @@ static void acquire_gbar_pixmap_cb(struct widget *handle, int pixmap, void *cbda
 		evas_object_image_native_surface_set(acquire_data->content, &surface);
 
 		if (old_pixmap) {
-			widget_viewer_release_resource_id(data->handle, 1, old_pixmap);
+			if (!s_info.conf.field.skip_acquire) {
+				widget_viewer_release_resource_id(data->handle, 1, old_pixmap);
+			}
 		}
 	}
 
@@ -5168,7 +5243,9 @@ static void acquire_gbar_pixmap_cb(struct widget *handle, int pixmap, void *cbda
 	update_stage_geometry(acquire_data);
 	update_gbar_geometry(acquire_data);
 
-	free(acquire_data);
+	if (!s_info.conf.field.skip_acquire) {
+		free(acquire_data);
+	}
 	DbgPrint("Unref %p %s\n", data, data->widget_id);
 	widget_unref(data);
 }
@@ -5177,11 +5254,11 @@ static void gbar_update_pixmap_object(struct widget_data *data, Evas_Object *gba
 {
 	struct acquire_data *acquire_data;
 	int ret;
-	unsigned int resouce_id;
+	unsigned int resource_id;
 
 	if (data->gbar_latest_idx == WIDGET_PRIMARY_BUFFER) {
-		widget_viewer_get_resource_id(data->handle, 1, &resouce_id);
-		if (data->gbar_pixmap == resouce_id) {
+		widget_viewer_get_resource_id(data->handle, 1, &resource_id);
+		if (data->gbar_pixmap == resource_id) {
 			int ow;
 			int oh;
 
@@ -5202,6 +5279,18 @@ static void gbar_update_pixmap_object(struct widget_data *data, Evas_Object *gba
 
 				update_stage_geometry(&adata);
 			}
+			return;
+		}
+
+		if (s_info.conf.field.skip_acquire && resource_id != 0) {
+			struct acquire_data local_acquire_data = {
+				.data = widget_ref(data),
+				.content = gbar_content,
+				.w = w,
+				.h = h,
+			};
+
+			acquire_gbar_pixmap_cb(data->handle, resource_id, &local_acquire_data);
 			return;
 		}
 
@@ -5674,8 +5763,10 @@ static int widget_event_handler(struct widget *handle, enum widget_event_type ev
 			data->widget_extra = NULL;
 		}
 
-		if (widget_viewer_release_resource_id(handle, 0, resource_id) < 0) {
-			ErrPrint("Failed to release resource: %u\n", resource_id);
+		if (!s_info.conf.field.skip_acquire) {
+			if (widget_viewer_release_resource_id(handle, 0, resource_id) < 0) {
+				ErrPrint("Failed to release resource: %u\n", resource_id);
+			}
 		}
 		break;
 	case WIDGET_EVENT_GBAR_EXTRA_BUFFER_CREATED:
@@ -5710,8 +5801,10 @@ static int widget_event_handler(struct widget *handle, enum widget_event_type ev
 			data->gbar_extra = NULL;
 		}
 
-		if (widget_viewer_release_resource_id(handle, 1, resource_id) < 0) {
-			ErrPrint("Failed to release resource: %u\n", resource_id);
+		if (!s_info.conf.field.skip_acquire) {
+			if (widget_viewer_release_resource_id(handle, 1, resource_id) < 0) {
+				ErrPrint("Failed to release resource: %u\n", resource_id);
+			}
 		}
 		break;
 	case WIDGET_EVENT_WIDGET_EXTRA_UPDATED:
@@ -6094,6 +6187,10 @@ EAPI int widget_viewer_evas_set_option(enum widget_evas_conf type, int value)
 
 		s_info.conf.field.render_animator = !!value;
 		DbgPrint("Turn %s render animator\n", s_info.conf.field.render_animator ? "on" : "off");
+		break;
+	case WIDGET_VIEWER_EVAS_SKIP_ACQUIRE:
+		s_info.conf.field.skip_acquire = !!value;
+		DbgPrint("Turn %s skip-acquire option\n", s_info.conf.field.skip_acquire ? "on" : "off");
 		break;
 	default:
 		break;
@@ -6905,6 +7002,19 @@ EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
 EAPI int widget_viewer_evas_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data)
 {
 	return widget_viewer_emit_text_signal(handle, event_info, cb, data);
+}
+
+EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id)
+{
+	struct widget_data *data;
+
+	data = get_smart_data(widget);
+	if (!data) {
+		ErrPrint("Invalid object\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	return widget_viewer_get_instance_id(data->handle, instance_id);
 }
 
 /* End of a file */

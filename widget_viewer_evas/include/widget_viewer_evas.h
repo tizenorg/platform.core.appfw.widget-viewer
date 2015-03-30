@@ -91,6 +91,7 @@ typedef enum widget_evas_conf {
     WIDGET_VIEWER_EVAS_AUTO_RENDER_SELECTION = 0x0400, /**< Select render automatically, if a box moved, do not sync using animator, or use the animator */
     WIDGET_VIEWER_EVAS_DIRECT_UPDATE = 0x0800,	    /**< Enable direct update path */
     WIDGET_VIEWER_EVAS_USE_RENDER_ANIMATOR = 0x1000,   /**< Use the render animator or not */
+	WIDGET_VIEWER_EVAS_SKIP_ACQUIRE = 0x2000,		/**< Even if the viewer cannot get acquired resource id, try to update using default one */
     WIDGET_VIEWER_EVAS_UNKNOWN = 0xFFFF
 } widget_evas_conf_e;
 

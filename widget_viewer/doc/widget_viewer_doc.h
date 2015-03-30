@@ -115,7 +115,7 @@
  * @image html preload_folder.png
  * @image html download_folder.png
  *
- * @subsection WritingViewerApp 4. Writing a new application for displaying Dynamic Boxes
+ * @subsection WritingViewerApp 4. Writing a new application for displaying Widgets
  * If you want install dynamic boxes on your application screen, you should initialize the viewer system first.
  *
  * @code

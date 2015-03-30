@@ -162,7 +162,7 @@ extern int widget_viewer_evas_subscribe_category(const char *category);
  */
 extern int widget_viewer_evas_unsubscribe_category(const char *category);
 
-
+extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id);
 
 #ifdef __cplusplus
 }

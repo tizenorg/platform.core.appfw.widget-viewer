@@ -158,7 +158,7 @@ struct widget_common *_widget_create_common_handle(widget_h handle, const char *
 	common->widget.last_extra_buffer_idx = WIDGET_UNKNOWN_BUFFER;
 
 	common->state = WIDGET_STATE_CREATE;
-	common->visible = WIDGET_SHOW;
+	common->visible = WIDGET_HIDE_WITH_PAUSE;
 
 	s_info.widget_common_list = dlist_append(s_info.widget_common_list, common);
 	return common;
@@ -387,7 +387,7 @@ widget_h _widget_new_widget(const char *pkgname, const char *id, double timestam
 	_widget_set_id(handler->common, id);
 	handler->common->timestamp = timestamp;
 	handler->common->state = WIDGET_STATE_CREATE;
-	handler->visible = WIDGET_SHOW;
+	handler->visible = WIDGET_HIDE_WITH_PAUSE;
 	handler->state = WIDGET_STATE_CREATE;
 	handler = _widget_ref(handler);
 	s_info.widget_list = dlist_append(s_info.widget_list, handler);
