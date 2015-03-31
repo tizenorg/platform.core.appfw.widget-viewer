@@ -15,6 +15,7 @@
  */
 
 #include <widget_service.h>
+#include <widget_service_internal.h>
 
 #ifndef __WIDGET_VIEWER_H
 #define __WIDGET_VIEWER_H
@@ -294,22 +295,6 @@ typedef struct widget_key_event_info {
 
 /**
  * @internal
- * @brief Text Event Information
- * @since_tizen 2.3
- */
-typedef struct widget_text_event {
-    const char *emission;
-    const char *source;
-    struct {
-        double sx;
-        double sy;
-        double ex;
-        double ey;
-    } geometry;
-} *widget_text_event_s;
-
-/**
- * @internal
  * @brief Structure for TEXT type widget contents handling opertators.
  * @since_tizen 2.3
  */
@@ -321,7 +306,7 @@ typedef struct widget_script_operators {
     int (*update_text)(widget_h handle, const char *id, const char *part, const char *data); /**< Update text content */
     int (*update_image)(widget_h handle, const char *id, const char *part, const char *data, const char *option); /**< Update image content */
     int (*update_script)(widget_h handle, const char *id, const char *new_id, const char *part, const char *file, const char *group); /**< Update script content */
-    int (*update_signal)(widget_h handle, const char *id, const char *emission, const char *signal); /**< Update signal */
+    int (*update_signal)(widget_h handle, const char *id, const char *signal_name, const char *signal); /**< Update signal */
     int (*update_drag)(widget_h handle, const char *id, const char *part, double dx, double dy); /**< Update drag info */
     int (*update_info_size)(widget_h handle, const char *id, int w, int h); /**< Update content size */
     int (*update_info_category)(widget_h handle, const char *id, const char *category); /**< Update content category info */
@@ -1174,7 +1159,7 @@ extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_scri
  *    This function is Asynchronous, so you will get result of add requst from @a cb, if you failed to send request to create a new widget,
  *    This function will returns proper error code
  * @param[in] handle Handle of a widget instance
- * @param[in] emission Emission string
+ * @param[in] signal_name Emission string
  * @param[in] source Source string
  * @param[in] sx Start X
  * @param[in] sy Start Y
@@ -1190,7 +1175,7 @@ extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_scri
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
  * @see widget_ret_cb
  */
-extern int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data);
+extern int widget_viewer_emit_text_signal(widget_h handle, widget_text_signal_s event_info, widget_ret_cb cb, void *data);
 
 /**
  * @internal

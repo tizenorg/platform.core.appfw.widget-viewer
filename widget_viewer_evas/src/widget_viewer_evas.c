@@ -30,11 +30,11 @@
 
 #include <ail.h>
 
-#include <widget_service.h>
-#include <widget_service_internal.h>
+#include <widget_viewer.h>
+#include <widget_viewer_internal.h>
 #include <widget_viewer.h>
 #include <widget_errno.h>
-#include <widget_buffer.h>
+
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -508,11 +508,11 @@ static void __widget_script_del_cb(void *cbdata, Evas *e, Evas_Object *obj, void
 	}
 }
 
-static void script_signal_forwarder(void *cbdata, Evas_Object *obj, const char *emission, const char *source)
+static void script_signal_forwarder(void *cbdata, Evas_Object *obj, const char *signal_name, const char *source)
 {
 	struct widget_data *data = cbdata;
-	struct widget_text_event event_info = {
-		.emission = emission,
+	struct widget_text_signal event_info = {
+		.signal_name = signal_name,
 		.source = source,
 		.geometry = {
 			.sx = 0.0f,
@@ -1250,7 +1250,7 @@ static void __widget_destroy_gbar_cb(struct widget *handle, int ret, void *cbdat
 	widget_unref(data);
 }
 
-static void gbar_animation_done_cb(void *cbdata, Evas_Object *obj, const char *emission, const char *source)
+static void gbar_animation_done_cb(void *cbdata, Evas_Object *obj, const char *signal_name, const char *source)
 {
 	Evas_Object *rect;
 	struct widget_data *data = cbdata;
@@ -2178,7 +2178,7 @@ static int gbar_text_update_script(widget_h handle, const char *id, const char *
 	return do_text_update_script(data, 1, layout, new_id, part, file, group);
 }
 
-static int gbar_text_update_signal(widget_h handle, const char *id, const char *emission, const char *signal)
+static int gbar_text_update_signal(widget_h handle, const char *id, const char *signal_name, const char *signal)
 {
 	struct widget_data *data;
 	Evas_Object *layout;
@@ -2194,7 +2194,7 @@ static int gbar_text_update_signal(widget_h handle, const char *id, const char *
 		return WIDGET_ERROR_NOT_EXIST;
 	}
 
-	elm_object_signal_emit(layout, signal, emission);
+	elm_object_signal_emit(layout, signal, signal_name);
 	return WIDGET_ERROR_NONE;
 }
 
@@ -2937,7 +2937,7 @@ static void activate_ret_cb(struct widget *handle, int ret, void *cbdata)
 	widget_unref(data);
 }
 
-static void __widget_animation_done_cb(void *cbdata, Evas_Object *obj, const char *emission, const char *source)
+static void __widget_animation_done_cb(void *cbdata, Evas_Object *obj, const char *signal_name, const char *source)
 {
 	struct widget_data *data = cbdata;
 
@@ -2952,7 +2952,7 @@ static void __widget_animation_done_cb(void *cbdata, Evas_Object *obj, const cha
 	}
 }
 
-static void __widget_turn_done_cb(void *cbdata, Evas_Object *obj, const char *emission, const char *source)
+static void __widget_turn_done_cb(void *cbdata, Evas_Object *obj, const char *signal_name, const char *source)
 {
 	struct widget_data *data = cbdata;
 	Evas_Object *overlay;
@@ -2969,7 +2969,7 @@ static void __widget_turn_done_cb(void *cbdata, Evas_Object *obj, const char *em
 	}
 }
 
-static void __widget_overlay_clicked_cb(void *cbdata, Evas_Object *obj, const char *emission, const char *source)
+static void __widget_overlay_clicked_cb(void *cbdata, Evas_Object *obj, const char *signal_name, const char *source)
 {
 	struct widget_data *data = cbdata;
 
@@ -2978,7 +2978,7 @@ static void __widget_overlay_clicked_cb(void *cbdata, Evas_Object *obj, const ch
 		return;
 	}
 
-	DbgPrint("Overlay is clicked: (%s) (%s)\n", emission, source);
+	DbgPrint("Overlay is clicked: (%s) (%s)\n", signal_name, source);
 	if (!data->is.field.faulted) {
 		/*!
 		 * \todo
@@ -3795,7 +3795,7 @@ static int widget_text_update_script(widget_h handle, const char *id, const char
 	return do_text_update_script(data, 0, layout, new_id, part, file, group);
 }
 
-static int widget_text_update_signal(widget_h handle, const char *id, const char *emission, const char *signal)
+static int widget_text_update_signal(widget_h handle, const char *id, const char *signal_name, const char *signal)
 {
 	struct widget_data *data;
 	Evas_Object *layout;
@@ -3811,7 +3811,7 @@ static int widget_text_update_signal(widget_h handle, const char *id, const char
 		return WIDGET_ERROR_NOT_EXIST;
 	}
 
-	elm_object_signal_emit(layout, signal, emission);
+	elm_object_signal_emit(layout, signal, signal_name);
 	return WIDGET_ERROR_NONE;
 }
 
@@ -4737,9 +4737,9 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 		DbgPrint("Added handle: %p (%p)\n", data->handle, data);
 		widget_viewer_set_data(data->handle, widget);
 		__widget_overlay_loading(data);
-		widget_service_get_need_of_touch_effect(data->widget_id, type, &need_of_touch_effect);
+		widget_service_get_need_of_touch_effect(data->widget_id, type, (bool*)&need_of_touch_effect);
 		data->is.field.touch_effect = need_of_touch_effect;
-		widget_service_get_need_of_mouse_event(data->widget_id, type, &need_of_mouse_event);
+		widget_service_get_need_of_mouse_event(data->widget_id, type, (bool*)&need_of_mouse_event);
 		data->is.field.mouse_event = need_of_mouse_event;
 	} else {
 		int ret;
@@ -4760,9 +4760,9 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 			widget_unref(data);
 		} else if (ret == WIDGET_ERROR_NONE) {
 			DbgPrint("Resize request is successfully sent\n");
-			widget_service_get_need_of_touch_effect(data->widget_id, type, &need_of_touch_effect);
+			widget_service_get_need_of_touch_effect(data->widget_id, type, (bool*)&need_of_touch_effect);
 			data->is.field.touch_effect = need_of_touch_effect;
-			widget_service_get_need_of_mouse_event(data->widget_id, type, &need_of_mouse_event);
+			widget_service_get_need_of_mouse_event(data->widget_id, type, (bool*)&need_of_mouse_event);
 			data->is.field.mouse_event = need_of_mouse_event;
 		} else {
 			widget_unref(data);
@@ -6706,7 +6706,7 @@ EAPI int widget_viewer_evas_is_faulted(Evas_Object *widget)
 	return data->is.field.faulted;
 }
 
-EAPI int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_type type, void (*cb)(struct widget_evas_raw_event_info *info, void *data), void *data)
+EAPI int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_type type, raw_event_cb cb, void *data)
 {
 	struct raw_event_cbdata *cbdata;
 
@@ -6734,7 +6734,7 @@ EAPI int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_ty
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_event_type type, void (*cb)(struct widget_evas_raw_event_info *info, void *data), void *data)
+EAPI int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_event_type type, raw_event_cb cb, void *data)
 {
 	Eina_List *l;
 	Eina_List *n;
@@ -6999,9 +6999,23 @@ EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
 	return WIDGET_ERROR_NOT_EXIST;
 }
 
-EAPI int widget_viewer_evas_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data)
+void text_signal_cb(widget_h handle, int ret, void *data)
 {
-	return widget_viewer_emit_text_signal(handle, event_info, cb, data);
+	/* TODO : add codes to invoke smart event callback function */
+}
+
+EAPI int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data)
+{
+	struct widget_data *widget_data_from_evas;
+
+	widget_data_from_evas = get_smart_data(widget);
+
+	if (!widget_data_from_evas) {
+		ErrPrint("Invalid object\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	return widget_viewer_emit_text_signal(widget_data_from_evas->handle, event_info, text_signal_cb, data);
 }
 
 EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id)

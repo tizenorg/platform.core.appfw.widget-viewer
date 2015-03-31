@@ -43,6 +43,23 @@ typedef enum widget_access_result {
 } widget_access_result_e;
 
 /**
+ * @sine_tizen 2.4
+ * @brief Data structure for smart callback user parameter
+ */
+typedef enum widget_evas_raw_event_type {
+    WIDGET_VIEWER_EVAS_RAW_DELETE = 0x00,
+    WIDGET_VIEWER_EVAS_RAW_CREATE = 0x02,
+    WIDGET_VIEWER_EVAS_RAW_MAX = 0xff,
+} widget_evas_raw_event_type_e;
+
+typedef struct widget_evas_raw_event_info {
+    const char *pkgname;
+    enum widget_evas_raw_event_type type;
+    int error;
+    Evas_Object *widget;
+} widget_evas_raw_event_info_s;
+
+/**
  * @brief Close the Glance Bar if it is opened
  * @since_tizen 2.4
  * @param[in] widget widget object
@@ -163,6 +180,34 @@ extern int widget_viewer_evas_subscribe_category(const char *category);
 extern int widget_viewer_evas_unsubscribe_category(const char *category);
 
 extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id);
+/**
+ * @brief Callback function for handling raw event
+ * @since_tizen 2.4
+ * @param[in] info
+ * @param[in] data
+ * @return void
+ */
+
+typedef void (*raw_event_cb)(struct widget_evas_raw_event_info *info, void *data);
+
+/**
+ * @brief Unregister a callback function for subscribing raw event.
+ * @since_tizen 2.4
+ * @param[in] type
+ * @param[in] cb
+ * @param[in] data
+ * @return int
+ */
+extern int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_event_type type, raw_event_cb cb, void *data);
+
+/**
+ * @brief Register a callback function for subscribing raw event.
+ * @since_tizen 2.4
+ * @param[in] type
+ * @param[in] cb
+ * @param[in] data
+ */
+extern int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_type type, raw_event_cb cb, void *data);
 
 #ifdef __cplusplus
 }

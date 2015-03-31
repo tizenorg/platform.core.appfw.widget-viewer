@@ -18,6 +18,7 @@
 #define __WIDGET_VIEWER_INTERNAL_H
 
 #include "widget_viewer.h"
+#include "widget_buffer.h"
 
 struct cb_info {
     widget_ret_cb cb;

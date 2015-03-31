@@ -65,15 +65,7 @@ typedef struct widget_evas_event_info {
     int error;		           /**< Error type - WIDGET_ERROR_XXX, refer the widget_errno.h */
 } widget_evas_event_info_s;
 
-/**
- * @sine_tizen 2.4
- * @brief Data structure for smart callback user parameter
- */
-typedef enum widget_evas_raw_event_type {
-    WIDGET_VIEWER_EVAS_RAW_DELETE = 0x00,
-    WIDGET_VIEWER_EVAS_RAW_CREATE = 0x02,
-    WIDGET_VIEWER_EVAS_RAW_MAX = 0xff,
-} widget_evas_raw_event_type_e;
+
 
 /**
  * \brief
@@ -94,13 +86,6 @@ typedef enum widget_evas_conf {
 	WIDGET_VIEWER_EVAS_SKIP_ACQUIRE = 0x2000,		/**< Even if the viewer cannot get acquired resource id, try to update using default one */
     WIDGET_VIEWER_EVAS_UNKNOWN = 0xFFFF
 } widget_evas_conf_e;
-
-typedef struct widget_evas_raw_event_info {
-    const char *pkgname;
-    enum widget_evas_raw_event_type type;
-    int error;
-    Evas_Object *widget;
-} widget_evas_raw_event_info_s;
 
 /**
  * @brief Initializes the widget system
@@ -297,24 +282,6 @@ extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
  */
 extern int widget_viewer_evas_is_faulted(Evas_Object *widget);
 
-/**
- * @brief Unregister a callback function for subscribing raw event.
- * @since_tizen 2.4
- * @param[in] type
- * @param[in] cb
- * @param[in] data
- * @return int
- */
-extern int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_event_type type, void (*cb)(struct widget_evas_raw_event_info *info, void *data), void *data);
-
-/**
- * @brief Register a callback function for subscribing raw event.
- * @since_tizen 2.4
- * @param[in] type
- * @param[in] cb
- * @param[in] data
- */
-extern int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_type type, void (*cb)(struct widget_evas_raw_event_info *info, void *data), void *data);
 
 /**
  * @brief If you don't want change the visibility automatically, freeze it.\n
@@ -364,18 +331,16 @@ extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int fla
  * @since_tizen 2.3.1
  * @remarks
  *    This is an ASYNCHRONOUS API.
- *    This function is Asynchronous, so you will get the result from @a cb, if you failed to send request to create a new widget,
- *    This function will returns proper error code
- * @param[in] handle Handle of a widget instance
- * @param[in] emission Emission string
- * @param[in] source Source string
- * @param[in] sx Start X
- * @param[in] sy Start Y
- * @param[in] ex End X
- * @param[in] ey End Y
- * @param[in] cb Result callback
- * @param[in] data Callback data
- * @privlevel platform
+ *    This function is Asynchronous, so you will get the result from @a smart callback, if you failed to send a text signal,
+ *    this function will returns proper error code.
+ * @param[in] widget widget object
+ * @param[in] event_info.signal_name Emission string
+ * @param[in] event_info.source Source string
+ * @param[in] event_info.sx Start X
+ * @param[in] event_info.sy Start Y
+ * @param[in] event_info.ex End X
+ * @param[in] event_info.ey End Y
+ * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return int
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
@@ -383,7 +348,7 @@ extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int fla
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
  * @see widget_ret_cb
  */
-extern int widget_viewer_evas_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data);
+extern int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data);
 
 #ifdef __cplusplus
 }

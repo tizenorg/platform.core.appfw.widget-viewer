@@ -3656,13 +3656,13 @@ EAPI const char *widget_viewer_get_title_string(widget_h handle)
 	return handle->common->title;
 }
 
-EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s event_info, widget_ret_cb cb, void *data)
+EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_signal_s event_info, widget_ret_cb cb, void *data)
 {
 	struct packet *packet;
 	struct cb_info *cbinfo;
 	unsigned int cmd = CMD_TEXT_SIGNAL;
 	int ret;
-	const char *emission;
+	const char *signal_name;
 	const char *source;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
@@ -3689,9 +3689,9 @@ EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s eve
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	emission = event_info->emission;
-	if (!emission) {
-		emission = "";
+	signal_name = event_info->signal_name;
+	if (!signal_name) {
+		signal_name = "";
 	}
 
 	source = event_info->source;
@@ -3701,7 +3701,7 @@ EAPI int widget_viewer_emit_text_signal(widget_h handle, widget_text_event_s eve
 
 	packet = packet_create((const char *)&cmd, "ssssdddd",
 			handle->common->pkgname, handle->common->id,
-			emission, source,
+			signal_name, source,
 			event_info->geometry.sx, event_info->geometry.sy,
 			event_info->geometry.ex, event_info->geometry.ey);
 	if (!packet) {

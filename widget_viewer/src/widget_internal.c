@@ -258,7 +258,7 @@ void _widget_set_size(struct widget_common *common, int w, int h)
 
 	widget_service_get_size_type(w, h, &size_type);
 	if (size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
-		widget_service_get_need_of_mouse_event(common->pkgname, size_type, &common->widget.mouse_event);
+		widget_service_get_need_of_mouse_event(common->pkgname, size_type, (bool*)&common->widget.mouse_event);
 	}
 }
 
