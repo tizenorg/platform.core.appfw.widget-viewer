@@ -61,7 +61,7 @@ typedef struct widget_evas_raw_event_info {
 
 /**
  * @brief Close the Glance Bar if it is opened
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] widget widget object
  * @return int
  */
@@ -69,7 +69,7 @@ extern int widget_viewer_evas_destroy_glance_bar(Evas_Object *widget);
 
 /**
  * @brief Set the viewe port of given widget
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] widget
  * @param[in] x
  * @param[in] y
@@ -81,7 +81,7 @@ extern int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, i
 
 /**
  * @brief Get the current view port of given widget
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] widget
  * @param[out] x
  * @param[out] y
@@ -94,7 +94,7 @@ extern int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y,
 
 /**
  * @brief Feeds accessibility events
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] widget
  * @param[in] type
  * @param[in] info
@@ -106,7 +106,7 @@ extern int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, v
 
 /**
  * @brief Dump a contents of widget to a given filename.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] widget widget object
  * @param[in] filename Filename will be used for saving content of a widget
  * @return int
@@ -119,7 +119,7 @@ extern int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *file
  * @details If you wrote a view-only client,
  *   you can receive the event of specific widgets which belong to a given cluster/category.
  *   But you cannot modify their attributes (such as size, ...).
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] cluster Cluster ("*" can be used for subscribe all cluster's widgets event; If you use the "*", value in the category will be ignored)
@@ -135,7 +135,7 @@ extern int widget_viewer_evas_subscribe_group(const char *cluster, const char *s
 
 /**
  * @brief Unsubscribes an event for the widgets, but you will receive already added widgets events.
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] cluster Cluster("*" can be used for subscribe all cluster's widgets event; If you use the "*", value in the category will be ignored)
@@ -153,7 +153,7 @@ extern int widget_viewer_evas_unsubscribe_group(const char *cluster, const char 
  *        "category" is written in the XML file of each widget manifest file.
  *        After subscribe the category, the master will send created event for all created widgets,
  *        Also it will notify client when a new widget is created.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] category Category name
@@ -167,7 +167,7 @@ extern int widget_viewer_evas_subscribe_category(const char *category);
 
 /**
  * @brief Unsubscribes events of widgets.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] category Category name
@@ -182,7 +182,7 @@ extern int widget_viewer_evas_unsubscribe_category(const char *category);
 extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id);
 /**
  * @brief Callback function for handling raw event
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] info
  * @param[in] data
  * @return void
@@ -192,7 +192,7 @@ typedef void (*raw_event_cb)(struct widget_evas_raw_event_info *info, void *data
 
 /**
  * @brief Unregister a callback function for subscribing raw event.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] type
  * @param[in] cb
  * @param[in] data
@@ -202,7 +202,7 @@ extern int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_even
 
 /**
  * @brief Register a callback function for subscribing raw event.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] type
  * @param[in] cb
  * @param[in] data
