@@ -96,7 +96,7 @@ typedef enum widget_evas_conf {
  * @retval
  * @see #widget_viewer_evas_fini
  */
-extern int widget_viewer_evas_init(Evas_Object *win, int force_to_buffer);
+extern int widget_viewer_evas_init(Evas_Object *win);
 
 /**
  * @brief Finalizes the widget system
@@ -327,7 +327,7 @@ extern int widget_viewer_evas_is_widget(Evas_Object *widget);
 extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
 
 /**
- * @brief Emits a text signal to the given widget only if it is a text type.
+ * @brief Emits a text signal to the given widget
  * @since_tizen 2.3.1
  * @remarks
  *    This is an ASYNCHRONOUS API.
@@ -346,7 +346,9 @@ extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int fla
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
- * @see widget_ret_cb
+ * @see widget_text_signal_s
+ * @see WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
+ * @see WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
  */
 extern int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data);
 

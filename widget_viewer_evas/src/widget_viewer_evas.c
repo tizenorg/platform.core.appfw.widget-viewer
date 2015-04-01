@@ -618,14 +618,14 @@ static widget_size_type_e find_size_type(struct widget_data *data, int w, int h)
 {
 	int cnt = WIDGET_COUNT_OF_SIZE_TYPE;
 	int i;
-	int _w[WIDGET_COUNT_OF_SIZE_TYPE];
-	int _h[WIDGET_COUNT_OF_SIZE_TYPE];
+	int *_w;
+	int *_h;
 	widget_size_type_e type = WIDGET_SIZE_TYPE_UNKNOWN;
 	int find;
 	int ret_type = WIDGET_SIZE_TYPE_UNKNOWN;
 	int delta;
 
-	if (widget_service_get_supported_sizes(data->widget_id, &cnt, _w, _h) < 0) {
+	if (widget_service_get_supported_sizes(data->widget_id, &cnt, &_w, &_h) < 0) {
 		ErrPrint("No available sizes: %s\n", data->widget_id);
 		return WIDGET_SIZE_TYPE_UNKNOWN;
 	}
@@ -660,6 +660,11 @@ static widget_size_type_e find_size_type(struct widget_data *data, int w, int h)
 			ret_type = type;
 		}
 	}
+
+	if (_w)
+		free(_w);
+	if (_h)
+		free(_h);
 
 	return ret_type;
 }
@@ -5956,7 +5961,7 @@ static int widget_fault_handler(enum widget_fault_type fault, const char *pkgnam
 	return 0;
 }
 
-EAPI int widget_viewer_evas_init(Evas_Object *win, int force_to_buffer)
+EAPI int widget_viewer_evas_init(Evas_Object *win)
 {
 	int ret;
 
@@ -5985,7 +5990,8 @@ EAPI int widget_viewer_evas_init(Evas_Object *win, int force_to_buffer)
 		}
 	}
 
-	s_info.conf.field.force_to_buffer = force_to_buffer;
+	/* s_info.conf.field.force_to_buffer = force_to_buffer; */
+	s_info.conf.field.force_to_buffer = 0;
 	s_info.win = win;
 
 	return ret;
