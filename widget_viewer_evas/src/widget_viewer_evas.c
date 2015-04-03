@@ -6712,7 +6712,7 @@ EAPI int widget_viewer_evas_is_faulted(Evas_Object *widget)
 	return data->is.field.faulted;
 }
 
-EAPI int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_type type, raw_event_cb cb, void *data)
+EAPI int widget_viewer_evas_set_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data)
 {
 	struct raw_event_cbdata *cbdata;
 
@@ -6740,7 +6740,7 @@ EAPI int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_ty
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_event_type type, raw_event_cb cb, void *data)
+EAPI int widget_viewer_evas_unset_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data)
 {
 	Eina_List *l;
 	Eina_List *n;

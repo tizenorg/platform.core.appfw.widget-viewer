@@ -24,10 +24,15 @@
 extern "C" {
 #endif
 
+/**
+ * @since_tizen 2.3.1
+ * @brief Default refresh interval of widgets.
+ * @see #widget_viewer_evas_add_widget
+ */
 #define WIDGET_VIEWER_EVAS_DEFAULT_PERIOD                -1.0f                   /**< Default Update Period */
 
 /**
- * @sine_tizen 2.4
+ * @since_tizen 2.3.1
  * @brief Event names for smart callback of widget events. You can listen some events from widget by calling evas_object_smart_callback_add.
  * @see #widget_evas_event_info_s
  * @see evas_object_smart_callback_add
@@ -45,7 +50,7 @@ extern "C" {
 #define WIDGET_SMART_SIGNAL_PERIOD_CHANGED          "widget,period,changed"   /**< Period is changed */
 
 /**
- * @sine_tizen 2.4
+ * @since_tizen 2.3.1
  * @brief Data structure which will be sent as a parameter of smart callback for signals WIDGET_SMART_SIGNAL_XXX
  * @see #WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED
  * @see #WIDGET_SMART_SIGNAL_WIDGET_CREATED
@@ -284,7 +289,7 @@ extern int widget_viewer_evas_is_faulted(Evas_Object *widget);
 
 
 /**
- * @brief If you don't want change the visibility automatically, freeze it.\n
+ * @brief If you don't want to change the visibility automatically, freeze it.\n
  *        The visibility will not be changed even though a box disappeared(hidden)/displayed(shown) from/on the screen.
  * @since_tizen 2.3.1
  * @param[in] widget

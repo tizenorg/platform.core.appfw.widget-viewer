@@ -43,8 +43,8 @@ typedef enum widget_access_result {
 } widget_access_result_e;
 
 /**
- * @sine_tizen 2.4
- * @brief Data structure for smart callback user parameter
+ * @since_tizen 2.3.1
+ * @brief event type for evas raw event
  */
 typedef enum widget_evas_raw_event_type {
     WIDGET_VIEWER_EVAS_RAW_DELETE = 0x00,
@@ -52,6 +52,10 @@ typedef enum widget_evas_raw_event_type {
     WIDGET_VIEWER_EVAS_RAW_MAX = 0xff,
 } widget_evas_raw_event_type_e;
 
+/**
+ * @since_tizen 2.3.1
+ * @brief Data structure for smart callback user parameter
+ */
 typedef struct widget_evas_raw_event_info {
     const char *pkgname;
     enum widget_evas_raw_event_type type;
@@ -179,7 +183,6 @@ extern int widget_viewer_evas_subscribe_category(const char *category);
  */
 extern int widget_viewer_evas_unsubscribe_category(const char *category);
 
-extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id);
 /**
  * @brief Callback function for handling raw event
  * @since_tizen 2.3.1
@@ -187,8 +190,16 @@ extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instan
  * @param[in] data
  * @return void
  */
+typedef void (*raw_event_cb)(widget_evas_raw_event_info_s *info, void *data);
 
-typedef void (*raw_event_cb)(struct widget_evas_raw_event_info *info, void *data);
+/**
+ * @brief Register a callback function for subscribing raw event.
+ * @since_tizen 2.3.1
+ * @param[in] type
+ * @param[in] cb
+ * @param[in] data
+ */
+extern int widget_viewer_evas_set_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data);
 
 /**
  * @brief Unregister a callback function for subscribing raw event.
@@ -198,16 +209,10 @@ typedef void (*raw_event_cb)(struct widget_evas_raw_event_info *info, void *data
  * @param[in] data
  * @return int
  */
-extern int widget_viewer_evas_unset_raw_event_callback(enum widget_evas_raw_event_type type, raw_event_cb cb, void *data);
+extern int widget_viewer_evas_unset_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data);
 
-/**
- * @brief Register a callback function for subscribing raw event.
- * @since_tizen 2.3.1
- * @param[in] type
- * @param[in] cb
- * @param[in] data
- */
-extern int widget_viewer_evas_set_raw_event_callback(enum widget_evas_raw_event_type type, raw_event_cb cb, void *data);
+extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id);
+
 
 #ifdef __cplusplus
 }
