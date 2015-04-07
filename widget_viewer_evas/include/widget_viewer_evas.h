@@ -158,7 +158,7 @@ extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widget widget Evas object
+ * @param[in] widget a widget object
  * @return #WIDGET_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
@@ -170,7 +170,7 @@ extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widget widget Evas object
+ * @param[in] widget a widget object
  * @return #WIDGET_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
@@ -193,7 +193,7 @@ extern int widget_viewer_evas_set_option(enum widget_evas_conf type, int value);
  * @brief Gets content string of widget
  * @details This string can be used for creating contents of widget again after reboot a device or recovered from crash(abnormal status)
  * @since_tizen 2.3.1
- * @param[in] widget widget object
+ * @param[in] widget a widget object
  * @return content string to be recognize content of the widget
  * @retval NULL if there is no specific content string.
  */
@@ -203,7 +203,7 @@ extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
  * @brief Gets summarized string of the widget content for accessibility.
  * @details If the accessibility feature is turned on, a viewer can use this text to describe the widget.
  * @since_tizen 2.3.1
- * @param[in] widget widget object
+ * @param[in] widget a widget object
  * @return title string to be used for summarizing the widget
  * @retval NULL if there is no summarized text for content of given widget.
  */
@@ -212,18 +212,18 @@ extern const char *widget_viewer_evas_get_title_string(Evas_Object *widget);
 /**
  * @brief Gets the id of the widget
  * @since_tizen 2.3.1
- * @param[in] widget widget object
- * @return const char * widget Id
- * @retval NULL if an error occurred
+ * @param[in] widget a widget object
+ * @return widget id
+ * @retval NULL if an error occurred and you can get the reason of failure using get_last_result()
  */
 extern const char *widget_viewer_evas_get_widget_id(Evas_Object *widget);
 
 /**
  * @brief Gets the update period of the widget.
  * @since_tizen 2.3.1
- * @param[in] widget widget object
+ * @param[in] widget a widget object
  * @return period the update period of the widget.
- * @retval Update period
+ * @retval the update interval of the widget
  */
 extern double widget_viewer_evas_get_period(Evas_Object *widget);
 
@@ -232,7 +232,7 @@ extern double widget_viewer_evas_get_period(Evas_Object *widget);
  * @details If you call this function after feed the mouse_down(or mouse_set) event, the widget will get ON_HOLD events.\n
  *          If a widget gets ON_HOLD event, it will not do anything even if you feed mouse_up(or mouse_unset) event.\n
  * @since_tizen 2.3.1
- * @param[in] widget widget object
+ * @param[in] widget a widget object
  * @return void
  */
 extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
@@ -240,7 +240,7 @@ extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
 /**
  * @brief This function should be called right after create the widget object. before resizing it.
  * @since_tizen 2.3.1
- * @param[in] widget widget object
+ * @param[in] widget a widget object
  * @return void
  */
 extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
@@ -248,7 +248,7 @@ extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
 /**
  * @brief While loading a box, hide the help text
  * @since_tizen 2.3.1
- * @param[in] widget widget object
+ * @param[in] widget a widget object
  * @return void
  */
 extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
@@ -257,25 +257,32 @@ extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
  * @brief Do not display the overlay layer while loading a new box.
  * @details if you disable it, there is no preview & help text while creating a widget object
  * @since_tizen 2.3.1
- * @param[in] widget widget object
+ * @param[in] widget a widget object
  * @return void
  */
 extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
 
 /**
- * @brief Feeds the mouse_up event to the provider.
+ * @brief Feeds the mouse_up event to the provider of the widget
  * @details This is very similar with widget_viewer_evas_cancel_click(), but this will sends mouse_up event explicitly.\n
  *          Also feed the ON_HOLD event before feeds mouse_up event.
  * @since_tizen 2.3.1
- * @param[in] widget widget object
- * @return int
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] widget a widget object
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  */
 extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
 
 /**
- * @brief Activate
+ * @brief Activate a widget in faulted state.
+ * @details A widget in faulted state MUST be activated before adding the widget.
  * @since_tizen 2.3.1
- * @param[in] widget widget object
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] widget a widget object faulted
  * @return void
  */
 extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
@@ -283,50 +290,58 @@ extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
 /**
  * @brief Check whether the widget is faulted.
  * @since_tizen 2.3.1
- * @param[in] widget
+ * @param[in] widget a widget object
+ * @return faulted state of the widget
+ * @retval 1 for faulted state
+ * @retval 0 for not faulted state
  */
 extern int widget_viewer_evas_is_faulted(Evas_Object *widget);
-
 
 /**
  * @brief If you don't want to change the visibility automatically, freeze it.\n
  *        The visibility will not be changed even though a box disappeared(hidden)/displayed(shown) from/on the screen.
  * @since_tizen 2.3.1
- * @param[in] widget
+ * @param[in] widget a widget object
  * @param[in] status
- * @return int
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
  */
 extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, int status);
 
 /**
  * @brief If you want to let the visibility change automatically again, call this function.
  * @since_tizen 2.3.1
- * @param[in] widget
- * @return int
+ * @param[in] widget a widget object
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
  */
 extern int widget_viewer_evas_thaw_visibility(Evas_Object *widget);
 
 /**
- * @brief Get the state of visibility option.
+ * @brief Get the fixed state of visibility option.
  * @since_tizen 2.3.1
- * @param[in] widget
- * @return int
+ * @param[in] widget a widget object
+ * @return fixed state of visibility
+ * @retval 1 for fixed state
+ * @retval 0 for not fixed state
  */
 extern int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget);
 
 /**
  * @brief Validate the object, whether it is a widget object or not
  * @since_tizen 2.3.1
- * @param[in] widget
- * @return int
+ * @param[in] widget a widget object
+ * @return result of validation
+ * @retval 1 this is a widget
+ * @retval 0 this is not a widget
  */
 extern int widget_viewer_evas_is_widget(Evas_Object *widget);
 
 /**
- * @brief Before delete a box, set the deletion mode using this.
+ * @brief Before delete a widget, set the deletion mode
  * @since_tizen 2.3.1
- * @param[in] widget widget object which will be deleted soon
- * @param[in] flag 1 if you delete this widget instance permanently, of 0 if you want keep it and it will be re-created soon.
+ * @param[in] widget a widget object which will be deleted soon
+ * @param[in] flag Pass 1 if you delete this widget instance permanently, or pass 0 if you want to keep it and it will be re-created soon.
  * @return void
  */
 extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
@@ -334,20 +349,21 @@ extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int fla
 /**
  * @brief Emits a text signal to the given widget
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @remarks
  *    This is an ASYNCHRONOUS API.
  *    This function is Asynchronous, so you will get the result from @a smart callback, if you failed to send a text signal,
  *    this function will returns proper error code.
- * @param[in] widget widget object
- * @param[in] event_info.signal_name Emission string
- * @param[in] event_info.source Source string
+ * @param[in] widget a widget object
+ * @param[in] event_info.signal_name name of text signal
+ * @param[in] event_info.source source string
  * @param[in] event_info.sx Start X
  * @param[in] event_info.sy Start Y
  * @param[in] event_info.ex End X
  * @param[in] event_info.ey End Y
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
