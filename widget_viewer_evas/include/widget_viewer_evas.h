@@ -70,7 +70,15 @@ typedef struct widget_evas_event_info {
     int error;		           /**< Error type - WIDGET_ERROR_XXX, refer the widget_errno.h */
 } widget_evas_event_info_s;
 
-
+/**
+ * @since_tizen 2.3.1
+ * @brief Enumerations for setting visibility status of a widget.
+ * @see #widget_viewer_evas_freeze_visibility
+ */
+typedef enum widget_visibility_status {
+	WIDGET_VISIBILITY_STATUS_SHOW_FIXED = 1,
+	WIDGET_VISIBILITY_STATUS_HIDE_FIXED = 2
+} widget_visibility_status_e;
 
 /**
  * \brief
@@ -302,11 +310,12 @@ extern int widget_viewer_evas_is_faulted(Evas_Object *widget);
  *        The visibility will not be changed even though a box disappeared(hidden)/displayed(shown) from/on the screen.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @param[in] status
+ * @param[in] status a visibility status of the widget
  * @return #WIDGET_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @see #widget_visibility_status_e
  */
-extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, int status);
+extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status);
 
 /**
  * @brief If you want to let the visibility change automatically again, call this function.

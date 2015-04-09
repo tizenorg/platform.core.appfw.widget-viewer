@@ -6770,7 +6770,7 @@ EAPI int widget_viewer_evas_unset_raw_event_callback(widget_evas_raw_event_type_
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, int status)
+EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status)
 {
 	struct widget_data *data;
 
