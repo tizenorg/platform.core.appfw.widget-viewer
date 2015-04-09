@@ -76,8 +76,8 @@ typedef struct widget_evas_event_info {
  * @see #widget_viewer_evas_freeze_visibility
  */
 typedef enum widget_visibility_status {
-	WIDGET_VISIBILITY_STATUS_SHOW_FIXED = 1,
-	WIDGET_VISIBILITY_STATUS_HIDE_FIXED = 2
+	WIDGET_VISIBILITY_STATUS_SHOW_FIXED = 1,  /**< Visibility of the widget will be fixed as 'SHOW'*/
+	WIDGET_VISIBILITY_STATUS_HIDE_FIXED = 2   /**< Visibility of the widget will be fixed as 'HIDE'*/
 } widget_visibility_status_e;
 
 /**
