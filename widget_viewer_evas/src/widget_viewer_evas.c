@@ -325,7 +325,7 @@ struct widget_data {
 	int refcnt;
 	int overlay_update_counter;
 	Ecore_Timer *overlay_timer;
-	int freezed_visibility;
+	widget_visibility_status_e freezed_visibility;
 
 	Eina_List *gbar_script_object_list;
 	Eina_List *widget_script_object_list;
@@ -3403,7 +3403,12 @@ static void update_visibility(struct widget_data *data)
 
 	if (data->is.field.freeze_visibility) {
 		DbgPrint("Freezed visibility: %X (%s)\n", data->freezed_visibility, widget_viewer_get_pkgname(data->handle));
-		(void)widget_viewer_set_visibility(data->handle, data->freezed_visibility);
+
+		if (data->freezed_visibility == WIDGET_VISIBILITY_STATUS_SHOW_FIXED) {
+			(void)widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
+		} else if (data->freezed_visibility == WIDGET_VISIBILITY_STATUS_HIDE_FIXED) {
+			(void)widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
+		}
 		return;
 	}
 
