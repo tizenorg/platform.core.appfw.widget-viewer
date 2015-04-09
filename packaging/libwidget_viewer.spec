@@ -2,7 +2,7 @@
 
 Name: libwidget_viewer
 Summary: Library for developing the application
-Version: 1.0.0
+Version: 1.1.3
 Release: 1
 Group: HomeTF/widget
 License: Flora
@@ -119,6 +119,7 @@ widget provider application development library (dev) (EFL version)
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/widget_viewer_evas/widget_viewer_evas.h
+%{_includedir}/widget_viewer_evas/widget_viewer_evas_internal.h
 %{_libdir}/pkgconfig/widget_viewer_evas.pc
 
 # End of a file

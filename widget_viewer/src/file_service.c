@@ -207,7 +207,7 @@ static inline int file_service_open(void)
  */
 static void write_item_to_pipe(struct request_item *item, int ret)
 {
-	item->ret = WIDGET_STATUS_ERROR_FAULT;
+	item->ret = WIDGET_ERROR_FAULT;
 	if (write(s_info.evt_pipe[PIPE_WRITE], &item, sizeof(item)) != sizeof(item)) {
 		ErrPrint("write: %s\n", strerror(errno));
 		free(item->filename);
@@ -275,7 +275,7 @@ static void *file_service_main(void *data)
 					head = malloc(recvsz);
 					if (!head) {
 						ErrPrint("Heap: %s\n", strerror(errno));
-						ret = WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+						ret = WIDGET_ERROR_OUT_OF_MEMORY;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -293,7 +293,7 @@ static void *file_service_main(void *data)
 						free(head);
 						head = NULL;
 						recv_state = RECV_INIT;
-						ret = WIDGET_STATUS_ERROR_FAULT;
+						ret = WIDGET_ERROR_FAULT;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -313,7 +313,7 @@ static void *file_service_main(void *data)
 						head = NULL;
 						recv_state = RECV_INIT;
 
-						ret = WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+						ret = WIDGET_ERROR_OUT_OF_MEMORY;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -328,7 +328,7 @@ static void *file_service_main(void *data)
 						free(head);
 						head = NULL;
 						recv_state = RECV_INIT;
-						ret = WIDGET_STATUS_ERROR_FAULT;
+						ret = WIDGET_ERROR_FAULT;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -341,7 +341,7 @@ static void *file_service_main(void *data)
 						head = NULL;
 						recv_state = RECV_INIT;
 
-						ret = WIDGET_STATUS_ERROR_IO_ERROR;
+						ret = WIDGET_ERROR_IO_ERROR;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -355,7 +355,7 @@ static void *file_service_main(void *data)
 					free(head);
 					head = NULL;
 					recv_state = RECV_INIT;
-					ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+					ret = WIDGET_ERROR_INVALID_PARAMETER;
 					write_item_to_pipe(item, ret);
 					item = NULL;
 				}
@@ -367,7 +367,7 @@ static void *file_service_main(void *data)
 						free(head);
 						head = NULL;
 						recv_state = RECV_INIT;
-						ret = WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+						ret = WIDGET_ERROR_OUT_OF_MEMORY;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -386,7 +386,7 @@ static void *file_service_main(void *data)
 					free(body);
 					body = NULL;
 					recv_state = RECV_INIT;
-					ret = WIDGET_STATUS_ERROR_FAULT;
+					ret = WIDGET_ERROR_FAULT;
 					write_item_to_pipe(item, ret);
 					item = NULL;
 					break;
@@ -402,7 +402,7 @@ static void *file_service_main(void *data)
 						free(body);
 						body = NULL;
 						recv_state = RECV_INIT;
-						ret = WIDGET_STATUS_ERROR_FAULT;
+						ret = WIDGET_ERROR_FAULT;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -420,7 +420,7 @@ static void *file_service_main(void *data)
 						body = NULL;
 						recv_state = RECV_INIT;
 
-						ret = WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+						ret = WIDGET_ERROR_OUT_OF_MEMORY;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -437,7 +437,7 @@ static void *file_service_main(void *data)
 						body = NULL;
 						recv_state = RECV_INIT;
 
-						ret = WIDGET_STATUS_ERROR_IO_ERROR;
+						ret = WIDGET_ERROR_IO_ERROR;
 						write_item_to_pipe(item, ret);
 						item = NULL;
 						break;
@@ -452,7 +452,7 @@ static void *file_service_main(void *data)
 							if (close(file_fd) < 0) {
 								ErrPrint("close: %s\n", strerror(errno));
 							}
-							ret = WIDGET_STATUS_ERROR_NONE;
+							ret = WIDGET_ERROR_NONE;
 							write_item_to_pipe(item, ret);
 							item = NULL;
 						}
@@ -475,14 +475,14 @@ static void *file_service_main(void *data)
 					head = NULL;
 					recv_state = RECV_INIT;
 
-					ret = WIDGET_STATUS_ERROR_FAULT;
+					ret = WIDGET_ERROR_FAULT;
 					write_item_to_pipe(item, ret);
 					item = NULL;
 				}
 				break;
 			default:
 				ErrPrint("Unknown event: %d\n", recv_state);
-				ret = WIDGET_STATUS_ERROR_FAULT;
+				ret = WIDGET_ERROR_FAULT;
 				write_item_to_pipe(item, ret);
 				item = NULL;
 				break;

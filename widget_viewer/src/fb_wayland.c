@@ -75,17 +75,17 @@ static inline int sync_for_file(struct fb_info *info)
 	buffer = info->buffer;
 
 	if (!buffer) { /* Ignore this sync request */
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid state of a FB\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (buffer->type != WIDGET_BUFFER_TYPE_FILE) {
 		ErrPrint("Invalid buffer\n");
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	fd = open(util_uri_to_path(info->id), O_RDONLY);
@@ -100,7 +100,7 @@ static inline int sync_for_file(struct fb_info *info)
 		 *
 		 * and then update it after it gots update events
 		 */
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
@@ -116,25 +116,25 @@ static inline int sync_for_file(struct fb_info *info)
 		 *
 		 * and then update it after it gots update events
 		 */
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	if (close(fd) < 0) {
 		ErrPrint("close: %s\n", strerror(errno));
 	}
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 {
 	if (!info) {
 		ErrPrint("FB Handle is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!info->id || info->id[0] == '\0') {
 		DbgPrint("Ingore sync\n");
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
@@ -142,10 +142,10 @@ int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		/* No need to do sync */ 
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
-	return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+	return WIDGET_ERROR_INVALID_PARAMETER;
 }
 
 struct fb_info *fb_create(const char *id, int w, int h)
@@ -180,7 +180,7 @@ struct fb_info *fb_create(const char *id, int w, int h)
 		free(info);
 		return NULL;
 	} else {
-		info->handle = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		info->handle = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	info->bufsz = 0;
@@ -195,7 +195,7 @@ int fb_destroy(struct fb_info *info)
 {
 	if (!info) {
 		ErrPrint("Handle is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (info->buffer) {
@@ -207,7 +207,7 @@ int fb_destroy(struct fb_info *info)
 
 	free(info->id);
 	free(info);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int fb_is_created(struct fb_info *info)
@@ -240,14 +240,14 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 	if (!info) {
 		ErrPrint("info == NIL\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (!info->buffer) {
 		if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 			ErrPrint("Unsupported Type\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		} else if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 			update_fb_size(info);
@@ -256,7 +256,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 			if (!buffer) {
 				ErrPrint("Heap: %s\n", strerror(errno));
 				info->bufsz = 0;
-				widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 				return NULL;
 			}
 
@@ -271,14 +271,14 @@ void *fb_acquire_buffer(struct fb_info *info)
 			buffer = shmat(info->handle, NULL, 0);
 			if (buffer == (void *)-1) {
 				ErrPrint("shmat: %s (%d)\n", strerror(errno), info->handle);
-				widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+				set_last_result(WIDGET_ERROR_FAULT);
 				return NULL;
 			}
 
 			return buffer->data;
 		} else {
 			ErrPrint("Buffer is not created (%s)\n", info->id);
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 	}
@@ -292,7 +292,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 	case WIDGET_BUFFER_TYPE_PIXMAP:
 	default:
 		DbgPrint("Unknwon FP: %d\n", buffer->type);
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		break;
 	}
 
@@ -305,16 +305,16 @@ int fb_release_buffer(void *data)
 
 	if (!data) {
 		ErrPrint("buffer data == NIL\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	buffer = container_of(data, struct buffer, data);
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (buffer->type) {
@@ -340,11 +340,11 @@ int fb_release_buffer(void *data)
 	case WIDGET_BUFFER_TYPE_PIXMAP:
 	default:
 		ErrPrint("Unknwon buffer type\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		break;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int fb_refcnt(void *data)
@@ -354,24 +354,24 @@ int fb_refcnt(void *data)
 	int ret;
 
 	if (!data) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	buffer = container_of(data, struct buffer, data);
 
 	if (buffer->state != CREATED) {
 		ErrPrint("Invalid handle\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (buffer->type) {
 	case WIDGET_BUFFER_TYPE_SHM:
 		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
 			ErrPrint("Error: %s\n", strerror(errno));
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
-			return WIDGET_STATUS_ERROR_FAULT;
+			set_last_result(WIDGET_ERROR_FAULT);
+			return WIDGET_ERROR_FAULT;
 		}
 
 		ret = buf.shm_nattch;
@@ -381,8 +381,8 @@ int fb_refcnt(void *data)
 		break;
 	case WIDGET_BUFFER_TYPE_PIXMAP:
 	default:
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
@@ -398,18 +398,18 @@ int fb_get_size(struct fb_info *info, int *w, int *h)
 {
 	if (!info) {
 		ErrPrint("Handle is not valid\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	*w = info->w;
 	*h = info->h;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int fb_size(struct fb_info *info)
 {
 	if (!info) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return 0;
 	}
 

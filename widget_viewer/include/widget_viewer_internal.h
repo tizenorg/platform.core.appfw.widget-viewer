@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+#ifndef __WIDGET_VIEWER_INTERNAL_H
+#define __WIDGET_VIEWER_INTERNAL_H
+
+#include "widget_viewer.h"
+#include "widget_buffer.h"
+
 struct cb_info {
     widget_ret_cb cb;
     void *data;
@@ -123,7 +129,7 @@ struct widget_common {
         char *auto_launch;
         double period;
         int pinup_supported;
-        int mouse_event;
+        bool mouse_event;
 
         /* For the filtering event */
         double x;
@@ -266,5 +272,7 @@ struct widget {
         } key_event;
     } cbs;
 };
+
+#endif /* __WIDGET_VIEWER_INTERNAL_H */
 
 /* End of a file */

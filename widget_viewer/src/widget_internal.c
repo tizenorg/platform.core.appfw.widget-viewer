@@ -9,6 +9,7 @@
 
 #include <widget_errno.h>
 #include <widget_service.h>
+#include <widget_service_internal.h>
 #include <widget_buffer.h>
 
 #include <packet.h>
@@ -75,10 +76,10 @@ static void del_ret_cb(widget_h handler, const struct packet *result, void *data
 
 	if (!result) {
 		ErrPrint("Connection lost?\n");
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	} else if (packet_get(result, "i", &ret) != 1) {
 		ErrPrint("Invalid argument\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (ret == 0) {
@@ -106,14 +107,14 @@ struct widget_common *_widget_create_common_handle(widget_h handle, const char *
 	common = calloc(1, sizeof(*common));
 	if (!common) {
 		ErrPrint("Heap: %s\n", strerror(errno));
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
 	common->pkgname = strdup(pkgname);
 	if (!common->pkgname) {
 		free(common);
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -122,7 +123,7 @@ struct widget_common *_widget_create_common_handle(widget_h handle, const char *
 		ErrPrint("Error: %s\n", strerror(errno));
 		free(common->pkgname);
 		free(common);
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -132,7 +133,7 @@ struct widget_common *_widget_create_common_handle(widget_h handle, const char *
 		free(common->cluster);
 		free(common->pkgname);
 		free(common);
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -157,7 +158,7 @@ struct widget_common *_widget_create_common_handle(widget_h handle, const char *
 	common->widget.last_extra_buffer_idx = WIDGET_UNKNOWN_BUFFER;
 
 	common->state = WIDGET_STATE_CREATE;
-	common->visible = WIDGET_SHOW;
+	common->visible = WIDGET_HIDE_WITH_PAUSE;
 
 	s_info.widget_common_list = dlist_append(s_info.widget_common_list, common);
 	return common;
@@ -221,7 +222,7 @@ int _widget_set_group(struct widget_common *common, const char *cluster, const c
 		pc = strdup(cluster);
 		if (!pc) {
 			ErrPrint("Heap: %s (cluster: %s)\n", strerror(errno), cluster);
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
 
@@ -230,7 +231,7 @@ int _widget_set_group(struct widget_common *common, const char *cluster, const c
 		if (!ps) {
 			ErrPrint("Heap: %s (category: %s)\n", strerror(errno), category);
 			free(pc);
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
 
@@ -245,7 +246,7 @@ int _widget_set_group(struct widget_common *common, const char *cluster, const c
 	common->cluster = pc;
 	common->category = ps;
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 void _widget_set_size(struct widget_common *common, int w, int h)
@@ -257,7 +258,7 @@ void _widget_set_size(struct widget_common *common, int w, int h)
 
 	widget_service_get_size_type(w, h, &size_type);
 	if (size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
-		widget_service_get_need_of_mouse_event(common->pkgname, size_type, &common->widget.mouse_event);
+		widget_service_get_need_of_mouse_event(common->pkgname, size_type, (bool*)&common->widget.mouse_event);
 	}
 }
 
@@ -386,7 +387,7 @@ widget_h _widget_new_widget(const char *pkgname, const char *id, double timestam
 	_widget_set_id(handler->common, id);
 	handler->common->timestamp = timestamp;
 	handler->common->state = WIDGET_STATE_CREATE;
-	handler->visible = WIDGET_SHOW;
+	handler->visible = WIDGET_HIDE_WITH_PAUSE;
 	handler->state = WIDGET_STATE_CREATE;
 	handler = _widget_ref(handler);
 	s_info.widget_list = dlist_append(s_info.widget_list, handler);
@@ -405,7 +406,7 @@ int _widget_delete_all(void)
 		_widget_unref(handler, 1);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int _widget_set_content(struct widget_common *common, const char *content)
@@ -416,13 +417,13 @@ int _widget_set_content(struct widget_common *common, const char *content)
 		pc = strdup(content);
 		if (!pc) {
 			ErrPrint("heap: %s [%s]\n", strerror(errno), content);
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
 
 	free(common->content);
 	common->content = pc;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int _widget_set_title(struct widget_common *common, const char *title)
@@ -433,13 +434,13 @@ int _widget_set_title(struct widget_common *common, const char *title)
 		pt = strdup(title);
 		if (!pt) {
 			ErrPrint("heap: %s [%s]\n", strerror(errno), title);
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
 
 	free(common->title);
 	common->title = pt;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 void _widget_set_size_list(struct widget_common *common, int size_list)
@@ -542,12 +543,12 @@ int _widget_set_widget_fb(struct widget_common *common, const char *filename)
 	struct fb_info *fb;
 
 	if (!common) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	fb = common->widget.fb;
 	if (fb && !strcmp(fb_id(fb), filename)) { /*!< BUFFER is not changed, */
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	common->widget.fb = NULL;
@@ -556,7 +557,7 @@ int _widget_set_widget_fb(struct widget_common *common, const char *filename)
 		if (fb) {
 			fb_destroy(fb);
 		}
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	common->widget.fb = fb_create(filename, common->widget.width, common->widget.height);
@@ -565,14 +566,14 @@ int _widget_set_widget_fb(struct widget_common *common, const char *filename)
 		if (fb) {
 			fb_destroy(fb);
 		}
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (fb) {
 		fb_destroy(fb);
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int _widget_set_gbar_fb(struct widget_common *common, const char *filename)
@@ -580,13 +581,13 @@ int _widget_set_gbar_fb(struct widget_common *common, const char *filename)
 	struct fb_info *fb;
 
 	if (!common || common->state != WIDGET_STATE_CREATE) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	fb = common->gbar.fb;
 	if (fb && !strcmp(fb_id(fb), filename)) {
 		/* BUFFER is not changed, just update the content */
-		return WIDGET_STATUS_ERROR_EXIST;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 	common->gbar.fb = NULL;
 
@@ -594,7 +595,7 @@ int _widget_set_gbar_fb(struct widget_common *common, const char *filename)
 		if (fb) {
 			fb_destroy(fb);
 		}
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	common->gbar.fb = fb_create(filename, common->gbar.width, common->gbar.height);
@@ -603,13 +604,13 @@ int _widget_set_gbar_fb(struct widget_common *common, const char *filename)
 		if (fb) {
 			fb_destroy(fb);
 		}
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	if (fb) {
 		fb_destroy(fb);
 	}
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 struct fb_info *_widget_get_widget_fb(struct widget_common *common)
@@ -679,55 +680,55 @@ widget_h _widget_unref(widget_h handler, int destroy_common)
 	}
 
 	if (handler->cbs.created.cb) {
-		handler->cbs.created.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.created.data);
+		handler->cbs.created.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.created.data);
 		handler->cbs.created.cb = NULL;
 		handler->cbs.created.data = NULL;
 	}
 
 	if (handler->cbs.deleted.cb) {
-		handler->cbs.deleted.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.deleted.data);
+		handler->cbs.deleted.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.deleted.data);
 		handler->cbs.deleted.cb = NULL;
 		handler->cbs.deleted.data = NULL;
 	}
 
 	if (handler->cbs.pinup.cb) {
-		handler->cbs.pinup.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.pinup.data);
+		handler->cbs.pinup.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.pinup.data);
 		handler->cbs.pinup.cb = NULL;
 		handler->cbs.pinup.data = NULL;
 	}
 
 	if (handler->cbs.group_changed.cb) {
-		handler->cbs.group_changed.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.group_changed.data);
+		handler->cbs.group_changed.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.group_changed.data);
 		handler->cbs.group_changed.cb = NULL;
 		handler->cbs.group_changed.data = NULL;
 	}
 
 	if (handler->cbs.period_changed.cb) {
-		handler->cbs.period_changed.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.period_changed.data);
+		handler->cbs.period_changed.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.period_changed.data);
 		handler->cbs.period_changed.cb = NULL;
 		handler->cbs.period_changed.data = NULL;
 	}
 
 	if (handler->cbs.size_changed.cb) {
-		handler->cbs.size_changed.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.size_changed.data);
+		handler->cbs.size_changed.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.size_changed.data);
 		handler->cbs.size_changed.cb = NULL;
 		handler->cbs.size_changed.data = NULL;
 	}
 
 	if (handler->cbs.gbar_created.cb) {
-		handler->cbs.gbar_created.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.gbar_created.data);
+		handler->cbs.gbar_created.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.gbar_created.data);
 		handler->cbs.gbar_created.cb = NULL;
 		handler->cbs.gbar_created.data = NULL;
 	}
 
 	if (handler->cbs.gbar_destroyed.cb) {
-		handler->cbs.gbar_destroyed.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.gbar_destroyed.data);
+		handler->cbs.gbar_destroyed.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.gbar_destroyed.data);
 		handler->cbs.gbar_destroyed.cb = NULL;
 		handler->cbs.gbar_destroyed.data = NULL;
 	}
 
 	if (handler->cbs.update_mode.cb) {
-		handler->cbs.update_mode.cb(handler, WIDGET_STATUS_ERROR_FAULT, handler->cbs.update_mode.data);
+		handler->cbs.update_mode.cb(handler, WIDGET_ERROR_FAULT, handler->cbs.update_mode.data);
 		handler->cbs.update_mode.cb = NULL;
 		handler->cbs.update_mode.data = NULL;
 	}
@@ -772,9 +773,9 @@ int _widget_send_delete(widget_h handler, int type, widget_ret_cb cb, void *data
 	if (handler->common->request.deleted) {
 		ErrPrint("Already in-progress\n");
 		if (cb) {
-			cb(handler, WIDGET_STATUS_ERROR_NONE, data);
+			cb(handler, WIDGET_ERROR_NONE, data);
 		}
-		return WIDGET_STATUS_ERROR_BUSY;
+		return WIDGET_ERROR_RESOURCE_BUSY;
 	}
 
 	if (!cb) {
@@ -785,10 +786,10 @@ int _widget_send_delete(widget_h handler, int type, widget_ret_cb cb, void *data
 	if (!packet) {
 		ErrPrint("Failed to build a param\n");
 		if (cb) {
-			cb(handler, WIDGET_STATUS_ERROR_FAULT, data);
+			cb(handler, WIDGET_ERROR_FAULT, data);
 		}
 
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	cbinfo = _widget_create_cb_info(cb, data);
@@ -796,10 +797,10 @@ int _widget_send_delete(widget_h handler, int type, widget_ret_cb cb, void *data
 		packet_destroy(packet);
 		ErrPrint("Failed to create cbinfo\n");
 		if (cb) {
-			cb(handler, WIDGET_STATUS_ERROR_FAULT, data);
+			cb(handler, WIDGET_ERROR_FAULT, data);
 		}
 
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	ret = master_rpc_async_request(handler, packet, 0, del_ret_cb, cbinfo);
@@ -810,7 +811,7 @@ int _widget_send_delete(widget_h handler, int type, widget_ret_cb cb, void *data
 		_widget_destroy_cb_info(cbinfo);
 
 		if (cb) {
-			cb(handler, WIDGET_STATUS_ERROR_FAULT, data);
+			cb(handler, WIDGET_ERROR_FAULT, data);
 		}
 	} else {
 		handler->common->request.deleted = 1;
@@ -959,7 +960,7 @@ int _widget_add_event_handler(widget_event_handler_cb widget_cb, void *data)
 	info = malloc(sizeof(*info));
 	if (!info) {
 		ErrPrint("Heap: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	info->handler = widget_cb;
@@ -967,7 +968,7 @@ int _widget_add_event_handler(widget_event_handler_cb widget_cb, void *data)
 	info->is_deleted = 0;
 
 	s_info.event_list = dlist_append(s_info.event_list, info);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 void *_widget_remove_event_handler(widget_event_handler_cb widget_cb)
@@ -1001,7 +1002,7 @@ int _widget_add_fault_handler(widget_fault_handler_cb widget_cb, void *data)
 	info = malloc(sizeof(*info));
 	if (!info) {
 		ErrPrint("Heap: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	info->handler = widget_cb;
@@ -1009,7 +1010,7 @@ int _widget_add_fault_handler(widget_fault_handler_cb widget_cb, void *data)
 	info->is_deleted = 0;
 
 	s_info.fault_list = dlist_append(s_info.fault_list, info);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 void *_widget_remove_fault_handler(widget_fault_handler_cb widget_cb)

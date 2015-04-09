@@ -115,7 +115,7 @@
  * @image html preload_folder.png
  * @image html download_folder.png
  *
- * @subsection WritingViewerApp 4. Writing a new application for displaying Dynamic Boxes
+ * @subsection WritingViewerApp 4. Writing a new application for displaying Widgets
  * If you want install dynamic boxes on your application screen, you should initialize the viewer system first.
  *
  * @code
@@ -163,7 +163,7 @@
  * {
  *      int ret;
  *	ret = widget_init(NULL, 1, 0.0f, 1);
- *      if (ret != WIDGET_STATUS_ERROR_NONE) {
+ *      if (ret != WIDGET_ERROR_NONE) {
  *          LOGE("Failed to initialize the widget viewer");
  *      }
  *      return true;
