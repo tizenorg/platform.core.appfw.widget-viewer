@@ -6309,6 +6309,11 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 		return;
 	}
 
+	if (!data->is.field.pressed) {
+		DbgPrint("Cancel ignored\n");
+		return;
+	}
+
 	if (data->is.field.cancel_click == CANCEL_DISABLED) {
 		data->is.field.cancel_click = CANCEL_USER;
 	}
