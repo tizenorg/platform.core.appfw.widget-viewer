@@ -7010,7 +7010,7 @@ EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
 	return WIDGET_ERROR_NOT_EXIST;
 }
 
-void text_signal_cb(widget_h handle, int ret, void *data)
+static void text_signal_cb(widget_h handle, int ret, void *data)
 {
 	/* TODO : add codes to invoke smart event callback function */
 }
