@@ -34,6 +34,7 @@
 #include <widget_viewer_internal.h>
 #include <widget_viewer.h>
 #include <widget_errno.h>
+#include <widget_conf.h>
 
 
 #if defined(LOG_TAG)
@@ -174,6 +175,8 @@ static struct {
 	Eina_List *gbar_dirty_objects;
 	Eina_List *subscribed_category_list;
 	Eina_List *subscribed_group_list;
+
+	int initialized;
 } s_info = {
 	.sc = EVAS_SMART_CLASS_INIT_NAME_VERSION(WIDGET_CLASS_NAME),
 	.smart = NULL,
@@ -193,6 +196,7 @@ static struct {
 	.gbar_dirty_objects = NULL,
 	.subscribed_category_list = NULL,
 	.subscribed_group_list = NULL,
+	.initialized = 0,
 };
 
 struct subscribe_group {
@@ -316,7 +320,9 @@ struct widget_data {
 			unsigned int send_delete: 1;
 			unsigned int permanent_delete: 1;
 
-			unsigned int reserved: 5;
+			unsigned int delayed_pause_resume: 2;
+
+			unsigned int reserved: 4;
 		} field;	/* Do we really have the performance loss because of bit fields? */
 
 		unsigned int flags;
@@ -329,6 +335,9 @@ struct widget_data {
 
 	Eina_List *gbar_script_object_list;
 	Eina_List *widget_script_object_list;
+
+	Ecore_Timer *delayed_pause_resume_timer;
+	widget_visible_state_e delayed_pause_resume_state;
 };
 
 struct script_object {
@@ -2800,7 +2809,6 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 				DbgPrint("Change to render animator\n");
 				s_info.conf.field.render_animator = 1;
 			}
-
 		}
 
 		if (!s_info.conf.field.auto_feed) {
@@ -3354,6 +3362,11 @@ static void __widget_del(Evas_Object *widget)
 
 	data->is.field.deleted = 1;
 
+	if (data->delayed_pause_resume_timer) {
+		ecore_timer_del(data->delayed_pause_resume_timer);
+		data->delayed_pause_resume_timer = NULL;
+	}
+
 	s_info.list = eina_list_remove(s_info.list, widget);
 
 	if (data->handle) {
@@ -3393,9 +3406,32 @@ static void __widget_del(Evas_Object *widget)
 	widget_unref(data);
 }
 
+static Eina_Bool delayed_pause_resume_timer_cb(void *_data)
+{
+	struct widget_data *data = _data;
+
+	if (data->delayed_pause_resume_state == WIDGET_SHOW) {
+		(void)widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
+
+		if (data->is.field.widget_dirty) {
+			/**
+			 * If the object has dirty flag, pumping it up again
+			 * To updates its content
+			 */
+			append_widget_dirty_object_list(data, WIDGET_KEEP_BUFFER);
+		}
+	} else {
+		(void)widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
+	}
+
+	data->delayed_pause_resume_timer = NULL;
+	return ECORE_CALLBACK_CANCEL;
+}
+
 static void update_visibility(struct widget_data *data)
 {
 	int is_visible = 0;
+	int delay;
 
 	if (!data->handle || !data->is.field.created) {
 		return;
@@ -3405,8 +3441,16 @@ static void update_visibility(struct widget_data *data)
 		DbgPrint("Freezed visibility: %X (%s)\n", data->freezed_visibility, widget_viewer_get_pkgname(data->handle));
 
 		if (data->freezed_visibility == WIDGET_VISIBILITY_STATUS_SHOW_FIXED) {
+			if (data->delayed_pause_resume_timer) {
+				(void)ecore_timer_del(data->delayed_pause_resume_timer);
+				data->delayed_pause_resume_timer = NULL;
+			}
 			(void)widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
 		} else if (data->freezed_visibility == WIDGET_VISIBILITY_STATUS_HIDE_FIXED) {
+			if (data->delayed_pause_resume_timer) {
+				(void)ecore_timer_del(data->delayed_pause_resume_timer);
+				data->delayed_pause_resume_timer = NULL;
+			}
 			(void)widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
 		}
 		return;
@@ -3442,17 +3486,49 @@ static void update_visibility(struct widget_data *data)
 	}
 
 	if (is_visible) {
-		(void)widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
+		data->delayed_pause_resume_state = WIDGET_SHOW;
+	} else {
+		data->delayed_pause_resume_state = WIDGET_HIDE_WITH_PAUSE;
+	}
 
-		if (data->is.field.widget_dirty) {
-			/**
-			 * If the object has dirty flag, pumping it up again
-			 * To updates its content
-			 */
-			append_widget_dirty_object_list(data, WIDGET_KEEP_BUFFER);
+	if (data->is.field.delayed_pause_resume == 0) { /* Follow the global configuration */
+		delay = s_info.conf.field.delayed_pause_resume;
+	} else { /* Ignore the global configuration */
+		// 1 : Disable Delayed Pause Resume
+		// 2 : Enable Delayed Pause Resume
+		delay = (data->is.field.delayed_pause_resume == 2);
+	}
+
+	if (delay) {
+		if (data->delayed_pause_resume_timer) {
+			DbgPrint("Reset timer\n");
+			ecore_timer_reset(data->delayed_pause_resume_timer);
+		} else if (WIDGET_CONF_VISIBILITY_CHANGE_DELAY > 0.0f) {
+			DbgPrint("Add timer (%lf)\n", WIDGET_CONF_VISIBILITY_CHANGE_DELAY);
+			data->delayed_pause_resume_timer = ecore_timer_add(WIDGET_CONF_VISIBILITY_CHANGE_DELAY, delayed_pause_resume_timer_cb, data);
+			if (!data->delayed_pause_resume_timer) {
+				ErrPrint("Failed to add a timer\n");
+				delayed_pause_resume_timer_cb(data);
+			}
+		} else {
+			DbgPrint("Direct update\n");
+			delayed_pause_resume_timer_cb(data);
 		}
 	} else {
-		(void)widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
+		/**
+		 * @note
+		 * In this case, if there is any registered timer,
+		 * this function should clear it.
+		 * Timer means that the delayed_pause_resume mode is changed.
+		 */
+		if (data->delayed_pause_resume_timer) {
+			ecore_timer_del(data->delayed_pause_resume_timer);
+			data->delayed_pause_resume_timer = NULL;
+			DbgPrint("Clear delayed pause resume timer\n");
+		}
+
+		DbgPrint("Direct update\n");
+		delayed_pause_resume_timer_cb(data);
 	}
 }
 
@@ -5992,6 +6068,9 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 			widget_viewer_fini();
 		} else {
 			DbgPrint("Fault handler is registered\n");
+			s_info.initialized = 1;
+			widget_conf_init();
+			widget_conf_load();
 		}
 	}
 
@@ -6004,9 +6083,13 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 
 EAPI int widget_viewer_evas_fini(void)
 {
-	widget_viewer_remove_event_handler(widget_event_handler);
-	widget_viewer_remove_fault_handler(widget_fault_handler);
-	widget_viewer_fini();
+	if (s_info.initialized) {
+		widget_viewer_remove_event_handler(widget_event_handler);
+		widget_viewer_remove_fault_handler(widget_fault_handler);
+		widget_viewer_fini();
+		widget_conf_reset();
+		s_info.initialized = 0;
+	}
 	return 0;
 }
 
@@ -6219,6 +6302,10 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	if (data->delayed_pause_resume_timer) {
+		(void)ecore_timer_del(data->delayed_pause_resume_timer);
+		data->delayed_pause_resume_timer = NULL;
+	}
 	return widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
 }
 
@@ -6231,6 +6318,10 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	if (data->delayed_pause_resume_timer) {
+		(void)ecore_timer_del(data->delayed_pause_resume_timer);
+		data->delayed_pause_resume_timer = NULL;
+	}
 	return widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
 }
 
@@ -7045,6 +7136,27 @@ EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance
 	}
 
 	return widget_viewer_get_instance_id(data->handle, instance_id);
+}
+
+EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_e option, int value)
+{
+	struct widget_data *data;
+
+	data = get_smart_data(widget);
+	if (!data) {
+		ErrPrint("Invalid object\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (option) {
+	case WIDGET_OPTION_DELAYED_PAUSE_RESUME:
+		data->is.field.delayed_pause_resume = (value & 0x03);
+		break;
+	default:
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	return WIDGET_ERROR_NONE;
 }
 
 /* End of a file */

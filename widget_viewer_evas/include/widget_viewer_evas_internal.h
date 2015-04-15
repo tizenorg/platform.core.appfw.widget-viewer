@@ -54,6 +54,15 @@ typedef enum widget_evas_raw_event_type {
 
 /**
  * @since_tizen 2.3.1
+ * @brief Options for each widget.
+ */
+typedef enum widget_option {
+	WIDGET_OPTION_DELAYED_PAUSE_RESUME = 0x01,	/* 0: Follow the global configuration, 1: Disable the Delayed Pause Resume, 2: Enable the Delayed Pause Resume */
+	WIDGET_OPTION_UNKNOWN = 0xFF
+} widget_option_e;
+
+/**
+ * @since_tizen 2.3.1
  * @brief Data structure for smart callback user parameter
  */
 typedef struct widget_evas_raw_event_info {
@@ -213,6 +222,7 @@ extern int widget_viewer_evas_unset_raw_event_callback(widget_evas_raw_event_typ
 
 extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id);
 
+extern int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_e option, int value);
 
 #ifdef __cplusplus
 }
