@@ -1204,7 +1204,7 @@ static void __widget_destroy_gbar_cb(struct widget *handle, int ret, void *cbdat
 
 	info.error = ret;
 	info.event = WIDGET_EVENT_GBAR_DESTROYED;
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_GBAR_DESTROYED, &info);
 
 	DbgPrint("ret: %d\n", ret);
@@ -2440,7 +2440,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 		DbgPrint("Create GBAR: 0x%X\n", ret);
 		info.error = ret;
 		info.event = WIDGET_EVENT_GBAR_CREATED;
-		info.pkgname = data->widget_id;
+		info.widget_app_id = data->widget_id;
 		smart_callback_call(data, WIDGET_SMART_SIGNAL_GBAR_ABORTED, &info);
 		widget_unref(data);
 		return;
@@ -2463,7 +2463,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 			ErrPrint("Failed to add an edje\n");
 			info.error = WIDGET_ERROR_FAULT;
 			info.event = WIDGET_EVENT_GBAR_CREATED;
-			info.pkgname = data->widget_id;
+			info.widget_app_id = data->widget_id;
 			smart_callback_call(data, WIDGET_SMART_SIGNAL_GBAR_ABORTED, &info);
 
 			ret = widget_viewer_destroy_glance_bar(data->handle, __widget_destroy_gbar_cb, widget_ref(data));
@@ -2490,7 +2490,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 
 			info.error = WIDGET_ERROR_IO_ERROR;
 			info.event = WIDGET_EVENT_GBAR_CREATED;
-			info.pkgname = data->widget_id;
+			info.widget_app_id = data->widget_id;
 			smart_callback_call(data, WIDGET_SMART_SIGNAL_GBAR_ABORTED, &info);
 
 			ret = widget_viewer_destroy_glance_bar(data->handle, __widget_destroy_gbar_cb, widget_ref(data));
@@ -2536,7 +2536,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 	default:
 		info.error = WIDGET_ERROR_INVALID_PARAMETER;
 		info.event = WIDGET_EVENT_GBAR_CREATED;
-		info.pkgname = data->widget_id;
+		info.widget_app_id = data->widget_id;
 		ret = widget_viewer_destroy_glance_bar(data->handle, __widget_destroy_gbar_cb, widget_ref(data));
 		if (ret < 0) {
 			/*!
@@ -2558,7 +2558,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 	data->is.field.gbar_created = 1;
 	info.error = WIDGET_ERROR_NONE;
 	info.event = WIDGET_EVENT_GBAR_CREATED;
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_GBAR_CREATED, &info);
 	widget_unref(data);
 }
@@ -2612,7 +2612,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 		s_info.conf.field.render_animator = 1;
 	}
 
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_GBAR_CREATED;
 
 	if (s_info.conf.field.support_gbar && data->is.field.flick_down && data->y - data->down.y < CLICK_REGION) {
@@ -2777,7 +2777,7 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 
 		DbgPrint("Flick down is canceled\n");
 		data->is.field.flick_down = 0;
-		info.pkgname = data->widget_id;
+		info.widget_app_id = data->widget_id;
 		info.event = WIDGET_EVENT_GBAR_CREATED;
 		info.error = WIDGET_ERROR_CANCELED;
 
@@ -2825,7 +2825,7 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 		if (s_info.conf.field.support_gbar && data->is.field.flick_down && abs(data->y - data->down.y) > CLICK_REGION) {
 			struct widget_evas_event_info info;
 			data->is.field.flick_down = 0;
-			info.pkgname = data->widget_id;
+			info.widget_app_id = data->widget_id;
 			info.event = WIDGET_EVENT_GBAR_CREATED;
 			info.error = WIDGET_ERROR_CANCELED;
 			smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
@@ -3588,7 +3588,7 @@ static int do_force_mouse_up(struct widget_data *data)
 
 	data->is.field.cancel_click = CANCEL_DISABLED;
 	data->is.field.flick_down = 0;
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_GBAR_CREATED;
 	info.error = WIDGET_ERROR_CANCELED;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
@@ -4319,7 +4319,7 @@ static int widget_system_created(struct widget *handle, struct widget_data *data
 
 	if (ret == WIDGET_ERROR_NONE) {
 		info.error = WIDGET_ERROR_NONE;
-		info.pkgname = data->widget_id;
+		info.widget_app_id = data->widget_id;
 		info.event = WIDGET_EVENT_CREATED;
 
 		data->is.field.created = 1;
@@ -4359,7 +4359,7 @@ static void __widget_created_cb(struct widget *handle, int ret, void *cbdata)
 			struct widget_evas_event_info fault_event;
 
 			fault_event.error = ret;
-			fault_event.pkgname = data->widget_id;
+			fault_event.widget_app_id = data->widget_id;
 			fault_event.event = WIDGET_EVENT_CREATED;
 
 			if (!data->is.field.faulted) {
@@ -4410,7 +4410,7 @@ static void __widget_created_cb(struct widget *handle, int ret, void *cbdata)
 
 	if (ret == WIDGET_ERROR_NONE) {
 		info.error = WIDGET_ERROR_NONE;
-		info.pkgname = data->widget_id;
+		info.widget_app_id = data->widget_id;
 		info.event = WIDGET_EVENT_CREATED;
 
 		data->is.field.created = 1;
@@ -4430,7 +4430,7 @@ static void __widget_created_cb(struct widget *handle, int ret, void *cbdata)
 		append_widget_dirty_object_list(data, WIDGET_KEEP_BUFFER);
 	} else {
 		info.error = ret;
-		info.pkgname = data->widget_id;
+		info.widget_app_id = data->widget_id;
 		info.event = WIDGET_EVENT_CREATED;
 		smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &info);
 		data->is.field.send_delete = 0;
@@ -4470,7 +4470,7 @@ static void __widget_resize_cb(struct widget *handle, int ret, void *cbdata)
 	if (ret != WIDGET_ERROR_NONE) {
 		info.error = ret;
 		info.event = WIDGET_EVENT_WIDGET_SIZE_CHANGED;
-		info.pkgname = data->widget_id;
+		info.widget_app_id = data->widget_id;
 		smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_RESIZE_ABORTED, &info);
 		widget_unref(data);
 		return;
@@ -4501,7 +4501,7 @@ static void __widget_resize_cb(struct widget *handle, int ret, void *cbdata)
 
 	info.error = ret;
 	info.event = WIDGET_EVENT_WIDGET_SIZE_CHANGED;
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_RESIZED, &info);
 	widget_unref(data);
 }
@@ -5143,7 +5143,7 @@ static void __widget_event_extra_info_updated(struct widget_data *data)
 		/* Nothing changed */
 	}
 
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_EXTRA_INFO_UPDATED;
 	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED, &info);
@@ -5209,7 +5209,7 @@ static void __widget_event_widget_updated(struct widget_data *data)
 		break;
 	}
 
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_WIDGET_UPDATED;
 	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_UPDATED, &info);
@@ -5503,7 +5503,7 @@ static void __widget_event_deleted(struct widget_data *data)
 
 	DbgPrint("widget is deleted: %p (emit signal)\n", data);
 	data->is.field.send_delete = 0;
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_DELETED;
 	info.error = data->is.field.faulted ? WIDGET_ERROR_FAULT : WIDGET_ERROR_NONE;
 
@@ -5558,7 +5558,7 @@ static void __widget_event_period_changed(struct widget_data *data)
 	widget_viewer_get_period(data->handle, &(data->period));
 	DbgPrint("Update period is changed to (%lf)\n", data->period);
 
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_PERIOD_CHANGED;
 	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_PERIOD_CHANGED, &info);
@@ -5590,7 +5590,7 @@ static void __widget_event_hold_scroll(struct widget_data *data)
 	struct widget_evas_event_info info;
 	DbgPrint("widget hold scroll\n");
 
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_HOLD_SCROLL;
 	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_CONTROL_SCROLLER, &info);
@@ -5601,7 +5601,7 @@ static void __widget_event_release_scroll(struct widget_data *data)
 	struct widget_evas_event_info info;
 	DbgPrint("widget release scroll\n");
 
-	info.pkgname = data->widget_id;
+	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_RELEASE_SCROLL;
 	info.error = WIDGET_ERROR_NONE;
 	smart_callback_call(data, WIDGET_SMART_SIGNAL_CONTROL_SCROLLER, &info);
@@ -6012,7 +6012,7 @@ static int widget_fault_handler(enum widget_fault_type fault, const char *pkgnam
 				data->is.field.faulted = 1;
 				__widget_overlay_faulted(data);
 				info.error = WIDGET_ERROR_FAULT;
-				info.pkgname = data->widget_id;
+				info.widget_app_id = data->widget_id;
 				info.event = WIDGET_FAULT_DEACTIVATED;
 				smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_FAULTED, &info);
 			}
@@ -6030,7 +6030,7 @@ static int widget_fault_handler(enum widget_fault_type fault, const char *pkgnam
 				data->is.field.faulted = 1;
 				__widget_overlay_faulted(data);
 				info.error = WIDGET_ERROR_FAULT;
-				info.pkgname = data->widget_id;
+				info.widget_app_id = data->widget_id;
 				info.event = WIDGET_FAULT_PROVIDER_DISCONNECTED;
 				smart_callback_call(data, WIDGET_SMART_SIGNAL_PROVIDER_DISCONNECTED, &info);
 			}
@@ -6235,7 +6235,7 @@ EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, i
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_viewer_evas_set_option(enum widget_evas_conf type, int value)
+EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 {
 	switch ((int)type) {
 	case WIDGET_VIEWER_EVAS_SENSITIVE_MOVE:

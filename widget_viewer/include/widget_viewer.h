@@ -323,7 +323,6 @@ typedef struct widget_script_operators {
  * @param[in] handle Handle of the widget instance
  * @param[in] ret Result status of operation (WIDGET_STATUS_XXX defined from libwidget-service)
  * @param[in] data Data for result callback
- * @return void
  * @see widget_add()
  * @see widget_del()
  * @see widget_activate()
@@ -348,7 +347,7 @@ typedef void (*widget_ret_cb)(widget_h handle, int ret, void *data);
  * @param[in] file faulted filename (implementation file if it is supported)
  * @param[in] func faulted function name (if it is supported)
  * @param[in] data Callback data
- * @return int status
+ * @return 0 on success, otherwise a negative error value
  * @retval @c EXIT_FAILURE delete this event callback from the event callback list
  * @retval @c EXIT_SUCCESS successfully handled, keep this callback in the event callback list
  */
@@ -360,7 +359,7 @@ typedef int (*widget_fault_handler_cb)(enum widget_fault_type type, const char *
  * @param[in] handle widget Event handle
  * @param[in] event Event type for widget
  * @param[in] data Callback Data
- * @return int status
+ * @return 0 on success, otherwise a negative error value
  * @return @c EXIT_FAILURE delete this event callback from the event callback list
  * @return @c EXIT_SUCCESS successfully handled, keep this callback in the event callback list
  */
@@ -404,7 +403,7 @@ extern int widget_viewer_init(void *disp, int prevent_overwrite, double event_fi
  * @since_tizen 2.3.1
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_SUCCES if success
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER if widget_init is not called
  * @see widget_init()
@@ -504,7 +503,7 @@ extern widget_h widget_viewer_add_widget(const char *widget_id, const char *cont
  * @param[in] data User data for return callback
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_BUSY Already in process
  * @retval #WIDGET_STATUS_ERROR_FAULT Failed to create a request packet
@@ -521,7 +520,7 @@ extern int widget_viewer_delete_widget(widget_h handle, widget_delete_type_e typ
  * @since_tizen 2.3.1
  * @param[in] cb Event handle
  * @param[in] data User data for the event handle
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE If succeed to set event handle
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_OUT_OF_MEMORY Not enough memory
@@ -535,7 +534,6 @@ extern int widget_viewer_add_event_handler(widget_event_handler_cb cb, void *dat
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] cb Event handle
- * @return void * Event handle data
  * @retval pointer Pointer of 'data' which is used with the widget_set_event_handler
  * @see widget_set_event_handler()
  */
@@ -548,7 +546,7 @@ extern void *widget_viewer_remove_event_handler(widget_event_handler_cb cb);
  * @since_tizen 2.3.1
  * @param[in] cb Event handle
  * @param[in] data Event handle data
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE If succeed to set fault event handle
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_OUT_OF_MEMORY Not enough memory
@@ -559,9 +557,7 @@ extern int widget_viewer_add_fault_handler(widget_fault_handler_cb cb, void *dat
 /**
  * @brief Unsets the widget fault event handle.
  * @since_tizen 2.3.1
- * @privlevel N/P
- * @param[in] cb Event handle
- * @return void * Callback data which is set via widget_set_fault_handler
+ * * @param[in] cb Event handle
  * @retval pointer Pointer of 'data' which is used with the widget_set_fault_handler
  * @see widget_set_fault_handler()
  */
@@ -649,7 +645,7 @@ extern int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type,
  * @param[in] y Rational Y of the content height
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
@@ -671,7 +667,7 @@ extern int widget_viewer_send_click_event(widget_h handle, double x, double y);
  * @param[in] data User data for the result callback
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE Request is successfully sent. the return callback will be called
  * @retval #WIDGET_STATUS_ERROR_BUSY Previous request is not finished yet
  * @retval #WIDGET_STATUS_ERROR_ALREADY Group name is same with current one
@@ -700,9 +696,7 @@ extern int widget_viewer_get_group(widget_h handle, const char **cluster, const 
 /**
  * @brief Gets the update period of the widget.
  * @since_tizen 2.3.1
- * @privlevel N/P
- * @feature http://tizen.org/feature/shell.appwidget
- * @param[in] handle Handle of a widget instance
+ * * @param[in] handle Handle of a widget instance
  * @param[out] period Update period of the widget.
  * @return #WIDGET_STATUS_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
@@ -724,7 +718,7 @@ extern int widget_viewer_get_period(widget_h handle, double *period);
  * @param[in] data User data for the result callback
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_BUSY
@@ -739,8 +733,7 @@ extern int widget_viewer_set_period(widget_h handle, double period, widget_ret_c
  * @remarks
  *    If this returns WIDGET_CONTENT_TYPE_INVALID, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3.1
- * @privlevel N/P
- * @param[in] handle Handle of a widget instance
+ * * @param[in] handle Handle of a widget instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @return widget_type
  * @retval #WIDGET_CONTENT_TYPE_IMAGE Contents of a widget is based on the image file
@@ -761,7 +754,7 @@ extern int widget_viewer_get_type(widget_h handle, int gbar, widget_type_e *widg
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @details If the widget instance is created by a system this will return 0.
  * @param[in] handle Handle of a widget instance
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval 0 Automatically created widget by the provider
  * @retval 1 Created by user via widget_add()
@@ -788,8 +781,7 @@ extern const char *widget_viewer_get_content_string(widget_h handle);
  *  Each box should set their content as a string to be read by TTS.
  *  So if the box has focused on the homescreen, the homescreen will read text using this API.
  * @since_tizen 2.3.1
- * @privlevel N/P
- * @remarks The title returned by this API can be read by TTS.
+ * * @remarks The title returned by this API can be read by TTS.
  *  But it is just recomendation for the homescreen.
  *  So, to read it or not depends on its implementation.
  *  if this returns @c NULL, you can get the reason of failure using get_last_result()
@@ -817,8 +809,7 @@ extern const char *widget_viewer_get_filename(widget_h handle);
  * @brief Gets the package name of the given widget handle.
  * @remarks if this returns @c NULL, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3.1
- * @privlevel N/P
- * @param[in] handle Handle of a widget instance
+ * * @param[in] handle Handle of a widget instance
  * @return const char *
  * @retval pkgname Package name
  * @retval @c NULL If the handle is not valid
@@ -829,8 +820,7 @@ extern const char *widget_viewer_get_pkgname(widget_h handle);
  * @brief Gets the priority of a current content.
  * @remarks if this returns negative value, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3.1
- * @privlevel N/P
- * @param[in] handle Handle of a widget instance
+ * * @param[in] handle Handle of a widget instance
  * @param[out] priority priority of the widget
  * @return #WIDGET_STATUS_ERROR_NONE on success,
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
@@ -846,7 +836,6 @@ extern int widget_viewer_get_priority(widget_h handle, double *priority);
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return void *
  * @retval address Address of a Frame Buffer
  * @retval @c NULL If it fails to get buffer address
  */
@@ -860,7 +849,7 @@ extern void *widget_viewer_acquire_buffer(widget_h handle, int gbar);
  * @param[in] buffer Buffer
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @see widget_acquire_buffer()
@@ -872,7 +861,7 @@ extern int widget_viewer_release_buffer(void *buffer);
  * @brief Gets the reference count of widget buffer (only for the buffer type).
  * @since_tizen 2.3.1
  * @param[in] buffer Buffer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval refcnt Positive integer value including ZERO
@@ -929,7 +918,7 @@ extern int widget_viewer_get_supported_sizes(widget_h handle, int *cnt, widget_s
  * @since_tizen 2.3.1
  * @param[in] handle Handle of a widget instance
  * @param[in] gbar 1 for Glance Bar or 0
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval size Size in bytes of the widget buffer
  */
@@ -945,7 +934,7 @@ extern int widget_viewer_get_buffer_size(widget_h handle, int gbar);
  * @param[in] y Coordinates of Y axis
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_BUSY Previous operation is not finished yet
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -969,7 +958,7 @@ extern int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_ty
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_BUSY Previous operation is not finished yet
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -992,7 +981,7 @@ extern int widget_viewer_feed_access_event(widget_h handle, widget_access_event_
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_BUSY Previous operation is not finished yet
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
@@ -1018,7 +1007,7 @@ extern int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @see widget_ret_cb
  * @see widget_set_visibility()
@@ -1031,7 +1020,7 @@ extern int widget_viewer_set_pinup(widget_h handle, int flag, widget_ret_cb cb, 
  * @brief Checks the PIN-UP status of the given handle.
  * @since_tizen 2.3.1
  * @param[in] handle Handle of a widget instance
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @retval 1 Box is pinned up
  * @retval 0 Box is not pinned up
@@ -1044,7 +1033,7 @@ extern int widget_viewer_is_pinned_up(widget_h handle);
  * @brief Checks the availability of the PIN-UP feature for the given handle.
  * @since_tizen 2.3.1
  * @param[in] handle Handle of a widget instance
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval 1 If the box support Pinup feature
  * @retval 0 If the box does not support the Pinup feature
@@ -1058,7 +1047,7 @@ extern int widget_viewer_has_pinup(widget_h handle);
  * @brief Checks the existence of Glance Bar for the given handle.
  * @since_tizen 2.3.1
  * @param[in] handle Handle of a widget instance
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval 1 If the box support the Glance Bar
  * @retval 0 If the box has no Glance Bar
@@ -1078,7 +1067,7 @@ extern int widget_viewer_has_glance_bar(widget_h handle);
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_BUSY Previous operation is not finished yet
@@ -1098,7 +1087,7 @@ extern int widget_viewer_create_glance_bar(widget_h handle, double x, double y, 
  * @param[in] y 0.0 ~ 1.0, 0.0 indicates the coordinate Y of top of widget
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE If sending a request for updating position of the Glance Bar has been done successfully
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -1116,7 +1105,7 @@ extern int widget_viewer_move_glance_bar(widget_h handle, double x, double y);
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
@@ -1129,7 +1118,7 @@ extern int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, v
  * @brief Checks the create status of the given widget handle.
  * @since_tizen 2.3.1
  * @param[in] handle Handle of a widget instance
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval 0 Glance Bar is not created
  * @retval 1 Glance Bar is created
@@ -1143,7 +1132,7 @@ extern int widget_viewer_glance_bar_is_created(widget_h handle);
  * @param[in] handle Handle of a widget instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @param[in] ops
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see widget_set_gbar_text_handler()
@@ -1169,7 +1158,7 @@ extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_scri
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
@@ -1183,7 +1172,7 @@ extern int widget_viewer_emit_text_signal(widget_h handle, widget_text_signal_s 
  * @since_tizen 2.3.1
  * @param[in] handle Handle of a widget instance
  * @param[in] data Data pointer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully registered
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see widget_data()
@@ -1195,7 +1184,6 @@ extern int widget_viewer_set_data(widget_h handle, void *data);
  * @brief Gets a private data pointer which is carried by a given handle.
  * @since_tizen 2.3.1
  * @param[in] handle Handle of a widget instance
- * @return void *
  * @retval data Data pointer
  * @retval @c NULL If there is no data
  * @see widget_set_data()
@@ -1213,7 +1201,7 @@ extern void *widget_viewer_get_data(widget_h handle);
  * @param[in] category Category ("*" can be used for subscribe widgetes events of all category(sub-cluster) in a given "cluster")
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_unsubscribe_group()
@@ -1228,7 +1216,7 @@ extern int widget_viewer_subscribe_group(const char *cluster, const char *sub_cl
  * @param[in] category Category ("*" can be used for subscribe all sub-cluster's widgetes event in a given "cluster")
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_subscribe_group()
@@ -1245,7 +1233,7 @@ extern int widget_viewer_unsubscribe_group(const char *cluster, const char *sub_
  * @param[in] category Category name
  * @privlevel platform
  * @privilege %http://developer.samsung.com/tizen/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_unsubscribe_category()
@@ -1259,7 +1247,7 @@ extern int widget_viewer_subscribe_category(const char *category);
  * @param[in] category Category name
  * @privlevel platform
  * @privilege %http://developer.samsung.com/tizen/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_subscribe_category()
@@ -1278,7 +1266,7 @@ extern int widget_viewer_unsubscribe_category(const char *category);
  * @param[in] force 1 if the boxes should be updated even if they are paused
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
@@ -1295,7 +1283,7 @@ extern int widget_viewer_refresh_group(const char *cluster, const char *category
  * @param[in] force 1 if the box should be updated even if it is paused
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
@@ -1309,8 +1297,7 @@ extern int widget_viewer_refresh(widget_h handle, int force);
  *   If the service provider destroyed the resource id, you will not know about it.
  *   So you should validate it before accessing it.
  * @since_tizen 2.3.1
- * @privlevel N/P
- * @param[in] handle Handle of a widget instance
+ * * @param[in] handle Handle of a widget instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @param[out] resouce_id result resource id of the widget
  * @return #WIDGET_STATUS_ERROR_NONE on success,
@@ -1335,7 +1322,7 @@ extern int widget_viewer_get_resource_id(const widget_h handle, int gbar, unsign
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
@@ -1362,7 +1349,7 @@ extern int widget_viewer_acquire_resource_id(widget_h handle, int gbar, widget_r
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
@@ -1385,7 +1372,7 @@ extern int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, in
  * @param[in] resource_id Resource Id of given widget handle
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
@@ -1444,7 +1431,7 @@ extern widget_visible_state_e widget_viewer_get_visibility(widget_h handle);
  * @param[in] data Callback data
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_BUSY
  * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED
@@ -1462,7 +1449,7 @@ extern int widget_viewer_set_update_mode(widget_h handle, int active_update, wid
  *   If this returns negative value, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3.1
  * @param[in] handle Handle of a widget instance
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval 0 If passive mode
  * @retval 1 If active mode or error code
  */
@@ -1476,7 +1463,7 @@ extern int widget_viewer_is_active_update(widget_h handle);
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE If success
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid handle
  * @see widget_set_manual_sync()
@@ -1491,7 +1478,7 @@ extern int widget_viewer_sync_buffer(widget_h handle, int gbar);
  * @param[in] handle Handle of a widget instance
  * @param[in] gbar 1 for Glance Bar or 0
  * @param[out] region Readonly information for damaged area
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_NONE if success
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid handle
  */
@@ -1537,7 +1524,7 @@ extern const char *widget_viewer_get_alternative_name(widget_h handle);
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
@@ -1554,7 +1541,7 @@ extern int widget_viewer_acquire_buffer_lock(widget_h handle, int gbar);
  * @param[in] gbar 1 for Glance Bar or 0
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
@@ -1578,10 +1565,9 @@ extern int widget_viewer_release_buffer_lock(widget_h handle, int gbar);
  *       if there are already added same instances that have same contents, the instance will not be created again.
  *       Instead of creating a new instance, a viewer will provide an old instance with a new handle.
  * @since_tizen 2.3.1
- * @privlevel N/P
- * @param[in] option Option which will be affected by this call
+ * * @param[in] option Option which will be affected by this call
  * @param[in] state New value for given option
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Unknown option
  * @retval #WIDGET_STATUS_ERROR_FAULT Failed to change the state of option
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully changed
@@ -1597,7 +1583,7 @@ extern int widget_viewer_set_option(widget_option_type_e option, int state);
  *   If this returns negative value, you can get the reason of failure using get_last_result()
  * @since_tizen 2.3.1
  * @param[in] option Type of option
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid option
  * @retval #WIDGET_STATUS_ERROR_FAULT Failed to get option
  * @retval >=0 Value of given option (must be >=0)

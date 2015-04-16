@@ -37,16 +37,16 @@ extern "C" {
  * @see #widget_evas_event_info_s
  * @see evas_object_smart_callback_add
  */
-#define WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED   "widget,create,aborted"   /**< widget creation is aborted */
-#define WIDGET_SMART_SIGNAL_WIDGET_CREATED          "widget,created"          /**< widget is created */
+#define WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED   "widget,create,aborted"   /**< Widget creation is aborted */
+#define WIDGET_SMART_SIGNAL_WIDGET_CREATED          "widget,created"          /**< Widget is created */
 #define WIDGET_SMART_SIGNAL_WIDGET_RESIZE_ABORTED   "widget,resize,aborted"   /**< Resizing widget is aborted */
-#define WIDGET_SMART_SIGNAL_WIDGET_RESIZED          "widget,resized"          /**< widget is resized */
-#define WIDGET_SMART_SIGNAL_WIDGET_FAULTED          "widget,faulted"          /**< widget has faulted */
-#define WIDGET_SMART_SIGNAL_UPDATED                 "updated"                 /**< widget content is updated */
-#define WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED      "info,updated"            /**< widget extra info is updated */
+#define WIDGET_SMART_SIGNAL_WIDGET_RESIZED          "widget,resized"          /**< Widget is resized */
+#define WIDGET_SMART_SIGNAL_WIDGET_FAULTED          "widget,faulted"          /**< Widget has faulted */
+#define WIDGET_SMART_SIGNAL_UPDATED                 "updated"                 /**< Widget content is updated */
+#define WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED      "info,updated"            /**< Widget extra info is updated */
 #define WIDGET_SMART_SIGNAL_PROVIDER_DISCONNECTED   "provider,disconnected"   /**< Provider is disconnected */
 #define WIDGET_SMART_SIGNAL_CONTROL_SCROLLER        "control,scroller"        /**< Control Scroller */
-#define WIDGET_SMART_SIGNAL_WIDGET_DELETED          "widget,deleted"          /**< widget is deleted */
+#define WIDGET_SMART_SIGNAL_WIDGET_DELETED          "widget,deleted"          /**< Widget is deleted */
 #define WIDGET_SMART_SIGNAL_PERIOD_CHANGED          "widget,period,changed"   /**< Period is changed */
 
 /**
@@ -65,14 +65,14 @@ extern "C" {
  * @see #WIDGET_SMART_SIGNAL_PERIOD_CHANGED
  */
 typedef struct widget_evas_event_info {
-    const char *pkgname;       /**< widget application id */
-    widget_event_type_e event; /**< event type for detail event information - WIDGET_EVENT_XXX, refer the widget_serivce.h */
+    const char *widget_app_id;       /**< Widget application id */
+    widget_event_type_e event; /**< Event type for detail event information - WIDGET_EVENT_XXX, refer the widget_serivce.h */
     int error;		           /**< Error type - WIDGET_ERROR_XXX, refer the widget_errno.h */
 } widget_evas_event_info_s;
 
 /**
- * @since_tizen 2.3.1
  * @brief Enumerations for setting visibility status of a widget.
+ * @since_tizen 2.3.1
  * @see #widget_viewer_evas_freeze_visibility
  */
 typedef enum widget_visibility_status {
@@ -81,22 +81,23 @@ typedef enum widget_visibility_status {
 } widget_visibility_status_e;
 
 /**
- * \brief
- * Configuration keys
+ * @brief Configuration keys
+ * @since_tizen 2.3.1
+ * @see #widget_viewer_evas_set_option
  */
 typedef enum widget_evas_conf {
-    WIDGET_VIEWER_EVAS_MANUAL_PAUSE_RESUME = 0x0001,   /**< Visibility will be changed manually */
-    WIDGET_VIEWER_EVAS_USE_FIXED_SIZE = 0x0008,	    /**< widget will be resized to specific size only */
-    WIDGET_VIEWER_EVAS_EASY_MODE = 0x0010,		    /**< Easy mode on/off */
-    WIDGET_VIEWER_EVAS_SCROLL_X = 0x0020,		    /**< Box will be scrolled from left to right vice versa */
-    WIDGET_VIEWER_EVAS_SCROLL_Y = 0x0040,		    /**< Box will be scrolled from top to bottom vice versa */
-    WIDGET_VIEWER_EVAS_EVENT_AUTO_FEED = 0x0080,	    /**< Feeds event automatically from the master provider */
-    WIDGET_VIEWER_EVAS_DELAYED_PAUSE_RESUME = 0x0100,  /**< Delaying the pause/resume when it is automatically changed */
-    WIDGET_VIEWER_EVAS_SENSITIVE_MOVE = 0x0200,	    /**< Force feeds mouse up event if the box is moved */
-    WIDGET_VIEWER_EVAS_AUTO_RENDER_SELECTION = 0x0400, /**< Select render automatically, if a box moved, do not sync using animator, or use the animator */
-    WIDGET_VIEWER_EVAS_DIRECT_UPDATE = 0x0800,	    /**< Enable direct update path */
-    WIDGET_VIEWER_EVAS_USE_RENDER_ANIMATOR = 0x1000,   /**< Use the render animator or not */
-	WIDGET_VIEWER_EVAS_SKIP_ACQUIRE = 0x2000,		/**< Even if the viewer cannot get acquired resource id, try to update using default one */
+    WIDGET_VIEWER_EVAS_MANUAL_PAUSE_RESUME = 0x0001,   /**< Visibility will be changed manually. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_USE_FIXED_SIZE = 0x0008,   /**< Widget will be resized to specific size only. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_EASY_MODE = 0x0010,   /**< Easy mode on/off. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_SCROLL_X = 0x0020,   /**< Box will be scrolled from left to right vice versa. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_SCROLL_Y = 0x0040,   /**< Box will be scrolled from top to bottom vice versa. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_EVENT_AUTO_FEED = 0x0080,   /**< Feeds event automatically from the master provider. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_DELAYED_PAUSE_RESUME = 0x0100,   /**< Delaying the pause/resume when it is automatically changed. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_SENSITIVE_MOVE = 0x0200,   /**< Force feeds mouse up event if the box is moved. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_AUTO_RENDER_SELECTION = 0x0400, /**< Select render automatically, if a box moved, do not sync using animator, or use the animator. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_DIRECT_UPDATE = 0x0800,   /**< Enable direct update path. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_USE_RENDER_ANIMATOR = 0x1000,   /**< Use the render animator or not. 1 : on, 0 : off */
+	WIDGET_VIEWER_EVAS_SKIP_ACQUIRE = 0x2000,   /**< Even if the viewer cannot get acquired resource id, try to update using default one. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_UNKNOWN = 0xFFFF
 } widget_evas_conf_e;
 
@@ -104,9 +105,10 @@ typedef enum widget_evas_conf {
  * @brief Initializes the widget system
  * @since_tizen 2.3.1
  * @param[in] win Window object
- * @param[in] force_to_buffer if you want use the naive buffer directly (instead of resource id), use 1 or 0.
- * @return int
- * @retval
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE If success
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see #widget_viewer_evas_fini
  */
 extern int widget_viewer_evas_init(Evas_Object *win);
@@ -114,8 +116,9 @@ extern int widget_viewer_evas_init(Evas_Object *win);
 /**
  * @brief Finalizes the widget system
  * @since_tizen 2.3.1
- * @return int
- * @retval
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE If success
+ * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @see #widget_viewer_evas_init
  */
 extern int widget_viewer_evas_fini(void);
@@ -127,7 +130,7 @@ extern int widget_viewer_evas_fini(void);
  * @param[in] widget_id widget id
  * @param[in] content_info Contents that will be given to the widget instance
  * @param[in] period Update period (@c WIDGET_DEFAULT_PERIOD can be used for this; this argument will be used to specify the period of updating contents of a widget)
- * @return Evas_Object*
+ * @return Widget Object
  * @retval NULL if it fails to create a new widget object and you can get the reason of failure using get_last_result()
  * @see #widget_service_get_widget_id
  * @see #widget_service_get_content_string
@@ -136,52 +139,58 @@ extern int widget_viewer_evas_fini(void);
 extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period);
 
 /**
- * @brief Notifies the status of a client ("it is paused") to the provider.
- * @details if you call this, all providers will gets resumed event.
+ * @brief Notifies the status of the viewer to all providers
+ * @details If you call this, all providers will gets "resumed" event.
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (paused) info
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_viewer_evas_notify_paused_status_of_viewer()
  */
 extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
 
 /**
- * @brief Notifies the status of client ("it is resumed") to the provider.
- * @detail if you call this, all providers will gets paused event.
+ * @brief Notifies the status of the viewer to all providers
+ * @detail If you call this, all providers will gets "paused" event.
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_viewer_evas_notify_resumed_status_of_viewer()
  */
 extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
 
 /**
- * @brief Changes the state of given widget. If you want to make a widget paused, call this function.
+ * @brief Pauses given widget.
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  */
 extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
 
 /**
- * @brief Changes the state of given widget. If you want to make a widget resumed, call this function.
+ * @brief Resume given widget.
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
 extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
 
@@ -190,26 +199,29 @@ extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
  * @since_tizen 2.3.1
  * @param[in] type Configuration item
  * @param[in] value Its value
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
- * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid option
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see #widget_evas_conf
  */
-extern int widget_viewer_evas_set_option(enum widget_evas_conf type, int value);
+extern int widget_viewer_evas_set_option(widget_evas_conf_e type, int value);
 
 /**
  * @brief Gets content string of widget
  * @details This string can be used for creating contents of widget again after reboot a device or recovered from crash(abnormal status)
+ * @Remarks Returned string should not be freed.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @return content string to be recognize content of the widget
  * @retval NULL if there is no specific content string.
+ * @post Returned string should not be freed
  */
 extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
 
 /**
  * @brief Gets summarized string of the widget content for accessibility.
  * @details If the accessibility feature is turned on, a viewer can use this text to describe the widget.
+ * @Remarks Returned string should not be freed.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @return title string to be used for summarizing the widget
@@ -219,6 +231,7 @@ extern const char *widget_viewer_evas_get_title_string(Evas_Object *widget);
 
 /**
  * @brief Gets the id of the widget
+ * @Remarks Returned string should not be freed.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @return widget id
@@ -241,32 +254,31 @@ extern double widget_viewer_evas_get_period(Evas_Object *widget);
  *          If a widget gets ON_HOLD event, it will not do anything even if you feed mouse_up(or mouse_unset) event.\n
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return void
+ *
  */
 extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
 
-/**
- * @brief This function should be called right after create the widget object. before resizing it.
+/*
+ * @brief Hides the preview of the widget
+ * @remarks This function should be called right after create the widget object before resizing it
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return void
  */
 extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
 
 /**
- * @brief While loading a box, hide the help text
+ * @brief Hides the help text of the widget
+ * @details While loading a box, hide the help text
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return void
  */
 extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
 
 /**
- * @brief Do not display the overlay layer while loading a new box.
+ * @brief Hides the loading message of the widget
  * @details if you disable it, there is no preview & help text while creating a widget object
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return void
  */
 extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
 
@@ -278,9 +290,10 @@ extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
 extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
 
@@ -291,7 +304,6 @@ extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object faulted
- * @return void
  */
 extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
 
@@ -306,23 +318,27 @@ extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
 extern int widget_viewer_evas_is_faulted(Evas_Object *widget);
 
 /**
- * @brief If you don't want to change the visibility automatically, freeze it.\n
+ * @brief Fixes visibility of the widget
+ * @details If you don't want to change the visibility automatically, freeze it.\n
  *        The visibility will not be changed even though a box disappeared(hidden)/displayed(shown) from/on the screen.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @param[in] status a visibility status of the widget
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see #widget_visibility_status_e
  */
 extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status);
 
 /**
- * @brief If you want to let the visibility change automatically again, call this function.
+ * @brief Unfixes visibility of the widget
+ * @details If you want to let the visibility change automatically again, call this function.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  */
 extern int widget_viewer_evas_thaw_visibility(Evas_Object *widget);
 
@@ -351,7 +367,6 @@ extern int widget_viewer_evas_is_widget(Evas_Object *widget);
  * @since_tizen 2.3.1
  * @param[in] widget a widget object which will be deleted soon
  * @param[in] flag Pass 1 if you delete this widget instance permanently, or pass 0 if you want to keep it and it will be re-created soon.
- * @return void
  */
 extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
 
@@ -371,14 +386,13 @@ extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int fla
  * @param[in] event_info.sy Start Y
  * @param[in] event_info.ex End X
  * @param[in] event_info.ey End Y
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
- * @see widget_text_signal_s
- * @see WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
- * @see WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
+ * @see #widget_text_signal_s
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
  */
 extern int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data);
 
