@@ -28,8 +28,6 @@
 #include <Evas.h>
 #include <Edje.h>
 
-#include <ail.h>
-
 #include <widget_viewer.h>
 #include <widget_viewer_internal.h>
 #include <widget_viewer.h>
@@ -2842,7 +2840,6 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 static char *get_package_icon(struct widget_data *data)
 {
 	char *icon;
-	char *uiapp;
 
 	if (data->size_type == WIDGET_SIZE_TYPE_UNKNOWN) {
 		icon = widget_service_get_icon(data->widget_id, NULL);
@@ -2857,43 +2854,11 @@ static char *get_package_icon(struct widget_data *data)
 	if (icon) {
 		ErrPrint("Failed to access an icon file: [%s]\n", icon);
 		free(icon);
-		icon = NULL;
 	}
 
-	uiapp = widget_service_get_main_app_id(data->widget_id);
-	if (uiapp) {
-		int ret;
-		ail_appinfo_h ai;
-
-		ret = ail_get_appinfo(uiapp, &ai);
-		free(uiapp);
-		if (ret == AIL_ERROR_OK) {
-			char *uiapp_icon = NULL;
-
-			ret = ail_appinfo_get_str(ai, AIL_PROP_ICON_STR, &uiapp_icon);
-			if (ret != AIL_ERROR_OK || !uiapp_icon || access(uiapp_icon, R_OK) != 0) {
-				ErrPrint("[%s] - %s\n", uiapp_icon, strerror(errno));
-			} else {
-				DbgPrint("UI-App icon: [%s]\n", uiapp_icon);
-				icon = strdup(uiapp_icon);
-				if (!icon) {
-					ErrPrint("Heap: %s\n", strerror(errno));
-					/*!
-					 * \note
-					 * icon will be specified to "unknown" icon file. (default)
-					 */
-				}
-			}
-
-			ail_destroy_appinfo(ai);
-		}
-	}
-
+	icon = strdup(WIDGET_VIEWER_EVAS_UNKNOWN);
 	if (!icon) {
-		icon = strdup(WIDGET_VIEWER_EVAS_UNKNOWN);
-		if (!icon) {
-			ErrPrint("Heap: %s\n", strerror(errno));
-		}
+		ErrPrint("strdup: %s\n", strerror(errno));
 	}
 
 	return icon;
