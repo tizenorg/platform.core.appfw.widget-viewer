@@ -80,8 +80,8 @@ static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h
 
 	fd = open(util_uri_to_path(info->id), O_RDONLY);
 	if (fd < 0) {
-		ErrPrint("Failed to open a file (%s) because of (%s)\n",
-				util_uri_to_path(info->id), strerror(errno));
+		ErrPrint("Failed to open a file (%s) because of (%d)\n",
+				util_uri_to_path(info->id), errno);
 
 		/*!
 		 * \note
@@ -103,9 +103,9 @@ static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h
 			width = w * info->pixels;
 
 			if (lseek(fd, index * info->pixels, SEEK_SET) != index * info->pixels) {
-				ErrPrint("lseek: %s\n", strerror(errno));
+				ErrPrint("lseek: %d\n", errno);
 				if (close(fd) < 0) {
-					ErrPrint("close: %s\n", strerror(errno));
+					ErrPrint("close: %d\n", errno);
 				}
 				/**
 				 * @note
@@ -119,7 +119,7 @@ static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h
 
 			if (read(fd, ((unsigned int *)buffer->data) + index, width) != width) {
 				if (close(fd) < 0) {
-					ErrPrint("close: %s\n", strerror(errno));
+					ErrPrint("close: %d\n", errno);
 				}
 				/**
 				 * @note
@@ -133,9 +133,9 @@ static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h
 		}
 	} else {
 		if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
-			ErrPrint("read: %s\n", strerror(errno));
+			ErrPrint("read: %d\n", errno);
 			if (close(fd) < 0) {
-				ErrPrint("close: %s\n", strerror(errno));
+				ErrPrint("close: %d\n", errno);
 			}
 
 			/*!
@@ -150,7 +150,7 @@ static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h
 	}
 
 	if (close(fd) < 0) {
-		ErrPrint("close: %s\n", strerror(errno));
+		ErrPrint("close: %d\n", errno);
 	}
 	return WIDGET_ERROR_NONE;
 }
@@ -192,13 +192,13 @@ struct fb_info *fb_create(const char *id, int w, int h)
 
 	info = calloc(1, sizeof(*info));
 	if (!info) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return NULL;
 	}
 
 	info->id = strdup(id);
 	if (!info->id) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		free(info);
 		return NULL;
 	}
@@ -260,7 +260,7 @@ int fb_is_created(struct fb_info *info)
 		if (path && access(path, F_OK | R_OK) == 0) {
 			return 1;
 		} else {
-			ErrPrint("access: %s (%s)\n", strerror(errno), path);
+			ErrPrint("access: %d (%s)\n", errno, path);
 		}
 	}
 
@@ -287,7 +287,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 			buffer = calloc(1, sizeof(*buffer) + info->bufsz);
 			if (!buffer) {
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 				info->bufsz = 0;
 				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 				return NULL;
@@ -303,7 +303,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 		} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 			buffer = shmat(info->handle, NULL, 0);
 			if (buffer == (void *)-1) {
-				ErrPrint("shmat: %s (%d)\n", strerror(errno), info->handle);
+				ErrPrint("shmat: %d (%d)\n", errno, info->handle);
 				set_last_result(WIDGET_ERROR_FAULT);
 				return NULL;
 			}
@@ -353,7 +353,7 @@ int fb_release_buffer(void *data)
 	switch (buffer->type) {
 	case WIDGET_BUFFER_TYPE_SHM:
 		if (shmdt(buffer) < 0) {
-			ErrPrint("shmdt: %s\n", strerror(errno));
+			ErrPrint("shmdt: %d\n", errno);
 		}
 		break;
 	case WIDGET_BUFFER_TYPE_FILE:
@@ -403,7 +403,7 @@ int fb_refcnt(void *data)
 	switch (buffer->type) {
 	case WIDGET_FB_TYPE_SHM:
 		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
-			ErrPrint("Error: %s\n", strerror(errno));
+			ErrPrint("Error: %d\n", errno);
 			set_last_result(WIDGET_ERROR_FAULT);
 			return WIDGET_ERROR_FAULT;
 		}

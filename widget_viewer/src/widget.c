@@ -956,7 +956,7 @@ static int job_add(widget_h handle, widget_ret_cb job_cb, int ret, void *data)
 
 	item = malloc(sizeof(*item));
 	if (!item) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -1354,7 +1354,7 @@ EAPI widget_h widget_viewer_add_widget(const char *pkgname, const char *content,
 
 	handle = calloc(1, sizeof(*handle));
 	if (!handle) {
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		free(widgetid);
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
@@ -4219,7 +4219,7 @@ EAPI int widget_viewer_get_instance_id(widget_h handle, char **instance_id)
 
 	*instance_id = strdup(handle->common->id);
 	if (!*instance_id) {
-		ErrPrint("Out of memory: %s\n", strerror(errno));
+		ErrPrint("Out of memory: %d\n", errno);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 

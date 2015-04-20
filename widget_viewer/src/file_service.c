@@ -77,11 +77,11 @@
 	int status; \
 	status = close(p[PIPE_READ]); \
 	if (status < 0) { \
-		ErrPrint("close: %s\n", strerror(errno)); \
+		ErrPrint("close: %d\n", errno); \
 	} \
 	status = close(p[PIPE_WRITE]); \
 	if (status < 0) { \
-		ErrPrint("close: %s\n", strerror(errno)); \
+		ErrPrint("close: %d\n", errno); \
 	} \
 } while (0)
 
@@ -135,7 +135,7 @@ static inline int put_event_ch(int fd, char ch)
 
 	ret = write(fd, &ch, sizeof(ch));
 	if (ret != sizeof(ch)) {
-		ErrPrint("write: %s\n", strerror(errno));
+		ErrPrint("write: %d\n", errno);
 		return ret;
 	}
 
@@ -149,7 +149,7 @@ static inline int get_event_ch(int fd)
 
 	ret = read(fd, &ch, sizeof(ch));
 	if (ret != sizeof(ch)) {
-		ErrPrint("read: %s\n", strerror(errno));
+		ErrPrint("read: %d\n", errno);
 		return ret;
 	}
 
@@ -172,7 +172,7 @@ static inline int file_service_open(void)
 
 	addr = malloc(strlen(client_addr()) + 1);
 	if (!addr) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return -ENOMEM;
 	}
 
@@ -188,7 +188,7 @@ static inline int file_service_open(void)
 
 	file_addr = malloc(len);
 	if (!file_addr) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		free(addr);
 		return -ENOMEM;
 	}
@@ -209,7 +209,7 @@ static void write_item_to_pipe(struct request_item *item, int ret)
 {
 	item->ret = WIDGET_ERROR_FAULT;
 	if (write(s_info.evt_pipe[PIPE_WRITE], &item, sizeof(item)) != sizeof(item)) {
-		ErrPrint("write: %s\n", strerror(errno));
+		ErrPrint("write: %d\n", errno);
 		free(item->filename);
 		free(item->save_to);
 		free(item);
@@ -258,7 +258,7 @@ static void *file_service_main(void *data)
 				ret = 0;
 				continue;
 			}
-			ErrPrint("Error: %s\n", strerror(errno));
+			ErrPrint("Error: %d\n", errno);
 			break;
 		} else if (ret == 0) {
 			ErrPrint("Timeout\n");
@@ -274,7 +274,7 @@ static void *file_service_main(void *data)
 
 					head = malloc(recvsz);
 					if (!head) {
-						ErrPrint("Heap: %s\n", strerror(errno));
+						ErrPrint("Heap: %d\n", errno);
 						ret = WIDGET_ERROR_OUT_OF_MEMORY;
 						write_item_to_pipe(item, ret);
 						item = NULL;
@@ -307,7 +307,7 @@ static void *file_service_main(void *data)
 
 					tmp = realloc(head, recvsz);
 					if (!tmp) {
-						ErrPrint("Heap: %s\n", strerror(errno));
+						ErrPrint("Heap: %d\n", errno);
 
 						free(head);
 						head = NULL;
@@ -336,7 +336,7 @@ static void *file_service_main(void *data)
 
 					file_fd = open(item->save_to, O_WRONLY|O_CREAT, 0644);
 					if (file_fd < 0) {
-						ErrPrint("open: %s\n", strerror(errno));
+						ErrPrint("open: %d\n", errno);
 						free(head);
 						head = NULL;
 						recv_state = RECV_INIT;
@@ -412,7 +412,7 @@ static void *file_service_main(void *data)
 
 					tmp = realloc(body, recvsz);
 					if (!tmp) {
-						ErrPrint("Heap: %s\n", strerror(errno));
+						ErrPrint("Heap: %d\n", errno);
 						free(head);
 						head = NULL;
 
@@ -429,7 +429,7 @@ static void *file_service_main(void *data)
 					/* Flush this to the file */
 					ret = write(file_fd, body->data, body->size);
 					if (ret < 0) {
-						ErrPrint("write: %s\n", strerror(errno));
+						ErrPrint("write: %d\n", errno);
 						free(head);
 						head = NULL;
 
@@ -450,7 +450,7 @@ static void *file_service_main(void *data)
 						file_offset += ret;
 						if (file_offset == head->size) {
 							if (close(file_fd) < 0) {
-								ErrPrint("close: %s\n", strerror(errno));
+								ErrPrint("close: %d\n", errno);
 							}
 							ret = WIDGET_ERROR_NONE;
 							write_item_to_pipe(item, ret);
@@ -528,7 +528,7 @@ static gboolean evt_cb(GIOChannel *src, GIOCondition cond, gpointer data)
 	}
 
 	if (read(fd, &item, sizeof(item)) != sizeof(item)) {
-		ErrPrint("read: %s\n", strerror(errno));
+		ErrPrint("read: %d\n", errno);
 	} else {
 		if (item->result_cb) {
 			item->result_cb(item->filename, item->save_to, item->ret, item->data);
@@ -548,20 +548,20 @@ int file_service_send_request(const char *filename, const char *save_to, void (*
 
 	item = malloc(sizeof(*item));
 	if (!item) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return -ENOMEM;
 	}
 
 	item->filename = strdup(filename);
 	if (!item->filename) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		free(item);
 		return -ENOMEM;
 	}
 
 	item->save_to = strdup(save_to);
 	if (!item->save_to) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		free(item->filename);
 		free(item);
 		return -ENOMEM;
@@ -592,14 +592,14 @@ int file_service_init(void)
 	}
 
 	if (pipe2(s_info.ctrl_pipe, O_NONBLOCK | O_CLOEXEC) < 0) {
-		ErrPrint("file service: %s\n", strerror(errno));
+		ErrPrint("file service: %d\n", errno);
 		file_service_close(s_info.file_service_fd);
 		s_info.file_service_fd = -1;
 		return -EFAULT;
 	}
 
 	if (pipe2(s_info.evt_pipe, O_NONBLOCK | O_CLOEXEC) < 0) {
-		ErrPrint("file service: %s\n", strerror(errno));
+		ErrPrint("file service: %d\n", errno);
 		CLOSE_PIPE(s_info.ctrl_pipe);
 		file_service_close(s_info.file_service_fd);
 		s_info.file_service_fd = -1;

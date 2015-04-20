@@ -63,13 +63,13 @@ double util_timestamp(void)
 			return ts.tv_sec + ts.tv_nsec / 1000000000.0f;
 		}
 
-		ErrPrint("%d: %s\n", s_info.type, strerror(errno));
+		ErrPrint("%d: %d\n", s_info.type, errno);
 		if (s_info.type == CLOCK_MONOTONIC) {
 			s_info.type = CLOCK_REALTIME;
 		} else if (s_info.type == CLOCK_REALTIME) {
 			struct timeval tv;
 			if (gettimeofday(&tv, NULL) < 0) {
-				ErrPrint("gettimeofday: %s\n", strerror(errno));
+				ErrPrint("gettimeofday: %d\n", errno);
 				break;
 			}
 
@@ -82,7 +82,7 @@ double util_timestamp(void)
 	struct timeval tv;
 
 	if (gettimeofday(&tv, NULL) < 0) {
-		ErrPrint("gettimeofday: %s\n", strerror(errno));
+		ErrPrint("gettimeofday: %d\n", errno);
 		tv.tv_sec = 0;
 		tv.tv_usec = 0;
 	}
@@ -129,13 +129,13 @@ int util_unlink(const char *filename)
 	desclen = strlen(filename) + 6; /* .desc */
 	descfile = malloc(desclen);
 	if (!descfile) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	ret = snprintf(descfile, desclen, "%s.desc", filename);
 	if (ret < 0) {
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		free(descfile);
 		return WIDGET_ERROR_FAULT;
 	}
