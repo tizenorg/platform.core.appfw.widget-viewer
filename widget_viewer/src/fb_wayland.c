@@ -29,6 +29,7 @@
 
 #include <dlog.h>
 #include <widget_errno.h> /* For error code */
+#include <widget_service.h>
 #include <widget_buffer.h>
 
 #include "debug.h"
@@ -37,29 +38,18 @@
 
 int errno;
 
-struct fb_info {
-	char *id;
-	int w;
-	int h;
-	int bufsz;
-	void *buffer;
-
-	int pixels;
-	int handle;
-};
-
 static struct {
 } s_info = {
 };
 
 int fb_init(void *disp)
 {
-	return 0;
+	return WIDGET_ERROR_NONE;
 }
 
 int fb_fini(void)
 {
-	return 0;
+	return WIDGET_ERROR_NONE;
 }
 
 static inline void update_fb_size(struct fb_info *info)
@@ -67,10 +57,10 @@ static inline void update_fb_size(struct fb_info *info)
 	info->bufsz = info->w * info->h * info->pixels;
 }
 
-static inline int sync_for_file(struct fb_info *info)
+static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h)
 {
 	int fd;
-	struct buffer *buffer;
+	widget_fb_t buffer;
 
 	buffer = info->buffer;
 
@@ -78,12 +68,12 @@ static inline int sync_for_file(struct fb_info *info)
 		return WIDGET_ERROR_NONE;
 	}
 
-	if (buffer->state != CREATED) {
+	if (buffer->state != WIDGET_FB_STATE_CREATED) {
 		ErrPrint("Invalid state of a FB\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	if (buffer->type != WIDGET_BUFFER_TYPE_FILE) {
+	if (buffer->type != WIDGET_FB_TYPE_FILE) {
 		ErrPrint("Invalid buffer\n");
 		return WIDGET_ERROR_NONE;
 	}
@@ -103,20 +93,60 @@ static inline int sync_for_file(struct fb_info *info)
 		return WIDGET_ERROR_NONE;
 	}
 
-	if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
-		ErrPrint("read: %s\n", strerror(errno));
-		if (close(fd) < 0) {
-			ErrPrint("close: %s\n", strerror(errno));
-		}
+	if (x != 0 || y != 0 || info->w != w || info->h != h) {
+		int iy;
+		register int index;
+		register int width;
 
-		/*!
-		 * \note
-		 * But return ZERO, even if we couldn't get a buffer file,
-		 * the viewer can draw empty screen.
-		 *
-		 * and then update it after it gots update events
-		 */
-		return WIDGET_ERROR_NONE;
+		for (iy = y; iy < h; iy++) {
+			index = iy * info->w + x;
+			width = w * info->pixels;
+
+			if (lseek(fd, index * info->pixels, SEEK_SET) != index * info->pixels) {
+				ErrPrint("lseek: %s\n", strerror(errno));
+				if (close(fd) < 0) {
+					ErrPrint("close: %s\n", strerror(errno));
+				}
+				/**
+				 * @note
+				 * But return ZERO, even if we couldn't get a buffer file,
+				 * the viewer can draw empty screen.
+				 *
+				 * and then update it after it gots update events
+				 */
+				return WIDGET_ERROR_NONE;
+			}
+
+			if (read(fd, ((unsigned int *)buffer->data) + index, width) != width) {
+				if (close(fd) < 0) {
+					ErrPrint("close: %s\n", strerror(errno));
+				}
+				/**
+				 * @note
+				 * But return ZERO, even if we couldn't get a buffer file,
+				 * the viewer can draw empty screen.
+				 *
+				 * and then update it after it gots update events
+				 */
+				return WIDGET_ERROR_NONE;
+			}
+		}
+	} else {
+		if (read(fd, buffer->data, info->bufsz) != info->bufsz) {
+			ErrPrint("read: %s\n", strerror(errno));
+			if (close(fd) < 0) {
+				ErrPrint("close: %s\n", strerror(errno));
+			}
+
+			/*!
+			 * \note
+			 * But return ZERO, even if we couldn't get a buffer file,
+			 * the viewer can draw empty screen.
+			 *
+			 * and then update it after it gots update events
+			 */
+			return WIDGET_ERROR_NONE;
+		}
 	}
 
 	if (close(fd) < 0) {
@@ -138,8 +168,11 @@ int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 	}
 
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
-		return sync_for_file(info);
+		return sync_for_file(info, x, y, w, h);
 	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
+		/**
+		 * @note
+		 */
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		/* No need to do sync */ 
 		return WIDGET_ERROR_NONE;
@@ -199,7 +232,7 @@ int fb_destroy(struct fb_info *info)
 	}
 
 	if (info->buffer) {
-		struct buffer *buffer;
+		widget_fb_t buffer;
 		buffer = info->buffer;
 
 		buffer->info = NULL;
@@ -236,7 +269,7 @@ int fb_is_created(struct fb_info *info)
 
 void *fb_acquire_buffer(struct fb_info *info)
 {
-	struct buffer *buffer;
+	widget_fb_t buffer;
 
 	if (!info) {
 		ErrPrint("info == NIL\n");
@@ -260,13 +293,13 @@ void *fb_acquire_buffer(struct fb_info *info)
 				return NULL;
 			}
 
-			buffer->type = WIDGET_BUFFER_TYPE_FILE;
+			buffer->type = WIDGET_FB_TYPE_FILE;
 			buffer->refcnt = 0;
-			buffer->state = CREATED;
+			buffer->state = WIDGET_FB_STATE_CREATED;
 			buffer->info = info;
 			info->buffer = buffer;
 
-			sync_for_file(info);
+			sync_for_file(info, 0, 0, info->w, info->h);
 		} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 			buffer = shmat(info->handle, NULL, 0);
 			if (buffer == (void *)-1) {
@@ -286,7 +319,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 	buffer = info->buffer;
 
 	switch (buffer->type) {
-	case WIDGET_BUFFER_TYPE_FILE:
+	case WIDGET_FB_TYPE_FILE:
 		buffer->refcnt++;
 		break;
 	case WIDGET_BUFFER_TYPE_PIXMAP:
@@ -301,7 +334,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 int fb_release_buffer(void *data)
 {
-	struct buffer *buffer;
+	widget_fb_t buffer;
 
 	if (!data) {
 		ErrPrint("buffer data == NIL\n");
@@ -309,9 +342,9 @@ int fb_release_buffer(void *data)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	buffer = container_of(data, struct buffer, data);
+	buffer = container_of(data, struct widget_fb, data);
 
-	if (buffer->state != CREATED) {
+	if (buffer->state != WIDGET_FB_STATE_CREATED) {
 		ErrPrint("Invalid handle\n");
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -330,11 +363,12 @@ int fb_release_buffer(void *data)
 			info = buffer->info;
 
 			buffer->state = WIDGET_FB_STATE_DESTROYED;
-			free(buffer);
 
 			if (info && info->buffer == buffer) {
 				info->buffer = NULL;
 			}
+
+			free(buffer);
 		}
 		break;
 	case WIDGET_BUFFER_TYPE_PIXMAP:
@@ -349,7 +383,7 @@ int fb_release_buffer(void *data)
 
 int fb_refcnt(void *data)
 {
-	struct buffer *buffer;
+	widget_fb_t buffer;
 	struct shmid_ds buf;
 	int ret;
 
@@ -360,14 +394,14 @@ int fb_refcnt(void *data)
 
 	buffer = container_of(data, struct buffer, data);
 
-	if (buffer->state != CREATED) {
+	if (buffer->state != WIDGET_FB_STATE_CREATED) {
 		ErrPrint("Invalid handle\n");
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	switch (buffer->type) {
-	case WIDGET_BUFFER_TYPE_SHM:
+	case WIDGET_FB_TYPE_SHM:
 		if (shmctl(buffer->refcnt, IPC_STAT, &buf) < 0) {
 			ErrPrint("Error: %s\n", strerror(errno));
 			set_last_result(WIDGET_ERROR_FAULT);
@@ -376,7 +410,7 @@ int fb_refcnt(void *data)
 
 		ret = buf.shm_nattch;
 		break;
-	case WIDGET_BUFFER_TYPE_FILE:
+	case WIDGET_FB_TYPE_FILE:
 		ret = buffer->refcnt;
 		break;
 	case WIDGET_BUFFER_TYPE_PIXMAP:
@@ -420,7 +454,7 @@ int fb_size(struct fb_info *info)
 
 int fb_type(struct fb_info *info)
 {
-	struct buffer *buffer;
+	widget_fb_t buffer;
 
 	if (!info) {
 		return WIDGET_BUFFER_TYPE_ERROR;
@@ -428,7 +462,7 @@ int fb_type(struct fb_info *info)
 
 	buffer = info->buffer;
 	if (!buffer) {
-		int type = WIDGET_BUFFER_TYPE_ERROR;
+		int type = WIDGET_FB_TYPE_ERROR;
 		/*!
 		 * \note
 		 * Try to get this from SCHEMA

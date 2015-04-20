@@ -79,7 +79,7 @@ int fb_fini(void)
 	s_info.disp_is_opened = 0;
 	s_info.visual = NULL;
 	s_info.screen = -1;
-	return 0;
+	return WIDGET_ERROR_NONE;
 }
 
 static inline void update_fb_size(struct fb_info *info)
