@@ -54,6 +54,15 @@ typedef enum widget_evas_raw_event_type {
 
 /**
  * @since_tizen 2.3.1
+ * @brief Options for each widget.
+ */
+typedef enum widget_option {
+	WIDGET_OPTION_DELAYED_PAUSE_RESUME = 0x01,	/* 0: Follow the global configuration, 1: Disable the Delayed Pause Resume, 2: Enable the Delayed Pause Resume */
+	WIDGET_OPTION_UNKNOWN = 0xFF
+} widget_option_e;
+
+/**
+ * @since_tizen 2.3.1
  * @brief Data structure for smart callback user parameter
  */
 typedef struct widget_evas_raw_event_info {
@@ -67,7 +76,7 @@ typedef struct widget_evas_raw_event_info {
  * @brief Close the Glance Bar if it is opened
  * @since_tizen 2.3.1
  * @param[in] widget widget object
- * @return int
+ * @return 0 on success, otherwise a negative error value
  */
 extern int widget_viewer_evas_destroy_glance_bar(Evas_Object *widget);
 
@@ -79,7 +88,7 @@ extern int widget_viewer_evas_destroy_glance_bar(Evas_Object *widget);
  * @param[in] y
  * @param[in] w
  * @param[in] h
- * @return int
+ * @return 0 on success, otherwise a negative error value
  */
 extern int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, int w, int h);
 
@@ -91,7 +100,7 @@ extern int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, i
  * @param[out] y
  * @param[out] w
  * @param[out] h
- * @return int
+ * @return 0 on success, otherwise a negative error value
  */
 extern int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, int *w, int *h);
 
@@ -104,7 +113,7 @@ extern int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y,
  * @param[in] info
  * @param[in] ret_cb
  * @param[in] dta
- * @return int
+ * @return 0 on success, otherwise a negative error value
  */
 extern int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, void *info, void (*ret_cb)(Evas_Object *obj, int ret, void *data), void *data);
 
@@ -113,7 +122,7 @@ extern int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, v
  * @since_tizen 2.3.1
  * @param[in] widget widget object
  * @param[in] filename Filename will be used for saving content of a widget
- * @return int
+ * @return 0 on success, otherwise a negative error value
  */
 extern int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filename);
 
@@ -128,8 +137,7 @@ extern int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *file
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] cluster Cluster ("*" can be used for subscribe all cluster's widgets event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe widgets events of all category(sub-cluster) in a given "cluster")
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_ERROR_NONE Successfully requested
  * @see widget_viewer_evas_unsubscribe_group()
@@ -144,8 +152,7 @@ extern int widget_viewer_evas_subscribe_group(const char *cluster, const char *s
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] cluster Cluster("*" can be used for subscribe all cluster's widgets event; If you use the "*", value in the category will be ignored)
  * @param[in] category Category ("*" can be used for subscribe all sub-cluster's widgets event in a given "cluster")
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_ERROR_NONE Successfully requested
  * @see widget_subscribe_group()
@@ -161,8 +168,7 @@ extern int widget_viewer_evas_unsubscribe_group(const char *cluster, const char 
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] category Category name
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_ERROR_NONE Successfully requested
  * @see widget_viewer_evas_unsubscribe_category()
@@ -175,8 +181,7 @@ extern int widget_viewer_evas_subscribe_category(const char *category);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] category Category name
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_ERROR_NONE Successfully requested
  * @see widget_viewer_evas_subscribe_category()
@@ -188,7 +193,6 @@ extern int widget_viewer_evas_unsubscribe_category(const char *category);
  * @since_tizen 2.3.1
  * @param[in] info
  * @param[in] data
- * @return void
  */
 typedef void (*raw_event_cb)(widget_evas_raw_event_info_s *info, void *data);
 
@@ -207,12 +211,13 @@ extern int widget_viewer_evas_set_raw_event_callback(widget_evas_raw_event_type_
  * @param[in] type
  * @param[in] cb
  * @param[in] data
- * @return int
+ * @return 0 on success, otherwise a negative error value
  */
 extern int widget_viewer_evas_unset_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data);
 
 extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id);
 
+extern int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_e option, int value);
 
 #ifdef __cplusplus
 }
