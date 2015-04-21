@@ -1625,6 +1625,9 @@ extern int widget_viewer_set_auto_launch_handler(widget_auto_launch_handler_cb c
 extern int widget_viewer_get_affected_extra_buffer(widget_h handle, int gbar, int *idx, unsigned int *resource_id);
 
 extern int widget_viewer_get_instance_id(widget_h handle, char **instance_id);
+
+extern int widget_viewer_notify_orientation_of_viewer(int orientation);
+
 /**
  * @}
  */

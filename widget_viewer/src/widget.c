@@ -3943,6 +3943,25 @@ EAPI int widget_viewer_notify_resumed_status_of_viewer(void)
 	return master_rpc_request_only(NULL, packet);
 }
 
+EAPI int widget_viewer_notify_orientation_of_viewer(int orientation)
+{
+	struct packet *packet;
+	unsigned int cmd = CMD_ORIENTATION;
+
+	if (orientation < 0 || orientation > 360) {
+		ErrPrint("Invalid parameter: %d\n", orientation);
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	packet = packet_create_noack((const char *)&cmd, "di", util_timestamp(), orientation);
+	if (!packet) {
+		ErrPrint("Failed to create a orientation packet\n");
+		return WIDGET_ERROR_FAULT;
+	}
+
+	return master_rpc_request_only(NULL, packet);
+}
+
 EAPI int widget_viewer_sync_buffer(widget_h handle, int gbar)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
