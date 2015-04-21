@@ -6084,6 +6084,11 @@ EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 	return widget_viewer_notify_paused_status_of_viewer();
 }
 
+EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
+{
+	return WIDGET_ERROR_NOT_SUPPORTED;
+}
+
 EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
 	struct widget_data *data;

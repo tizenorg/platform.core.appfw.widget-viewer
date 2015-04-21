@@ -167,6 +167,20 @@ extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
 extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
 
 /**
+ * @brief Notifies the orientation of the viewer to all providers
+ * @detail If you call this, all providers will gets "rotated" event.
+ * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] orientation orientation of viewer
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ */
+extern int widget_viewer_evas_notify_orientation_of_viewer(int orientation);
+
+/**
  * @brief Pauses given widget.
  * @since_tizen 2.3.1
  * @privlevel public
