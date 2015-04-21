@@ -92,7 +92,7 @@ typedef enum widget_evas_conf {
     WIDGET_VIEWER_EVAS_SCROLL_X = 0x0020,   /**< Box will be scrolled from left to right vice versa. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_SCROLL_Y = 0x0040,   /**< Box will be scrolled from top to bottom vice versa. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_EVENT_AUTO_FEED = 0x0080,   /**< Feeds event automatically from the master provider. 1 : on, 0 : off */
-    WIDGET_VIEWER_EVAS_DELAYED_PAUSE_RESUME = 0x0100,   /**< Delaying the pause/resume when it is automatically changed. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_DELAYED_RESUME = 0x0100,   /**< Delaying the pause/resume when it is automatically changed. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_SENSITIVE_MOVE = 0x0200,   /**< Force feeds mouse up event if the box is moved. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_AUTO_RENDER_SELECTION = 0x0400, /**< Select render automatically, if a box moved, do not sync using animator, or use the animator. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_DIRECT_UPDATE = 0x0800,   /**< Enable direct update path. 1 : on, 0 : off */

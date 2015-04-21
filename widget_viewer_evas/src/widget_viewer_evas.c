@@ -156,7 +156,7 @@ static struct {
 			unsigned int is_scroll_x: 1;
 			unsigned int is_scroll_y: 1;
 			unsigned int auto_feed: 1;
-			unsigned int delayed_pause_resume: 1;
+			unsigned int delayed_resume: 1;
 			unsigned int sensitive_move: 1;
 			unsigned int render_animator: 1;
 			unsigned int auto_render_selector: 1;
@@ -318,7 +318,7 @@ struct widget_data {
 			unsigned int send_delete: 1;
 			unsigned int permanent_delete: 1;
 
-			unsigned int delayed_pause_resume: 2;
+			unsigned int delayed_resume: 2;
 
 			unsigned int reserved: 4;
 		} field;	/* Do we really have the performance loss because of bit fields? */
@@ -334,8 +334,7 @@ struct widget_data {
 	Eina_List *gbar_script_object_list;
 	Eina_List *widget_script_object_list;
 
-	Ecore_Timer *delayed_pause_resume_timer;
-	widget_visible_state_e delayed_pause_resume_state;
+	Ecore_Timer *delayed_resume_timer;
 };
 
 struct script_object {
@@ -3332,9 +3331,9 @@ static void __widget_del(Evas_Object *widget)
 
 	data->is.field.deleted = 1;
 
-	if (data->delayed_pause_resume_timer) {
-		ecore_timer_del(data->delayed_pause_resume_timer);
-		data->delayed_pause_resume_timer = NULL;
+	if (data->delayed_resume_timer) {
+		ecore_timer_del(data->delayed_resume_timer);
+		data->delayed_resume_timer = NULL;
 	}
 
 	s_info.list = eina_list_remove(s_info.list, widget);
@@ -3379,25 +3378,21 @@ static void __widget_del(Evas_Object *widget)
 	}
 }
 
-static Eina_Bool delayed_pause_resume_timer_cb(void *_data)
+static Eina_Bool delayed_resume_timer_cb(void *_data)
 {
 	struct widget_data *data = _data;
 
-	if (data->delayed_pause_resume_state == WIDGET_SHOW) {
-		(void)widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
+	(void)widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
 
-		if (data->is.field.widget_dirty) {
-			/**
-			 * If the object has dirty flag, pumping it up again
-			 * To updates its content
-			 */
-			append_widget_dirty_object_list(data, WIDGET_KEEP_BUFFER);
-		}
-	} else {
-		(void)widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
+	if (data->is.field.widget_dirty) {
+		/**
+		 * If the object has dirty flag, pumping it up again
+		 * To updates its content
+		 */
+		append_widget_dirty_object_list(data, WIDGET_KEEP_BUFFER);
 	}
 
-	data->delayed_pause_resume_timer = NULL;
+	data->delayed_resume_timer = NULL;
 	return ECORE_CALLBACK_CANCEL;
 }
 
@@ -3414,15 +3409,15 @@ static void update_visibility(struct widget_data *data)
 		DbgPrint("Freezed visibility: %X (%s)\n", data->freezed_visibility, widget_viewer_get_pkgname(data->handle));
 
 		if (data->freezed_visibility == WIDGET_VISIBILITY_STATUS_SHOW_FIXED) {
-			if (data->delayed_pause_resume_timer) {
-				(void)ecore_timer_del(data->delayed_pause_resume_timer);
-				data->delayed_pause_resume_timer = NULL;
+			if (data->delayed_resume_timer) {
+				(void)ecore_timer_del(data->delayed_resume_timer);
+				data->delayed_resume_timer = NULL;
 			}
 			(void)widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
 		} else if (data->freezed_visibility == WIDGET_VISIBILITY_STATUS_HIDE_FIXED) {
-			if (data->delayed_pause_resume_timer) {
-				(void)ecore_timer_del(data->delayed_pause_resume_timer);
-				data->delayed_pause_resume_timer = NULL;
+			if (data->delayed_resume_timer) {
+				(void)ecore_timer_del(data->delayed_resume_timer);
+				data->delayed_resume_timer = NULL;
 			}
 			(void)widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
 		}
@@ -3458,50 +3453,57 @@ static void update_visibility(struct widget_data *data)
 		}
 	}
 
-	if (is_visible) {
-		data->delayed_pause_resume_state = WIDGET_SHOW;
-	} else {
-		data->delayed_pause_resume_state = WIDGET_HIDE_WITH_PAUSE;
-	}
-
-	if (data->is.field.delayed_pause_resume == 0) { /* Follow the global configuration */
-		delay = s_info.conf.field.delayed_pause_resume;
+	if (data->is.field.delayed_resume == 0) { /* Follow the global configuration */
+		delay = s_info.conf.field.delayed_resume;
 	} else { /* Ignore the global configuration */
 		// 1 : Disable Delayed Pause Resume
 		// 2 : Enable Delayed Pause Resume
-		delay = (data->is.field.delayed_pause_resume == 2);
+		delay = (data->is.field.delayed_resume == 2);
 	}
 
 	if (delay) {
-		if (data->delayed_pause_resume_timer) {
-			DbgPrint("Reset timer\n");
-			ecore_timer_reset(data->delayed_pause_resume_timer);
-		} else if (WIDGET_CONF_VISIBILITY_CHANGE_DELAY > 0.0f) {
-			DbgPrint("Add timer (%lf)\n", WIDGET_CONF_VISIBILITY_CHANGE_DELAY);
-			data->delayed_pause_resume_timer = ecore_timer_add(WIDGET_CONF_VISIBILITY_CHANGE_DELAY, delayed_pause_resume_timer_cb, data);
-			if (!data->delayed_pause_resume_timer) {
-				ErrPrint("Failed to add a timer\n");
-				delayed_pause_resume_timer_cb(data);
+		if (is_visible) {
+			if (data->delayed_resume_timer) {
+				DbgPrint("Reset timer\n");
+				ecore_timer_reset(data->delayed_resume_timer);
+			} else if (WIDGET_CONF_VISIBILITY_CHANGE_DELAY > 0.0f) {
+				DbgPrint("Add timer (%lf)\n", WIDGET_CONF_VISIBILITY_CHANGE_DELAY);
+				data->delayed_resume_timer = ecore_timer_add(WIDGET_CONF_VISIBILITY_CHANGE_DELAY, delayed_resume_timer_cb, data);
+				if (!data->delayed_resume_timer) {
+					ErrPrint("Failed to add a timer\n");
+					delayed_resume_timer_cb(data);
+				}
+			} else {
+				DbgPrint("Direct update\n");
+				delayed_resume_timer_cb(data);
 			}
 		} else {
-			DbgPrint("Direct update\n");
-			delayed_pause_resume_timer_cb(data);
+			if (data->delayed_resume_timer) {
+				ecore_timer_del(data->delayed_resume_timer);
+				data->delayed_resume_timer = NULL;
+			}
+
+			widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
 		}
 	} else {
 		/**
 		 * @note
 		 * In this case, if there is any registered timer,
 		 * this function should clear it.
-		 * Timer means that the delayed_pause_resume mode is changed.
+		 * Timer means that the delayed_resume mode is changed.
 		 */
-		if (data->delayed_pause_resume_timer) {
-			ecore_timer_del(data->delayed_pause_resume_timer);
-			data->delayed_pause_resume_timer = NULL;
-			DbgPrint("Clear delayed pause resume timer\n");
+		if (data->delayed_resume_timer) {
+			ecore_timer_del(data->delayed_resume_timer);
+			data->delayed_resume_timer = NULL;
+			DbgPrint("Clear delayed resume timer\n");
 		}
 
 		DbgPrint("Direct update\n");
-		delayed_pause_resume_timer_cb(data);
+		if (is_visible) {
+			delayed_resume_timer_cb(data);
+		} else {
+			widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
+		}
 	}
 }
 
@@ -6251,8 +6253,8 @@ EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 	case WIDGET_VIEWER_EVAS_SCROLL_Y:
 		s_info.conf.field.is_scroll_y = value;
 		break;
-	case WIDGET_VIEWER_EVAS_DELAYED_PAUSE_RESUME:
-		s_info.conf.field.delayed_pause_resume = value;
+	case WIDGET_VIEWER_EVAS_DELAYED_RESUME:
+		s_info.conf.field.delayed_resume = value;
 		break;
 	case WIDGET_VIEWER_EVAS_AUTO_RENDER_SELECTION:
 		s_info.conf.field.auto_render_selector = value;
@@ -6288,9 +6290,9 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	if (data->delayed_pause_resume_timer) {
-		(void)ecore_timer_del(data->delayed_pause_resume_timer);
-		data->delayed_pause_resume_timer = NULL;
+	if (data->delayed_resume_timer) {
+		(void)ecore_timer_del(data->delayed_resume_timer);
+		data->delayed_resume_timer = NULL;
 	}
 	return widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
 }
@@ -6304,9 +6306,9 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	if (data->delayed_pause_resume_timer) {
-		(void)ecore_timer_del(data->delayed_pause_resume_timer);
-		data->delayed_pause_resume_timer = NULL;
+	if (data->delayed_resume_timer) {
+		(void)ecore_timer_del(data->delayed_resume_timer);
+		data->delayed_resume_timer = NULL;
 	}
 	return widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
 }
@@ -7124,7 +7126,7 @@ EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance
 	return widget_viewer_get_instance_id(data->handle, instance_id);
 }
 
-EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_e option, int value)
+EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_widget_e option, int value)
 {
 	struct widget_data *data;
 
@@ -7135,8 +7137,8 @@ EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option
 	}
 
 	switch (option) {
-	case WIDGET_OPTION_DELAYED_PAUSE_RESUME:
-		data->is.field.delayed_pause_resume = (value & 0x03);
+	case WIDGET_OPTION_WIDGET_DELAYED_RESUME:
+		data->is.field.delayed_resume = (value & 0x03);
 		break;
 	default:
 		return WIDGET_ERROR_INVALID_PARAMETER;
