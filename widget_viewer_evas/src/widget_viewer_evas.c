@@ -1101,8 +1101,13 @@ static void gbar_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info
 	evas_object_geometry_get(obj, &x, &y, &w, &h);
 
 	if (s_info.conf.field.auto_feed) {
-		minfo.x = (double)x / (double)w;
-		minfo.y = (double)y / (double)h;
+		/**
+		 * @note
+		 * UNSET will subtract object.x and object.y by master
+		 * so we just send original touch position based on screen
+		 */
+		minfo.x = (double)up->canvas.x / (double)w;
+		minfo.y = (double)up->canvas.y / (double)h;
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_UNSET, &minfo);
 	} else {
 		minfo.x = (double)(up->canvas.x - x) / (double)w;
@@ -2715,8 +2720,13 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 				data->is.field.cancel_click = CANCEL_PROCESSED;
 			}
 
-			_minfo.x = (double)data->down.geo.x / (double)data->down.geo.w;
-			_minfo.y = (double)data->down.geo.y / (double)data->down.geo.h;
+			/**
+			 * @note
+			 * UNSET will subtract object.x and object.y by master
+			 * so we just send original touch position based on screen
+			 */
+			_minfo.x = (double)up->canvas.x / (double)data->down.geo.w;
+			_minfo.y = (double)up->canvas.y / (double)data->down.geo.h;
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &_minfo);
 		} else {
 			if (!data->is.field.mouse_event) {
@@ -3539,9 +3549,13 @@ static int do_force_mouse_up(struct widget_data *data)
 			data->is.field.cancel_click = CANCEL_PROCESSED;
 		}
 
-		minfo.x = (double)data->down.geo.x / (double)data->down.geo.w;
-		minfo.y = (double)data->down.geo.y / (double)data->down.geo.h;
-
+		/**
+		 * @note
+		 * UNSET will subtract object.x and object.y by master
+		 * so we just send original touch position based on screen
+		 */
+		minfo.x = (double)data->x / (double)data->down.geo.w;
+		minfo.y = (double)data->y / (double)data->down.geo.h;
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &minfo);
 	} else {
 		if (!data->is.field.mouse_event) {
