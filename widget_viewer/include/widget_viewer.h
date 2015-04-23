@@ -473,7 +473,7 @@ extern int widget_viewer_notify_resumed_status_of_viewer(void);
  * @param[in] widget_id widget Id
  * @param[in] content Contents that will be given to the widget instance
  * @param[in] cluster Identifier to group widgets which will be decided in runtime.
- * @param[in] category Identifier to group widgets declared in the manifest file by the widget provider.
+ * @param[in] category Identifier to group widgets declared in the manifest file by the widget application.
  * @param[in] period Update period (@c WIDGET_DEFAULT_PERIOD can be used for this; this argument will be used to specify the period of updating contents of a widget)
  * @param[in] type Size type (defined from libwidget-service package)
  * @param[in] cb After the request is sent to the master provider, this callback will be called
