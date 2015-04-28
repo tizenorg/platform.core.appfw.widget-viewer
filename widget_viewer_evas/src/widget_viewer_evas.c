@@ -2340,8 +2340,8 @@ static void gbar_create_text_object(struct widget_data *data)
 
 	gbar_content = elm_object_part_content_get(data->gbar_layout, "gbar,content");
 	if (!gbar_content) {
-		const char *script_file;
-		const char *script_group;
+		char *script_file;
+		char *script_group;
 		struct widget_script_operators operator = {
 			.update_begin = gbar_text_update_begin,
 			.update_end = gbar_text_update_end,
@@ -2368,40 +2368,46 @@ static void gbar_create_text_object(struct widget_data *data)
 		script_file = widget_service_get_gbar_script_path(data->widget_id);
 		script_group = widget_service_get_gbar_script_group(data->widget_id);
 		if (!script_file || !script_group) {
-			evas_object_del(gbar_content);
 			ErrPrint("Invalid script info ([%s] - [%s])\n", script_file, script_group);
+			free(script_file);
+			free(script_group);
+			evas_object_del(gbar_content);
 			return;
 		}
 
 		if (access(script_file, R_OK) != 0) {
 			ErrPrint("Unable to access [%s] - %d\n", script_file, errno);
+			free(script_file);
+			free(script_group);
 			evas_object_del(gbar_content);
 			return;
 		}
 
-		if (elm_layout_file_set(gbar_content, script_file, script_group) == EINA_FALSE) {
+		ret = elm_layout_file_set(gbar_content, script_file, script_group);
+		DbgPrint("Load (%s)(%s)\n", script_file, script_group);
+		free(script_file);
+		free(script_group);
+		if (ret == EINA_FALSE) {
+			ErrPrint("Failed to load an edje file\n");
 			evas_object_del(gbar_content);
-			ErrPrint("Failed to load an edje file ([%s] - [%s])\n", script_file, script_group);
+			return;
+		}
+
+		if (widget_viewer_set_text_handler(data->handle, 1, &operator) != WIDGET_ERROR_NONE) {
+			ErrPrint("Failed to set text handler for [%s]\n", data->widget_id);
+			evas_object_del(gbar_content);
 			return;
 		}
 
 		ret = append_script_object(data, 1, NULL, NULL, gbar_content);
 		if (ret != WIDGET_ERROR_NONE) {
-			evas_object_del(gbar_content);
 			ErrPrint("Failed to append this to script object list\n");
-			return;
-		}
-
-		if (widget_viewer_set_text_handler(data->handle, 1, &operator) != WIDGET_ERROR_NONE) {
 			evas_object_del(gbar_content);
-			ErrPrint("Failed to set text handler for [%s]\n", data->widget_id);
 			return;
 		}
 
 		elm_object_part_content_set(data->gbar_layout, "gbar,content", gbar_content);
 	}
-
-	return;
 }
 
 static void gbar_create_pixmap_object(struct widget_data *data)
@@ -4011,12 +4017,13 @@ static int widget_text_update_color(widget_h handle, const char *id, const char 
 }
 static int widget_create_text_object(struct widget_data *data)
 {
-	Evas_Object *widget_viewer_get_content_string;
+	Evas_Object *content;
 
-	widget_viewer_get_content_string = elm_object_part_content_get(data->widget_layout, "widget,content");
-	if (!widget_viewer_get_content_string) {
-		const char *script_file;
-		const char *script_group;
+	content = elm_object_part_content_get(data->widget_layout, "widget,content");
+	if (!content) {
+		int ret;
+		char *script_file;
+		char *script_group;
 		struct widget_script_operators operator = {
 			.update_begin = widget_text_update_begin,
 			.update_end = widget_text_update_end,
@@ -4032,10 +4039,9 @@ static int widget_create_text_object(struct widget_data *data)
 			.operate_access = widget_text_operate_access,
 			.update_color = widget_text_update_color,
 		};
-		int ret;
 
-		widget_viewer_get_content_string = elm_layout_add(data->widget_layout);
-		if (!widget_viewer_get_content_string) {
+		content = elm_layout_add(data->widget_layout);
+		if (!content) {
 			ErrPrint("Failed to create a layout object\n");
 			return WIDGET_ERROR_FAULT;
 		}
@@ -4043,37 +4049,46 @@ static int widget_create_text_object(struct widget_data *data)
 		script_file = widget_service_get_widget_script_path(data->widget_id);
 		script_group = widget_service_get_widget_script_group(data->widget_id);
 		if (!script_file || !script_group) {
-			evas_object_del(widget_viewer_get_content_string);
 			ErrPrint("Invalid script info ([%s] - [%s])\n", script_file, script_group);
+			free(script_file);
+			free(script_group);
+			evas_object_del(content);
 			return WIDGET_ERROR_FAULT;
 		}
 
 		if (access(script_file, R_OK) != 0) {
 			ErrPrint("Unable to access [%s] - %d\n", script_file, errno);
-			evas_object_del(widget_viewer_get_content_string);
+			free(script_file);
+			free(script_group);
+			evas_object_del(content);
 			return WIDGET_ERROR_FAULT;
 		}
 
-		if (elm_layout_file_set(widget_viewer_get_content_string, script_file, script_group) == EINA_FALSE) {
-			evas_object_del(widget_viewer_get_content_string);
-			ErrPrint("Failed to load an edje file ([%s] - [%s])\n", script_file, script_group);
+		ret = elm_layout_file_set(content, script_file, script_group);
+		DbgPrint("Load edje file ([%s] - [%s])\n", script_file, script_group);
+		free(script_file);
+		free(script_group);
+		if (ret == EINA_FALSE) {
+			ErrPrint("Failed to load EDJE\n");
+			evas_object_del(content);
 			return WIDGET_ERROR_FAULT;
 		}
 
-		ret = append_script_object(data, 0, NULL, NULL, widget_viewer_get_content_string);
+		ret = widget_viewer_set_text_handler(data->handle, 0, &operator);
 		if (ret != WIDGET_ERROR_NONE) {
-			evas_object_del(widget_viewer_get_content_string);
-			ErrPrint("Failed to append this to script object list\n");
+			ErrPrint("Failed to set text handler for [%s]\n", data->widget_id);
+			evas_object_del(content);
 			return ret;
 		}
 
-		if (widget_viewer_set_text_handler(data->handle, 0, &operator) != WIDGET_ERROR_NONE) {
-			evas_object_del(widget_viewer_get_content_string);
-			ErrPrint("Failed to set text handler for [%s]\n", data->widget_id);
-			return WIDGET_ERROR_INVALID_PARAMETER;
+		ret = append_script_object(data, 0, NULL, NULL, content);
+		if (ret != WIDGET_ERROR_NONE) {
+			ErrPrint("Failed to append this to script object list\n");
+			evas_object_del(content);
+			return ret;
 		}
 
-		elm_object_part_content_set(data->widget_layout, "widget,content", widget_viewer_get_content_string);
+		elm_object_part_content_set(data->widget_layout, "widget,content", content);
 	}
 
 	return WIDGET_ERROR_NONE;
@@ -5738,6 +5753,7 @@ static inline int handle_subscribed_category(struct widget *handle)
 		if (!strcmp(category, info->category)) {
 			int nr;
 			Evas_Object *widget;
+			struct widget_data *temp_widget_data;
 
 			DbgPrint("Subscribed Category: (%s)(%s)\n", category, info->category);
 
@@ -5753,7 +5769,17 @@ static inline int handle_subscribed_category(struct widget *handle)
 
 			/* Subscribed object, Create this */
 			nr = invoke_raw_event_callback(WIDGET_VIEWER_EVAS_RAW_CREATE, widget_viewer_get_pkgname(handle), widget, WIDGET_ERROR_NONE);
-			if (nr <= 0 || widget_system_created(handle, get_smart_data(widget)) != WIDGET_ERROR_NONE) {
+
+			temp_widget_data = get_smart_data(widget);
+			if (!temp_widget_data) {
+				ErrPrint("Failed to get widget data\n");
+				(void)widget_viewer_delete_widget(handle, WIDGET_DELETE_PERMANENTLY, NULL, NULL);
+				evas_object_del(widget);
+				free(category);
+				return WIDGET_ERROR_FAULT;
+			}
+
+			if (nr <= 0 || widget_system_created(handle, temp_widget_data) != WIDGET_ERROR_NONE) {
 				/* Delete widget, if no one cares it */
 				DbgPrint("No one cares\n");
 				widget_viewer_evas_set_permanent_delete(widget, EINA_TRUE);
