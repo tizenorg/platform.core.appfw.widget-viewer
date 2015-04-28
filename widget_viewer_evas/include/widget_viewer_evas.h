@@ -384,32 +384,6 @@ extern int widget_viewer_evas_is_widget(Evas_Object *widget);
  */
 extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
 
-/**
- * @brief Emits a text signal to the given widget
- * @since_tizen 2.3.1
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @remarks
- *    This is an ASYNCHRONOUS API.
- *    This function is Asynchronous, so you will get the result from @a smart callback, if you failed to send a text signal,
- *    this function will returns proper error code.
- * @param[in] widget a widget object
- * @param[in] event_info.signal_name name of text signal
- * @param[in] event_info.source source string
- * @param[in] event_info.sx Start X
- * @param[in] event_info.sy Start Y
- * @param[in] event_info.ex End X
- * @param[in] event_info.ey End Y
- * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @see #widget_text_signal_s
- * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
- * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
- */
-extern int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data);
-
 #ifdef __cplusplus
 }
 #endif
