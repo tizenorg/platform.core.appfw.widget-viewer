@@ -56,10 +56,10 @@ typedef enum widget_evas_raw_event_type {
  * @since_tizen 2.3.1
  * @brief Options for each widget.
  */
-typedef enum widget_option {
-	WIDGET_OPTION_DELAYED_PAUSE_RESUME = 0x01,	/* 0: Follow the global configuration, 1: Disable the Delayed Pause Resume, 2: Enable the Delayed Pause Resume */
+typedef enum widget_option_widget_type {
+	WIDGET_OPTION_WIDGET_DELAYED_RESUME = 0x01,	/* 0: Follow the global configuration, 1: Disable the Delayed Pause Resume, 2: Enable the Delayed Pause Resume */
 	WIDGET_OPTION_UNKNOWN = 0xFF
-} widget_option_e;
+} widget_option_widget_e;
 
 /**
  * @since_tizen 2.3.1
@@ -217,7 +217,33 @@ extern int widget_viewer_evas_unset_raw_event_callback(widget_evas_raw_event_typ
 
 extern int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id);
 
-extern int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_e option, int value);
+extern int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_widget_e option, int value);
+
+/**
+ * @brief Emits a text signal to the given widget
+ * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @remarks
+ *    This is an ASYNCHRONOUS API.
+ *    This function is Asynchronous, so you will get the result from @a smart callback, if you failed to send a text signal,
+ *    this function will returns proper error code.
+ * @param[in] widget a widget object
+ * @param[in] event_info.signal_name name of text signal
+ * @param[in] event_info.source source string
+ * @param[in] event_info.sx Start X
+ * @param[in] event_info.sy Start Y
+ * @param[in] event_info.ex End X
+ * @param[in] event_info.ey End Y
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
+ * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
+ * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
+ * @see #widget_text_signal_s
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
+ */
+extern int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data);
 
 #ifdef __cplusplus
 }

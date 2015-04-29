@@ -92,7 +92,7 @@ typedef enum widget_evas_conf {
     WIDGET_VIEWER_EVAS_SCROLL_X = 0x0020,   /**< Box will be scrolled from left to right vice versa. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_SCROLL_Y = 0x0040,   /**< Box will be scrolled from top to bottom vice versa. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_EVENT_AUTO_FEED = 0x0080,   /**< Feeds event automatically from the master provider. 1 : on, 0 : off */
-    WIDGET_VIEWER_EVAS_DELAYED_PAUSE_RESUME = 0x0100,   /**< Delaying the pause/resume when it is automatically changed. 1 : on, 0 : off */
+    WIDGET_VIEWER_EVAS_DELAYED_RESUME = 0x0100,   /**< Delaying the pause/resume when it is automatically changed. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_SENSITIVE_MOVE = 0x0200,   /**< Force feeds mouse up event if the box is moved. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_AUTO_RENDER_SELECTION = 0x0400, /**< Select render automatically, if a box moved, do not sync using animator, or use the animator. 1 : on, 0 : off */
     WIDGET_VIEWER_EVAS_DIRECT_UPDATE = 0x0800,   /**< Enable direct update path. 1 : on, 0 : off */
@@ -165,6 +165,20 @@ extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
  * @see widget_viewer_evas_notify_resumed_status_of_viewer()
  */
 extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
+
+/**
+ * @brief Notifies the orientation of the viewer to all providers
+ * @detail If you call this, all providers will gets "rotated" event.
+ * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] orientation orientation of viewer
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ */
+extern int widget_viewer_evas_notify_orientation_of_viewer(int orientation);
 
 /**
  * @brief Pauses given widget.
@@ -369,32 +383,6 @@ extern int widget_viewer_evas_is_widget(Evas_Object *widget);
  * @param[in] flag Pass 1 if you delete this widget instance permanently, or pass 0 if you want to keep it and it will be re-created soon.
  */
 extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
-
-/**
- * @brief Emits a text signal to the given widget
- * @since_tizen 2.3.1
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @remarks
- *    This is an ASYNCHRONOUS API.
- *    This function is Asynchronous, so you will get the result from @a smart callback, if you failed to send a text signal,
- *    this function will returns proper error code.
- * @param[in] widget a widget object
- * @param[in] event_info.signal_name name of text signal
- * @param[in] event_info.source source string
- * @param[in] event_info.sx Start X
- * @param[in] event_info.sy Start Y
- * @param[in] event_info.ex End X
- * @param[in] event_info.ey End Y
- * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
- * @see #widget_text_signal_s
- * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
- * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
- */
-extern int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data);
 
 #ifdef __cplusplus
 }

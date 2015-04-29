@@ -337,24 +337,24 @@ static inline char *load_file(const char *filename)
 
 	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
-		ErrPrint("open: %s (%s)\n", strerror(errno), filename);
+		ErrPrint("open: %d (%s)\n", errno, filename);
 		return NULL;
 	}
 
 	filesize = lseek(fd, 0L, SEEK_END);
 	if (filesize == (off_t)-1) {
-		ErrPrint("lseek: %s\n", strerror(errno));
+		ErrPrint("lseek: %d\n", errno);
 		goto errout;
 	}
 
 	if (lseek(fd, 0L, SEEK_SET) < 0) {
-		ErrPrint("lseek: %s\n", strerror(errno));
+		ErrPrint("lseek: %d\n", errno);
 		goto errout;
 	}
 
 	filebuf = malloc(filesize + 1);
 	if (!filebuf) {
-		ErrPrint("malloc: %s\n", strerror(errno));
+		ErrPrint("malloc: %d\n", errno);
 		goto errout;
 	}
 
@@ -366,7 +366,7 @@ static inline char *load_file(const char *filename)
 				continue;
 			}
 
-			ErrPrint("read: %s\n", strerror(errno));
+			ErrPrint("read: %d\n", errno);
 			free(filebuf);
 			filebuf = NULL;
 			break;
@@ -386,7 +386,7 @@ static inline char *load_file(const char *filename)
 
 errout:
 	if (close(fd) < 0) {
-		ErrPrint("close: %s\n", strerror(errno));
+		ErrPrint("close: %d\n", errno);
 	}
 
 	return filebuf;
@@ -428,9 +428,11 @@ int parse_desc(struct widget_common *common, const char *filename, int is_gbar)
 		switch (state) {
 		case BEGIN:
 			if (*fileptr == '{') {
+				if (block)
+					free(block);
 				block = calloc(1, sizeof(*block));
 				if (!block) {
-					ErrPrint("calloc: %s\n", strerror(errno));
+					ErrPrint("calloc: %d\n", errno);
 					state = ERROR;
 					continue;
 				}

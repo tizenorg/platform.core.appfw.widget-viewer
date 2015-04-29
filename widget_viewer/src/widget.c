@@ -956,7 +956,7 @@ static int job_add(widget_h handle, widget_ret_cb job_cb, int ret, void *data)
 
 	item = malloc(sizeof(*item));
 	if (!item) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -1354,7 +1354,7 @@ EAPI widget_h widget_viewer_add_widget(const char *pkgname, const char *content,
 
 	handle = calloc(1, sizeof(*handle));
 	if (!handle) {
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		free(widgetid);
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
@@ -3943,6 +3943,25 @@ EAPI int widget_viewer_notify_resumed_status_of_viewer(void)
 	return master_rpc_request_only(NULL, packet);
 }
 
+EAPI int widget_viewer_notify_orientation_of_viewer(int orientation)
+{
+	struct packet *packet;
+	unsigned int cmd = CMD_ORIENTATION;
+
+	if (orientation < 0 || orientation > 360) {
+		ErrPrint("Invalid parameter: %d\n", orientation);
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	packet = packet_create_noack((const char *)&cmd, "di", util_timestamp(), orientation);
+	if (!packet) {
+		ErrPrint("Failed to create a orientation packet\n");
+		return WIDGET_ERROR_FAULT;
+	}
+
+	return master_rpc_request_only(NULL, packet);
+}
+
 EAPI int widget_viewer_sync_buffer(widget_h handle, int gbar)
 {
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
@@ -4219,7 +4238,7 @@ EAPI int widget_viewer_get_instance_id(widget_h handle, char **instance_id)
 
 	*instance_id = strdup(handle->common->id);
 	if (!*instance_id) {
-		ErrPrint("Out of memory: %s\n", strerror(errno));
+		ErrPrint("Out of memory: %d\n", errno);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 

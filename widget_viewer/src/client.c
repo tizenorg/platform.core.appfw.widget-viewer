@@ -150,7 +150,7 @@ static struct packet *master_pinup(pid_t pid, int handle, const struct packet *p
 			common->content = new_content;
 			common->is_pinned_up = pinup;
 		} else {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 			status = WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
@@ -1146,7 +1146,7 @@ static struct packet *master_gbar_extra_buffer_destroyed(pid_t pid, int handle, 
 	if (!common->gbar.extra_buffer && conf_extra_buffer_count()) {
 		common->gbar.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->gbar.extra_buffer));
 		if (!common->gbar.extra_buffer) {
-			ErrPrint("WIDGET(%s) calloc: %s\n", id, strerror(errno));
+			ErrPrint("WIDGET(%s) calloc: %d\n", id, errno);
 		}
 	}
 
@@ -1204,7 +1204,7 @@ static struct packet *master_widget_extra_buffer_destroyed(pid_t pid, int handle
 	if (!common->widget.extra_buffer && conf_extra_buffer_count()) {
 		common->widget.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->widget.extra_buffer));
 		if (!common->widget.extra_buffer) {
-			ErrPrint("WIDGET(%s) calloc: %s\n", id, strerror(errno));
+			ErrPrint("WIDGET(%s) calloc: %d\n", id, errno);
 		}
 	}
 
@@ -1262,7 +1262,7 @@ static struct packet *master_widget_extra_buffer_created(pid_t pid, int handle, 
 	if (!common->widget.extra_buffer && conf_extra_buffer_count()) {
 		common->widget.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->widget.extra_buffer));
 		if (!common->widget.extra_buffer) {
-			ErrPrint("WIDGET(%s) calloc: %s\n", id, strerror(errno));
+			ErrPrint("WIDGET(%s) calloc: %d\n", id, errno);
 		}
 	}
 
@@ -1318,7 +1318,7 @@ static struct packet *master_gbar_extra_buffer_created(pid_t pid, int handle, co
 	if (!common->gbar.extra_buffer && conf_extra_buffer_count()) {
 		common->gbar.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->gbar.extra_buffer));
 		if (!common->gbar.extra_buffer) {
-			ErrPrint("WIDGET(%s) calloc: %s\n", id, strerror(errno));
+			ErrPrint("WIDGET(%s) calloc: %d\n", id, errno);
 		}
 	}
 
@@ -2194,7 +2194,7 @@ static void prepare_direct_update(void)
 
 	s_info.direct_addr = strdup(path);
 	if (!s_info.direct_addr) {
-		ErrPrint("strdup: %s\n", strerror(errno));
+		ErrPrint("strdup: %d\n", errno);
 		return;
 	}
 
@@ -2215,7 +2215,7 @@ int client_init(int use_thread)
 	if (!s_info.client_addr) {
 		s_info.client_addr = strdup(CLIENT_SOCKET);
 		if (!s_info.client_addr) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}

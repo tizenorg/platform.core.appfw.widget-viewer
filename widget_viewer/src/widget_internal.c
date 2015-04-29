@@ -106,7 +106,7 @@ struct widget_common *_widget_create_common_handle(widget_h handle, const char *
 
 	common = calloc(1, sizeof(*common));
 	if (!common) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
@@ -120,7 +120,7 @@ struct widget_common *_widget_create_common_handle(widget_h handle, const char *
 
 	common->cluster = strdup(cluster);
 	if (!common->cluster) {
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		free(common->pkgname);
 		free(common);
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
@@ -129,7 +129,7 @@ struct widget_common *_widget_create_common_handle(widget_h handle, const char *
 
 	common->category = strdup(category);
 	if (!common->category) {
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		free(common->cluster);
 		free(common->pkgname);
 		free(common);
@@ -221,7 +221,7 @@ int _widget_set_group(struct widget_common *common, const char *cluster, const c
 	if (cluster) {
 		pc = strdup(cluster);
 		if (!pc) {
-			ErrPrint("Heap: %s (cluster: %s)\n", strerror(errno), cluster);
+			ErrPrint("Heap: %d (cluster: %s)\n", errno, cluster);
 			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
@@ -229,7 +229,7 @@ int _widget_set_group(struct widget_common *common, const char *cluster, const c
 	if (category) {
 		ps = strdup(category);
 		if (!ps) {
-			ErrPrint("Heap: %s (category: %s)\n", strerror(errno), category);
+			ErrPrint("Heap: %d (category: %s)\n", errno, category);
 			free(pc);
 			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
@@ -378,7 +378,7 @@ widget_h _widget_new_widget(const char *pkgname, const char *id, double timestam
 
 	handler->common = _widget_create_common_handle(handler, pkgname, cluster, category);
 	if (!handler->common) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		free(handler);
 		return NULL;
 	}
@@ -416,7 +416,7 @@ int _widget_set_content(struct widget_common *common, const char *content)
 	if (content) {
 		pc = strdup(content);
 		if (!pc) {
-			ErrPrint("heap: %s [%s]\n", strerror(errno), content);
+			ErrPrint("heap: %d [%s]\n", errno, content);
 			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
@@ -433,7 +433,7 @@ int _widget_set_title(struct widget_common *common, const char *title)
 	if (title) {
 		pt = strdup(title);
 		if (!pt) {
-			ErrPrint("heap: %s [%s]\n", strerror(errno), title);
+			ErrPrint("heap: %d [%s]\n", errno, title);
 			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	}
@@ -458,7 +458,7 @@ void _widget_set_auto_launch(struct widget_common *common, const char *auto_laun
 
 	pa = strdup(auto_launch);
 	if (!pa) {
-		ErrPrint("heap: %s, [%s]\n", strerror(errno), auto_launch);
+		ErrPrint("heap: %d, [%s]\n", errno, auto_launch);
 		return;
 	}
 
@@ -478,7 +478,7 @@ void _widget_set_id(struct widget_common *common, const char *id)
 	if (id) {
 		pi = strdup(id);
 		if (!pi) {
-			ErrPrint("heap: %s [%s]\n", strerror(errno), pi);
+			ErrPrint("heap: %d [%s]\n", errno, pi);
 			return;
 		}
 	}
@@ -491,7 +491,7 @@ void _widget_unlink_filename(struct widget_common *common)
 {
 	if (common->widget.type == WIDGET_TYPE_FILE || common->widget.type == WIDGET_TYPE_TEXT) {
 		if (common->filename && common->filename[0] && unlink(common->filename) < 0) {
-			ErrPrint("unlink: %s (%s)\n", strerror(errno), common->filename);
+			ErrPrint("unlink: %d (%s)\n", errno, common->filename);
 		}
 	}
 }
@@ -504,7 +504,7 @@ void _widget_set_filename(struct widget_common *common, const char *filename)
 
 	common->filename = strdup(filename);
 	if (!common->filename) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -515,7 +515,7 @@ void _widget_set_alt_icon(struct widget_common *common, const char *icon)
 	if (icon && strlen(icon)) {
 		_icon = strdup(icon);
 		if (!_icon) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 	}
 
@@ -530,7 +530,7 @@ void _widget_set_alt_name(struct widget_common *common, const char *name)
 	if (name && strlen(name)) {
 		_name = strdup(name);
 		if (!_name) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 	}
 
@@ -959,7 +959,7 @@ int _widget_add_event_handler(widget_event_handler_cb widget_cb, void *data)
 	struct event_info *info;
 	info = malloc(sizeof(*info));
 	if (!info) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -1001,7 +1001,7 @@ int _widget_add_fault_handler(widget_fault_handler_cb widget_cb, void *data)
 	struct fault_info *info;
 	info = malloc(sizeof(*info));
 	if (!info) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -1044,7 +1044,7 @@ struct cb_info *_widget_create_cb_info(widget_ret_cb cb, void *data)
 
 	info = malloc(sizeof(*info));
 	if (!info) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return NULL;
 	}
 
