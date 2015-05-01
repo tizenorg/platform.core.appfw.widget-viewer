@@ -5,7 +5,7 @@ Summary: Library for developing the application
 Version: 1.1.3
 Release: 1
 Group: HomeTF/widget
-License: Flora
+License: Flora License, Version 1.1
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
 BuildRequires: cmake, gettext-tools, coreutils, edje-bin
