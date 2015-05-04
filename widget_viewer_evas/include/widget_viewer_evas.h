@@ -18,6 +18,8 @@
 #ifndef __WIDGET_VIEWER_EVAS_H
 #define __WIDGET_VIEWER_EVAS_H
 
+#include <tizen_type.h>
+
 #include "widget_service.h"
 
 #ifdef __cplusplus
@@ -325,14 +327,14 @@ extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
  * @brief Check whether the widget is faulted.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return faulted state of the widget
- * @retval 1 for faulted state
- * @retval 0 for not faulted state
+ * @return faulted state of the widget and you can get the result state of this function by using get_last_result()
+ * @retval true for faulted state
+ * @retval false for not faulted state
  */
-extern int widget_viewer_evas_is_faulted(Evas_Object *widget);
+extern bool widget_viewer_evas_is_faulted(Evas_Object *widget);
 
 /**
- * @brief Fixes visibility of the widget
+ * @brief Freezes visibility of the widget
  * @details If you don't want to change the visibility automatically, freeze it.\n
  *        The visibility will not be changed even though a box disappeared(hidden)/displayed(shown) from/on the screen.
  * @since_tizen 2.3.1
@@ -346,7 +348,7 @@ extern int widget_viewer_evas_is_faulted(Evas_Object *widget);
 extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status);
 
 /**
- * @brief Unfixes visibility of the widget
+ * @brief Thaws visibility of the widget
  * @details If you want to let the visibility change automatically again, call this function.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
@@ -357,24 +359,24 @@ extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visi
 extern int widget_viewer_evas_thaw_visibility(Evas_Object *widget);
 
 /**
- * @brief Get the fixed state of visibility option.
+ * @brief Get the frozen state of visibility option.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return fixed state of visibility
- * @retval 1 for fixed state
- * @retval 0 for not fixed state
+ * @return fixed state of visibility and you can get the result state of this function by using get_last_result()
+ * @retval true for frozen state
+ * @retval false for not frozen state
  */
-extern int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget);
+extern bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget);
 
 /**
  * @brief Validate the object, whether it is a widget object or not
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return result of validation
- * @retval 1 this is a widget
- * @retval 0 this is not a widget
+ * @return result of validation and you can get the result state of this function by using get_last_result()
+ * @retval true this is a widget
+ * @retval false this is not a widget
  */
-extern int widget_viewer_evas_is_widget(Evas_Object *widget);
+extern bool widget_viewer_evas_is_widget(Evas_Object *widget);
 
 /**
  * @brief Before delete a widget, set the deletion mode

@@ -2,7 +2,7 @@
 
 Name: libwidget_viewer
 Summary: Library for developing the application
-Version: 1.1.3
+Version: 1.1.4
 Release: 1
 Group: HomeTF/widget
 License: Flora License, Version 1.1
