@@ -6129,7 +6129,7 @@ EAPI int widget_viewer_evas_fini(void)
 		ret = WIDGET_ERROR_FAULT;
 	}
 
-	return 0;
+	return ret;
 }
 
 EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
