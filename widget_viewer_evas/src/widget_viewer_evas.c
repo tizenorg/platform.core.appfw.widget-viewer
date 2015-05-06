@@ -6069,6 +6069,15 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 {
 	int ret;
 
+	if (!win) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (s_info.initialized) {
+		ErrPrint("Already initialized\n");
+		return WIDGET_ERROR_ALREADY_EXIST;
+	}
+
 	ecore_x_window_size_get(0, &s_info.screen_width, &s_info.screen_height);
 
 	s_info.conf.field.render_animator = 0;	// By default, use render animator for updating
@@ -6106,28 +6115,47 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 
 EAPI int widget_viewer_evas_fini(void)
 {
+	int ret;
+
 	if (s_info.initialized) {
 		widget_viewer_remove_event_handler(widget_event_handler);
 		widget_viewer_remove_fault_handler(widget_fault_handler);
 		widget_viewer_fini();
 		widget_conf_reset();
 		s_info.initialized = 0;
+
+		ret = WIDGET_ERROR_NONE;
+	} else {
+		ret = WIDGET_ERROR_FAULT;
 	}
+
 	return 0;
 }
 
 EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 {
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	return widget_viewer_notify_resumed_status_of_viewer();
 }
 
 EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 {
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	return widget_viewer_notify_paused_status_of_viewer();
 }
 
 EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 {
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	return widget_viewer_notify_orientation_of_viewer(orientation);
 }
 
@@ -6141,6 +6169,11 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	char *_category;
 	char *cluster = DEFAULT_CLUSTER;
 	char *category = DEFAULT_CATEGORY;
+
+	if (!s_info.initialized) {
+		ErrPrint("Viewer is not initialized\n");
+		return NULL;
+	}
 
 	if (!parent || !widget_id) {
 		return NULL;
@@ -6222,6 +6255,10 @@ EAPI int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, int
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	data = get_smart_data(widget);
 	if (!data) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -6238,6 +6275,10 @@ EAPI int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, int
 EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, int *w, int *h)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	data = get_smart_data(widget);
 	if (!data) {
@@ -6265,6 +6306,8 @@ EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, i
 
 EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 {
+	int ret = WIDGET_ERROR_NONE;
+
 	switch ((int)type) {
 	case WIDGET_VIEWER_EVAS_SENSITIVE_MOVE:
 		s_info.conf.field.sensitive_move = value;
@@ -6315,15 +6358,20 @@ EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 		DbgPrint("Turn %s skip-acquire option\n", s_info.conf.field.skip_acquire ? "on" : "off");
 		break;
 	default:
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
-	return WIDGET_ERROR_NONE;
+	return ret;
 }
 
 EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
@@ -6340,6 +6388,10 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
@@ -6358,6 +6410,10 @@ EAPI int widget_viewer_evas_destroy_glance_bar(Evas_Object *widget)
 	struct widget_data *data;
 	int ret;
 
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	data = get_smart_data(widget);
 	if (!data || data->state != WIDGET_DATA_CREATED || !data->is.field.created || !data->handle || !data->is.field.gbar_created) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -6375,6 +6431,10 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return NULL;
+	}
+
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
 		return NULL;
@@ -6386,6 +6446,10 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return NULL;
+	}
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
@@ -6399,6 +6463,10 @@ EAPI const char *widget_viewer_evas_get_widget_id(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return NULL;
+	}
+
 	data = get_smart_data(widget);
 	if (!data || data->state != WIDGET_DATA_CREATED) {
 		return NULL;
@@ -6411,6 +6479,10 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return 0.0f;
+	}
+
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
 		return 0.0f;
@@ -6422,6 +6494,10 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return;
+	}
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
@@ -6474,6 +6550,10 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -6491,6 +6571,10 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 	struct access_ret_cb_data *cb_data;
 	int ret;
 	struct widget_access_event_info ainfo;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	data = get_smart_data(widget);
 	if (!data || !data->is.field.created || !data->handle) {
@@ -6776,6 +6860,10 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return;
+	}
+
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
@@ -6788,6 +6876,10 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return;
+	}
 
 	data = get_smart_data(widget);
 	if (!data) {
@@ -6802,6 +6894,10 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return;
+	}
+
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
@@ -6814,6 +6910,10 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return;
+	}
 
 	data = get_smart_data(widget);
 	if (!data) {
@@ -6831,6 +6931,10 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 EAPI int widget_viewer_evas_is_faulted(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	data = get_smart_data(widget);
 	if (!data) {
@@ -6903,6 +7007,10 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
@@ -6917,6 +7025,10 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	data = get_smart_data(widget);
 	if (!data) {
@@ -6933,6 +7045,11 @@ EAPI int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		ErrPrint("Not initialized\n");
+		return 0;
+	}
+
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
@@ -6946,6 +7063,10 @@ EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filena
 {
 	struct widget_data *data;
 	FILE *fp;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	data = get_smart_data(widget);
 	if (!data) {
@@ -6977,6 +7098,10 @@ EAPI int widget_viewer_evas_is_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return 0;
+	}
+
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
@@ -6989,6 +7114,10 @@ EAPI int widget_viewer_evas_is_widget(Evas_Object *widget)
 EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return;
+	}
 
 	data = get_smart_data(widget);
 	if (!data) {
@@ -7004,6 +7133,10 @@ EAPI int widget_viewer_evas_subscribe_group(const char *cluster, const char *sub
 	struct subscribe_group *group;
 	Eina_List *l;
 	int ret;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	if (!cluster || !sub_cluster) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -7055,6 +7188,10 @@ EAPI int widget_viewer_evas_unsubscribe_group(const char *cluster, const char *s
 	Eina_List *l;
 	Eina_List *n;
 
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	if (!cluster || !sub_cluster) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -7077,6 +7214,10 @@ EAPI int widget_viewer_evas_subscribe_category(const char *category)
 	struct subscribe_category *item;
 	Eina_List *l;
 	int ret;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	if (!category) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -7118,6 +7259,10 @@ EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
 	Eina_List *n;
 	struct subscribe_category *item;
 
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	if (!category) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -7143,6 +7288,10 @@ EAPI int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_si
 {
 	struct widget_data *widget_data_from_evas;
 
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	widget_data_from_evas = get_smart_data(widget);
 
 	if (!widget_data_from_evas) {
@@ -7157,6 +7306,10 @@ EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance
 {
 	struct widget_data *data;
 
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
@@ -7169,6 +7322,10 @@ EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance
 EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_widget_e option, int value)
 {
 	struct widget_data *data;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
 
 	data = get_smart_data(widget);
 	if (!data) {
