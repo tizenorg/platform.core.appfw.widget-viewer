@@ -3383,6 +3383,12 @@ static void __widget_del(Evas_Object *widget)
 		}
 	} else {
 		DbgPrint("Handle is not created: %s\n", data->widget_id);
+		if (data->is.field.faulted && data->widget_id) {
+			/* If a package is faulted. we have to activate it before delete object from here */
+			if (widget_viewer_activate_faulted_widget(data->widget_id, NULL, NULL) < 0) {
+				ErrPrint("Activate: %s\n", data->widget_id);
+			}
+		}
 	}
 
 	/**
@@ -6933,7 +6939,7 @@ EAPI int widget_viewer_evas_is_faulted(Evas_Object *widget)
 	struct widget_data *data;
 
 	if (!s_info.initialized) {
-		return WIDGET_ERROR_FAULT;
+		return 0;
 	}
 
 	data = get_smart_data(widget);
