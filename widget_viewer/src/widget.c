@@ -868,7 +868,7 @@ static int send_mouse_event(widget_h handle, const char *event, int x, int y)
 	double timestamp;
 
 	timestamp = util_timestamp();
-	packet = packet_create_noack(event, "ssdii", handle->common->pkgname, handle->common->id, timestamp, x, y);
+	packet = packet_create_noack(event, "ssdiii", handle->common->pkgname, handle->common->id, timestamp, x, y, INPUT_EVENT_SOURCE_VIEWER);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return WIDGET_ERROR_FAULT;
