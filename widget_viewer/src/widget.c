@@ -868,7 +868,7 @@ static int send_mouse_event(widget_h handle, const char *event, int x, int y)
 	double timestamp;
 
 	timestamp = util_timestamp();
-	packet = packet_create_noack(event, "ssdii", handle->common->pkgname, handle->common->id, timestamp, x, y);
+	packet = packet_create_noack(event, "ssdiii", handle->common->pkgname, handle->common->id, timestamp, x, y, INPUT_EVENT_SOURCE_VIEWER);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return WIDGET_ERROR_FAULT;
@@ -2676,9 +2676,7 @@ EAPI int widget_viewer_get_size_type(widget_h handle, widget_size_type_e *size_t
 	case WIDGET_TYPE_BUFFER:
 	case WIDGET_TYPE_SCRIPT:
 		if (!fb_is_created(handle->common->widget.fb)) {
-			w = 0;
-			h = 0;
-			ret = WIDGET_ERROR_NOT_EXIST;
+			DbgPrint("FB is not created yet, but give its size to the caller: %dx%d\n", w, h);
 		}
 		break;
 	default:
@@ -2692,8 +2690,9 @@ EAPI int widget_viewer_get_size_type(widget_h handle, widget_size_type_e *size_t
 
 out:
 
-	if (size_type)
+	if (size_type) {
 		*size_type = result_size_type;
+	}
 
 	return ret;
 }
