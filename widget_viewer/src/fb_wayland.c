@@ -29,7 +29,7 @@
 
 #include <dlog.h>
 #include <widget_errno.h> /* For error code */
-#include <widget_service.h>
+#include <widget_service.h> /* For buffer event data */
 #include <widget_buffer.h>
 
 #include "debug.h"
@@ -37,10 +37,6 @@
 #include "fb.h"
 
 int errno;
-
-static struct {
-} s_info = {
-};
 
 int fb_init(void *disp)
 {
@@ -57,10 +53,11 @@ static inline void update_fb_size(struct fb_info *info)
 	info->bufsz = info->w * info->h * info->pixels;
 }
 
-static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h)
+static int sync_for_file(struct fb_info *info, int x, int y, int w, int h)
 {
 	int fd;
 	widget_fb_t buffer;
+	const char *path = NULL;
 
 	buffer = info->buffer;
 
@@ -78,13 +75,20 @@ static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h
 		return WIDGET_ERROR_NONE;
 	}
 
-	fd = open(util_uri_to_path(info->id), O_RDONLY);
+	path = util_uri_to_path(info->id);
+
+	if (path == NULL) {
+		ErrPrint("Invalid parameter\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	fd = open(path, O_RDONLY);
 	if (fd < 0) {
 		ErrPrint("Failed to open a file (%s) because of (%d)\n",
 				util_uri_to_path(info->id), errno);
 
-		/*!
-		 * \note
+		/**
+		 * @note
 		 * But return ZERO, even if we couldn't get a buffer file,
 		 * the viewer can draw empty screen.
 		 *
@@ -93,6 +97,10 @@ static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h
 		return WIDGET_ERROR_NONE;
 	}
 
+	/**
+	 * @note
+	 * Could we get some advantage if we load a part of file instead of loading all of them?
+	 */
 	if (x != 0 || y != 0 || info->w != w || info->h != h) {
 		int iy;
 		register int index;
@@ -138,8 +146,8 @@ static inline int sync_for_file(struct fb_info *info, int x, int y, int w, int h
 				ErrPrint("close: %d\n", errno);
 			}
 
-			/*!
-			 * \note
+			/**
+			 * @note
 			 * But return ZERO, even if we couldn't get a buffer file,
 			 * the viewer can draw empty screen.
 			 *
@@ -170,9 +178,7 @@ int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 	if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 		return sync_for_file(info, x, y, w, h);
 	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-		/**
-		 * @note
-		 */
+		return WIDGET_ERROR_NONE;
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
 		/* No need to do sync */ 
 		return WIDGET_ERROR_NONE;
@@ -209,9 +215,6 @@ struct fb_info *fb_create(const char *id, int w, int h)
 		DbgPrint("SHMID: %d is gotten\n", info->handle);
 	} else if (sscanf(info->id, SCHEMA_PIXMAP "%d:%d", &info->handle, &info->pixels) == 2) {
 		DbgPrint("PIXMAP-SHMID: %d is gotten (%d)\n", info->handle, info->pixels);
-		ErrPrint("Unsupported\n");
-		free(info);
-		return NULL;
 	} else {
 		info->handle = WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -279,8 +282,8 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 	if (!info->buffer) {
 		if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-			ErrPrint("Unsupported Type\n");
-			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+			/**
+			 */
 			return NULL;
 		} else if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 			update_fb_size(info);
@@ -319,10 +322,12 @@ void *fb_acquire_buffer(struct fb_info *info)
 	buffer = info->buffer;
 
 	switch (buffer->type) {
+	case WIDGET_FB_TYPE_PIXMAP:
+		buffer->refcnt++;
+		break;
 	case WIDGET_FB_TYPE_FILE:
 		buffer->refcnt++;
 		break;
-	case WIDGET_BUFFER_TYPE_PIXMAP:
 	default:
 		DbgPrint("Unknwon FP: %d\n", buffer->type);
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -351,12 +356,14 @@ int fb_release_buffer(void *data)
 	}
 
 	switch (buffer->type) {
-	case WIDGET_BUFFER_TYPE_SHM:
+	case WIDGET_FB_TYPE_SHM:
 		if (shmdt(buffer) < 0) {
 			ErrPrint("shmdt: %d\n", errno);
 		}
 		break;
-	case WIDGET_BUFFER_TYPE_FILE:
+	case WIDGET_FB_TYPE_PIXMAP:
+		break;
+	case WIDGET_FB_TYPE_FILE:
 		buffer->refcnt--;
 		if (buffer->refcnt == 0) {
 			struct fb_info *info;
@@ -371,7 +378,6 @@ int fb_release_buffer(void *data)
 			free(buffer);
 		}
 		break;
-	case WIDGET_BUFFER_TYPE_PIXMAP:
 	default:
 		ErrPrint("Unknwon buffer type\n");
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -392,7 +398,7 @@ int fb_refcnt(void *data)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	buffer = container_of(data, struct buffer, data);
+	buffer = container_of(data, struct widget_fb, data);
 
 	if (buffer->state != WIDGET_FB_STATE_CREATED) {
 		ErrPrint("Invalid handle\n");
@@ -410,10 +416,12 @@ int fb_refcnt(void *data)
 
 		ret = buf.shm_nattch;
 		break;
+	case WIDGET_FB_TYPE_PIXMAP:
+		ret = 0;
+		break;
 	case WIDGET_FB_TYPE_FILE:
 		ret = buffer->refcnt;
 		break;
-	case WIDGET_BUFFER_TYPE_PIXMAP:
 	default:
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		ret = WIDGET_ERROR_INVALID_PARAMETER;
@@ -457,7 +465,7 @@ int fb_type(struct fb_info *info)
 	widget_fb_t buffer;
 
 	if (!info) {
-		return WIDGET_BUFFER_TYPE_ERROR;
+		return WIDGET_FB_TYPE_ERROR;
 	}
 
 	buffer = info->buffer;
@@ -469,11 +477,11 @@ int fb_type(struct fb_info *info)
 		 */
 		if (info->id) {
 			if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
-				type = WIDGET_BUFFER_TYPE_FILE;
+				type = WIDGET_FB_TYPE_FILE;
 			} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-				/* Unsupported type */
+				type = WIDGET_FB_TYPE_PIXMAP;
 			} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
-				type = WIDGET_BUFFER_TYPE_SHM;
+				type = WIDGET_FB_TYPE_SHM;
 			}
 		}
 

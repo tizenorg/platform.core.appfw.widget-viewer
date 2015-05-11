@@ -4,7 +4,7 @@ Name: libwidget_viewer
 Summary: Library for developing the application
 Version: 1.1.4
 Release: 1
-Group: HomeTF/widget
+Group: Applications/Core Applications
 License: Flora License, Version 1.1
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
@@ -19,7 +19,6 @@ BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(widget_service)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(elementary)
-BuildRequires: model-build-features
 
 %if %{with wayland}
 %else
@@ -80,8 +79,8 @@ rm -rf %{buildroot}
 %files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libwidget_viewer.so*
-%{_datarootdir}/license/libwidget_viewer
+%{_libdir}/%{name}.so*
+%{_datarootdir}/license/%{name}
 
 %files devel
 %manifest %{name}.manifest
@@ -91,31 +90,33 @@ rm -rf %{buildroot}
 
 #################################################
 # libwidget_viewer_evas
-%package -n libwidget_viewer_evas
+%package -n %{name}_evas
 Summary: Library for developing the widget viewer evas
-Group: HomeTF/widget
+Group: Applications/Core Applications
 License: Flora
-Requires: libwidget_viewer
 
-%description -n libwidget_viewer_evas
+%description -n %{name}_evas
 Provider APIs to develop the widget viewer EFL application.
 
-%package -n libwidget_viewer_evas-devel
-Summary: Header & package configuration files to support development of the widget viewer applications. (for EFL app)
+%package -n %{name}_evas-devel
+Summary: widget provider application development library (dev) (EFL version)
 Group: Development/Libraries
-Requires: libwidget_viewer_evas
+Requires: %{name}_evas
 
-%description -n libwidget_viewer_evas-devel
-widget provider application development library (dev) (EFL version)
+%description -n %{name}_evas-devel
+Header & package configuration files to support development of the widget viewer applications. (for EFL app)
 
-%files -n libwidget_viewer_evas
+%post -n %{name}_evas -p /sbin/ldconfig
+%postun -n %{name}_evas -p /sbin/ldconfig
+
+%files -n %{name}_evas
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libwidget_viewer_evas.so*
+%{_libdir}/%{name}_evas.so*
 %{_datadir}/widget_viewer_evas/*
-%{_datarootdir}/license/libwidget_viewer_evas
+%{_datarootdir}/license/%{name}_evas
 
-%files -n libwidget_viewer_evas-devel
+%files -n %{name}_evas-devel
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/widget_viewer_evas/widget_viewer_evas.h
