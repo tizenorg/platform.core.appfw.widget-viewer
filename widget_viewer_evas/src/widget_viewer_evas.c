@@ -6934,7 +6934,7 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 	}
 }
 
-EAPI int widget_viewer_evas_is_faulted(Evas_Object *widget)
+EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 {
 	struct widget_data *data;
 
@@ -6948,7 +6948,7 @@ EAPI int widget_viewer_evas_is_faulted(Evas_Object *widget)
 		return 0;
 	}
 
-	return data->is.field.faulted;
+	return (bool)data->is.field.faulted;
 }
 
 EAPI int widget_viewer_evas_set_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data)
@@ -7047,7 +7047,7 @@ EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget)
+EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 {
 	struct widget_data *data;
 
@@ -7062,7 +7062,7 @@ EAPI int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget)
 		return 0;
 	}
 
-	return data->is.field.freeze_visibility;
+	return (bool)data->is.field.freeze_visibility;
 }
 
 EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filename)
@@ -7100,7 +7100,7 @@ EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filena
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_viewer_evas_is_widget(Evas_Object *widget)
+EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
 
@@ -7111,10 +7111,10 @@ EAPI int widget_viewer_evas_is_widget(Evas_Object *widget)
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)
