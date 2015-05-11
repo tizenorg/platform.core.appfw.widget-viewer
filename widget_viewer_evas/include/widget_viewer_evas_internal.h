@@ -23,6 +23,7 @@ extern "C" {
 #endif
 
 #include "widget_viewer_evas.h"
+#include "widget_service_internal.h"
 
 #define WIDGET_SMART_SIGNAL_GBAR_DESTROYED        "gbar,destroyed"        /**< GBAR is destroyed */
 #define WIDGET_SMART_SIGNAL_GBAR_ABORTED          "gbar,aborted"          /**< GBAR creation is aborted */
