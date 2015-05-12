@@ -4144,7 +4144,7 @@ static void acquire_gbar_extra_resource_cb(struct widget *handle, int pixmap, vo
 
 static void replace_pixmap(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap)
 {
-	util_replace_native_surface(handle, gbar, content, pixmap);
+	util_replace_native_surface(handle, gbar, content, pixmap, s_info.conf.field.skip_acquire);
 }
 
 static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cbdata)
@@ -5295,7 +5295,7 @@ static void acquire_gbar_pixmap_cb(struct widget *handle, int pixmap, void *cbda
 	/**
 	 * 1 means, First time.
 	 */
-	if (util_set_native_surface(handle, 1, acquire_data->content, (unsigned int)pixmap) == 1) {
+	if (util_set_native_surface(handle, 1, acquire_data->content, (unsigned int)pixmap, s_info.conf.field.skip_acquire) == 1) {
 		gbar_overlay_disable(data);
 	}
 

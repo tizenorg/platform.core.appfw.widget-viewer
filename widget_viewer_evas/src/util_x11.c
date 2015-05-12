@@ -2,8 +2,13 @@
 #include <Evas.h>
 
 #include <Ecore_X.h>
+
+#include <dlog.h>
+
 #include <widget_errno.h>
 #include <widget_viewer.h>
+
+#include "debug.h"
 
 int util_screen_size_get(int *w, int *h)
 {
@@ -22,7 +27,7 @@ int util_screen_size_get(int *w, int *h)
 	return 0;
 }
 
-int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap)
+int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap, int skip_acquire)
 {
 	Evas_Native_Surface *old_surface;
 	Evas_Native_Surface surface;
@@ -48,7 +53,7 @@ int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *co
 			evas_object_image_native_surface_set(content, &surface);
 
 			if (old_pixmap && handle) {
-				if (!s_info.conf.field.skip_acquire) {
+				if (!skip_acquire) {
 					widget_viewer_release_resource_id(handle, gbar, old_pixmap);
 				}
 			}
@@ -58,9 +63,11 @@ int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *co
 			DbgPrint("Same resource, reuse it [%u]\n", pixmap);
 		}
 	}
+
+	return 0;
 }
 
-int util_set_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap)
+int util_set_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap, int skip_acquire)
 {
 	Evas_Native_Surface *old_surface;
 	Evas_Native_Surface surface;
@@ -73,18 +80,18 @@ int util_set_native_surface(struct widget *handle, int gbar, Evas_Object *conten
 	old_surface = evas_object_image_native_surface_get(content);
 	if (!old_surface) {
 		surface.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
-		evas_object_image_native_surface_set(acquire_data->content, &surface);
+		evas_object_image_native_surface_set(content, &surface);
 
 		is_first = 1;
 	} else {
 		unsigned int old_pixmap = 0u;
 		old_pixmap = old_surface->data.x11.pixmap;
 		surface.data.x11.visual = old_surface->data.x11.visual;
-		evas_object_image_native_surface_set(acquire_data->content, &surface);
+		evas_object_image_native_surface_set(content, &surface);
 
 		if (old_pixmap) {
-			if (!s_info.conf.field.skip_acquire) {
-				widget_viewer_release_resource_id(data->handle, gbar, old_pixmap);
+			if (!skip_acquire) {
+				widget_viewer_release_resource_id(handle, gbar, old_pixmap);
 			}
 		}
 
