@@ -15,12 +15,12 @@
  */
 
 /**
- * @defgroup WIDGET_VIEWER_EVAS_MODULE widget-viewer-evas
+ * @defgroup CAPI_WIDGET_VIEWER_EVAS_MODULE widget-viewer-evas
  * @ingroup CAPI_WIDGET_FRAMEWORK
- * @brief API for widget viewer (widget screen, home screen, ...)
- * @section WIDGET_VIEWER_EVAS_MODULE_HEADER Required Header
+ * @brief API for widget viewer evas (widget screen, home screen, ...)
+ * @section CAPI_WIDGET_VIEWER_EVAS_MODULE_HEADER Required Header
  * \#include <widget_viewer_evas.h>
- * @section WIDGET_VIEWER_EVAS_MODULE_OVERVIEW Overview
+ * @section CAPI_WIDGET_VIEWER_EVAS_MODULE_OVERVIEW Overview
  * Tizen homescreen S/W framework is supporting the widget. (aka widget which is similar with the android widget)
  *
  * @image html front.jpg
