@@ -506,7 +506,7 @@ static void *file_service_main(void *data)
 		}
 	}
 
-	return (void *)ret;
+	return (void *)((long)ret);
 }
 
 /* Master */
@@ -698,7 +698,7 @@ int file_service_fini(void)
 	if (ret != 0) {
 		ErrPrint("join: %s\n", strerror(ret));
 	} else {
-		DbgPrint("file svc returns: %d\n", (int)svc_ret);
+		DbgPrint("file svc returns: %p\n", svc_ret);
 	}
 
 	ret = pthread_mutex_destroy(&s_info.file_svc_lock);
