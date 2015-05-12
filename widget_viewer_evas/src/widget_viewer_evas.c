@@ -23,17 +23,16 @@
 
 #include <Elementary.h>
 #include <Ecore.h>
-#include <Ecore_X.h>
 #include <Ecore_Evas.h>
 #include <Evas.h>
 #include <Edje.h>
 
+#include <widget_errno.h>
 #include <widget_viewer.h>
 #include <widget_viewer_internal.h>
-#include <widget_viewer.h>
-#include <widget_errno.h>
 #include <widget_conf.h>
 
+#include "util.h"
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -1227,7 +1226,7 @@ static void __widget_destroy_gbar_cb(struct widget *handle, int ret, void *cbdat
 					break;
 				}
 
-				pixmap = surface->data.x11.pixmap;
+				pixmap = util_get_resource_id_of_native_surface(surface);
 				evas_object_del(gbar_content);
 
 				if (!s_info.conf.field.skip_acquire) {
@@ -3461,7 +3460,7 @@ static void update_visibility(struct widget_data *data)
 			} else {
 				data->view_port.x = 0;
 				data->view_port.y = 0;
-				ecore_x_window_size_get(0, &data->view_port.w, &data->view_port.h);
+				util_screen_size_get(&data->view_port.w, &data->view_port.h);
 				ErrPrint("Failed to get view port info (Fallback: %dx%d - %dx%d\n",
 						data->view_port.x, data->view_port.y, data->view_port.w, data->view_port.h);
 			}
@@ -4145,40 +4144,7 @@ static void acquire_gbar_extra_resource_cb(struct widget *handle, int pixmap, vo
 
 static void replace_pixmap(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap)
 {
-	Evas_Native_Surface *old_surface;
-	Evas_Native_Surface surface;
-
-	surface.version = EVAS_NATIVE_SURFACE_VERSION;
-	surface.type = EVAS_NATIVE_SURFACE_X11;
-	surface.data.x11.pixmap = pixmap;
-
-	old_surface = evas_object_image_native_surface_get(content);
-	if (!old_surface) {
-		surface.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
-
-		evas_object_image_native_surface_set(content, &surface);
-
-		DbgPrint("Created: %u\n", surface.data.x11.pixmap);
-	} else {
-		unsigned int old_pixmap;
-
-		old_pixmap = old_surface->data.x11.pixmap;
-
-		if (old_pixmap != pixmap) {
-			surface.data.x11.visual = old_surface->data.x11.visual;
-			evas_object_image_native_surface_set(content, &surface);
-
-			if (old_pixmap && handle) {
-				if (!s_info.conf.field.skip_acquire) {
-					widget_viewer_release_resource_id(handle, gbar, old_pixmap);
-				}
-			}
-
-			DbgPrint("Replaced: %u (%u)\n", pixmap, old_pixmap);
-		} else {
-			DbgPrint("Same resource, reuse it [%u]\n", pixmap);
-		}
-	}
+	util_replace_native_surface(handle, gbar, content, pixmap, s_info.conf.field.skip_acquire);
 }
 
 static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cbdata)
@@ -5310,8 +5276,6 @@ static void acquire_gbar_pixmap_cb(struct widget *handle, int pixmap, void *cbda
 {
 	struct acquire_data *acquire_data = cbdata;
 	struct widget_data *data = acquire_data->data;
-	Evas_Native_Surface *old_surface;
-	Evas_Native_Surface surface;
 
 	data->is.field.gbar_pixmap_acquire_requested = 0;
 
@@ -5328,26 +5292,11 @@ static void acquire_gbar_pixmap_cb(struct widget *handle, int pixmap, void *cbda
 	evas_object_image_size_set(acquire_data->content, acquire_data->w, acquire_data->h);
 	evas_object_image_fill_set(acquire_data->content, 0, 0, acquire_data->w, acquire_data->h);
 
-	surface.version = EVAS_NATIVE_SURFACE_VERSION;
-	surface.type = EVAS_NATIVE_SURFACE_X11;
-	surface.data.x11.pixmap = (unsigned int)pixmap;
-
-	old_surface = evas_object_image_native_surface_get(acquire_data->content);
-	if (!old_surface) {
+	/**
+	 * 1 means, First time.
+	 */
+	if (util_set_native_surface(handle, 1, acquire_data->content, (unsigned int)pixmap, s_info.conf.field.skip_acquire) == 1) {
 		gbar_overlay_disable(data);
-		surface.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
-		evas_object_image_native_surface_set(acquire_data->content, &surface);
-	} else {
-		unsigned int old_pixmap = 0u;
-		old_pixmap = old_surface->data.x11.pixmap;
-		surface.data.x11.visual = old_surface->data.x11.visual;
-		evas_object_image_native_surface_set(acquire_data->content, &surface);
-
-		if (old_pixmap) {
-			if (!s_info.conf.field.skip_acquire) {
-				widget_viewer_release_resource_id(data->handle, 1, old_pixmap);
-			}
-		}
 	}
 
 	data->gbar_pixmap = (unsigned int)pixmap;
@@ -6101,11 +6050,11 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
-	ecore_x_window_size_get(0, &s_info.screen_width, &s_info.screen_height);
+	util_screen_size_get(&s_info.screen_width, &s_info.screen_height);
 
 	s_info.conf.field.render_animator = 0;	// By default, use render animator for updating
 
-	ret = widget_viewer_init(ecore_x_display_get(), 1, 0.001f, 1);
+	ret = widget_viewer_init(util_display_get(), 1, 0.001f, 1);
 	if (ret < 0) {
 		return ret;
 	}
@@ -6537,6 +6486,7 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 	}
 }
 
+#if defined(ELM_ACCESS_ENABLED)
 static void access_ret_cb(struct widget *handle, int ret, void *data)
 {
 	struct access_ret_cb_data *cb_data = data;
@@ -6568,6 +6518,7 @@ static void access_ret_cb(struct widget *handle, int ret, void *data)
 
 	free(cb_data);
 }
+#endif
 
 EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 {
@@ -6587,6 +6538,7 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 
 EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, void *_info, void (*ret_cb)(Evas_Object *obj, int ret, void *data), void *cbdata)
 {
+#if defined(ELM_ACCESS_ENABLED)
 	struct widget_data *data;
 	Elm_Access_Action_Info *info = _info;
 	int w;
@@ -6877,6 +6829,9 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 	}
 
 	return ret;
+#else
+	return WIDGET_ERROR_NOT_SUPPORTED;
+#endif
 }
 
 EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
