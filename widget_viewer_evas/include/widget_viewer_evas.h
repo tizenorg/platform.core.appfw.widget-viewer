@@ -18,18 +18,33 @@
 #ifndef __WIDGET_VIEWER_EVAS_H
 #define __WIDGET_VIEWER_EVAS_H
 
+#include <tizen_type.h>
+
 #include "widget_service.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+/**
+ * @file widget_viewer_evas.h
+ * @brief  This file declares API of libwidget-viewer-evas library
+ * @since_tizen 2.3.1
+ */
+
+/**
+ * @addtogroup WIDGET_VIEWER_EVAS_MODULE
+ * @{
+ */
+
 /**
  * @since_tizen 2.3.1
  * @brief Default refresh interval of widgets.
  * @see #widget_viewer_evas_add_widget
+ * @see #widget_viewer_evas_get_period
  */
-#define WIDGET_VIEWER_EVAS_DEFAULT_PERIOD                -1.0f                   /**< Default Update Period */
+#define WIDGET_VIEWER_EVAS_DEFAULT_PERIOD                -1.0f
 
 /**
  * @since_tizen 2.3.1
@@ -106,8 +121,8 @@ typedef enum widget_evas_conf {
  * @since_tizen 2.3.1
  * @param[in] win Window object
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE If success
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER
+ * @retval #WIDGET_ERROR_NONE If success
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see #widget_viewer_evas_fini
  */
@@ -117,8 +132,8 @@ extern int widget_viewer_evas_init(Evas_Object *win);
  * @brief Finalizes the widget system
  * @since_tizen 2.3.1
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE If success
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
+ * @retval #WIDGET_ERROR_NONE If success
+ * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
  * @see #widget_viewer_evas_init
  */
 extern int widget_viewer_evas_fini(void);
@@ -133,8 +148,6 @@ extern int widget_viewer_evas_fini(void);
  * @return Widget Object
  * @retval NULL if it fails to create a new widget object and you can get the reason of failure using get_last_result()
  * @see #widget_service_get_widget_id
- * @see #widget_service_get_content_string
- * @see #widget_service_get_category
  */
 extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period);
 
@@ -145,7 +158,7 @@ extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const cha
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (paused) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_viewer_evas_notify_paused_status_of_viewer()
@@ -159,7 +172,7 @@ extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_viewer_evas_notify_resumed_status_of_viewer()
@@ -174,7 +187,7 @@ extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] orientation orientation of viewer
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
@@ -187,8 +200,8 @@ extern int widget_viewer_evas_notify_orientation_of_viewer(int orientation);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  */
@@ -201,8 +214,8 @@ extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
@@ -214,8 +227,8 @@ extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
  * @param[in] type Configuration item
  * @param[in] value Its value
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @see #widget_evas_conf
  */
 extern int widget_viewer_evas_set_option(widget_evas_conf_e type, int value);
@@ -305,8 +318,8 @@ extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
 extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
@@ -325,56 +338,56 @@ extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
  * @brief Check whether the widget is faulted.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return faulted state of the widget
- * @retval 1 for faulted state
- * @retval 0 for not faulted state
+ * @return faulted state of the widget and you can get the result state of this function by using get_last_result()
+ * @retval true for faulted state
+ * @retval false for not faulted state
  */
-extern int widget_viewer_evas_is_faulted(Evas_Object *widget);
+extern bool widget_viewer_evas_is_faulted(Evas_Object *widget);
 
 /**
- * @brief Fixes visibility of the widget
+ * @brief Freezes visibility of the widget
  * @details If you don't want to change the visibility automatically, freeze it.\n
  *        The visibility will not be changed even though a box disappeared(hidden)/displayed(shown) from/on the screen.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @param[in] status a visibility status of the widget
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @see #widget_visibility_status_e
  */
 extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status);
 
 /**
- * @brief Unfixes visibility of the widget
+ * @brief Thaws visibility of the widget
  * @details If you want to let the visibility change automatically again, call this function.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_STATUS_ERROR_NONE if success
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NONE if success
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  */
 extern int widget_viewer_evas_thaw_visibility(Evas_Object *widget);
 
 /**
- * @brief Get the fixed state of visibility option.
+ * @brief Get the frozen state of visibility option.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return fixed state of visibility
- * @retval 1 for fixed state
- * @retval 0 for not fixed state
+ * @return fixed state of visibility and you can get the result state of this function by using get_last_result()
+ * @retval true for frozen state
+ * @retval false for not frozen state
  */
-extern int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget);
+extern bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget);
 
 /**
  * @brief Validate the object, whether it is a widget object or not
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
- * @return result of validation
- * @retval 1 this is a widget
- * @retval 0 this is not a widget
+ * @return result of validation and you can get the result state of this function by using get_last_result()
+ * @retval true this is a widget
+ * @retval false this is not a widget
  */
-extern int widget_viewer_evas_is_widget(Evas_Object *widget);
+extern bool widget_viewer_evas_is_widget(Evas_Object *widget);
 
 /**
  * @brief Before delete a widget, set the deletion mode
@@ -383,6 +396,10 @@ extern int widget_viewer_evas_is_widget(Evas_Object *widget);
  * @param[in] flag Pass 1 if you delete this widget instance permanently, or pass 0 if you want to keep it and it will be re-created soon.
  */
 extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

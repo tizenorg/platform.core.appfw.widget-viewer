@@ -115,6 +115,7 @@
 
 #define DEFAULT_OVERLAY_COUNTER 2
 #define DEFAULT_OVERLAY_WAIT_TIME 1.0f
+#define RESEVED_AREA_FOR_GBAR_EFFECT 100
 
 #define WIDGET_CLASS_NAME "widget"
 
@@ -624,8 +625,8 @@ static widget_size_type_e find_size_type(struct widget_data *data, int w, int h)
 {
 	int cnt = WIDGET_COUNT_OF_SIZE_TYPE;
 	int i;
-	int *_w;
-	int *_h;
+	int *_w = NULL;
+	int *_h = NULL;
 	widget_size_type_e type = WIDGET_SIZE_TYPE_UNKNOWN;
 	int find;
 	int ret_type = WIDGET_SIZE_TYPE_UNKNOWN;
@@ -667,10 +668,8 @@ static widget_size_type_e find_size_type(struct widget_data *data, int w, int h)
 		}
 	}
 
-	if (_w)
-		free(_w);
-	if (_h)
-		free(_h);
+	free(_w);
+	free(_h);
 
 	return ret_type;
 }
@@ -695,7 +694,7 @@ static Eina_Bool effect_animator_cb(void *_data)
 
 	if (data->effect_mask & EFFECT_WIDTH) {
 		if (w < data->w) {
-			if (data->w - w > 100) {
+			if (data->w - w > RESEVED_AREA_FOR_GBAR_EFFECT) {
 				w += 20;
 				move_x = 20;
 			} else if (data->w - w > 10) {
@@ -706,7 +705,7 @@ static Eina_Bool effect_animator_cb(void *_data)
 				move_x = 1;
 			}
 		} else if (w > data->w) {
-			if (w - data->w > 100) {
+			if (w - data->w > RESEVED_AREA_FOR_GBAR_EFFECT) {
 				w -= 20;
 				move_x = -20;
 			} else if (w - data->w > 10) {
@@ -723,7 +722,7 @@ static Eina_Bool effect_animator_cb(void *_data)
 
 	if (data->effect_mask & EFFECT_HEIGHT) {
 		if (h < data->h) {
-			if (data->h - h > 100) {
+			if (data->h - h > RESEVED_AREA_FOR_GBAR_EFFECT) {
 				h += 20;
 				move_y = 20;
 			} else if (data->h - h > 10) {
@@ -734,7 +733,7 @@ static Eina_Bool effect_animator_cb(void *_data)
 				move_y = 1;
 			}
 		} else if (h > data->h) {
-			if (h - data->h > 100) {
+			if (h - data->h > RESEVED_AREA_FOR_GBAR_EFFECT) {
 				h -= 20;
 				move_y = -20;
 			} else if (h - data->h > 10) {
@@ -4767,12 +4766,18 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 	type = find_size_type(data, w, h);
 	if (type == WIDGET_SIZE_TYPE_UNKNOWN) {
 		ErrPrint("Invalid size: %dx%d\n", w, h);
-		//return;
 	} else if (s_info.conf.field.use_fixed_size) {
 		if (widget_service_get_size(type, &w, &h) < 0) {
 			ErrPrint("Failed to get box size\n");
 		}
 	}
+
+	/**
+	 * @note
+	 * If the use_fixed_size is false, the size_type can be differ with width & height
+	 * Then we should not try to resize resource_id(surface) as width & height.
+	 * Just keep them their size and try to resize layout only.
+	 */
 
 	if (!widget_viewer_is_created_by_user(data->handle)) {
 		/**
@@ -4799,6 +4804,8 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 		data->size_type = type;
 	}
 
+	DbgPrint("Request size change: %dx%d [0x%X]\n", w, h, data->size_type);
+
 	if (data->is.field.faulted) {
 		evas_object_resize(data->widget_layout, data->widget_width, data->widget_height);
 		ErrPrint("Faulted widget, skip resizing (%s)\n", data->widget_id);
@@ -4809,12 +4816,15 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 		struct acquire_data acquire_data = {
 			.data = data,
 		};
+
 		DbgPrint("Create new handle: %dx%d, (%s, %s), %s/%s\n", data->widget_width, data->widget_height,
 				data->widget_id, data->content,
 				data->cluster, data->category);
+
 		if (widget_viewer_activate_faulted_widget(data->widget_id, NULL, NULL) < 0) {
 			ErrPrint("Activate: %s\n", data->widget_id);
 		}
+
 		data->is.field.created = 0;
 		data->is.field.send_delete = 1;
 		update_widget_geometry(&acquire_data);
@@ -4833,14 +4843,12 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 		DbgPrint("Added handle: %p (%p)\n", data->handle, data);
 		widget_viewer_set_data(data->handle, widget);
 		__widget_overlay_loading(data);
-		widget_service_get_need_of_touch_effect(data->widget_id, type, (bool*)&need_of_touch_effect);
+		widget_service_get_need_of_touch_effect(data->widget_id, type, (bool *)&need_of_touch_effect);
 		data->is.field.touch_effect = need_of_touch_effect;
-		widget_service_get_need_of_mouse_event(data->widget_id, type, (bool*)&need_of_mouse_event);
+		widget_service_get_need_of_mouse_event(data->widget_id, type, (bool *)&need_of_mouse_event);
 		data->is.field.mouse_event = need_of_mouse_event;
 	} else {
 		int ret;
-
-		DbgPrint("Resize to %dx%d\n", w, h);
 
 		if (type > 0 && type != WIDGET_SIZE_TYPE_UNKNOWN) {
 			ret = widget_viewer_resize_widget(data->handle, type, __widget_resize_cb, widget_ref(data));
@@ -4856,9 +4864,9 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 			widget_unref(data);
 		} else if (ret == WIDGET_ERROR_NONE) {
 			DbgPrint("Resize request is successfully sent\n");
-			widget_service_get_need_of_touch_effect(data->widget_id, type, (bool*)&need_of_touch_effect);
+			widget_service_get_need_of_touch_effect(data->widget_id, type, (bool *)&need_of_touch_effect);
 			data->is.field.touch_effect = need_of_touch_effect;
-			widget_service_get_need_of_mouse_event(data->widget_id, type, (bool*)&need_of_mouse_event);
+			widget_service_get_need_of_mouse_event(data->widget_id, type, (bool *)&need_of_mouse_event);
 			data->is.field.mouse_event = need_of_mouse_event;
 		} else {
 			widget_unref(data);
@@ -5043,7 +5051,7 @@ static void update_widget_geometry(struct acquire_data *acquire_data)
 	} else {
 		stage_w = widget_w;
 		if (s_info.conf.field.support_gbar) {
-			stage_h = widget_h + 100; /* Reserve 100 px for effect */
+			stage_h = widget_h + RESEVED_AREA_FOR_GBAR_EFFECT; /* Reserve 100 px for effect */
 		} else {
 			stage_h = widget_h;
 		}
@@ -5189,8 +5197,17 @@ static void __widget_event_widget_updated(struct widget_data *data)
 		return;
 	}
 
-	w = data->widget_width;
-	h = data->widget_height;
+	/**
+	 * @note
+	 * We should not use this widget_width and widget_height
+	 * It is set'd by user but the resource_id buffer should be resized by size_type.
+	 * Even if the script or text or image can be resized to given size,.
+	 * We should handles them as resource_id to make the consistent behaviour.
+	 */
+	widget_service_get_size(type, &w, &h);
+	if (w != data->widget_width || h != data->widget_height) {
+		DbgPrint("Pixel and Type are differ. use type [%dx%d] - [%dx%d]\n", w, h, data->widget_width, data->widget_height);
+	}
 
 	widget_viewer_get_type(data->handle, 0, &widget_type);
 
@@ -6934,7 +6951,7 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 	}
 }
 
-EAPI int widget_viewer_evas_is_faulted(Evas_Object *widget)
+EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 {
 	struct widget_data *data;
 
@@ -6948,7 +6965,7 @@ EAPI int widget_viewer_evas_is_faulted(Evas_Object *widget)
 		return 0;
 	}
 
-	return data->is.field.faulted;
+	return (bool)data->is.field.faulted;
 }
 
 EAPI int widget_viewer_evas_set_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data)
@@ -7047,7 +7064,7 @@ EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget)
+EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 {
 	struct widget_data *data;
 
@@ -7062,7 +7079,7 @@ EAPI int widget_viewer_evas_get_freeze_visibility(Evas_Object *widget)
 		return 0;
 	}
 
-	return data->is.field.freeze_visibility;
+	return (bool)data->is.field.freeze_visibility;
 }
 
 EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filename)
@@ -7100,7 +7117,7 @@ EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filena
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_viewer_evas_is_widget(Evas_Object *widget)
+EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
 
@@ -7111,10 +7128,10 @@ EAPI int widget_viewer_evas_is_widget(Evas_Object *widget)
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)

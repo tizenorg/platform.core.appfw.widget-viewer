@@ -15,19 +15,17 @@
  */
 
 /**
+ * @defgroup WIDGET_VIEWER_EVAS_MODULE widget-viewer-evas
  * @ingroup CAPI_WIDGET_FRAMEWORK
- * @defgroup WIDGET_VIEWER_MODULE widget Viewer
  * @brief API for widget viewer (widget screen, home screen, ...)
- * @section WIDGET_VIEWER_MODULE_HEADER Required Header
- * \#include <widget.h>
- * @section WIDGET_VIEWER_MODULE_OVERVIEW Overview
- * Tizen homescreen S/W framework is supporing the widget. (aka widget which is similiar with the android widget)
+ * @section WIDGET_VIEWER_EVAS_MODULE_HEADER Required Header
+ * \#include <widget_viewer_evas.h>
+ * @section WIDGET_VIEWER_EVAS_MODULE_OVERVIEW Overview
+ * Tizen homescreen S/W framework is supporting the widget. (aka widget which is similar with the android widget)
  *
  * @image html front.jpg
  *
- * @subsection WhatIsTheDynamicBox 1. What is the widget
- * The widget is the widget of the TIZEN.
- *
+ * @subsection WhatIsTheWidget 1. What is the widget
  * It works as a small application displayed on other applications' (such as homescreen, lockscreen, etc ...) view.
  * Each widget can have (not a mandatory option) a Glance Bar (Glance Bar) in which more detailed information can be found.
  * The content of Glance Bar can be exposed when a certain gesture (e.g., flick-down) has been applied to the widget.
@@ -68,10 +66,10 @@
  *
  * @subsubsection ClusterCategory 1.3 What is the "cluster" and "category"
  * The cluster and the sub-cluster is just like the grouping concept.
- * It is used for creating/destorying your widget instance when the data provider receives any context event from the context engine.
+ * It is used for creating/destroying your widget instance when the data provider receives any context event from the context engine.
  * You will only get "user,created" cluster and "default" category(sub cluster) info.
  *
- * @subsection DynamicBoxContent 2. How the widget can draw contents for viewer?
+ * @subsection WidgetContent 2. How the widget can draw contents for viewer?
  * There are several ways to update the content of a widget.
  *
  * @li Image file based content updating
@@ -111,22 +109,22 @@
  * This type is only supported for 3rd party widget such as OSP and WEB.
  * Inhouse(EFL) widget is not able to use this buffer type for the box content.
  *
- * @subsection DynamicBoxDirectory 3. widget directory hierachy
+ * @subsection WidgetDirectory 3. widget directory hierarchy
  * @image html preload_folder.png
  * @image html download_folder.png
  *
  * @subsection WritingViewerApp 4. Writing a new application for displaying Widgets
- * If you want install dynamic boxes on your application screen, you should initialize the viewer system first.
+ * If you want install widgets on your application screen, you should initialize the viewer system first.
  *
  * @code
  * extern int widget_init(void *disp, int prevent_overwrite, double event_filter, int use_thread);
  * @endcode
  *
  * @a disp should be current display object. if we are on X11 based windowing system, it will give you a Display Object, when you connect to X Server.
- * Viewer application also needs it to preparing rendering buffer to display contents of dynamic boxes.
+ * Viewer application also needs it to preparing rendering buffer to display contents of widgets.
  *
- * @a prevent_overwirte flag is used for image or script type dynamic boxes.
- * If this option is turn on, the viewer library will copy the image file of dyanmic box content to "reader" folder.
+ * @a prevent_overwirte flag is used for image or script type widgets.
+ * If this option is turn on, the viewer library will copy the image file of widget content to "reader" folder.
  * To prevent from overwriting content image file.
  *
  * @a event_filter is used for feeding events.
@@ -185,7 +183,7 @@
  *     
  *     return ui_app_main(&argc, &argv, &event_callback, &main_info);
  * }
- * @endocde
+ * @endcode
  *
  * If you want add a new widget, you can call "widget_add()" function.
  *
