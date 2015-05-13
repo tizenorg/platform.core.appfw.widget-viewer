@@ -16,6 +16,7 @@ pkg_check_modules(viewer_evas REQUIRED
 	dlog
 	widget_service
 	elementary
+	pkgmgr-info
 )
 
 SET(BUILD_SOURCE

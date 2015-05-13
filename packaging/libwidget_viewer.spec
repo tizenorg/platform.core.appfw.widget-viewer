@@ -19,6 +19,7 @@ BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(widget_service)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(elementary)
+BuildRequires: pkgconfig(pkgmgr-info)
 
 %if %{with wayland}
 %else
