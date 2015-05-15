@@ -572,6 +572,8 @@ static int append_script_object(struct widget_data *data, int gbar, const char *
 static inline void reset_scroller(struct widget_data *data)
 {
 	Evas_Object *scroller;
+	int height = 0;
+	int width = 0;
 
 	if (!data->widget_layout) {
 		return;
@@ -582,7 +584,15 @@ static inline void reset_scroller(struct widget_data *data)
 		return;
 	}
 
-	elm_scroller_region_show(scroller, 0, data->widget_height >> 1, data->widget_width, data->widget_height);
+	if (s_info.conf.field.is_scroll_x) {
+		height = data->widget_height >> 1;
+	}
+
+	if (s_info.conf.field.is_scroll_y) {
+		width = data->widget_width >> 1;
+	}
+
+	elm_scroller_region_show(scroller, width, height, data->widget_width, data->widget_height);
 }
 
 static int invoke_raw_event_callback(enum widget_evas_raw_event_type type, const char *pkgname, Evas_Object *widget, int error)
@@ -3068,32 +3078,41 @@ static void __widget_data_setup(struct widget_data *data)
 		return;
 	}
 
-	Evas_Object *scroller;
-	scroller = elm_scroller_add(data->parent);
-	if (scroller) {
-		Evas_Object *box;
+	if (s_info.conf.field.is_scroll_x || s_info.conf.field.is_scroll_y) {
+		Evas_Object *scroller;
+		scroller = elm_scroller_add(data->parent);
+		if (scroller) {
+			Evas_Object *box;
 
-		elm_scroller_bounce_set(scroller, EINA_FALSE, EINA_FALSE);
-		elm_scroller_policy_set(scroller, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_OFF);
-		elm_scroller_single_direction_set(scroller, ELM_SCROLLER_SINGLE_DIRECTION_HARD);
-		//elm_object_scroll_lock_x_set(scroller, EINA_TRUE);
+			elm_scroller_bounce_set(scroller, EINA_FALSE, EINA_FALSE);
+			elm_scroller_policy_set(scroller, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_OFF);
+			elm_scroller_single_direction_set(scroller, ELM_SCROLLER_SINGLE_DIRECTION_HARD);
+			//elm_object_scroll_lock_x_set(scroller, EINA_TRUE);
 
-		box = evas_object_rectangle_add(data->e);
-		if (box) {
-			int height;
+			box = evas_object_rectangle_add(data->e);
+			if (box) {
+				int height = 0;
+				int width = 0;
 
-			height = s_info.screen_height << 1;
+				if (s_info.conf.field.is_scroll_x) {
+					height = s_info.screen_height << 1;
+				}
 
-			evas_object_color_set(box, 0, 0, 0, 0);
-			evas_object_resize(box, s_info.screen_width, height);
-			evas_object_size_hint_min_set(box, s_info.screen_width, height);
-			evas_object_show(box);
+				if (s_info.conf.field.is_scroll_y) {
+					width = s_info.screen_width << 1;
+				}
+
+				evas_object_color_set(box, 255, 0, 0, 100);
+				evas_object_resize(box, width, height);
+				evas_object_size_hint_min_set(box, width, height);
+				evas_object_show(box);
+			}
+
+			elm_object_content_set(scroller, box);
+			elm_object_part_content_set(data->widget_layout, "scroller", scroller);
+		} else {
+			ErrPrint("Failed to create a scroller\n");
 		}
-
-		elm_object_content_set(scroller, box);
-		elm_object_part_content_set(data->widget_layout, "scroller", scroller);
-	} else {
-		ErrPrint("Failed to create a scroller\n");
 	}
 
 	evas_object_show(data->widget_layout);
@@ -4512,6 +4531,40 @@ static void __widget_resize_cb(struct widget *handle, int ret, void *cbdata)
 		break;
 	default:
 		break;
+	}
+
+	Evas_Object *scroller;
+	scroller = elm_object_part_content_get(data->widget_layout, "scroller");
+	if (scroller) {
+		Evas_Object *box;
+
+		box = elm_object_content_get(scroller);
+		if (box) {
+			widget_size_type_e type;
+
+			if (widget_viewer_get_size_type(handle, &type) == WIDGET_ERROR_NONE) {
+				int height;
+				int width;
+
+				if (widget_service_get_size(type, &width, &height) == WIDGET_ERROR_NONE) {
+					if (s_info.conf.field.is_scroll_x) {
+						height <<= 1;
+					}
+
+					if (s_info.conf.field.is_scroll_y) {
+						width <<= 1;
+					}
+
+					DbgPrint("Update scroller size to : %dx%d\n", width, height);
+					elm_object_content_unset(scroller);
+					evas_object_resize(box, width, height);
+					evas_object_size_hint_min_set(box, width, height);
+					elm_object_content_set(scroller, box);
+				}
+			} else {
+				ErrPrint("Failed to get widget size: %x\n", type);
+			}
+		}
 	}
 
 	info.error = ret;
