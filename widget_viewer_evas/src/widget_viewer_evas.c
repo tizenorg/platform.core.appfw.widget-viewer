@@ -27,6 +27,8 @@
 #include <Evas.h>
 #include <Edje.h>
 
+#include <pkgmgr-info.h>
+
 #include <widget_errno.h>
 #include <widget_viewer.h>
 #include <widget_viewer_internal.h>
@@ -2858,6 +2860,7 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 static char *get_package_icon(struct widget_data *data)
 {
 	char *icon;
+	char *uiapp;
 
 	if (data->size_type == WIDGET_SIZE_TYPE_UNKNOWN) {
 		icon = widget_service_get_icon(data->widget_id, NULL);
@@ -2872,11 +2875,48 @@ static char *get_package_icon(struct widget_data *data)
 	if (icon) {
 		ErrPrint("Failed to access an icon file: [%s]\n", icon);
 		free(icon);
+		icon = NULL;
 	}
 
-	icon = strdup(WIDGET_VIEWER_EVAS_UNKNOWN);
+	uiapp = widget_service_get_main_app_id(data->widget_id);
+	if (uiapp) {
+		int ret;
+		pkgmgrinfo_appinfo_h appinfo_h;
+
+		ret = pkgmgrinfo_appinfo_get_appinfo(uiapp, &appinfo_h);
+		free(uiapp);
+
+		if (ret < 0) {
+			/**
+			 * 'Icon' will be remained as NULL
+			 */
+		} else {
+			char *uiapp_icon = NULL;
+
+			ret = pkgmgrinfo_appinfo_get_icon(appinfo_h, &uiapp_icon);
+			if (ret == PMINFO_R_OK && uiapp_icon && access(uiapp_icon, R_OK) == 0) {
+				DbgPrint("UI-App icon: [%s]\n", uiapp_icon);
+				icon = strdup(uiapp_icon);
+				if (!icon) {
+					ErrPrint("Heap: %d\n", strerror(errno));
+					/**
+					 * @note
+					 * 'Icon' will be specified to "unknown" icon file (Default)
+					 */
+				}
+			} else {
+				ErrPrint("[%s] - %d\n", uiapp_icon, errno);
+			}
+
+			pkgmgrinfo_appinfo_destroy_appinfo(appinfo_h);
+		}
+	}
+
 	if (!icon) {
-		ErrPrint("strdup: %d\n", errno);
+		icon = strdup(WIDGET_VIEWER_EVAS_UNKNOWN);
+		if (!icon) {
+			ErrPrint("strdup: %d\n", errno);
+		}
 	}
 
 	return icon;
