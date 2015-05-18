@@ -16,11 +16,26 @@ pkg_check_modules(viewer_evas REQUIRED
 	dlog
 	widget_service
 	elementary
+	pkgmgr-info
 )
 
 SET(BUILD_SOURCE
 	src/widget_viewer_evas.c
 )
+
+IF (X11_SUPPORT)
+SET(BUILD_SOURCE
+	${BUILD_SOURCE}
+	src/util_x11.c
+)
+ENDIF (X11_SUPPORT)
+
+IF (WAYLAND_SUPPORT)
+SET(BUILD_SOURCE
+	${BUILD_SOURCE}
+	src/util_wayland.c
+)
+ENDIF (WAYLAND_SUPPORT)
 
 FOREACH(flag ${viewer_evas_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

@@ -23,17 +23,18 @@
 
 #include <Elementary.h>
 #include <Ecore.h>
-#include <Ecore_X.h>
 #include <Ecore_Evas.h>
 #include <Evas.h>
 #include <Edje.h>
 
+#include <pkgmgr-info.h>
+
+#include <widget_errno.h>
 #include <widget_viewer.h>
 #include <widget_viewer_internal.h>
-#include <widget_viewer.h>
-#include <widget_errno.h>
 #include <widget_conf.h>
 
+#include "util.h"
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -571,6 +572,8 @@ static int append_script_object(struct widget_data *data, int gbar, const char *
 static inline void reset_scroller(struct widget_data *data)
 {
 	Evas_Object *scroller;
+	int height = 0;
+	int width = 0;
 
 	if (!data->widget_layout) {
 		return;
@@ -581,7 +584,15 @@ static inline void reset_scroller(struct widget_data *data)
 		return;
 	}
 
-	elm_scroller_region_show(scroller, 0, data->widget_height >> 1, data->widget_width, data->widget_height);
+	if (s_info.conf.field.is_scroll_x) {
+		height = data->widget_height >> 1;
+	}
+
+	if (s_info.conf.field.is_scroll_y) {
+		width = data->widget_width >> 1;
+	}
+
+	elm_scroller_region_show(scroller, width, height, data->widget_width, data->widget_height);
 }
 
 static int invoke_raw_event_callback(enum widget_evas_raw_event_type type, const char *pkgname, Evas_Object *widget, int error)
@@ -1227,7 +1238,7 @@ static void __widget_destroy_gbar_cb(struct widget *handle, int ret, void *cbdat
 					break;
 				}
 
-				pixmap = surface->data.x11.pixmap;
+				pixmap = util_get_resource_id_of_native_surface(surface);
 				evas_object_del(gbar_content);
 
 				if (!s_info.conf.field.skip_acquire) {
@@ -2859,6 +2870,7 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 static char *get_package_icon(struct widget_data *data)
 {
 	char *icon;
+	char *uiapp;
 
 	if (data->size_type == WIDGET_SIZE_TYPE_UNKNOWN) {
 		icon = widget_service_get_icon(data->widget_id, NULL);
@@ -2873,11 +2885,48 @@ static char *get_package_icon(struct widget_data *data)
 	if (icon) {
 		ErrPrint("Failed to access an icon file: [%s]\n", icon);
 		free(icon);
+		icon = NULL;
 	}
 
-	icon = strdup(WIDGET_VIEWER_EVAS_UNKNOWN);
+	uiapp = widget_service_get_main_app_id(data->widget_id);
+	if (uiapp) {
+		int ret;
+		pkgmgrinfo_appinfo_h appinfo_h;
+
+		ret = pkgmgrinfo_appinfo_get_appinfo(uiapp, &appinfo_h);
+		free(uiapp);
+
+		if (ret < 0) {
+			/**
+			 * 'Icon' will be remained as NULL
+			 */
+		} else {
+			char *uiapp_icon = NULL;
+
+			ret = pkgmgrinfo_appinfo_get_icon(appinfo_h, &uiapp_icon);
+			if (ret == PMINFO_R_OK && uiapp_icon && access(uiapp_icon, R_OK) == 0) {
+				DbgPrint("UI-App icon: [%s]\n", uiapp_icon);
+				icon = strdup(uiapp_icon);
+				if (!icon) {
+					ErrPrint("Heap: %d\n", strerror(errno));
+					/**
+					 * @note
+					 * 'Icon' will be specified to "unknown" icon file (Default)
+					 */
+				}
+			} else {
+				ErrPrint("[%s] - %d\n", uiapp_icon, errno);
+			}
+
+			pkgmgrinfo_appinfo_destroy_appinfo(appinfo_h);
+		}
+	}
+
 	if (!icon) {
-		ErrPrint("strdup: %d\n", errno);
+		icon = strdup(WIDGET_VIEWER_EVAS_UNKNOWN);
+		if (!icon) {
+			ErrPrint("strdup: %d\n", errno);
+		}
 	}
 
 	return icon;
@@ -3029,32 +3078,41 @@ static void __widget_data_setup(struct widget_data *data)
 		return;
 	}
 
-	Evas_Object *scroller;
-	scroller = elm_scroller_add(data->parent);
-	if (scroller) {
-		Evas_Object *box;
+	if (s_info.conf.field.is_scroll_x || s_info.conf.field.is_scroll_y) {
+		Evas_Object *scroller;
+		scroller = elm_scroller_add(data->parent);
+		if (scroller) {
+			Evas_Object *box;
 
-		elm_scroller_bounce_set(scroller, EINA_FALSE, EINA_FALSE);
-		elm_scroller_policy_set(scroller, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_OFF);
-		elm_scroller_single_direction_set(scroller, ELM_SCROLLER_SINGLE_DIRECTION_HARD);
-		//elm_object_scroll_lock_x_set(scroller, EINA_TRUE);
+			elm_scroller_bounce_set(scroller, EINA_FALSE, EINA_FALSE);
+			elm_scroller_policy_set(scroller, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_OFF);
+			elm_scroller_single_direction_set(scroller, ELM_SCROLLER_SINGLE_DIRECTION_HARD);
+			//elm_object_scroll_lock_x_set(scroller, EINA_TRUE);
 
-		box = evas_object_rectangle_add(data->e);
-		if (box) {
-			int height;
+			box = evas_object_rectangle_add(data->e);
+			if (box) {
+				int height = 0;
+				int width = 0;
 
-			height = s_info.screen_height << 1;
+				if (s_info.conf.field.is_scroll_x) {
+					height = s_info.screen_height << 1;
+				}
 
-			evas_object_color_set(box, 0, 0, 0, 0);
-			evas_object_resize(box, s_info.screen_width, height);
-			evas_object_size_hint_min_set(box, s_info.screen_width, height);
-			evas_object_show(box);
+				if (s_info.conf.field.is_scroll_y) {
+					width = s_info.screen_width << 1;
+				}
+
+				evas_object_color_set(box, 255, 0, 0, 100);
+				evas_object_resize(box, width, height);
+				evas_object_size_hint_min_set(box, width, height);
+				evas_object_show(box);
+			}
+
+			elm_object_content_set(scroller, box);
+			elm_object_part_content_set(data->widget_layout, "scroller", scroller);
+		} else {
+			ErrPrint("Failed to create a scroller\n");
 		}
-
-		elm_object_content_set(scroller, box);
-		elm_object_part_content_set(data->widget_layout, "scroller", scroller);
-	} else {
-		ErrPrint("Failed to create a scroller\n");
 	}
 
 	evas_object_show(data->widget_layout);
@@ -3461,7 +3519,7 @@ static void update_visibility(struct widget_data *data)
 			} else {
 				data->view_port.x = 0;
 				data->view_port.y = 0;
-				ecore_x_window_size_get(0, &data->view_port.w, &data->view_port.h);
+				util_screen_size_get(&data->view_port.w, &data->view_port.h);
 				ErrPrint("Failed to get view port info (Fallback: %dx%d - %dx%d\n",
 						data->view_port.x, data->view_port.y, data->view_port.w, data->view_port.h);
 			}
@@ -4145,40 +4203,7 @@ static void acquire_gbar_extra_resource_cb(struct widget *handle, int pixmap, vo
 
 static void replace_pixmap(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap)
 {
-	Evas_Native_Surface *old_surface;
-	Evas_Native_Surface surface;
-
-	surface.version = EVAS_NATIVE_SURFACE_VERSION;
-	surface.type = EVAS_NATIVE_SURFACE_X11;
-	surface.data.x11.pixmap = pixmap;
-
-	old_surface = evas_object_image_native_surface_get(content);
-	if (!old_surface) {
-		surface.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
-
-		evas_object_image_native_surface_set(content, &surface);
-
-		DbgPrint("Created: %u\n", surface.data.x11.pixmap);
-	} else {
-		unsigned int old_pixmap;
-
-		old_pixmap = old_surface->data.x11.pixmap;
-
-		if (old_pixmap != pixmap) {
-			surface.data.x11.visual = old_surface->data.x11.visual;
-			evas_object_image_native_surface_set(content, &surface);
-
-			if (old_pixmap && handle) {
-				if (!s_info.conf.field.skip_acquire) {
-					widget_viewer_release_resource_id(handle, gbar, old_pixmap);
-				}
-			}
-
-			DbgPrint("Replaced: %u (%u)\n", pixmap, old_pixmap);
-		} else {
-			DbgPrint("Same resource, reuse it [%u]\n", pixmap);
-		}
-	}
+	util_replace_native_surface(handle, gbar, content, pixmap, s_info.conf.field.skip_acquire);
 }
 
 static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cbdata)
@@ -4506,6 +4531,40 @@ static void __widget_resize_cb(struct widget *handle, int ret, void *cbdata)
 		break;
 	default:
 		break;
+	}
+
+	Evas_Object *scroller;
+	scroller = elm_object_part_content_get(data->widget_layout, "scroller");
+	if (scroller) {
+		Evas_Object *box;
+
+		box = elm_object_content_get(scroller);
+		if (box) {
+			widget_size_type_e type;
+
+			if (widget_viewer_get_size_type(handle, &type) == WIDGET_ERROR_NONE) {
+				int height;
+				int width;
+
+				if (widget_service_get_size(type, &width, &height) == WIDGET_ERROR_NONE) {
+					if (s_info.conf.field.is_scroll_x) {
+						height <<= 1;
+					}
+
+					if (s_info.conf.field.is_scroll_y) {
+						width <<= 1;
+					}
+
+					DbgPrint("Update scroller size to : %dx%d\n", width, height);
+					elm_object_content_unset(scroller);
+					evas_object_resize(box, width, height);
+					evas_object_size_hint_min_set(box, width, height);
+					elm_object_content_set(scroller, box);
+				}
+			} else {
+				ErrPrint("Failed to get widget size: %x\n", type);
+			}
+		}
 	}
 
 	info.error = ret;
@@ -5310,8 +5369,6 @@ static void acquire_gbar_pixmap_cb(struct widget *handle, int pixmap, void *cbda
 {
 	struct acquire_data *acquire_data = cbdata;
 	struct widget_data *data = acquire_data->data;
-	Evas_Native_Surface *old_surface;
-	Evas_Native_Surface surface;
 
 	data->is.field.gbar_pixmap_acquire_requested = 0;
 
@@ -5328,26 +5385,11 @@ static void acquire_gbar_pixmap_cb(struct widget *handle, int pixmap, void *cbda
 	evas_object_image_size_set(acquire_data->content, acquire_data->w, acquire_data->h);
 	evas_object_image_fill_set(acquire_data->content, 0, 0, acquire_data->w, acquire_data->h);
 
-	surface.version = EVAS_NATIVE_SURFACE_VERSION;
-	surface.type = EVAS_NATIVE_SURFACE_X11;
-	surface.data.x11.pixmap = (unsigned int)pixmap;
-
-	old_surface = evas_object_image_native_surface_get(acquire_data->content);
-	if (!old_surface) {
+	/**
+	 * 1 means, First time.
+	 */
+	if (util_set_native_surface(handle, 1, acquire_data->content, (unsigned int)pixmap, s_info.conf.field.skip_acquire) == 1) {
 		gbar_overlay_disable(data);
-		surface.data.x11.visual = ecore_x_default_visual_get(ecore_x_display_get(), ecore_x_default_screen_get());
-		evas_object_image_native_surface_set(acquire_data->content, &surface);
-	} else {
-		unsigned int old_pixmap = 0u;
-		old_pixmap = old_surface->data.x11.pixmap;
-		surface.data.x11.visual = old_surface->data.x11.visual;
-		evas_object_image_native_surface_set(acquire_data->content, &surface);
-
-		if (old_pixmap) {
-			if (!s_info.conf.field.skip_acquire) {
-				widget_viewer_release_resource_id(data->handle, 1, old_pixmap);
-			}
-		}
 	}
 
 	data->gbar_pixmap = (unsigned int)pixmap;
@@ -6101,11 +6143,11 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
-	ecore_x_window_size_get(0, &s_info.screen_width, &s_info.screen_height);
+	util_screen_size_get(&s_info.screen_width, &s_info.screen_height);
 
 	s_info.conf.field.render_animator = 0;	// By default, use render animator for updating
 
-	ret = widget_viewer_init(ecore_x_display_get(), 1, 0.001f, 1);
+	ret = widget_viewer_init(util_display_get(), 1, 0.001f, 1);
 	if (ret < 0) {
 		return ret;
 	}
@@ -6537,6 +6579,7 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 	}
 }
 
+#if defined(ELM_ACCESS_ENABLED)
 static void access_ret_cb(struct widget *handle, int ret, void *data)
 {
 	struct access_ret_cb_data *cb_data = data;
@@ -6568,6 +6611,7 @@ static void access_ret_cb(struct widget *handle, int ret, void *data)
 
 	free(cb_data);
 }
+#endif
 
 EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 {
@@ -6587,6 +6631,7 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 
 EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, void *_info, void (*ret_cb)(Evas_Object *obj, int ret, void *data), void *cbdata)
 {
+#if defined(ELM_ACCESS_ENABLED)
 	struct widget_data *data;
 	Elm_Access_Action_Info *info = _info;
 	int w;
@@ -6877,6 +6922,9 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 	}
 
 	return ret;
+#else
+	return WIDGET_ERROR_NOT_SUPPORTED;
+#endif
 }
 
 EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)

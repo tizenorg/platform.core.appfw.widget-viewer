@@ -34,7 +34,7 @@ extern "C" {
  */
 
 /**
- * @addtogroup WIDGET_VIEWER_EVAS_MODULE
+ * @addtogroup CAPI_WIDGET_VIEWER_EVAS_MODULE
  * @{
  */
 
@@ -167,7 +167,7 @@ extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
 
 /**
  * @brief Notifies the status of the viewer to all providers
- * @detail If you call this, all providers will gets "paused" event.
+ * @details If you call this, all providers will gets "paused" event.
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -181,7 +181,7 @@ extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
 
 /**
  * @brief Notifies the orientation of the viewer to all providers
- * @detail If you call this, all providers will gets "rotated" event.
+ * @details If you call this, all providers will gets "rotated" event.
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -236,7 +236,7 @@ extern int widget_viewer_evas_set_option(widget_evas_conf_e type, int value);
 /**
  * @brief Gets content string of widget
  * @details This string can be used for creating contents of widget again after reboot a device or recovered from crash(abnormal status)
- * @Remarks Returned string should not be freed.
+ * @remarks Returned string should not be freed.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @return content string to be recognize content of the widget
@@ -248,7 +248,7 @@ extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
 /**
  * @brief Gets summarized string of the widget content for accessibility.
  * @details If the accessibility feature is turned on, a viewer can use this text to describe the widget.
- * @Remarks Returned string should not be freed.
+ * @remarks Returned string should not be freed.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @return title string to be used for summarizing the widget
@@ -258,7 +258,7 @@ extern const char *widget_viewer_evas_get_title_string(Evas_Object *widget);
 
 /**
  * @brief Gets the id of the widget
- * @Remarks Returned string should not be freed.
+ * @remarks Returned string should not be freed.
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  * @return widget id
