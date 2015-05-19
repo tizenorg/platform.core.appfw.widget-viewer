@@ -7118,13 +7118,13 @@ EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 
 	if (!s_info.initialized) {
 		ErrPrint("Not initialized\n");
-		return 0;
+		return false;
 	}
 
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
-		return 0;
+		return false;
 	}
 
 	return (bool)data->is.field.freeze_visibility;
