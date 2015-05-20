@@ -25,6 +25,8 @@
 #include <bundle.h>
 #include <dlog.h>
 #include <string.h>
+#include <app_control.h>
+#include <app_control_internal.h>
 
 int errno;
 
@@ -250,11 +252,13 @@ static void list_item_clicked_cb(void *data, Evas_Object *obj, void *event_info)
 		return;
 	}
 
-//	evas_object_resize(s_info.ctx.widget, w, h);
-//	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
+	evas_object_resize(s_info.ctx.widget, w, h);
+	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
+	evas_object_size_hint_max_set(s_info.ctx.widget, w, h);
 
 	evas_object_resize(s_info.layout, w, h);
 	evas_object_size_hint_min_set(s_info.layout, w, h);
+	evas_object_size_hint_max_set(s_info.layout, w, h);
 }
 
 static void extra_updated_cb(void *data, Evas_Object *obj, void *event_info)
@@ -300,6 +304,12 @@ static void period_changed_cb(void *data, Evas_Object *obj, void *event_info)
 	DbgPrint("Period updated: %s\n", buffer);
 }
 
+static void widget_created_cb(void *data, Evas_Object *obj, void *event_info)
+{
+	period_changed_cb(data, obj, NULL);
+	extra_updated_cb(data, obj, NULL);
+}
+
 static int load_widget(const char *widget_id)
 {
 	int w = 0;
@@ -328,18 +338,22 @@ static int load_widget(const char *widget_id)
 	}
 
 	DbgPrint("Resize the widget(%s) to [%X] %dx%d\n", widget_id, s_info.ctx.size_types[0], w, h);
-	evas_object_resize(s_info.ctx.widget, w, h);
-	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
 
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_UPDATED, updated_cb, NULL);
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED, extra_updated_cb, NULL);
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_PERIOD_CHANGED, period_changed_cb, NULL);
+	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_WIDGET_CREATED, widget_created_cb, NULL);
 
 	elm_object_part_text_set(s_info.layout, "widget,id", widget_id);
 	elm_object_part_content_set(s_info.layout, "widget", s_info.ctx.widget);
 
+	evas_object_resize(s_info.ctx.widget, w, h);
+	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
+	evas_object_size_hint_max_set(s_info.ctx.widget, w, h);
+
 	evas_object_resize(s_info.layout, w, h);
 	evas_object_size_hint_min_set(s_info.layout, w, h);
+	evas_object_size_hint_max_set(s_info.layout, w, h);
 
 	return WIDGET_ERROR_NONE;
 }
@@ -384,7 +398,7 @@ static Evas_Object *list_item_content_get_cb(void *data, Evas_Object *obj, const
 	return icon;
 }
 
-static int prepare_widget(const char *widget_id)
+static int prepare_widget(const char *widget_id, app_control_h control)
 {
 	int ret;
 	Evas_Object *size_list;
@@ -392,6 +406,7 @@ static int prepare_widget(const char *widget_id)
 	int i;
 	int w;
 	int h;
+	bundle *b;
 	static Elm_Genlist_Item_Class class = {
 		.func = {
 			.text_get = list_item_text_get_cb,
@@ -400,6 +415,27 @@ static int prepare_widget(const char *widget_id)
 			.del = NULL,
 		}
 	};
+
+	if (app_control_export_as_bundle(control, &b) == APP_CONTROL_ERROR_NONE) {
+		bundle_raw *r;
+		int len;
+
+		if (bundle_encode(b, &r, &len) == BUNDLE_ERROR_NONE) {
+			s_info.ctx.content_info = malloc(len + 8);
+			if (!s_info.ctx.content_info) {
+				ErrPrint("malloc: %d\n", errno);
+			} else {
+				snprintf(s_info.ctx.content_info, len + 8, "%d:%s", len, (char *)r);
+				DbgPrint("Encoded content_info: [%s]\n", s_info.ctx.content_info);
+			}
+
+			free((char *)r); /* Do I have to use the g_free? */
+		} else {
+			ErrPrint("Failed to encode a bundle\n");
+		}
+
+		bundle_free(b);
+	}
 
 	ret = widget_service_get_supported_size_types(widget_id, &s_info.ctx.count_of_size_type, &s_info.ctx.size_types);
 	if (ret != WIDGET_ERROR_NONE) {
@@ -457,7 +493,7 @@ static void _app_control(app_control_h service, void *data)
 		}
 
 		ret = unload_widget();
-		ret = prepare_widget(widget_id);
+		ret = prepare_widget(widget_id, service);
 		ret = load_widget(widget_id);
 		free(widget_id);
 	} else {

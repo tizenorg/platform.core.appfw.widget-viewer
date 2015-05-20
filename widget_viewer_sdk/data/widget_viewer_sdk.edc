@@ -1,5 +1,13 @@
 collections {
 	styles {
+		style {
+			name: "info,text";
+			base: "font=Tizen font_size=15 align=left color=#FFFFFF ellipsis=1.0 wrap=char";
+			tag: "br" "\n";
+			tag: "hilight" "+ font=Tizen:style=Bold";
+			tag: "b" "+ font=Tizen:style=Bold";
+			tag: "tag" "\t";
+		}
 	}
 
 	group {
@@ -65,21 +73,52 @@ collections {
 			}
 
 			part {
-				name: "widget,id";
+				name: "widget,id,name";
 				clip_to: "widget,info";
 				type: TEXT;
 				mouse_events: 0;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 0.0 0.1; }
-					rel2 { relative: 1.0 0.2; }
+					rel1 { relative: 0.0 0.0; to_y, "widget,id"; }
+					rel2 { relative: 0.3 1.0; to_y, "widget,id"; }
+					text {
+						style: "info,text";
+						text: "widget id";
+					}
+				}
+			}
+
+			part {
+				name: "widget,id";
+				clip_to: "widget,info";
+				type: TEXTBLOCK;
+				mouse_events: 0;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.35 0.1; }
+					rel2 { relative: 1.0 0.15; }
 					color: 255 255 255 255;
 					color2: 0 0 0 255;
 					color3: 0 0 0 255;
 					text {
+						style: "info,text";
 						text: "Hello";
-						align: 0.5 0.5;
-						size: 15;
+					}
+				}
+			}
+
+			part {
+				name: "widget,content,info,name";
+				clip_to: "widget,info";
+				type: TEXT;
+				mouse_events: 0;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; to_y, "widget,content,info"; }
+					rel2 { relative: 0.3 1.0; to_y, "widget,content,info"; }
+					text {
+						style: "info,text";
+						text: "content info";
 					}
 				}
 			}
@@ -87,19 +126,34 @@ collections {
 			part {
 				name: "widget,content,info";
 				clip_to: "widget,info";
-				type: TEXT;
+				type: TEXTBLOCK;
 				mouse_events: 0;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 0.0 0.25; }
-					rel2 { relative: 1.0 0.35; }
+					rel1 { relative: 0.35 0.20; }
+					rel2 { relative: 1.0 0.25; }
 					color: 255 255 255 255;
 					color2: 0 0 0 255;
 					color3: 0 0 0 255;
 					text {
+						style: "info,text";
 						text: "Hello";
-						align: 0.5 0.5;
-						size: 15;
+					}
+				}
+			}
+
+			part {
+				name: "widget,title,name";
+				clip_to: "widget,info";
+				type: TEXT;
+				mouse_events: 0;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; to_y, "widget,title"; }
+					rel2 { relative: 0.3 1.0; to_y, "widget,title"; }
+					text {
+						style: "info,text";
+						text: "title";
 					}
 				}
 			}
@@ -107,19 +161,34 @@ collections {
 			part {
 				name: "widget,title";
 				clip_to: "widget,info";
-				type: TEXT;
+				type: TEXTBLOCK;
 				mouse_events: 0;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 0.0 0.4; }
-					rel2 { relative: 1.0 0.5; }
+					rel1 { relative: 0.35 0.3; }
+					rel2 { relative: 1.0 0.35; }
 					color: 255 255 255 255;
 					color2: 0 0 0 255;
 					color3: 0 0 0 255;
 					text {
+						style: "info,text";
 						text: "Hello";
-						align: 0.5 0.5;
-						size: 15;
+					}
+				}
+			}
+
+			part {
+				name: "widget,period,name";
+				clip_to: "widget,info";
+				type: TEXT;
+				mouse_events: 0;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; to_y, "widget,period"; }
+					rel2 { relative: 0.3 1.0; to_y, "widget,period"; }
+					text {
+						style: "info,text";
+						text: "period";
 					}
 				}
 			}
@@ -127,19 +196,18 @@ collections {
 			part {
 				name: "widget,period";
 				clip_to: "widget,info";
-				type: TEXT;
+				type: TEXTBLOCK;
 				mouse_events: 0;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 0.0 0.55; }
-					rel2 { relative: 1.0 0.65; }
+					rel1 { relative: 0.35 0.4; }
+					rel2 { relative: 1.0 0.45; }
 					color: 255 255 255 255;
 					color2: 0 0 0 255;
 					color3: 0 0 0 255;
 					text {
+						style: "info,text";
 						text: "Hello";
-						align: 0.5 0.5;
-						size: 15;
 					}
 				}
 			}
