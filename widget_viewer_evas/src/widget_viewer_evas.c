@@ -134,7 +134,7 @@ int errno;
  * \note
  * Detect click event if the pointer does moved in this region (x , y < 5 pixels)
  */
-#define CLICK_REGION 22
+#define CLICK_REGION WIDGET_CONF_CLICK_REGION
 
 static struct {
 	Evas_Smart_Class sc;
