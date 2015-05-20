@@ -69,6 +69,12 @@ static struct info {
 
 #define LONG_PRESS 1.0f
 
+static void hide_widget_info_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
+{
+	DbgPrint("Hide info panel\n");
+	elm_object_signal_emit(s_info.layout, "hide", "info");
+}
+
 static Eina_Bool show_widget_info_cb(void *data)
 {
 	DbgPrint("Show info panel\n");
@@ -96,8 +102,6 @@ static void layout_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info
 	if (s_info.long_press) {
 		ecore_timer_del(s_info.long_press);
 		s_info.long_press = NULL;
-
-		elm_object_signal_emit(s_info.layout, "hide", "info");
 	}
 }
 
@@ -164,6 +168,7 @@ static bool app_create(void *data)
 	}
 	evas_object_show(s_info.layout);
 
+	elm_object_signal_callback_add(s_info.layout, "mouse,clicked,1", "widget,info,bg", hide_widget_info_cb, NULL);
 	evas_object_event_callback_add(s_info.layout, EVAS_CALLBACK_MOUSE_DOWN, layout_down_cb, NULL);
 	evas_object_event_callback_add(s_info.layout, EVAS_CALLBACK_MOUSE_UP, layout_up_cb, NULL);
 
@@ -325,9 +330,17 @@ static int load_widget(const char *widget_id)
 	}
 
 	if (i == s_info.ctx.count_of_size_type) {
-		ErrPrint("Failed to load a widget\n");
+		ErrPrint("Supported size is not found\n");
+		evas_object_resize(s_info.layout, s_info.w, s_info.h);
+		evas_object_size_hint_min_set(s_info.layout, s_info.w, s_info.h);
+		evas_object_size_hint_max_set(s_info.layout, s_info.w, s_info.h);
+		evas_object_show(s_info.layout);
+
+		elm_object_part_text_set(s_info.layout, "message", "Supported size is not found");
+		elm_object_signal_emit(s_info.layout, "show", "message");
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
+	elm_object_signal_emit(s_info.layout, "hide", "message");
 
 	DbgPrint("Found valid size[%X]: %dx%d\n", s_info.ctx.size_types[i], w, h);
 
@@ -437,10 +450,13 @@ static int prepare_widget(const char *widget_id, app_control_h control)
 		bundle_free(b);
 	}
 
+	s_info.ctx.count_of_size_type = 20;
 	ret = widget_service_get_supported_size_types(widget_id, &s_info.ctx.count_of_size_type, &s_info.ctx.size_types);
 	if (ret != WIDGET_ERROR_NONE) {
 		ErrPrint("Failed to load an widget\n");
 	}
+
+	DbgPrint("[%s] %d\n", widget_id, s_info.ctx.count_of_size_type);
 
 	if (s_info.ctx.count_of_size_type <= 1) {
 		elm_object_signal_emit(s_info.layout, "hide", "size,list");
