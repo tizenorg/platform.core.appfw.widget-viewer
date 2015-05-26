@@ -96,7 +96,7 @@ License: Flora License, Version 1.1
 Provider APIs to develop the widget viewer EFL application.
 
 %package -n %{name}_evas-devel
-Summary: widget provider application development library (dev) (EFL version)
+Summary: Widget provider application development library (dev) (EFL version)
 Group: Development/Libraries
 Requires: %{name}_evas
 
@@ -107,7 +107,7 @@ Header & package configuration files to support development of the widget viewer
 %postun -n %{name}_evas -p /sbin/ldconfig
 
 #################################################
-# libwidget_viewer_sdk
+# org.tizen.widget_viewer_sdk
 %package -n org.tizen.widget_viewer_sdk
 Summary: The widget viewer for development using SDK(IDE)
 Version: 0.0.1

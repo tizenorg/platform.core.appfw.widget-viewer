@@ -34,7 +34,6 @@ INCLUDE(FindPkgConfig)
 pkg_check_modules(sdk_pkgs REQUIRED
 	capi-appfw-application
 	appcore-efl
-	ecore-x
 	ecore
 	evas
 	edje

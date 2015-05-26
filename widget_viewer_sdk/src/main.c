@@ -253,7 +253,7 @@ static void list_item_clicked_cb(void *data, Evas_Object *obj, void *event_info)
 	int w;
 	int h;
 
-	if (widget_service_get_size(s_info.ctx.size_types[(int)data], &w, &h) != WIDGET_ERROR_NONE) {
+	if (widget_service_get_size(s_info.ctx.size_types[(long)data], &w, &h) != WIDGET_ERROR_NONE) {
 		return;
 	}
 
@@ -378,7 +378,7 @@ static char *list_item_text_get_cb(void *data, Evas_Object *obj, const char *par
 	int w;
 	int h;
 
-	ret = widget_service_get_size(s_info.ctx.size_types[(int)data], &w, &h);
+	ret = widget_service_get_size(s_info.ctx.size_types[(long)data], &w, &h);
 	if (ret != WIDGET_ERROR_NONE) {
 		return strdup("Invalid");
 	}
@@ -396,7 +396,7 @@ static Evas_Object *list_item_content_get_cb(void *data, Evas_Object *obj, const
 
 	widget_id = widget_viewer_evas_get_widget_id(s_info.ctx.widget);
 
-	icon_filename = widget_service_get_preview_image_path(widget_id, s_info.ctx.size_types[(int)data]);
+	icon_filename = widget_service_get_preview_image_path(widget_id, s_info.ctx.size_types[(long)data]);
 	if (icon_filename) {
 		icon = elm_icon_add(s_info.win);
 		if (icon) {
@@ -416,7 +416,7 @@ static int prepare_widget(const char *widget_id, app_control_h control)
 	int ret;
 	Evas_Object *size_list;
 	Elm_Object_Item *item;
-	int i;
+	long i;
 	int w;
 	int h;
 	bundle *b;
