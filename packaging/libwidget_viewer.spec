@@ -8,6 +8,7 @@ Group: Applications/Core Applications
 License: Flora License, Version 1.1
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
+Source1002: org.tizen.widget_viewer_sdk.manifest
 BuildRequires: cmake, gettext-tools, coreutils, edje-bin
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(aul)
@@ -20,15 +21,13 @@ BuildRequires: pkgconfig(widget_service)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(pkgmgr-info)
+BuildRequires: pkgconfig(capi-appfw-application)
+BuildRequires: pkgconfig(appcore-efl)
 
 %if %{with wayland}
 %else
 BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(xext)
-%endif
-
-%if "%{model_build_feature_widget}" == "0"
-ExclusiveArch:
 %endif
 
 %description
@@ -45,19 +44,16 @@ Header and package configuration files for the widget viewer development
 %prep
 %setup -q
 cp %{SOURCE1001} .
+cp %{SOURCE1002} .
 
 %build
-%if 0%{?sec_build_binary_debug_enable}
 export CFLAGS="$CFLAGS -DTIZEN_DEBUG_ENABLE"
 export CXXFLAGS="$CXXFLAGS -DTIZEN_DEBUG_ENABLE"
 export FFLAGS="$FFLAGS -DTIZEN_DEBUG_ENABLE"
-%endif
 
-%if 0%{?tizen_build_binary_release_type_eng}
 export CFLAGS="${CFLAGS} -DTIZEN_ENGINEER_MODE"
 export CXXFLAGS="${CXXFLAGS} -DTIZEN_ENGINEER_MODE"
 export FFLAGS="${FFLAGS} -DTIZEN_ENGINEER_MODE"
-%endif
 
 %if %{with wayland}
 export WAYLAND_SUPPORT=On
@@ -94,7 +90,7 @@ rm -rf %{buildroot}
 %package -n %{name}_evas
 Summary: Library for developing the widget viewer evas
 Group: Applications/Core Applications
-License: Flora
+License: Flora License, Version 1.1
 
 %description -n %{name}_evas
 Provider APIs to develop the widget viewer EFL application.
@@ -110,6 +106,21 @@ Header & package configuration files to support development of the widget viewer
 %post -n %{name}_evas -p /sbin/ldconfig
 %postun -n %{name}_evas -p /sbin/ldconfig
 
+#################################################
+# libwidget_viewer_sdk
+%package -n org.tizen.widget_viewer_sdk
+Summary: The widget viewer for development using SDK(IDE)
+Version: 0.0.1
+Group: Development/Tools
+License: Flora License, Version 1.1
+Requires: %{name}_evas
+
+%description -n org.tizen.widget_viewer_sdk
+While developing the widget applications, this viewer will load it and execute it to help you to see it on the screen.
+
+%post -n org.tizen.widget_viewer_sdk -p /sbin/ldconfig
+%postun -n org.tizen.widget_viewer_sdk -p /sbin/ldconfig
+
 %files -n %{name}_evas
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
@@ -123,5 +134,14 @@ Header & package configuration files to support development of the widget viewer
 %{_includedir}/widget_viewer_evas/widget_viewer_evas.h
 %{_includedir}/widget_viewer_evas/widget_viewer_evas_internal.h
 %{_libdir}/pkgconfig/widget_viewer_evas.pc
+
+%files -n org.tizen.widget_viewer_sdk
+%manifest org.tizen.widget_viewer_sdk.manifest
+%defattr(-,root,root,-)
+%attr(-,app,app) %dir /opt/usr/apps/org.tizen.widget_viewer_sdk/data
+%{_datarootdir}/packages/org.tizen.widget_viewer_sdk.xml
+%{_sysconfdir}/smack/accesses.d
+%{_datarootdir}/license/org.tizen.widget_viewer_sdk
+%{_prefix}/apps/org.tizen.widget_viewer_sdk/*
 
 # End of a file

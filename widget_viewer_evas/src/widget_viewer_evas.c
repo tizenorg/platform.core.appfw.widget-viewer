@@ -134,7 +134,7 @@ int errno;
  * \note
  * Detect click event if the pointer does moved in this region (x , y < 5 pixels)
  */
-#define CLICK_REGION 22
+#define CLICK_REGION WIDGET_CONF_CLICK_REGION
 
 static struct {
 	Evas_Smart_Class sc;
@@ -3102,7 +3102,7 @@ static void __widget_data_setup(struct widget_data *data)
 					width = s_info.screen_width << 1;
 				}
 
-				evas_object_color_set(box, 255, 0, 0, 100);
+				evas_object_color_set(box, 0, 0, 0, 0);
 				evas_object_resize(box, width, height);
 				evas_object_size_hint_min_set(box, width, height);
 				evas_object_show(box);
@@ -7118,13 +7118,13 @@ EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 
 	if (!s_info.initialized) {
 		ErrPrint("Not initialized\n");
-		return 0;
+		return false;
 	}
 
 	data = get_smart_data(widget);
 	if (!data) {
 		ErrPrint("Invalid object\n");
-		return 0;
+		return false;
 	}
 
 	return (bool)data->is.field.freeze_visibility;
