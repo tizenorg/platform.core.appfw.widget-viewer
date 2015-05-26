@@ -3102,7 +3102,7 @@ static void __widget_data_setup(struct widget_data *data)
 					width = s_info.screen_width << 1;
 				}
 
-				evas_object_color_set(box, 255, 0, 0, 100);
+				evas_object_color_set(box, 0, 0, 0, 0);
 				evas_object_resize(box, width, height);
 				evas_object_size_hint_min_set(box, width, height);
 				evas_object_show(box);
