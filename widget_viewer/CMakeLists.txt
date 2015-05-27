@@ -52,6 +52,10 @@ ADD_DEFINITIONS("-DHAVE_X11")
 ENDIF (X11_SUPPORT)
 
 IF (WAYLAND_SUPPORT)
+pkg_check_modules(pkgs_extra REQUIRED
+	libtbm
+)
+
 SET(BUILD_SOURCE
 	${BUILD_SOURCE}
 	src/fb_wayland.c

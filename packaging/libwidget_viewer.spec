@@ -25,6 +25,8 @@ BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(appcore-efl)
 
 %if %{with wayland}
+BuildRequires: pkgconfig(wayland-client)
+BuildRequires: pkgconfig(libtbm)
 %else
 BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(xext)

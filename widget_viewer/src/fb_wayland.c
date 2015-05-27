@@ -27,24 +27,92 @@
 #include <sys/shm.h>
 #include <sys/ipc.h>
 
+#include <wayland-client.h>
+#include <tbm_bufmgr.h>
+
 #include <dlog.h>
 #include <widget_errno.h> /* For error code */
 #include <widget_service.h> /* For buffer event data */
 #include <widget_buffer.h>
+#include <widget_util.h>
 
 #include "debug.h"
 #include "util.h"
 #include "fb.h"
+#include "dlist.h"
 
 int errno;
 
+struct gem_data {
+	tbm_bo pixmap_bo;
+	tbm_bo_handle handle;
+	widget_fb_t buffer;
+};
+
+static struct {
+	struct wl_display *disp;
+	tbm_bufmgr bufmgr;
+	int disp_is_opened;
+	int fd;
+	struct dlist *canvas_list;
+} s_info = {
+	.disp = NULL,
+	.bufmgr = NULL,
+	.disp_is_opened = 0,
+	.fd = -1,
+	.canvas_list = NULL,
+};
+
 int fb_init(void *disp)
 {
+	int ret;
+
+	s_info.disp = disp;
+	if (!s_info.disp) {
+		s_info.disp = wl_display_connect(NULL);
+		if (!s_info.disp) {
+			ErrPrint("Failed to open a display\n");
+			return WIDGET_ERROR_FAULT;
+		}
+
+		s_info.disp_is_opened = 1;
+	}
+
+	ret = widget_util_get_drm_fd(s_info.disp, &s_info.fd);
+	if (ret != WIDGET_ERROR_NONE || s_info.fd < 0) {
+		ErrPrint("Failed to open a drm device: (%d)\n", errno);
+		return WIDGET_ERROR_FAULT;
+	}
+
+	s_info.bufmgr = tbm_bufmgr_init(s_info.fd);
+	if (!s_info.bufmgr) {
+		ErrPrint("Failed to init bufmgr\n");
+		widget_util_release_drm_fd(s_info.fd);
+		s_info.fd = -1;
+		return WIDGET_ERROR_FAULT;
+	}
+
 	return WIDGET_ERROR_NONE;
 }
 
 int fb_fini(void)
 {
+	if (s_info.bufmgr) {
+		tbm_bufmgr_deinit(s_info.bufmgr);
+		s_info.bufmgr = NULL;
+	}
+
+	if (s_info.fd >= 0) {
+		widget_util_release_drm_fd(s_info.fd);
+		s_info.fd = -1;
+	}
+
+	if (s_info.disp_is_opened && s_info.disp) {
+		wl_display_disconnect(s_info.disp);
+		s_info.disp = NULL;
+	}
+
+	s_info.disp = NULL;
 	return WIDGET_ERROR_NONE;
 }
 
@@ -282,9 +350,43 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 	if (!info->buffer) {
 		if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
-			/**
-			 */
-			return NULL;
+			struct gem_data *gem;
+
+			update_fb_size(info);
+
+			buffer = calloc(1, sizeof(*buffer) + info->bufsz);
+			if (!buffer) {
+				ErrPrint("Heap: %d\n", errno);
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
+				info->bufsz = 0;
+				return NULL;
+			}
+
+			gem = calloc(1, sizeof(*gem));
+			if (!gem) {
+				ErrPrint("Heap: %d\n", errno);
+				return NULL;
+			}
+
+			buffer->type = WIDGET_FB_TYPE_PIXMAP;
+			buffer->refcnt = 0;
+			buffer->state = WIDGET_FB_STATE_CREATED;
+			buffer->info = info;
+			info->buffer = buffer;
+			info->gem = gem;
+
+			gem->pixmap_bo = tbm_bo_import(s_info.bufmgr, info->handle);
+			if (!gem->pixmap_bo) {
+				ErrPrint("Failed to get bo\n");
+				free(gem);
+				free(buffer);
+				return NULL;
+			}
+
+			gem->handle = tbm_bo_map(gem->pixmap_bo, TBM_DEVICE_CPU, TBM_OPTION_READ);
+			gem->buffer = buffer;
+
+			s_info.canvas_list = dlist_append(s_info.canvas_list, buffer);
 		} else if (!strncasecmp(info->id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
 			update_fb_size(info);
 
@@ -323,7 +425,14 @@ void *fb_acquire_buffer(struct fb_info *info)
 
 	switch (buffer->type) {
 	case WIDGET_FB_TYPE_PIXMAP:
-		buffer->refcnt++;
+		{
+			struct gem_data *gem;
+
+			buffer->refcnt++;
+			gem = info->gem;
+
+			return gem->handle.ptr;
+		}
 		break;
 	case WIDGET_FB_TYPE_FILE:
 		buffer->refcnt++;
@@ -340,6 +449,7 @@ void *fb_acquire_buffer(struct fb_info *info)
 int fb_release_buffer(void *data)
 {
 	widget_fb_t buffer;
+	struct dlist *l;
 
 	if (!data) {
 		ErrPrint("buffer data == NIL\n");
@@ -347,7 +457,25 @@ int fb_release_buffer(void *data)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	buffer = container_of(data, struct widget_fb, data);
+	buffer = NULL;
+	dlist_foreach(s_info.canvas_list, l, buffer) {
+		if (buffer) {
+			struct fb_info *info;
+			struct gem_data *gem;
+
+			info = buffer->info;
+			gem = info->gem;
+
+			if (gem->handle.ptr == data) {
+				break;
+			}
+		}
+		buffer = NULL;
+	}
+
+	if (!buffer) {
+		buffer = container_of(data, struct widget_fb, data);
+	}
 
 	if (buffer->state != WIDGET_FB_STATE_CREATED) {
 		ErrPrint("Invalid handle\n");
@@ -362,6 +490,23 @@ int fb_release_buffer(void *data)
 		}
 		break;
 	case WIDGET_FB_TYPE_PIXMAP:
+		buffer->refcnt--;
+		if (buffer->refcnt == 0) {
+			struct fb_info *info;
+			struct gem_data *gem;
+
+			info = buffer->info;
+			gem = info->gem;
+
+			if (gem->pixmap_bo) {
+				tbm_bo_unmap(gem->pixmap_bo);
+				gem->pixmap_bo = NULL;
+			}
+
+			dlist_remove_data(s_info.canvas_list, buffer);
+			free(gem);
+			free(buffer);
+		}
 		break;
 	case WIDGET_FB_TYPE_FILE:
 		buffer->refcnt--;
@@ -417,7 +562,7 @@ int fb_refcnt(void *data)
 		ret = buf.shm_nattch;
 		break;
 	case WIDGET_FB_TYPE_PIXMAP:
-		ret = 0;
+		ret = buffer->refcnt;
 		break;
 	case WIDGET_FB_TYPE_FILE:
 		ret = buffer->refcnt;
@@ -490,4 +635,5 @@ int fb_type(struct fb_info *info)
 
 	return buffer->type;
 }
+
 /* End of a file */
