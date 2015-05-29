@@ -246,6 +246,17 @@ extern int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_opti
  */
 extern int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data);
 
+/**
+ * @brief Set the preview image file
+ * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] widget
+ * @param[in] preview
+ * @return #WIDGET_ERROR_NONE on success, otherwise a negative error value
+ */
+extern int widget_viewer_evas_set_preview_image(Evas_Object *widget, widget_size_type_e type, const char *preview);
+
 #ifdef __cplusplus
 }
 #endif

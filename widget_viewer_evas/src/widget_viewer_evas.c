@@ -227,6 +227,11 @@ enum CANCEL_CLICK {
 	CANCEL_PROCESSED = 0x02
 };
 
+struct preview_info {
+	widget_size_type_e type;
+	char *preview;
+};
+
 struct widget_data {
 	enum {
 		WIDGET_DATA_CREATED = 0x00beef00,
@@ -337,6 +342,8 @@ struct widget_data {
 	Eina_List *widget_script_object_list;
 
 	Ecore_Timer *delayed_resume_timer;
+
+	Eina_List *preview_list;
 };
 
 struct script_object {
@@ -414,6 +421,25 @@ static void append_widget_dirty_object_list(struct widget_data *data, int idx);
 static void append_gbar_dirty_object_list(struct widget_data *data, int idx);
 static void __widget_event_widget_updated(struct widget_data *data);
 static void __widget_event_gbar_updated(struct widget_data *data);
+
+static const char *get_preview_image(struct widget_data *data, widget_size_type_e type)
+{
+	Eina_List *l;
+	struct preview_info *info;
+	char *preview;
+
+	EINA_LIST_FOREACH(data->preview_list, l, info) {
+		if (info->type == type) {
+			preivew = strdup(info->preview);
+			if (!preview) {
+				ErrPrint("strdup: %d\n", errno);
+			}
+			return preview;
+		}
+	}
+
+	return widget_service_get_preview_image_path(data->widget_id, type);
+}
 
 static struct widget_data *get_smart_data(Evas_Object *widget)
 {
@@ -876,6 +902,10 @@ static void dump_handle_list(void)
 
 struct widget_data *widget_unref(struct widget_data *data)
 {
+	Eina_List *l;
+	Eina_List *n;
+	struct preview_info *info;
+
 	data->refcnt--;
 	DbgPrint("refcnt: %d (%s)\n", data->refcnt, data->widget_id);
 	if (data->refcnt != 0) {
@@ -887,6 +917,11 @@ struct widget_data *widget_unref(struct widget_data *data)
 	free(data->widget_id);
 	free(data->cluster);
 	free(data->category);
+
+	EINA_LIST_FOREACH_SAFE(data->preview_list, l, n, info) {
+		free(info->preview);
+		free(info);
+	}
 
 	if (data->overlay_timer) {
 		ecore_timer_del(data->overlay_timer);
@@ -2875,7 +2910,7 @@ static char *get_package_icon(struct widget_data *data)
 	if (data->size_type == WIDGET_SIZE_TYPE_UNKNOWN) {
 		icon = widget_service_get_icon(data->widget_id, NULL);
 	} else {
-		icon = widget_service_get_preview_image_path(data->widget_id, data->size_type);
+		icon = get_preview_image(data, data->size_type);
 	}
 
 	if (icon && access(icon, R_OK) == 0) {
@@ -4778,7 +4813,7 @@ static void __widget_overlay_faulted(struct widget_data *data)
 		if (!preview) {
 			char *icon;
 
-			icon = widget_service_get_preview_image_path(data->widget_id, data->size_type);
+			icon = get_preview_image(data, data->size_type);
 			if (icon) {
 				preview = elm_image_add(data->widget_layout);
 				if (preview) {
@@ -7412,6 +7447,64 @@ EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_viewer_evas_set_preview_image(Evas_Object *widget, widget_size_type_e type, const char *preview)
+{
+	struct widget_data *data;
+	Eina_List *l;
+	Eina_List *n;
+	struct preview_info *info;
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
+	data = get_smart_data(widget);
+	if (!data) {
+		ErrPrint("Invalid object\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	EINA_LIST_FOREACH_SAFE(data->preview_list, l, n, info) {
+		if (info->type == type) {
+			char *tmp;
+
+			if (preview) {
+				tmp = strdup(preview);
+				if (!tmp) {
+					ErrPrint("strdup: %d\n", errno);
+					return WIDGET_ERROR_OUT_OF_MEMORY;
+				}
+
+				free(info->preview);
+				info->preview = tmp;
+				return WIDGET_ERROR_NONE;
+			}
+
+			data->preview_list = eina_list_remove(data->preview_list, info);
+			free(info->preview);
+			free(info);
+			return WIDGET_ERROR_NONE;
+		}
+	}
+
+	info = malloc(sizeof(*preview));
+	if (!info) {
+		ErrPrint("malloc: %d\n", errno);
+		return WIDGET_ERROR_OUT_OF_MEMORY;
+	}
+
+	info->type = type;
+	info->preview = strdup(preview);
+	if (!info->preview) {
+		ErrPrint("strdup: %d\n", errno);
+		free(info);
+		return WIDGET_ERROR_OUT_OF_MEMORY;
+	}
+
+	data->preview_list = eina_list_append(data->preview_list, info);
 	return WIDGET_ERROR_NONE;
 }
 
