@@ -422,7 +422,7 @@ static void append_gbar_dirty_object_list(struct widget_data *data, int idx);
 static void __widget_event_widget_updated(struct widget_data *data);
 static void __widget_event_gbar_updated(struct widget_data *data);
 
-static const char *get_preview_image(struct widget_data *data, widget_size_type_e type)
+static char *get_preview_image(struct widget_data *data, widget_size_type_e type)
 {
 	Eina_List *l;
 	struct preview_info *info;
@@ -430,7 +430,7 @@ static const char *get_preview_image(struct widget_data *data, widget_size_type_
 
 	EINA_LIST_FOREACH(data->preview_list, l, info) {
 		if (info->type == type) {
-			preivew = strdup(info->preview);
+			preview = strdup(info->preview);
 			if (!preview) {
 				ErrPrint("strdup: %d\n", errno);
 			}
