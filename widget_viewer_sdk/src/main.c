@@ -404,6 +404,7 @@ static Evas_Object *list_item_content_get_cb(void *data, Evas_Object *obj, const
 			elm_image_resizable_set(icon, EINA_FALSE, EINA_FALSE);
 			DbgPrint("Icon: %s\n", icon_filename);
 		}
+		free(icon_filename);
 	} else {
 		icon = NULL;
 	}
