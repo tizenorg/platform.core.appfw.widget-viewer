@@ -30,6 +30,8 @@ IF("${ARCH}" STREQUAL "arm")
 	MESSAGE("add -DTARGET")
 ENDIF("${ARCH}" STREQUAL "arm")
 
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
+
 INCLUDE(FindPkgConfig)
 pkg_check_modules(sdk_pkgs REQUIRED
 	capi-appfw-application
@@ -53,7 +55,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../widget_viewer_evas/include)
 
 ADD_EXECUTABLE(${PROJECT_NAME} src/main.c)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${sdk_pkgs_LDFLAGS} "-lm -fpie -fPIC" widget_viewer_evas)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${sdk_pkgs_LDFLAGS} "-lm -pie -fPIC" widget_viewer_evas)
 
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION ${BINDIR})
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${PKGNAME}.xml DESTINATION /usr/share/packages)

@@ -862,13 +862,13 @@ static int send_key_event(widget_h handle, const char *event, unsigned int keyco
 	return master_rpc_async_request(handle, packet, 0, key_ret_cb, NULL);
 }
 
-static int send_mouse_event(widget_h handle, const char *event, int x, int y)
+static int send_mouse_event(widget_h handle, const char *event, int x, int y, double ratio_w, double ratio_h)
 {
 	struct packet *packet;
 	double timestamp;
 
 	timestamp = util_timestamp();
-	packet = packet_create_noack(event, "ssdiii", handle->common->pkgname, handle->common->id, timestamp, x, y, INPUT_EVENT_SOURCE_VIEWER);
+	packet = packet_create_noack(event, "ssdiiidd", handle->common->pkgname, handle->common->id, timestamp, x, y, INPUT_EVENT_SOURCE_VIEWER, ratio_w, ratio_h);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return WIDGET_ERROR_FAULT;
@@ -2272,8 +2272,6 @@ EAPI int widget_viewer_feed_access_event(widget_h handle, widget_access_event_ty
 
 EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type_e type, widget_mouse_event_info_s info)
 {
-	int w = 1;
-	int h = 1;
 	unsigned int cmd;
 
 	if (!handle || handle->state != WIDGET_STATE_CREATE) {
@@ -2320,8 +2318,6 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 		if (flag) {
 			handle->common->gbar.x = info->x;
 			handle->common->gbar.y = info->y;
-			w = handle->common->gbar.width;
-			h = handle->common->gbar.height;
 		}
 
 		switch ((type & ~(WIDGET_MOUSE_EVENT_GBAR_MASK | WIDGET_MOUSE_EVENT_WIDGET_MASK))) {
@@ -2382,8 +2378,6 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 		if (flag) {
 			handle->common->widget.x = info->x;
 			handle->common->widget.y = info->y;
-			w = handle->common->widget.width;
-			h = handle->common->widget.height;
 		}
 
 		switch ((type & ~(WIDGET_MOUSE_EVENT_GBAR_MASK | WIDGET_MOUSE_EVENT_WIDGET_MASK))) {
@@ -2438,7 +2432,7 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	return send_mouse_event(handle, (const char *)&cmd, info->x * w, info->y * h);
+	return send_mouse_event(handle, (const char *)&cmd, info->x, info->y, info->ratio_w, info->ratio_h);
 }
 
 EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e type, widget_key_event_info_s info, widget_ret_cb cb, void *data)

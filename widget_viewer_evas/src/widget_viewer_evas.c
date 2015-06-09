@@ -291,6 +291,8 @@ struct widget_data {
 
 	int widget_width;
 	int widget_height;
+	int fixed_width;
+	int fixed_height;
 	widget_size_type_e size_type;
 
 	union {
@@ -1016,10 +1018,21 @@ static void gbar_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 	if (s_info.conf.field.auto_feed) {
 		minfo.x = (double)data->down.geo.x;
 		minfo.y = (double)data->down.geo.y;
+		minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
+		minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_SET, &minfo);
 	} else {
-		minfo.x = (double)(down->canvas.x - data->down.geo.x) / (double)data->down.geo.w;
-		minfo.y = (double)(down->canvas.y - data->down.geo.y) / (double)data->down.geo.h;
+		minfo.x = (double)(down->canvas.x - data->down.geo.x);
+		minfo.y = (double)(down->canvas.y - data->down.geo.y);
+
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
+			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
+
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ENTER, &minfo);
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_DOWN, &minfo);
 	}
@@ -1047,8 +1060,16 @@ static void gbar_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 	data->y = move->cur.canvas.y;
 
 	if (data->is.field.cancel_click != CANCEL_DISABLED || !s_info.conf.field.auto_feed) {
-		minfo.x = (double)(move->cur.canvas.x - x) / (double)w;
-		minfo.y = (double)(move->cur.canvas.y - y) / (double)h;
+		minfo.x = (double)(move->cur.canvas.x - x);
+		minfo.y = (double)(move->cur.canvas.y - y);
+
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			minfo.ratio_w = (double)data->fixed_width / (double)w;
+			minfo.ratio_h = (double)data->fixed_height / (double)h;
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
 
 		if (data->is.field.cancel_click == CANCEL_USER) {
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ON_HOLD, &minfo);
@@ -1151,12 +1172,29 @@ static void gbar_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info
 		 * UNSET will subtract object.x and object.y by master
 		 * so we just send original touch position based on screen
 		 */
-		minfo.x = (double)up->canvas.x / (double)w;
-		minfo.y = (double)up->canvas.y / (double)h;
+		minfo.x = (double)up->canvas.x;
+		minfo.y = (double)up->canvas.y;
+
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			minfo.ratio_w = (double)data->fixed_width / (double)w;
+			minfo.ratio_h = (double)data->fixed_height / (double)h;
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
+
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_UNSET, &minfo);
 	} else {
-		minfo.x = (double)(up->canvas.x - x) / (double)w;
-		minfo.y = (double)(up->canvas.y - y) / (double)h;
+		minfo.x = (double)(up->canvas.x - x);
+		minfo.y = (double)(up->canvas.y - y);
+
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			minfo.ratio_w = (double)data->fixed_width / (double)w;
+			minfo.ratio_h = (double)data->fixed_height / (double)h;
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
 
 		if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.cancel_click == CANCEL_USER) {
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ON_HOLD, &minfo);
@@ -1214,10 +1252,20 @@ static void __widget_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
 			minfo.x = (double)data->down.geo.x;
 			minfo.y = (double)data->down.geo.y;
+			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
+			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_SET, &minfo);
 		} else {
-			minfo.x = (double)(data->x - data->down.geo.x) / (double)data->down.geo.w;
-			minfo.y = (double)(data->y - data->down.geo.y) / (double)data->down.geo.h;
+			minfo.x = (double)(data->x - data->down.geo.x);
+			minfo.y = (double)(data->y - data->down.geo.y);
+
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+				minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
+				minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+			} else {
+				minfo.ratio_w = 1.0f;
+				minfo.ratio_h = 1.0f;
+			}
 
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ENTER, &minfo);
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_DOWN, &minfo);
@@ -2756,8 +2804,16 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 	if (data->handle && !data->is.field.faulted) {
 		struct widget_mouse_event_info minfo;
 
-		minfo.x = (double)(data->x - x) / (double)w;
-		minfo.y = (double)(data->y - y) / (double)h;
+		minfo.x = (double)(data->x - x);
+		minfo.y = (double)(data->y - y);
+
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			minfo.ratio_w = (double)data->fixed_width / (double)w;
+			minfo.ratio_h = (double)data->fixed_height / (double)h;
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
 
 		evas_object_geometry_get(obj, &x, &y, NULL, NULL);
 
@@ -2776,14 +2832,36 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 			 * UNSET will subtract object.x and object.y by master
 			 * so we just send original touch position based on screen
 			 */
-			_minfo.x = (double)up->canvas.x / (double)data->down.geo.w;
-			_minfo.y = (double)up->canvas.y / (double)data->down.geo.h;
+			_minfo.x = (double)up->canvas.x;
+			_minfo.y = (double)up->canvas.y;
+			DbgPrint("X,Y = %lfx%lf\n", _minfo.x, _minfo.y);
+
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+				_minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
+				_minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+				DbgPrint("Width: %d/%d - Height: %d/%d\n", data->fixed_width, data->down.geo.w, data->fixed_height, data->down.geo.h);
+				DbgPrint("Ratio: %lfx%lf\n", _minfo.ratio_w, _minfo.ratio_h);
+			} else {
+				_minfo.ratio_w = 1.0f;
+				_minfo.ratio_h = 1.0f;
+				DbgPrint("UNKNOWN Ratio: %lfx%lf\n", minfo.ratio_w, minfo.ratio_h);
+			}
+
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &_minfo);
 		} else {
 			if (!data->is.field.mouse_event) {
 				/* We have to keep the first position of touch down */
-				minfo.x = (double)(data->down.x - x) / (double)w;
-				minfo.y = (double)(data->down.y - y) / (double)h;
+				minfo.x = (double)(data->down.x - x);
+				minfo.y = (double)(data->down.y - y);
+
+				if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+					minfo.ratio_w = (double)data->fixed_width / (double)w;
+					minfo.ratio_h = (double)data->fixed_height / (double)h;
+				} else {
+					minfo.ratio_w = 1.0f;
+					minfo.ratio_h = 1.0f;
+				}
+
 				if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.scroll_x || data->is.field.scroll_y || data->is.field.cancel_click == CANCEL_USER || abs(data->x - data->down.x) > CLICK_REGION || abs(data->y - data->down.y) > CLICK_REGION) {
 					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
 					data->is.field.cancel_click = CANCEL_PROCESSED;
@@ -2795,6 +2873,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 				}
 			}
 
+			DbgPrint("%lfx%lf (%lfx%lf)\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UP, &minfo);
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_LEAVE, &minfo);
 		}
@@ -2859,8 +2938,17 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 
 			evas_object_geometry_get(obj, &x, &y, &w, &h);
 
-			minfo.x = (double)(data->x - x) / (double)w;
-			minfo.y = (double)(data->y - y) / (double)h;
+			minfo.x = (double)(data->x - x);
+			minfo.y = (double)(data->y - y);
+
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+				minfo.ratio_w = (double)data->fixed_width / (double)w;
+				minfo.ratio_h = (double)data->fixed_height / (double)h;
+			} else {
+				minfo.ratio_w = 1.0f;
+				minfo.ratio_h = 1.0f;
+			}
+
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
 
 			/*
@@ -2880,8 +2968,17 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 
 			evas_object_geometry_get(obj, &x, &y, &w, &h);
 
-			minfo.x = (double)(data->x - x) / (double)w;
-			minfo.y = (double)(data->y - y) / (double)h;
+			minfo.x = (double)(data->x - x);
+			minfo.y = (double)(data->y - y);
+
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+				minfo.ratio_w = (double)data->fixed_width / (double)w;
+				minfo.ratio_h = (double)data->fixed_height / (double)h;
+			} else {
+				minfo.ratio_w = 1.0f;
+				minfo.ratio_h = 1.0f;
+			}
+
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_MOVE, &minfo);
 		}
 
@@ -3638,8 +3735,16 @@ static int do_force_mouse_up(struct widget_data *data)
 
 	evas_object_geometry_get(data->widget, &x, &y, &w, &h);
 
-	minfo.x = (double)(data->x - x) / (double)w;
-	minfo.y = (double)(data->y - y) / (double)h;
+	minfo.x = (double)(data->x - x);
+	minfo.y = (double)(data->y - y);
+
+	if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+		minfo.ratio_w = (double)data->fixed_width / (double)w;
+		minfo.ratio_h = (double)data->fixed_height / (double)h;
+	} else {
+		minfo.ratio_w = 1.0f;
+		minfo.ratio_h = 1.0f;
+	}
 
 	data->is.field.pressed = 0;
 
@@ -3658,14 +3763,34 @@ static int do_force_mouse_up(struct widget_data *data)
 		 * UNSET will subtract object.x and object.y by master
 		 * so we just send original touch position based on screen
 		 */
-		minfo.x = (double)data->x / (double)data->down.geo.w;
-		minfo.y = (double)data->y / (double)data->down.geo.h;
+		minfo.x = (double)data->x;
+		minfo.y = (double)data->y;
+		DbgPrint("X,Y = %lfx%lf\n", minfo.x, minfo.y);
+
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
+			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+			DbgPrint("Width: %d/%d - Height: %d/%d\n", data->fixed_width, data->down.geo.w, data->fixed_height, data->down.geo.h);
+			DbgPrint("Ratio: %lfx%lf\n", minfo.ratio_w, minfo.ratio_h);
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+			DbgPrint("UNKNOWN Ratio: %lfx%lf\n", minfo.ratio_w, minfo.ratio_h);
+		}
+
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &minfo);
 	} else {
 		if (!data->is.field.mouse_event) {
 			/* We have to keep the first position of touch down */
-			minfo.x = (double)(data->down.x - x) / (double)w;
-			minfo.y = (double)(data->down.y - y) / (double)h;
+			minfo.x = (double)(data->down.x - x);
+			minfo.y = (double)(data->down.y - y);
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+				minfo.ratio_w = (double)data->fixed_width / (double)w;
+				minfo.ratio_h = (double)data->fixed_height / (double)h;
+			} else {
+				minfo.ratio_w = 1.0f;
+				minfo.ratio_h = 1.0f;
+			}
 		}
 
 		DbgPrint("%x\n", data->is.field.cancel_click);
@@ -3675,6 +3800,7 @@ static int do_force_mouse_up(struct widget_data *data)
 			data->is.field.cancel_click = CANCEL_PROCESSED;
 		}
 
+		DbgPrint("%lfx%lf (%lfx%lf)\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UP, &minfo);
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_LEAVE, &minfo);
 	}
@@ -4863,6 +4989,16 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 	} else if (s_info.conf.field.use_fixed_size) {
 		if (widget_service_get_size(type, &w, &h) < 0) {
 			ErrPrint("Failed to get box size\n");
+		}
+		data->fixed_width = w;
+		data->fixed_height = h;
+	} else {
+		if (widget_service_get_size(type, &data->fixed_width, &data->fixed_height) < 0) {
+			ErrPrint("Failed to get box size\n");
+		} else {
+			DbgPrint("Use the given size\n");
+			data->fixed_width = w;
+			data->fixed_width = h;
 		}
 	}
 

@@ -282,6 +282,8 @@ typedef struct widget_damage_region {
 typedef struct widget_mouse_event_info {
     double x;                                   /**< X coordinates of Mouse Event */
     double y;                                   /**< Y coordinates of Mouse Event */
+	double ratio_w;
+	double ratio_h;
 } *widget_mouse_event_info_s;
 
 /**
