@@ -1254,6 +1254,7 @@ static void __widget_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 			minfo.y = (double)data->down.geo.y;
 			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
 			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+			DbgPrint("%lfx%lf (%lfx%lf), %dx%d %dx%d\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h, data->fixed_width, data->fixed_height, data->down.geo.w, data->down.geo.h);
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_SET, &minfo);
 		} else {
 			minfo.x = (double)(data->x - data->down.geo.x);
@@ -1266,6 +1267,7 @@ static void __widget_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 				minfo.ratio_w = 1.0f;
 				minfo.ratio_h = 1.0f;
 			}
+			DbgPrint("%lfx%lf (%lfx%lf)\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
 
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ENTER, &minfo);
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_DOWN, &minfo);
@@ -4994,11 +4996,11 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 		data->fixed_height = h;
 	} else {
 		if (widget_service_get_size(type, &data->fixed_width, &data->fixed_height) < 0) {
-			ErrPrint("Failed to get box size\n");
-		} else {
 			DbgPrint("Use the given size\n");
 			data->fixed_width = w;
 			data->fixed_width = h;
+		} else {
+			ErrPrint("Failed to get box size\n");
 		}
 	}
 
