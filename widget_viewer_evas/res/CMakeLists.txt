@@ -9,3 +9,5 @@ ADD_CUSTOM_TARGET(widget_viewer_evas.edj
 ADD_DEPENDENCIES(${PROJECT_NAME} widget_viewer_evas.edj)
 INSTALL(FILES widget_viewer_evas.edj DESTINATION ${EDJDIR})
 INSTALL(FILES unknown.png DESTINATION ${IMGDIR})
+
+ADD_SUBDIRECTORY(po)

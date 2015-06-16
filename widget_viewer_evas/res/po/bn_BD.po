@@ -1,0 +1,6 @@
+msgid "IDS_ST_BODY_LOADING_ING"
+msgstr "লোড হচ্ছে..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "তথ্য লোড করা সম্ভব হয়নি। পুনরায় চেষ্টা করতে ট্যাপ করুন।"
+

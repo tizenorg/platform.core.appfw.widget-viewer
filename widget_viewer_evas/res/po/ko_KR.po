@@ -1,0 +1,6 @@
+msgid "IDS_ST_BODY_LOADING_ING"
+msgstr "불러오는 중..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "데이터를 불러올 수 없습니다. 다시 시도하려면 누르세요."
+

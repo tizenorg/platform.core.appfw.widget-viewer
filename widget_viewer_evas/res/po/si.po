@@ -1,0 +1,6 @@
+msgid "IDS_ST_BODY_LOADING_ING"
+msgstr "ප්‍රෙව්ශනය කරමින්..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "දත්ත ප්‍රවේශනය කිරීමට නොහැකිය. යළි උත්සාහ කිරීමට තට්ටු කරන්න"
+

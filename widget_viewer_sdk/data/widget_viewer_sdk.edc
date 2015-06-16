@@ -2,7 +2,7 @@ collections {
 	styles {
 		style {
 			name: "info,text";
-			base: "font=Tizen font_size=15 align=left color=#FFFFFF ellipsis=1.0 wrap=char";
+			base: "font=Tizen font_size=25 align=left color=#FFFFFF ellipsis=1.0 wrap=char";
 			tag: "br" "\n";
 			tag: "hilight" "+ font=Tizen:style=Bold";
 			tag: "b" "+ font=Tizen:style=Bold";
@@ -236,14 +236,17 @@ collections {
 				type: TEXTBLOCK;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 0.0 0.3; }
-					rel2 { relative: 0.0 0.6; }
+					rel1 { relative: 0.5 0.3; }
+					rel2 { relative: 0.5 0.6; }
 					color: 255 255 255 255;
 					color2: 0 0 0 255;
 					color3: 0 0 0 255;
+					fixed: 1 0;
+					align: 0.5 0.0;
+					min: 400 0;
 					text {
 						style: "info,text";
-						text: "Hello";
+						text: "Information";
 					}
 					visible: 0;
 				}

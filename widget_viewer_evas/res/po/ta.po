@@ -1,0 +1,6 @@
+msgid "IDS_ST_BODY_LOADING_ING"
+msgstr "லோடிங்..."
+
+msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
+msgstr "தரவை ஏற்ற இயலவில்லை. மீண்டும் முயலவென டேப் செய்க."
+

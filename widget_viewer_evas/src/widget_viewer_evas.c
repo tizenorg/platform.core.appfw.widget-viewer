@@ -66,7 +66,7 @@
 #endif
 
 #if !defined(T_)
-#define T_(str) dgettext(PACKAGE, str)
+#define T_(str) dgettext(PKGNAME, str)
 #endif
 
 #if !defined(N_)
@@ -4897,7 +4897,7 @@ static void __widget_overlay_loading(struct widget_data *data)
 		DbgPrint("Overlay is disabled (%s)\n", data->widget_id);
 	}
 
-	elm_object_part_text_set(overlay, "text", _("IDS_IDLE_POP_LOADING_ING"));
+	elm_object_part_text_set(overlay, "text", T_("IDS_ST_BODY_LOADING_ING"));
 	if (data->is.field.disable_text) {
 		elm_object_signal_emit(overlay, "disable", "text");
 	}
@@ -4955,7 +4955,7 @@ static void __widget_overlay_faulted(struct widget_data *data)
 	}
 
 	DbgPrint("Set overlay fault (%p) %s\n", data, data->widget_id);
-	elm_object_part_text_set(overlay, "text", _("IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"));
+	elm_object_part_text_set(overlay, "text", T_("IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"));
 	elm_object_signal_emit(overlay, "enable", "text");
 	elm_object_signal_emit(data->widget_layout, "reset", "overlay");
 	elm_object_signal_emit(data->widget_layout, "enable", "overlay");
@@ -6316,6 +6316,12 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
+	if (!bindtextdomain(PKGNAME, WIDGET_EVAS_RESOURCE_PO)) {
+		ErrPrint("bindtextdomain: %d\n", errno);
+	} else {
+		DbgPrint("%s - %s\n", PKGNAME, WIDGET_EVAS_RESOURCE_PO);
+	}
+
 	util_screen_size_get(&s_info.screen_width, &s_info.screen_height);
 
 	s_info.conf.field.render_animator = 0;	// By default, use render animator for updating
@@ -7628,7 +7634,7 @@ EAPI int widget_viewer_evas_set_preview_image(Evas_Object *widget, widget_size_t
 		}
 	}
 
-	info = malloc(sizeof(*preview));
+	info = malloc(sizeof(struct preview_info));
 	if (!info) {
 		ErrPrint("malloc: %d\n", errno);
 		return WIDGET_ERROR_OUT_OF_MEMORY;

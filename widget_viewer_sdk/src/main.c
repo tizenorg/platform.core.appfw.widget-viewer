@@ -191,12 +191,11 @@ static int unload_widget(void)
 		return WIDGET_ERROR_NOT_EXIST;
 	}
 
-	elm_box_unpack(s_info.box, s_info.ctx.widget);
-
 	tmp = widget_viewer_evas_get_widget_id(s_info.ctx.widget);
 	DbgPrint("Unload previous widget: %s\n", tmp);
 
 	widget_viewer_evas_set_permanent_delete(s_info.ctx.widget, EINA_TRUE);
+	elm_object_part_content_unset(s_info.layout, "widget");
 	evas_object_del(s_info.ctx.widget);
 	free(s_info.ctx.title);
 	free(s_info.ctx.content_info);
@@ -309,6 +308,29 @@ static void period_changed_cb(void *data, Evas_Object *obj, void *event_info)
 	DbgPrint("Period updated: %s\n", buffer);
 }
 
+static void update_message(const char *fmt, ...)
+{
+	if (!fmt) {
+		elm_object_signal_emit(s_info.layout, "hide", "message");
+	} else {
+		va_list ap;
+		char buffer[1024];
+
+		va_start(ap, fmt);
+		vsnprintf(buffer, sizeof(buffer) - 1, fmt, ap);
+		va_end(ap);
+
+		elm_object_part_text_set(s_info.layout, "message", buffer);
+		elm_object_signal_emit(s_info.layout, "show", "message");
+		ErrPrint("%s", buffer);
+	}
+}
+
+static void widget_create_aborted_cb(void *data, Evas_Object *obj, void *event_info)
+{
+	update_message("Create aborted");
+}
+
 static void widget_created_cb(void *data, Evas_Object *obj, void *event_info)
 {
 	period_changed_cb(data, obj, NULL);
@@ -330,23 +352,26 @@ static int load_widget(const char *widget_id)
 	}
 
 	if (i == s_info.ctx.count_of_size_type) {
-		ErrPrint("Supported size is not found\n");
-		evas_object_resize(s_info.layout, s_info.w, s_info.h);
-		evas_object_size_hint_min_set(s_info.layout, s_info.w, s_info.h);
-		evas_object_size_hint_max_set(s_info.layout, s_info.w, s_info.h);
+		Evas_Object *rect;
+
+		rect = evas_object_rectangle_add(evas_object_evas_get(s_info.layout));
+		evas_object_resize(rect, s_info.w, s_info.h);
+		evas_object_size_hint_min_set(rect, s_info.w, s_info.h);
+		evas_object_color_set(rect, 100, 100, 100, 255);
+		evas_object_show(rect);
+		elm_object_part_content_set(s_info.layout, "widget", rect);
 		evas_object_show(s_info.layout);
 
-		elm_object_part_text_set(s_info.layout, "message", "Supported size is not found");
-		elm_object_signal_emit(s_info.layout, "show", "message");
+		update_message("Supported size is not found");
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
-	elm_object_signal_emit(s_info.layout, "hide", "message");
+	update_message(NULL);
 
 	DbgPrint("Found valid size[%X]: %dx%d\n", s_info.ctx.size_types[i], w, h);
 
 	s_info.ctx.widget = widget_viewer_evas_add_widget(s_info.win, widget_id, s_info.ctx.content_info, s_info.ctx.period);
 	if (!s_info.ctx.widget) {
-		ErrPrint("Failed to create a new widget\n");
+		update_message("Failed to create a new widget");
 		return WIDGET_ERROR_FAULT;
 	}
 
@@ -356,6 +381,7 @@ static int load_widget(const char *widget_id)
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED, extra_updated_cb, NULL);
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_PERIOD_CHANGED, period_changed_cb, NULL);
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_WIDGET_CREATED, widget_created_cb, NULL);
+	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, widget_create_aborted_cb, NULL);
 
 	elm_object_part_text_set(s_info.layout, "widget,id", widget_id);
 	elm_object_part_content_set(s_info.layout, "widget", s_info.ctx.widget);
