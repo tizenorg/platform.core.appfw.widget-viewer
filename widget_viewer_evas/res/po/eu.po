@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Loading..."
+msgstr "Kargatzen..."
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Tap to create"
+msgstr "Ukitu sortzeko"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Enable"
+msgstr "Gaitu"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Disable"
+msgstr "Ezgaitu"
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "New"
+msgstr "Berria"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "Default"
+msgstr "Lehenetsia"
 
 msgid "IDS_ST_BODY_MODE"
-msgstr "Mode"
+msgstr "Modua"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Disabling..."
+msgstr "Desgaitzen..."
 
 msgid "IDS_HS_BUTTON_DONE"
-msgstr "Done"
+msgstr "Egina"
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Edit"
+msgstr "Editatu"
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Create"
+msgstr "Sortu"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Help"
+msgstr "Laguntza"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Reset"
+msgstr "Berrezarri"
 
 msgid "IDS_ST_BODY_SIZE"
-msgstr "Size"
+msgstr "Tamaina"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Add widget"
+msgstr "Gehitu widgeta"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Not enough space on the home screen."
+msgstr "Ez dago nahikoa espazio pantaila nagusian"
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Unable to add widget"
+msgstr "Ezin da widgeta gehitu"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Loading..."
+msgstr "Kargatzen..."
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Unable to load data. Tap to retry."
+msgstr "Ezin dira datuak kargatu. Ukitu berriz saiatzeko."
 

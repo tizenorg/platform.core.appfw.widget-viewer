@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Loading..."
+msgstr "正在載入..."
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Tap to create"
+msgstr "輕觸以建立"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Enable"
+msgstr "啟用"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Disable"
+msgstr "停用"
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "New"
+msgstr "新增"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "Default"
+msgstr "預設"
 
 msgid "IDS_ST_BODY_MODE"
-msgstr "Mode"
+msgstr "模式"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Disabling..."
+msgstr "正在停用..."
 
 msgid "IDS_HS_BUTTON_DONE"
-msgstr "Done"
+msgstr "完成"
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Edit"
+msgstr "編輯"
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Create"
+msgstr "建立"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Help"
+msgstr "說明"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Reset"
+msgstr "重設"
 
 msgid "IDS_ST_BODY_SIZE"
-msgstr "Size"
+msgstr "大小"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Add widget"
+msgstr "新增 widget"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Not enough space on the home screen."
+msgstr "主螢幕空間不足。"
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Unable to add widget"
+msgstr "無法新增 widget"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Loading..."
+msgstr "正在載入..."
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Unable to load data. Tap to retry."
+msgstr "無法載入資料。輕觸以重試。"
 

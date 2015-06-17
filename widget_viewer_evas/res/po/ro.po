@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Loading..."
+msgstr "Încărcare..."
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Tap to create"
+msgstr "Atingeţi pentru a crea"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Enable"
+msgstr "Activare"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Disable"
+msgstr "Dezactiv."
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "New"
+msgstr "Nou"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "Default"
+msgstr "Implicit"
 
 msgid "IDS_ST_BODY_MODE"
-msgstr "Mode"
+msgstr "Mod"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Disabling..."
+msgstr "Se dezactivează..."
 
 msgid "IDS_HS_BUTTON_DONE"
-msgstr "Done"
+msgstr "Efectuat"
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Edit"
+msgstr "Editare"
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Create"
+msgstr "Creare"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Help"
+msgstr "Ajutor"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Reset"
+msgstr "Reiniţializare"
 
 msgid "IDS_ST_BODY_SIZE"
-msgstr "Size"
+msgstr "Dimensiune"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Add widget"
+msgstr "Adăugare widget"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Not enough space on the home screen."
+msgstr "Spaţiu insuficient în ecranul de pornire"
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Unable to add widget"
+msgstr "Widgetul nu poate fi adăugat"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Loading..."
+msgstr "Încărcare..."
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Unable to load data. Tap to retry."
+msgstr "Datele nu pot fi încărcate. Atingeţi pentru a reîncerca."
 

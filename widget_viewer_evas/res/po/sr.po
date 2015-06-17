@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Loading..."
+msgstr "Učitavanje..."
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Tap to create"
+msgstr "Kucni za kreiranje"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Enable"
+msgstr "Omogući"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Disable"
+msgstr "Onemogući"
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "New"
+msgstr "Nova"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "Default"
+msgstr "Podrazumevano"
 
 msgid "IDS_ST_BODY_MODE"
-msgstr "Mode"
+msgstr "Mod"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Disabling..."
+msgstr "Onemogućavanje..."
 
 msgid "IDS_HS_BUTTON_DONE"
-msgstr "Done"
+msgstr "Gotovo"
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Edit"
+msgstr "Izmeni"
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Create"
+msgstr "Kreiraj"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Help"
+msgstr "Pomoć"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Reset"
+msgstr "Resetuj"
 
 msgid "IDS_ST_BODY_SIZE"
-msgstr "Size"
+msgstr "Veličina"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Add widget"
+msgstr "Dodaj widget"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Not enough space on the home screen."
+msgstr "Nema dovoljno prostora na početnom ekranu."
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Unable to add widget"
+msgstr "Nije moguće dodati widget"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Loading..."
+msgstr "Učitavanje..."
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Unable to load data. Tap to retry."
+msgstr "Učitavanje podataka nije moguće. Kucni za ponovni pokušaj."
 

@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Loading..."
+msgstr "Nahrávám..."
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Tap to create"
+msgstr "Klepnutím vytvořit"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Enable"
+msgstr "Povolit"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Disable"
+msgstr "Vypnout"
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "New"
+msgstr "Nový"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "Default"
+msgstr "Výchozí"
 
 msgid "IDS_ST_BODY_MODE"
-msgstr "Mode"
+msgstr "Režim"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Disabling..."
+msgstr "Vypínání..."
 
 msgid "IDS_HS_BUTTON_DONE"
-msgstr "Done"
+msgstr "Hot."
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Edit"
+msgstr "Upravit"
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Create"
+msgstr "Vytvořit"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Help"
+msgstr "Nápověda"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Reset"
+msgstr "Obnovit"
 
 msgid "IDS_ST_BODY_SIZE"
-msgstr "Size"
+msgstr "Velikost"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Add widget"
+msgstr "Přidat nástroj"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Not enough space on the home screen."
+msgstr "Nedostatek místa na domovské obrazovce."
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Unable to add widget"
+msgstr "Pomůcku nelze přidat"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Loading..."
+msgstr "Nahrávám..."
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Unable to load data. Tap to retry."
+msgstr "Data nelze načíst. Klepnutím opakujte akci."
 

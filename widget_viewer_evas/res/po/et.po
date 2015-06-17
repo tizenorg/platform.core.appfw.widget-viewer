@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Loading..."
+msgstr "Laadimine..."
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Tap to create"
+msgstr "Toksake loomiseks"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Enable"
+msgstr "Luba"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Disable"
+msgstr "Desaktiv."
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "New"
+msgstr "Uus"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "Default"
+msgstr "Vaikimisi"
 
 msgid "IDS_ST_BODY_MODE"
-msgstr "Mode"
+msgstr "Režiim"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Disabling..."
+msgstr "Desaktiveerimine..."
 
 msgid "IDS_HS_BUTTON_DONE"
-msgstr "Done"
+msgstr "Valmis"
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Edit"
+msgstr "Redigeeri"
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Create"
+msgstr "Loo"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Help"
+msgstr "Spikker"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Reset"
+msgstr "Lähtesta"
 
 msgid "IDS_ST_BODY_SIZE"
-msgstr "Size"
+msgstr "Suurus"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Add widget"
+msgstr "Vidina lisamine"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Not enough space on the home screen."
+msgstr "Avaekraanil pole piisavalt ruumi."
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Unable to add widget"
+msgstr "Vidinat ei saa lisada"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Loading..."
+msgstr "Laadimine..."
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Unable to load data. Tap to retry."
+msgstr "Andmeid ei saa laadida. Toksake, et proovida uuesti."
 

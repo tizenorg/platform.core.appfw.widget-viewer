@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Loading..."
+msgstr "Åpner..."
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Tap to create"
+msgstr "Trykk for å opprette"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Enable"
+msgstr "Aktiver"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Disable"
+msgstr "Deaktiver"
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "New"
+msgstr "Ny"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "Default"
+msgstr "Standard"
 
 msgid "IDS_ST_BODY_MODE"
-msgstr "Mode"
+msgstr "Modus"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Disabling..."
+msgstr "Deaktiverer..."
 
 msgid "IDS_HS_BUTTON_DONE"
-msgstr "Done"
+msgstr "OK"
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Edit"
+msgstr "Rediger"
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Create"
+msgstr "Opprett"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Help"
+msgstr "Hjelp"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Reset"
+msgstr "Nullstill"
 
 msgid "IDS_ST_BODY_SIZE"
-msgstr "Size"
+msgstr "Størrelse"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Add widget"
+msgstr "Legg til widget"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Not enough space on the home screen."
+msgstr "Ikke nok plass på dette startskjermbildet."
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Unable to add widget"
+msgstr "Kan ikke legge til widget"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Loading..."
+msgstr "Åpner..."
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Unable to load data. Tap to retry."
+msgstr "Kan ikke laste data. Trykk for å prøve på nytt."
 

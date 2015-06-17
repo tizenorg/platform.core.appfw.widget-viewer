@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Loading..."
+msgstr "Hleð..."
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Tap to create"
+msgstr "Pikkaðu til að búa til"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Enable"
+msgstr "Gera virkt"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Disable"
+msgstr "Slökkva"
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "New"
+msgstr "Nýtt"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "Default"
+msgstr "Sjálfgefið"
 
 msgid "IDS_ST_BODY_MODE"
-msgstr "Mode"
+msgstr "Stilling"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Disabling..."
+msgstr "Slekk..."
 
 msgid "IDS_HS_BUTTON_DONE"
-msgstr "Done"
+msgstr "Lokið"
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Edit"
+msgstr "Breyta"
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Create"
+msgstr "Búa til"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Help"
+msgstr "Hjálp"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Reset"
+msgstr "Endurstilla"
 
 msgid "IDS_ST_BODY_SIZE"
-msgstr "Size"
+msgstr "Stærð"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Add widget"
+msgstr "Bæta við græju"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Not enough space on the home screen."
+msgstr "Of lítið pláss á heimaskjánum."
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Unable to add widget"
+msgstr "Ekki er hægt að bæta við græju"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Loading..."
+msgstr "Hleð..."
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Unable to load data. Tap to retry."
+msgstr "Ekki tókst að hlaða gögn. Pikkaðu til að reyna aftur."
 

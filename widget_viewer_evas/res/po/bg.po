@@ -1,57 +1,57 @@
 msgid "IDS_ST_POP_LOADING_ING"
-msgstr "Загрузка..."
+msgstr "Зареждане"
 
 msgid "IDS_ST_BUTTON_TAP_TO_CREATE"
-msgstr "Нажмите для создания"
+msgstr "Чукнете, за да създадете"
 
 msgid "IDS_ST_BUTTON_ENABLE"
-msgstr "Включить"
+msgstr "Разрешаване"
 
 msgid "IDS_ST_BUTTON_DISABLE"
-msgstr "Выключить"
+msgstr "Забрани"
 
 msgid "IDS_ST_BODY_NEW"
-msgstr "Создать"
+msgstr "Ново"
 
 msgid "IDS_ST_BODY_MYTHEME_DEFAULT"
-msgstr "По умолчанию"
+msgstr "По подразбиране"
 
 msgid "IDS_ST_BODY_MODE"
 msgstr "Режим"
 
 msgid "IDS_ST_BODY_DISABLING_ING"
-msgstr "Отключение..."
+msgstr "Деактивиране..."
 
 msgid "IDS_HS_BUTTON_DONE"
 msgstr "Готово"
 
 msgid "IDS_HS_BUTTON_EDIT_ABB"
-msgstr "Изменить"
+msgstr "Редактир."
 
 msgid "IDS_ST_BODY_MYTHEME_CREATE"
-msgstr "Создать"
+msgstr "Създай"
 
 msgid "IDS_ST_HEADER_HELP"
-msgstr "Справка"
+msgstr "Помощ"
 
 msgid "IDS_ST_BODY_RESET"
-msgstr "Сброс"
+msgstr "Нyлиране"
 
 msgid "IDS_ST_BODY_SIZE"
 msgstr "Размер"
 
 msgid "IDS_HS_HEADER_ADD_WIDGET"
-msgstr "Добавить виджет"
+msgstr "Добавяне на уиджет"
 
 msgid "IDS_HS_BODY_NOT_ENOUGH_SPACE_ON_THE_HOME_SCREEN"
-msgstr "Недостаточно места на главном экране."
+msgstr "Няма достатъчно място в началния екран."
 
 msgid "IDS_HS_HEADER_UNABLE_TO_ADD_WIDGET_ABB"
-msgstr "Не удалось добавить виджет"
+msgstr "Не може да се добави уиджет"
 
 msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "Загрузка..."
+msgstr "Зареждане"
 
 msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "Не удалось загрузить данные. Коснитесь для повтора"
+msgstr "Данните не могат да се заредят. Чукнете, за да опитате отново."
 
