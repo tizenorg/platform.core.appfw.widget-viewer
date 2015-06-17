@@ -1,6 +1,0 @@
-msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "लोड होत आहे..."
-
-msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "डेटा लोड करण्यामध्‍ये अक्षम. पुनर्प्रयत्न करण्‍यासाठी टॅप करा."
-

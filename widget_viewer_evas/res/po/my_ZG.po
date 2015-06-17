@@ -1,6 +1,0 @@
-msgid "IDS_ST_BODY_LOADING_ING"
-msgstr "အခ်က္အလက္ျဖည့္သြင္းေနပါသည္…"
-
-msgid "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"
-msgstr "ေဒတာ တင္ရန္ မရႏိုင္ပါ။ ျပန္ၾကိဳးစားရန္ ႏွိပ္ပါ။"
-

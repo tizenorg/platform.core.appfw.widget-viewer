@@ -4897,7 +4897,7 @@ static void __widget_overlay_loading(struct widget_data *data)
 		DbgPrint("Overlay is disabled (%s)\n", data->widget_id);
 	}
 
-	elm_object_part_text_set(overlay, "text", T_("IDS_ST_BODY_LOADING_ING"));
+	elm_object_domain_translatable_part_text_set(overlay, "text", PKGNAME, "IDS_ST_BODY_LOADING_ING");
 	if (data->is.field.disable_text) {
 		elm_object_signal_emit(overlay, "disable", "text");
 	}
@@ -4955,7 +4955,7 @@ static void __widget_overlay_faulted(struct widget_data *data)
 	}
 
 	DbgPrint("Set overlay fault (%p) %s\n", data, data->widget_id);
-	elm_object_part_text_set(overlay, "text", T_("IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"));
+	elm_object_domain_translatable_part_text_set(overlay, "text", PKGNAME, "IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY");
 	elm_object_signal_emit(overlay, "enable", "text");
 	elm_object_signal_emit(data->widget_layout, "reset", "overlay");
 	elm_object_signal_emit(data->widget_layout, "enable", "overlay");
