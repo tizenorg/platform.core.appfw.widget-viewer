@@ -8,7 +8,6 @@ org.tizen.widget_viewer_sdk sound_server rw---- ------
 org.tizen.widget_viewer_sdk syspopup::db rw---- ------
 org.tizen.widget_viewer_sdk dbus rwx--- ------
 org.tizen.widget_viewer_sdk pulseaudio rwxat- ------
-org.tizen.widget_viewer_sdk ail::db rw---- ------
 org.tizen.widget_viewer_sdk connman r----- ------
 org.tizen.widget_viewer_sdk system rwx--- ------
 org.tizen.widget_viewer_sdk immvibed rw---- ------
@@ -16,16 +15,11 @@ org.tizen.widget_viewer_sdk svi-data r-x--- ------
 org.tizen.widget_viewer_sdk org.tizen.clocksetting rwx--- ------
 org.tizen.widget_viewer_sdk org.tizen.clocksetting::default-resources r-x--- ------
 org.tizen.widget_viewer_sdk e17 r-x--- ------
-org.tizen.widget_viewer_sdk system::vconf rwx--- ------
-org.tizen.widget_viewer_sdk system::vconf_setting rw---- ------
-org.tizen.widget_viewer_sdk system::vconf_inhouse rw---- ------
-org.tizen.widget_viewer_sdk system::vconf_multimedia rw---- ------
 org.tizen.widget_viewer_sdk deviced rwx--- ------
 org.tizen.widget_viewer_sdk deviced::display rw---- ------
 org.tizen.widget_viewer_sdk data-provider-master::data --x--- ------
 org.tizen.widget_viewer_sdk testmode::vconf r----- ------
 org.tizen.widget_viewer_sdk data-provider-master::db rw---- ------
-org.tizen.widget_viewer_sdk data-provider-master::share rwxat- ------
 org.tizen.widget_viewer_sdk data-provider-master::data r-x--- ------
 org.tizen.widget_viewer_sdk data-provider-master::client rw---- ------
 org.tizen.widget_viewer_sdk data-provider-master rw---- ------

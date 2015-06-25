@@ -884,7 +884,7 @@ struct widget_common *_widget_find_sharable_common_handle(const char *pkgname, c
 		if (common->content && content) {
 			if (strcmp(common->content, content)) {
 				DbgPrint("%s Content ([%s] <> [%s])\n", common->pkgname, common->content, content);
-				continue;    
+				continue;
 			}
 		} else {
 			int c1_len;

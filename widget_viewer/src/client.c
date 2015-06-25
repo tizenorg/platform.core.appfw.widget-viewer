@@ -794,7 +794,7 @@ static struct packet *master_widget_updated(pid_t pid, int handle, const struct 
 	if (_widget_text_widget(common)) {
 		const char *common_filename;
 
-		common_filename = common->filename ? common->filename : util_uri_to_path(common->id); 
+		common_filename = common->filename ? common->filename : util_uri_to_path(common->id);
 
 		(void)parse_desc(common, common_filename, 0);
 		/*!
@@ -937,7 +937,7 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 			cb(handler, status, cbdata);
 		} else if (status == (int)WIDGET_ERROR_NONE) {
 			_widget_invoke_event_handler(handler, WIDGET_EVENT_GBAR_CREATED);
-		} 
+		}
 	}
 
 out:
@@ -1455,7 +1455,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 
 			/*!
 			 * \NOTE
-			 * If there is a created WIDGET FB, 
+			 * If there is a created WIDGET FB,
 			 * Update it too.
 			 */
 			if (_widget_get_widget_fb(common)) {

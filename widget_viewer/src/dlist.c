@@ -115,7 +115,7 @@ struct dlist *dlist_remove(struct dlist *list, struct dlist *l)
 	 * \note
 	 * If the removed entry 'l' has no next element, it is the last element.
 	 * In this case, check the existence of the list first,
-	 * and if the list is not empty, update the 'prev' of the list (which is a head element of the list) 
+	 * and if the list is not empty, update the 'prev' of the list (which is a head element of the list)
 	 *
 	 * If we didn't care about this, the head element(list) can indicates the invalid element.
 	 */

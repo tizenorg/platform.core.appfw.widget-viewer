@@ -23,6 +23,8 @@ BuildRequires: pkgconfig(elementary)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(capi-appfw-application)
 BuildRequires: pkgconfig(appcore-efl)
+BuildRequires: pkgconfig(capi-system-info)
+BuildRequires: pkgconfig(efl-extension)
 
 %if %{with wayland}
 BuildRequires: pkgconfig(wayland-client)

@@ -84,6 +84,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "widget id";
+						fit: 1 1;
 					}
 				}
 			}
@@ -103,6 +104,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "Hello";
+						fit: 1 1;
 					}
 				}
 			}
@@ -119,6 +121,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "content info";
+						fit: 1 1;
 					}
 				}
 			}
@@ -138,6 +141,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "Hello";
+						fit: 1 1;
 					}
 				}
 			}
@@ -154,6 +158,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "title";
+						fit: 1 1;
 					}
 				}
 			}
@@ -173,6 +178,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "Hello";
+						fit: 1 1;
 					}
 				}
 			}
@@ -189,6 +195,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "period";
+						fit: 1 1;
 					}
 				}
 			}
@@ -208,6 +215,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "Hello";
+						fit: 1 1;
 					}
 				}
 			}
@@ -247,6 +255,7 @@ collections {
 					text {
 						style: "info,text";
 						text: "Information";
+						fit: 1 1;
 					}
 					visible: 0;
 				}

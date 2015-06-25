@@ -183,8 +183,8 @@ static inline int file_service_open(void)
 	}
 
 	len = strlen(COM_CORE_REMOTE_SCHEME);
-	len+= strlen(addr);
-	len+= 6;    /* Port length? */
+	len += strlen(addr);
+	len += 6;    /* Port length? */
 
 	file_addr = malloc(len);
 	if (!file_addr) {

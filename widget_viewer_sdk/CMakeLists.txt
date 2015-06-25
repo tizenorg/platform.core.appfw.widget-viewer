@@ -43,6 +43,7 @@ pkg_check_modules(sdk_pkgs REQUIRED
 	bundle
     dlog
 	widget_service
+	efl-extension
 )
 
 ADD_DEFINITIONS("-DWIDGET_EVAS_RESOURCE_EDJ=\"${EDJDIR}/widget_viewer_sdk.edj\"")

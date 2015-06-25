@@ -27,6 +27,7 @@
 #include <string.h>
 #include <app_control.h>
 #include <app_control_internal.h>
+#include <efl_extension.h>
 
 int errno;
 
@@ -60,7 +61,7 @@ static struct info {
 	.ctx = {
 		.content_info = NULL,
 		.title = NULL,
-		.period = WIDGET_VIEWER_EVAS_DEFAULT_PERIOD, 
+		.period = WIDGET_VIEWER_EVAS_DEFAULT_PERIOD,
 		.widget = NULL,
 		.size_types = NULL,
 		.count_of_size_type = 20,
@@ -68,6 +69,11 @@ static struct info {
 };
 
 #define LONG_PRESS 1.0f
+
+static void back_key_cb(void *data, Evas_Object *obj, void *event_info)
+{
+	ui_app_exit();
+}
 
 static void hide_widget_info_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
 {
@@ -138,8 +144,9 @@ static bool app_create(void *data)
 		s_info.win = NULL;
 		return false;
 	}
-	elm_win_resize_object_add(s_info.win, s_info.box);
-	evas_object_show(s_info.box);
+	evas_object_size_hint_expand_set(s_info.box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_fill_set(s_info.box, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	elm_box_align_set(s_info.box, 0.5, 0.5);
 
 	s_info.layout = elm_layout_add(s_info.win);
 	if (!s_info.layout) {
@@ -152,10 +159,6 @@ static bool app_create(void *data)
 		return false;
 	}
 
-	elm_box_align_set(s_info.box, 0.5, 0.5);
-	evas_object_size_hint_expand_set(s_info.box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(s_info.box, EVAS_HINT_FILL, EVAS_HINT_FILL);
-
 	if (elm_layout_file_set(s_info.layout, LAYOUT_EDJ, "layout") != EINA_TRUE) {
 		LOGE("Failed to load an edje\n");
 		evas_object_del(s_info.bg);
@@ -166,19 +169,24 @@ static bool app_create(void *data)
 		s_info.win = NULL;
 		return false;
 	}
+	evas_object_size_hint_expand_set(s_info.layout, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_fill_set(s_info.layout, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	elm_win_resize_object_add(s_info.win, s_info.layout);
 	evas_object_show(s_info.layout);
 
 	elm_object_signal_callback_add(s_info.layout, "mouse,clicked,1", "widget,info,bg", hide_widget_info_cb, NULL);
 	evas_object_event_callback_add(s_info.layout, EVAS_CALLBACK_MOUSE_DOWN, layout_down_cb, NULL);
 	evas_object_event_callback_add(s_info.layout, EVAS_CALLBACK_MOUSE_UP, layout_up_cb, NULL);
 
-	elm_box_pack_end(s_info.box, s_info.layout);
+	elm_object_part_content_set(s_info.layout, "widget", s_info.box);
 
 	/* WIDGET init */
 	widget_viewer_evas_set_option(WIDGET_VIEWER_EVAS_DIRECT_UPDATE, 1);
 	widget_viewer_evas_set_option(WIDGET_VIEWER_EVAS_EVENT_AUTO_FEED, 1);
 
 	widget_viewer_evas_init(s_info.win);
+
+	eext_object_event_callback_add(s_info.win, EEXT_CALLBACK_BACK, back_key_cb, NULL);
 
 	return true;
 }
@@ -195,7 +203,7 @@ static int unload_widget(void)
 	DbgPrint("Unload previous widget: %s\n", tmp);
 
 	widget_viewer_evas_set_permanent_delete(s_info.ctx.widget, EINA_TRUE);
-	elm_object_part_content_unset(s_info.layout, "widget");
+	elm_box_unpack(s_info.box, s_info.ctx.widget);
 	evas_object_del(s_info.ctx.widget);
 	free(s_info.ctx.title);
 	free(s_info.ctx.content_info);
@@ -218,6 +226,8 @@ static int unload_widget(void)
 
 static void app_terminate(void *data)
 {
+	eext_object_event_callback_del(s_info.win, EEXT_CALLBACK_BACK, back_key_cb);
+
 	unload_widget();
 
 	/* WIDGET fini */
@@ -259,10 +269,6 @@ static void list_item_clicked_cb(void *data, Evas_Object *obj, void *event_info)
 	evas_object_resize(s_info.ctx.widget, w, h);
 	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
 	evas_object_size_hint_max_set(s_info.ctx.widget, w, h);
-
-	evas_object_resize(s_info.layout, w, h);
-	evas_object_size_hint_min_set(s_info.layout, w, h);
-	evas_object_size_hint_max_set(s_info.layout, w, h);
 }
 
 static void extra_updated_cb(void *data, Evas_Object *obj, void *event_info)
@@ -359,8 +365,7 @@ static int load_widget(const char *widget_id)
 		evas_object_size_hint_min_set(rect, s_info.w, s_info.h);
 		evas_object_color_set(rect, 100, 100, 100, 255);
 		evas_object_show(rect);
-		elm_object_part_content_set(s_info.layout, "widget", rect);
-		evas_object_show(s_info.layout);
+		elm_box_pack_end(s_info.box, rect);
 
 		update_message("Supported size is not found");
 		return WIDGET_ERROR_NOT_SUPPORTED;
@@ -384,15 +389,12 @@ static int load_widget(const char *widget_id)
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, widget_create_aborted_cb, NULL);
 
 	elm_object_part_text_set(s_info.layout, "widget,id", widget_id);
-	elm_object_part_content_set(s_info.layout, "widget", s_info.ctx.widget);
+	elm_box_pack_end(s_info.box, s_info.ctx.widget);
 
 	evas_object_resize(s_info.ctx.widget, w, h);
 	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
 	evas_object_size_hint_max_set(s_info.ctx.widget, w, h);
-
-	evas_object_resize(s_info.layout, w, h);
-	evas_object_size_hint_min_set(s_info.layout, w, h);
-	evas_object_size_hint_max_set(s_info.layout, w, h);
+	evas_object_show(s_info.ctx.widget);
 
 	return WIDGET_ERROR_NONE;
 }
@@ -427,7 +429,8 @@ static Evas_Object *list_item_content_get_cb(void *data, Evas_Object *obj, const
 		icon = elm_icon_add(s_info.win);
 		if (icon) {
 			elm_image_file_set(icon, icon_filename, NULL);
-			elm_image_resizable_set(icon, EINA_FALSE, EINA_FALSE);
+			elm_image_resizable_set(icon, EINA_TRUE, EINA_TRUE);
+			evas_object_size_hint_max_set(icon, 100, 100);
 			DbgPrint("Icon: %s\n", icon_filename);
 		}
 		free(icon_filename);
@@ -448,6 +451,7 @@ static int prepare_widget(const char *widget_id, app_control_h control)
 	int h;
 	bundle *b;
 	static Elm_Genlist_Item_Class class = {
+		.item_style = "1text.1icon",
 		.func = {
 			.text_get = list_item_text_get_cb,
 			.content_get = list_item_content_get_cb,

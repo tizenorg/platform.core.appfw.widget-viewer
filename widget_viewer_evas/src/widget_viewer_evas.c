@@ -28,6 +28,7 @@
 #include <Edje.h>
 
 #include <pkgmgr-info.h>
+#include <system_info.h>
 
 #include <widget_errno.h>
 #include <widget_viewer.h>
@@ -125,8 +126,11 @@
 #define DEFAULT_CLUSTER "user,created"
 #define DEFAULT_CATEGORY "default"
 
-// Enable this to apply shadow effect to image object (for text widget)
-// #define SUPPORT_IMAGE_EFFECT
+/*!
+ * \note
+ * Enable this to apply shadow effect to image object (for text widget)
+ * #define SUPPORT_IMAGE_EFFECT
+ */
 
 int errno;
 
@@ -149,22 +153,22 @@ static struct {
 
 	union _conf {
 		struct _field {
-			unsigned int user_view_port: 1;
-			unsigned int force_to_buffer: 1;
-			unsigned int support_gbar: 1;
-			unsigned int manual_pause_resume: 1;
-			unsigned int use_fixed_size: 1;
-			unsigned int easy_mode: 1;
-			unsigned int is_scroll_x: 1;
-			unsigned int is_scroll_y: 1;
-			unsigned int auto_feed: 1;
-			unsigned int delayed_resume: 1;
-			unsigned int sensitive_move: 1;
-			unsigned int render_animator: 1;
-			unsigned int auto_render_selector: 1;
-			unsigned int skip_acquire: 1;
+			unsigned int user_view_port:1;
+			unsigned int force_to_buffer:1;
+			unsigned int support_gbar:1;
+			unsigned int manual_pause_resume:1;
+			unsigned int use_fixed_size:1;
+			unsigned int easy_mode:1;
+			unsigned int is_scroll_x:1;
+			unsigned int is_scroll_y:1;
+			unsigned int auto_feed:1;
+			unsigned int delayed_resume:1;
+			unsigned int sensitive_move:1;
+			unsigned int render_animator:1;
+			unsigned int auto_render_selector:1;
+			unsigned int skip_acquire:1;
 
-			unsigned int reserved: 18;
+			unsigned int reserved:18;
 		} field;
 		unsigned int mask;
 	} conf;
@@ -297,39 +301,39 @@ struct widget_data {
 
 	union {
 		struct {
-			unsigned int pressed: 1;                     /**< Mouse is pressed */
-			unsigned int touch_effect: 1;                /**< Requires to play touch effect */
-			unsigned int mouse_event: 1;                 /**< Requires to feed mouse event */
-			unsigned int scroll_x: 1;                    /**< */
-			unsigned int scroll_y: 1;
-			unsigned int faulted: 1;
-			unsigned int flick_down: 1;
-			unsigned int gbar_created: 1;
+			unsigned int pressed:1;                     /**< Mouse is pressed */
+			unsigned int touch_effect:1;                /**< Requires to play touch effect */
+			unsigned int mouse_event:1;                 /**< Requires to feed mouse event */
+			unsigned int scroll_x:1;                    /**< */
+			unsigned int scroll_y:1;
+			unsigned int faulted:1;
+			unsigned int flick_down:1;
+			unsigned int gbar_created:1;
 
-			unsigned int created: 1;
-			unsigned int deleted: 1;
-			unsigned int widget_pixmap_acquire_requested: 1;
-			unsigned int gbar_pixmap_acquire_requested: 1;
-			unsigned int cancel_scroll_x: 1;
-			unsigned int cancel_scroll_y: 1;
-			unsigned int cancel_click: 2;
-			unsigned int disable_preview: 1;
-			unsigned int disable_loading: 1;
-			unsigned int disable_text: 1;
-			unsigned int widget_overlay_loaded: 1;
-			unsigned int gbar_overlay_loaded: 1;
+			unsigned int created:1;
+			unsigned int deleted:1;
+			unsigned int widget_pixmap_acquire_requested:1;
+			unsigned int gbar_pixmap_acquire_requested:1;
+			unsigned int cancel_scroll_x:1;
+			unsigned int cancel_scroll_y:1;
+			unsigned int cancel_click:2;
+			unsigned int disable_preview:1;
+			unsigned int disable_loading:1;
+			unsigned int disable_text:1;
+			unsigned int widget_overlay_loaded:1;
+			unsigned int gbar_overlay_loaded:1;
 
-			unsigned int freeze_visibility: 1;
+			unsigned int freeze_visibility:1;
 
-			unsigned int widget_dirty: 1;
-			unsigned int gbar_dirty: 1;
+			unsigned int widget_dirty:1;
+			unsigned int gbar_dirty:1;
 
-			unsigned int send_delete: 1;
-			unsigned int permanent_delete: 1;
+			unsigned int send_delete:1;
+			unsigned int permanent_delete:1;
 
-			unsigned int delayed_resume: 2;
+			unsigned int delayed_resume:2;
 
-			unsigned int reserved: 4;
+			unsigned int reserved:4;
 		} field;	/* Do we really have the performance loss because of bit fields? */
 
 		unsigned int flags;
@@ -424,6 +428,19 @@ static void append_gbar_dirty_object_list(struct widget_data *data, int idx);
 static void __widget_event_widget_updated(struct widget_data *data);
 static void __widget_event_gbar_updated(struct widget_data *data);
 
+static inline bool is_widget_feature_enabled(void)
+{
+	bool feature = false;
+	int ret;
+
+	ret = system_info_get_platform_bool("http://tizen.org/feature/shell.appwidget", &feature);
+	if (ret != SYSTEM_INFO_ERROR_NONE) {
+		ErrPrint("system_info: %d\n", ret);
+	}
+
+	return feature;
+}
+
 static char *get_preview_image(struct widget_data *data, widget_size_type_e type)
 {
 	Eina_List *l;
@@ -466,7 +483,6 @@ static struct widget_data *get_smart_data(Evas_Object *widget)
 static struct widget_data *get_smart_data_from_handle(widget_h handle)
 {
 	Evas_Object *widget;
-	//    struct widget_data *data;
 
 	widget = widget_viewer_get_data(handle);
 	if (!widget) {
@@ -1085,7 +1101,6 @@ static void gbar_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 			s_info.conf.field.render_animator = 0;
 		}
 	}
-
 }
 
 static void __widget_pixmap_del_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
@@ -1760,7 +1775,7 @@ static inline void apply_shadow_effect(struct image_option *img_opt, Evas_Object
 		return;
 	}
 
-	// -90, 2, 4, 0x99000000
+	/* -90, 2, 4, 0x99000000 */
 	ea_image_effect_add_outer_shadow(ea_effect, img_opt->shadow.angle, img_opt->shadow.offset, img_opt->shadow.softness, img_opt->shadow.color);
 	ea_object_image_effect_set(img, ea_effect);
 
@@ -2755,7 +2770,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 
 			rx = ((double)x + (double)w / 2.0f) / (double)s_info.screen_width;
 			DbgPrint("x[%d], w[%d], rx[%lf]\n", x, w, rx);
-			// 0.0    0.125    0.25    0.375   0.5   0.625   0.75    0.875   1.0
+			/* 0.0    0.125    0.25    0.375   0.5   0.625   0.75    0.875   1.0 */
 			widget_viewer_get_size_type(data->handle, &size_type);
 			switch (size_type) {
 			case WIDGET_SIZE_TYPE_1x1:
@@ -3221,7 +3236,7 @@ static void __widget_data_setup(struct widget_data *data)
 			elm_scroller_bounce_set(scroller, EINA_FALSE, EINA_FALSE);
 			elm_scroller_policy_set(scroller, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_OFF);
 			elm_scroller_single_direction_set(scroller, ELM_SCROLLER_SINGLE_DIRECTION_HARD);
-			//elm_object_scroll_lock_x_set(scroller, EINA_TRUE);
+			/* elm_object_scroll_lock_x_set(scroller, EINA_TRUE); */
 
 			box = evas_object_rectangle_add(data->e);
 			if (box) {
@@ -3286,11 +3301,6 @@ static void remove_widget_dirty_object_list(struct widget_data *data)
 	s_info.widget_dirty_objects = eina_list_remove(s_info.widget_dirty_objects, data);
 }
 
-static void remove_gbar_dirty_object_list(struct widget_data *data)
-{
-	s_info.gbar_dirty_objects = eina_list_remove(s_info.gbar_dirty_objects, data);
-}
-
 static void append_widget_dirty_object_list(struct widget_data *data, int idx)
 {
 	data->is.field.widget_dirty = 1;
@@ -3334,6 +3344,11 @@ static void append_widget_dirty_object_list(struct widget_data *data, int idx)
 		s_info.widget_dirty_objects = NULL;
 		__widget_event_widget_updated(data);
 	}
+}
+
+static void remove_gbar_dirty_object_list(struct widget_data *data)
+{
+	s_info.gbar_dirty_objects = eina_list_remove(s_info.gbar_dirty_objects, data);
 }
 
 static void append_gbar_dirty_object_list(struct widget_data *data, int idx)
@@ -3669,8 +3684,8 @@ static void update_visibility(struct widget_data *data)
 	if (data->is.field.delayed_resume == 0) { /* Follow the global configuration */
 		delay = s_info.conf.field.delayed_resume;
 	} else { /* Ignore the global configuration */
-		// 1 : Disable Delayed Pause Resume
-		// 2 : Enable Delayed Pause Resume
+		/* 1 : Disable Delayed Pause Resume */
+		/* 2 : Enable Delayed Pause Resume */
 		delay = (data->is.field.delayed_resume == 2);
 	}
 
@@ -4483,7 +4498,7 @@ static int widget_system_created(struct widget *handle, struct widget_data *data
 
 	if (data->size_type == WIDGET_SIZE_TYPE_UNKNOWN || widget_service_get_size(data->size_type, &data->widget_width, &data->widget_height) < 0) {
 		ErrPrint("Failed to get size info: %s\n", widget_viewer_get_pkgname(handle));
-		
+
 	} else {
 		DbgPrint("System created WIDGET size is (%d)%dx%d\n", data->size_type, data->widget_width, data->widget_height);
 	}
@@ -4672,6 +4687,7 @@ static void __widget_resize_cb(struct widget *handle, int ret, void *cbdata)
 		widget_unref(data);
 		return;
 	}
+
 	widget_viewer_get_type(handle, 0, &widget_type);
 	switch (widget_type) {
 	case WIDGET_CONTENT_TYPE_IMAGE:
@@ -5010,7 +5026,6 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 	 * Then we should not try to resize resource_id(surface) as width & height.
 	 * Just keep them their size and try to resize layout only.
 	 */
-
 	if (!widget_viewer_is_created_by_user(data->handle)) {
 		/**
 		 * Viewer should not be able to resize the box
@@ -5080,6 +5095,7 @@ static void __widget_resize(Evas_Object *widget, Evas_Coord w, Evas_Coord h)
 		widget_service_get_need_of_mouse_event(data->widget_id, type, (bool *)&need_of_mouse_event);
 		data->is.field.mouse_event = need_of_mouse_event;
 	} else {
+
 		int ret;
 
 		if (type > 0 && type != WIDGET_SIZE_TYPE_UNKNOWN) {
@@ -5206,7 +5222,7 @@ static void __widget_clip_unset(Evas_Object *widget)
 	evas_object_clip_unset(data->stage);
 }
 
-/*!
+/**
  * This must be called before update_gbar_geometry
  */
 static void update_stage_geometry(struct acquire_data *acquire_data)
@@ -5220,14 +5236,11 @@ static void update_stage_geometry(struct acquire_data *acquire_data)
 	const int delta_y_bottom = (acquire_data->h - (s_info.screen_height - widget_y - widget_h));
 
 	stage_w = widget_w > acquire_data->w ? widget_w : acquire_data->w;
-	stage_h = widget_h + acquire_data->h;// - delta_y_top;
+	stage_h = widget_h + acquire_data->h;/* - delta_y_top; */
 
-	if(delta_y_top >= delta_y_bottom)
-	{
+	if (delta_y_top >= delta_y_bottom) {
 		evas_object_move(acquire_data->data->stage, 0, widget_y);
-	}
-	else
-	{
+	} else {
 		evas_object_move(acquire_data->data->stage, 0, widget_y - acquire_data->h);
 	}
 
@@ -5240,18 +5253,15 @@ static void update_gbar_geometry(struct acquire_data *acquire_data)
 
 	evas_object_geometry_get(acquire_data->data->widget_layout, &widget_x, &widget_y, &widget_w, &widget_h);
 
-	//How much of the GBAR is outside the screen
+	/* How much of the GBAR is outside the screen */
 	const int delta_y_top    = (acquire_data->h - widget_y) < 0 ? 0 : acquire_data->h - widget_y;
 	const int delta_y_bottom = (acquire_data->h - (s_info.screen_height - widget_y - widget_h)) < 0 ? 0 : (acquire_data->h - (s_info.screen_height - widget_y - widget_h));
 
-	//If more of the GBAR is outside the top side draw at the bottom, otherwise draw at the top
-	if(delta_y_top >= delta_y_bottom)
-	{
+	/* If more of the GBAR is outside the top side draw at the bottom, otherwise draw at the top */
+	if (delta_y_top >= delta_y_bottom) {
 		evas_object_move(acquire_data->data->gbar_layout, 0, widget_y + widget_h - delta_y_bottom);
 		effect_resize(acquire_data->data->gbar_layout, acquire_data->w, acquire_data->h, EFFECT_HEIGHT);
-	}
-	else
-	{
+	} else {
 		evas_object_move(acquire_data->data->gbar_layout, 0, widget_y + delta_y_top);
 		effect_resize(acquire_data->data->gbar_layout, acquire_data->w, acquire_data->h, EFFECT_HEIGHT|EFFECT_MOVE);
 	}
@@ -5487,7 +5497,7 @@ static void gbar_update_buffer_object(struct widget_data *data, Evas_Object *gba
 		widget_viewer_release_buffer(data->gbar_fb);
 		data->gbar_fb = NULL;
 	} else {
-		// This is first time
+		/* This is first time */
 		gbar_overlay_disable(data);
 	}
 
@@ -5954,7 +5964,7 @@ static inline int handle_subscribed_group(struct widget *handle)
 			/* Emit RAW_CREATE event */
 			nr = invoke_raw_event_callback(WIDGET_VIEWER_EVAS_RAW_CREATE, widget_viewer_get_pkgname(handle), widget, WIDGET_ERROR_NONE);
 
-			if ( (temp_widget_data = get_smart_data(widget)) == NULL) {
+			if ((temp_widget_data = get_smart_data(widget)) == NULL) {
 				ErrPrint("Failed to get widget data\n");
 				(void)widget_viewer_delete_widget(handle, WIDGET_DELETE_PERMANENTLY, NULL, NULL);
 				return WIDGET_ERROR_FAULT;
@@ -5963,7 +5973,7 @@ static inline int handle_subscribed_group(struct widget *handle)
 			if (nr <= 0 || widget_system_created(handle, temp_widget_data) != WIDGET_ERROR_NONE) {
 				/*
 				 * Deleting evas object will invoke delete callback.
-				 * Then it will invoke the RAW_DELETE event and execute the proper procedures for deleting object 
+				 * Then it will invoke the RAW_DELETE event and execute the proper procedures for deleting object
 				 */
 				widget_viewer_evas_set_permanent_delete(widget, EINA_TRUE);
 				evas_object_del(widget);
@@ -6307,6 +6317,10 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 {
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!win) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -6324,7 +6338,7 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 
 	util_screen_size_get(&s_info.screen_width, &s_info.screen_height);
 
-	s_info.conf.field.render_animator = 0;	// By default, use render animator for updating
+	s_info.conf.field.render_animator = 0;	/* By default, use render animator for updating */
 
 	ret = widget_viewer_init(util_display_get(), 1, 0.001f, 1);
 	if (ret < 0) {
@@ -6361,6 +6375,10 @@ EAPI int widget_viewer_evas_fini(void)
 {
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (s_info.initialized) {
 		widget_viewer_remove_event_handler(widget_event_handler);
 		widget_viewer_remove_fault_handler(widget_fault_handler);
@@ -6378,6 +6396,10 @@ EAPI int widget_viewer_evas_fini(void)
 
 EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -6387,6 +6409,10 @@ EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 
 EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -6396,6 +6422,10 @@ EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 
 EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -6413,6 +6443,10 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	char *_category;
 	char *cluster = DEFAULT_CLUSTER;
 	char *category = DEFAULT_CATEGORY;
+
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
 
 	if (!s_info.initialized) {
 		ErrPrint("Viewer is not initialized\n");
@@ -6499,6 +6533,10 @@ EAPI int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, int
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -6519,6 +6557,10 @@ EAPI int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, int
 EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, int *w, int *h)
 {
 	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
@@ -6551,6 +6593,10 @@ EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, i
 EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 {
 	int ret = WIDGET_ERROR_NONE;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	switch ((int)type) {
 	case WIDGET_VIEWER_EVAS_SENSITIVE_MOVE:
@@ -6613,6 +6659,10 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -6626,6 +6676,7 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 		(void)ecore_timer_del(data->delayed_resume_timer);
 		data->delayed_resume_timer = NULL;
 	}
+
 	return widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
 }
 
@@ -6633,6 +6684,10 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -6646,6 +6701,7 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 		(void)ecore_timer_del(data->delayed_resume_timer);
 		data->delayed_resume_timer = NULL;
 	}
+
 	return widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
 }
 
@@ -6653,6 +6709,10 @@ EAPI int widget_viewer_evas_destroy_glance_bar(Evas_Object *widget)
 {
 	struct widget_data *data;
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
@@ -6675,6 +6735,10 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
+
 	if (!s_info.initialized) {
 		return NULL;
 	}
@@ -6690,6 +6754,10 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
 
 	if (!s_info.initialized) {
 		return NULL;
@@ -6707,6 +6775,10 @@ EAPI const char *widget_viewer_evas_get_widget_id(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
+
 	if (!s_info.initialized) {
 		return NULL;
 	}
@@ -6723,6 +6795,10 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return 0.0f;
+	}
+
 	if (!s_info.initialized) {
 		return 0.0f;
 	}
@@ -6738,6 +6814,10 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
 
 	if (!s_info.initialized) {
 		return;
@@ -6796,6 +6876,10 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -6810,6 +6894,10 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 
 EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, void *_info, void (*ret_cb)(Evas_Object *obj, int ret, void *data), void *cbdata)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 #if defined(ELM_ACCESS_ENABLED)
 	struct widget_data *data;
 	Elm_Access_Action_Info *info = _info;
@@ -7110,6 +7198,10 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
+
 	if (!s_info.initialized) {
 		return;
 	}
@@ -7126,6 +7218,10 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
 
 	if (!s_info.initialized) {
 		return;
@@ -7144,6 +7240,10 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
+
 	if (!s_info.initialized) {
 		return;
 	}
@@ -7160,6 +7260,10 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
 
 	if (!s_info.initialized) {
 		return;
@@ -7182,6 +7286,10 @@ EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return false;
+	}
+
 	if (!s_info.initialized) {
 		return 0;
 	}
@@ -7198,6 +7306,10 @@ EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 EAPI int widget_viewer_evas_set_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data)
 {
 	struct raw_event_cbdata *cbdata;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	cbdata = calloc(1, sizeof(*cbdata));
 	if (!cbdata) {
@@ -7229,6 +7341,10 @@ EAPI int widget_viewer_evas_unset_raw_event_callback(widget_evas_raw_event_type_
 	Eina_List *n;
 	struct raw_event_cbdata *cbdata;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	switch (type) {
 	case WIDGET_VIEWER_EVAS_RAW_DELETE:
 		EINA_LIST_FOREACH_SAFE(s_info.raw_event.delete_list, l, n, cbdata) {
@@ -7257,6 +7373,10 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -7275,6 +7395,10 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 {
 	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
@@ -7295,6 +7419,10 @@ EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return false;
+	}
+
 	if (!s_info.initialized) {
 		ErrPrint("Not initialized\n");
 		return false;
@@ -7313,6 +7441,10 @@ EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filena
 {
 	struct widget_data *data;
 	FILE *fp;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
@@ -7348,8 +7480,12 @@ EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return false;
+	}
+
 	if (!s_info.initialized) {
-		return 0;
+		return false;
 	}
 
 	data = get_smart_data(widget);
@@ -7364,6 +7500,10 @@ EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)
 {
 	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
 
 	if (!s_info.initialized) {
 		return;
@@ -7383,6 +7523,10 @@ EAPI int widget_viewer_evas_subscribe_group(const char *cluster, const char *sub
 	struct subscribe_group *group;
 	Eina_List *l;
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
@@ -7438,6 +7582,10 @@ EAPI int widget_viewer_evas_unsubscribe_group(const char *cluster, const char *s
 	Eina_List *l;
 	Eina_List *n;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -7464,6 +7612,10 @@ EAPI int widget_viewer_evas_subscribe_category(const char *category)
 	struct subscribe_category *item;
 	Eina_List *l;
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
@@ -7509,6 +7661,10 @@ EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
 	Eina_List *n;
 	struct subscribe_category *item;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -7538,6 +7694,10 @@ EAPI int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_si
 {
 	struct widget_data *widget_data_from_evas;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -7556,6 +7716,10 @@ EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance
 {
 	struct widget_data *data;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
 	}
@@ -7572,6 +7736,10 @@ EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance
 EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_widget_e option, int value)
 {
 	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;
@@ -7600,6 +7768,10 @@ EAPI int widget_viewer_evas_set_preview_image(Evas_Object *widget, widget_size_t
 	Eina_List *l;
 	Eina_List *n;
 	struct preview_info *info;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
 		return WIDGET_ERROR_FAULT;

@@ -47,7 +47,7 @@ int util_check_extension(const char *filename, const char *check_ptr)
 			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
-		check_ptr ++;
+		check_ptr++;
 	}
 
 	return 0;

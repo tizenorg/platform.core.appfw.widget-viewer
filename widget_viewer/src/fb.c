@@ -339,7 +339,7 @@ int fb_sync(struct fb_info *info, int x, int y, int w, int h)
 	} else if (!strncasecmp(info->id, SCHEMA_PIXMAP, strlen(SCHEMA_PIXMAP))) {
 		return sync_for_pixmap(info, x, y, w, h);
 	} else if (!strncasecmp(info->id, SCHEMA_SHM, strlen(SCHEMA_SHM))) {
-		/* No need to do sync */ 
+		/* No need to do sync */
 		return WIDGET_ERROR_NONE;
 	}
 

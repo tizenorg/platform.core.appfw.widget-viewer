@@ -18,6 +18,7 @@ pkg_check_modules(viewer_evas REQUIRED
 	widget_service
 	elementary
 	pkgmgr-info
+	capi-system-info
 )
 
 SET(BUILD_SOURCE

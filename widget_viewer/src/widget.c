@@ -3058,7 +3058,7 @@ EAPI int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, int 
 		 * This can be called from extra_resource_created event.
 		 * and it can be called before get the created event.
 		 * then we didn't know this handle's buffer type yet
-		 * so we cannot use its type to validate handle 
+		 * so we cannot use its type to validate handle
 		 *
 		 * handle->common.gbar.type == unknown
 		 */
@@ -3076,7 +3076,7 @@ EAPI int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, int 
 		 * This can be called from extra_resource_created event.
 		 * and it can be called before get the created event.
 		 * then we didn't know this handle's buffer type yet
-		 * so we cannot use its type to validate handle 
+		 * so we cannot use its type to validate handle
 		 *
 		 * handle->common.widget.type == unknown
 		 */
@@ -3182,7 +3182,7 @@ EAPI int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned i
 			 * This can be called from extra_resource_created event.
 			 * and it can be called before get the created event.
 			 * then we didn't know this handle's buffer type yet
-			 * so we cannot use its type to validate handle 
+			 * so we cannot use its type to validate handle
 			 *
 			 * handle->common.gbar.type == unknown
 			 */
@@ -3226,7 +3226,7 @@ EAPI int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned i
 			 * This can be called from extra_resource_created event.
 			 * and it can be called before get the created event.
 			 * then we didn't know this handle's buffer type yet
-			 * so we cannot use its type to validate handle 
+			 * so we cannot use its type to validate handle
 			 *
 			 * handle->common.widget.type == unknown
 			 */
@@ -3277,7 +3277,7 @@ EAPI unsigned int widget_extra_resource_id(const widget_h handle, int gbar, int 
 		 * This can be called from extra_resource_created event.
 		 * and it can be called before get the created event.
 		 * then we didn't know this handle's buffer type yet
-		 * so we cannot use its type to validate handle 
+		 * so we cannot use its type to validate handle
 		 *
 		 * handle->common.gbar.type == unknown
 		 */
@@ -3293,7 +3293,7 @@ EAPI unsigned int widget_extra_resource_id(const widget_h handle, int gbar, int 
 		 * This can be called from extra_resource_created event.
 		 * and it can be called before get the created event.
 		 * then we didn't know this handle's buffer type yet
-		 * so we cannot use its type to validate handle 
+		 * so we cannot use its type to validate handle
 		 *
 		 * handle->common.widget.type == unknown
 		 */
@@ -3344,8 +3344,7 @@ EAPI int widget_viewer_get_resource_id(const widget_h handle, int gbar, unsigned
 			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			goto out;
 		}
-	}
-	else {
+	} else {
 		if (handle->common->widget.type != WIDGET_TYPE_SCRIPT && handle->common->widget.type != WIDGET_TYPE_BUFFER) {
 			ErrPrint("Invalid handle\n");
 			ret = WIDGET_ERROR_INVALID_PARAMETER;
@@ -3368,25 +3367,25 @@ out:
 
 EAPI void *widget_viewer_acquire_buffer(widget_h handle, int gbar)
 {
+	if (!handle || handle->state != WIDGET_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
+		ErrPrint("Handler is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	if (!handle->common->id) {
+		ErrPrint("Invalid handle\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
 	if (gbar) {
-		if (!handle || handle->state != WIDGET_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-			return NULL;
-		}
-
-		if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-			return NULL;
-		}
-
-		if (!handle->common->id) {
-			ErrPrint("Invalid handle\n");
-			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-			return NULL;
-		}
-
 		if (handle->common->gbar.type != GBAR_TYPE_SCRIPT && handle->common->gbar.type != GBAR_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
 			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -3395,24 +3394,6 @@ EAPI void *widget_viewer_acquire_buffer(widget_h handle, int gbar)
 
 		return fb_acquire_buffer(handle->common->gbar.fb);
 	} else {
-		if (!handle || handle->state != WIDGET_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-			return NULL;
-		}
-
-		if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
-			ErrPrint("Handler is invalid\n");
-			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-			return NULL;
-		}
-
-		if (!handle->common->id) {
-			ErrPrint("Invalid handle\n");
-			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-			return NULL;
-		}
-
 		if (handle->common->widget.type != WIDGET_TYPE_SCRIPT && handle->common->widget.type != WIDGET_TYPE_BUFFER) {
 			ErrPrint("Handler is not valid type\n");
 			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
