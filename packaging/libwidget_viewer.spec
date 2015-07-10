@@ -144,7 +144,6 @@ While developing the widget applications, this viewer will load it and execute i
 %defattr(-,root,root,-)
 %attr(-,app,app) %dir /opt/usr/apps/org.tizen.widget_viewer_sdk/data
 %{_datarootdir}/packages/org.tizen.widget_viewer_sdk.xml
-%{_sysconfdir}/smack/accesses.d
 %{_datarootdir}/license/org.tizen.widget_viewer_sdk
 %{_prefix}/apps/org.tizen.widget_viewer_sdk/*
 
