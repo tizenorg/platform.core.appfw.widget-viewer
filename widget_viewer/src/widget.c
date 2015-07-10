@@ -2367,6 +2367,10 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 			return WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
+		if (handle->common->widget.auto_launch) {
+			return WIDGET_ERROR_DISABLED;
+		}
+
 		if (type & WIDGET_MOUSE_EVENT_MOVE) {
 			if (fabs(info->x - handle->common->widget.x) < conf_event_filter() && fabs(info->y - handle->common->widget.y) < conf_event_filter()) {
 				return WIDGET_ERROR_RESOURCE_BUSY;

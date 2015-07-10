@@ -332,8 +332,9 @@ struct widget_data {
 			unsigned int permanent_delete:1;
 
 			unsigned int delayed_resume:2;
+			unsigned int initial_resumed:1;
 
-			unsigned int reserved:4;
+			unsigned int reserved:3;
 		} field;	/* Do we really have the performance loss because of bit fields? */
 
 		unsigned int flags;
@@ -430,12 +431,18 @@ static void __widget_event_gbar_updated(struct widget_data *data);
 
 static inline bool is_widget_feature_enabled(void)
 {
-	bool feature = false;
-	int ret;
+	static bool feature = false;
+	static bool retrieved = false;
 
-	ret = system_info_get_platform_bool("http://tizen.org/feature/shell.appwidget", &feature);
-	if (ret != SYSTEM_INFO_ERROR_NONE) {
-		ErrPrint("system_info: %d\n", ret);
+	if (retrieved == false) {
+		int ret;
+
+		ret = system_info_get_platform_bool("http://tizen.org/feature/shell.appwidget", &feature);
+		if (ret != SYSTEM_INFO_ERROR_NONE) {
+			ErrPrint("system_info: %d\n", ret);
+		} else {
+			retrieved = true;
+		}
 	}
 
 	return feature;
@@ -3641,6 +3648,7 @@ static void update_visibility(struct widget_data *data)
 				(void)ecore_timer_del(data->delayed_resume_timer);
 				data->delayed_resume_timer = NULL;
 			}
+			data->is.field.initial_resumed = 1;
 			(void)widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
 		} else if (data->freezed_visibility == WIDGET_VISIBILITY_STATUS_HIDE_FIXED) {
 			if (data->delayed_resume_timer) {
@@ -3695,14 +3703,25 @@ static void update_visibility(struct widget_data *data)
 				DbgPrint("Reset timer\n");
 				ecore_timer_reset(data->delayed_resume_timer);
 			} else if (WIDGET_CONF_VISIBILITY_CHANGE_DELAY > 0.0f) {
-				DbgPrint("Add timer (%lf)\n", WIDGET_CONF_VISIBILITY_CHANGE_DELAY);
-				data->delayed_resume_timer = ecore_timer_add(WIDGET_CONF_VISIBILITY_CHANGE_DELAY, delayed_resume_timer_cb, data);
-				if (!data->delayed_resume_timer) {
-					ErrPrint("Failed to add a timer\n");
+				if (data->is.field.initial_resumed == 0) {
+					/**
+					 * @note
+					 * If a widget is not resumed before,
+					 * it should be resumed immediately for displaying its contents ASAP.
+					 */
+					DbgPrint("First immeidiate resume\n");
+					data->is.field.initial_resumed = 1;
 					delayed_resume_timer_cb(data);
+				} else {
+					DbgPrint("Delayed resume (%lf)\n", WIDGET_CONF_VISIBILITY_CHANGE_DELAY);
+					data->delayed_resume_timer = ecore_timer_add(WIDGET_CONF_VISIBILITY_CHANGE_DELAY, delayed_resume_timer_cb, data);
+					if (!data->delayed_resume_timer) {
+						ErrPrint("Failed to add a timer\n");
+						delayed_resume_timer_cb(data);
+					}
 				}
 			} else {
-				DbgPrint("Direct update\n");
+				DbgPrint("Immediate resume\n");
 				delayed_resume_timer_cb(data);
 			}
 		} else {
@@ -3723,13 +3742,14 @@ static void update_visibility(struct widget_data *data)
 		if (data->delayed_resume_timer) {
 			ecore_timer_del(data->delayed_resume_timer);
 			data->delayed_resume_timer = NULL;
-			DbgPrint("Clear delayed resume timer\n");
+			DbgPrint("Clear timer of delayed resuming\n");
 		}
 
-		DbgPrint("Direct update\n");
 		if (is_visible) {
+			DbgPrint("Immediate resume\n");
 			delayed_resume_timer_cb(data);
 		} else {
+			DbgPrint("Immediate pause\n");
 			widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
 		}
 	}
@@ -6095,6 +6115,7 @@ static int widget_event_handler(struct widget *handle, enum widget_event_type ev
 			data->widget_extra = calloc(widget_viewer_get_option(WIDGET_OPTION_EXTRA_BUFFER_CNT), sizeof(*data->widget_extra));
 			if (!data->widget_extra) {
 				ErrPrint("calloc: %d\n", errno);
+				break;
 			}
 		}
 
@@ -6702,6 +6723,7 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 		data->delayed_resume_timer = NULL;
 	}
 
+	data->is.field.initial_resumed = 1;
 	return widget_viewer_set_visibility(data->handle, WIDGET_SHOW);
 }
 

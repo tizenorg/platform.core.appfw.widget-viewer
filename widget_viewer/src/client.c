@@ -1147,6 +1147,7 @@ static struct packet *master_gbar_extra_buffer_destroyed(pid_t pid, int handle, 
 		common->gbar.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->gbar.extra_buffer));
 		if (!common->gbar.extra_buffer) {
 			ErrPrint("WIDGET(%s) calloc: %d\n", id, errno);
+			goto out;
 		}
 	}
 
@@ -1205,6 +1206,7 @@ static struct packet *master_widget_extra_buffer_destroyed(pid_t pid, int handle
 		common->widget.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->widget.extra_buffer));
 		if (!common->widget.extra_buffer) {
 			ErrPrint("WIDGET(%s) calloc: %d\n", id, errno);
+			goto out;
 		}
 	}
 
@@ -1263,6 +1265,7 @@ static struct packet *master_widget_extra_buffer_created(pid_t pid, int handle, 
 		common->widget.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->widget.extra_buffer));
 		if (!common->widget.extra_buffer) {
 			ErrPrint("WIDGET(%s) calloc: %d\n", id, errno);
+			goto out;
 		}
 	}
 
@@ -1319,6 +1322,7 @@ static struct packet *master_gbar_extra_buffer_created(pid_t pid, int handle, co
 		common->gbar.extra_buffer = calloc(conf_extra_buffer_count(), sizeof(*common->gbar.extra_buffer));
 		if (!common->gbar.extra_buffer) {
 			ErrPrint("WIDGET(%s) calloc: %d\n", id, errno);
+			goto out;
 		}
 	}
 

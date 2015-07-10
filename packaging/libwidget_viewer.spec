@@ -5,7 +5,7 @@ Summary: Library for developing the application
 Version: 1.1.4
 Release: 1
 Group: Applications/Core Applications
-License: Flora License, Version 1.1
+License: Flora-1.1
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
 Source1002: org.tizen.widget_viewer_sdk.manifest
@@ -94,7 +94,7 @@ rm -rf %{buildroot}
 %package -n %{name}_evas
 Summary: Library for developing the widget viewer evas
 Group: Applications/Core Applications
-License: Flora License, Version 1.1
+License: Flora-1.1
 
 %description -n %{name}_evas
 Provider APIs to develop the widget viewer EFL application.
@@ -116,7 +116,7 @@ Header & package configuration files to support development of the widget viewer
 Summary: The widget viewer for development using SDK(IDE)
 Version: 0.0.1
 Group: Development/Tools
-License: Flora License, Version 1.1
+License: Flora-1.1
 Requires: %{name}_evas
 
 %description -n org.tizen.widget_viewer_sdk
