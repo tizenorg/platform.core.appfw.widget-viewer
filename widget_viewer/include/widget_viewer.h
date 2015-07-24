@@ -280,8 +280,8 @@ typedef struct widget_damage_region {
  * @since_tizen 2.3.1
  */
 typedef struct widget_mouse_event_info {
-    double x;                                   /**< X coordinates of Mouse Event */
-    double y;                                   /**< Y coordinates of Mouse Event */
+	double x;                                   /**< X coordinates of Mouse Event */
+	double y;                                   /**< Y coordinates of Mouse Event */
 	double ratio_w;
 	double ratio_h;
 } *widget_mouse_event_info_s;
@@ -1638,4 +1638,4 @@ extern int widget_viewer_notify_orientation_of_viewer(int orientation);
 }
 #endif
 
-#endif // __WIDGET_VIEWER_H
+#endif

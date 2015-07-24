@@ -2849,6 +2849,9 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 			if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.scroll_x || data->is.field.scroll_y || data->is.field.cancel_click == CANCEL_USER) {
 				widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
 				data->is.field.cancel_click = CANCEL_PROCESSED;
+			} else if ((up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD) {
+				widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
+				data->is.field.cancel_click = CANCEL_PROCESSED;
 			}
 
 			/**
@@ -2889,9 +2892,15 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 				if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.scroll_x || data->is.field.scroll_y || data->is.field.cancel_click == CANCEL_USER || abs(data->x - data->down.x) > CLICK_REGION || abs(data->y - data->down.y) > CLICK_REGION) {
 					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
 					data->is.field.cancel_click = CANCEL_PROCESSED;
+				} else if ((up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD) {
+					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
+					data->is.field.cancel_click = CANCEL_PROCESSED;
 				}
 			} else {
 				if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.scroll_x || data->is.field.scroll_y || data->is.field.cancel_click == CANCEL_USER) {
+					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
+					data->is.field.cancel_click = CANCEL_PROCESSED;
+				} else if ((up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD) {
 					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
 					data->is.field.cancel_click = CANCEL_PROCESSED;
 				}
@@ -3721,7 +3730,6 @@ static void update_visibility(struct widget_data *data)
 					}
 				}
 			} else {
-				DbgPrint("Immediate resume\n");
 				delayed_resume_timer_cb(data);
 			}
 		} else {
@@ -3746,10 +3754,8 @@ static void update_visibility(struct widget_data *data)
 		}
 
 		if (is_visible) {
-			DbgPrint("Immediate resume\n");
 			delayed_resume_timer_cb(data);
 		} else {
-			DbgPrint("Immediate pause\n");
 			widget_viewer_set_visibility(data->handle, WIDGET_HIDE_WITH_PAUSE);
 		}
 	}

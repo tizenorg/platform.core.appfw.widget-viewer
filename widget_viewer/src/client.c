@@ -36,6 +36,7 @@
 #include <widget_service_internal.h>
 #include <widget_cmd_list.h>
 #include <widget_buffer.h>
+#include <widget_conf.h>
 #include <secure_socket.h>
 
 #include "debug.h"
@@ -57,12 +58,14 @@ int errno;
 static struct info {
 	int fd;
 	int direct_fd;
+	int master_direct_fd;
 	guint timer_id;
 	char *client_addr;
 	char *direct_addr;
 } s_info = {
 	.fd = -1,
 	.direct_fd = -1,
+	.master_direct_fd = -1,
 	.timer_id = 0,
 	.client_addr = NULL,
 	.direct_addr = NULL,
@@ -1929,6 +1932,25 @@ out:
 	return NULL;
 }
 
+static struct method s_direct_table[] = {
+	{
+		.cmd = CMD_STR_WIDGET_UPDATED, /* pkgname, id, lb_w, lb_h, priority, ret */
+		.handler = master_widget_updated,
+	},
+	{
+		.cmd = CMD_STR_GBAR_UPDATED, /* pkgname, id, descfile, pd_w, pd_h, ret */
+		.handler = master_gbar_updated,
+	},
+	{
+		.cmd = CMD_STR_EXTRA_UPDATED,
+		.handler = master_extra_updated,
+	},
+	{
+		.cmd = NULL,
+		.handler = NULL,
+	},
+};
+
 static struct method s_table[] = {
 	{ /* WIDGET_UPDATED */
 		.cmd = CMD_STR_WIDGET_UPDATED, /* pkgname, id, widget_w, widget_h, priority, ret */
@@ -2044,6 +2066,29 @@ static struct method s_table[] = {
 	},
 };
 
+static void make_direct_connection(void)
+{
+	struct packet *packet;
+	int ret;
+
+	s_info.master_direct_fd = com_core_packet_client_init(SHARED_SOCKET, 0, s_direct_table);
+	if (s_info.master_direct_fd < 0) {
+		ErrPrint("Failed to create a connection\n");
+		return;
+	}
+
+	packet = packet_create_noack(CMD_STR_DIRECT_HELLO, "s", client_direct_addr());
+	if (!packet) {
+		ErrPrint("Packet is not valid\n");
+		return;
+	}
+
+	ret = com_core_packet_send_only(s_info.master_direct_fd, packet);
+	packet_destroy(packet);
+
+	DbgPrint("Direct connection request is sent: %d\n", ret);
+}
+
 static void acquire_cb(widget_h handler, const struct packet *result, void *data)
 {
 	if (!result) {
@@ -2057,10 +2102,52 @@ static void acquire_cb(widget_h handler, const struct packet *result, void *data
 		} else {
 			DbgPrint("Acquire returns: %d (%d)\n", ret, extra_buffer_count);
 			conf_set_extra_buffer_count(extra_buffer_count);
+			/**
+			 * Now the master has client object.
+			 * We can make a direct connection handler from now.
+			 */
+			make_direct_connection();
 		}
 	}
 
 	return;
+}
+
+static void prepare_direct_update(void)
+{
+	char path[MAX_DIRECT_ADDR];
+
+	if (!conf_direct_update()) {
+		return;
+	}
+
+	if (s_info.direct_addr) {
+		DbgPrint("Direct path is already initiated: %s\n", s_info.direct_addr);
+		return;
+	}
+
+	if (!strncmp(s_info.client_addr, COM_CORE_REMOTE_SCHEME, strlen(COM_CORE_REMOTE_SCHEME))) {
+		ErrPrint("Remote model is not support this\n");
+		return;
+	}
+
+	snprintf(path, sizeof(path) - 1, "%s/.%d.%lf.widget.viewer", WIDGET_CONF_IMAGE_PATH, getpid(), util_timestamp());
+
+	s_info.direct_addr = strdup(path);
+	if (!s_info.direct_addr) {
+		ErrPrint("strdup: %d\n", errno);
+		return;
+	}
+
+	s_info.direct_fd = com_core_packet_server_init(client_direct_addr(), s_direct_table);
+	if (s_info.direct_fd < 0) {
+		ErrPrint("Failed to prepare server: %s\n", client_direct_addr());
+		free(s_info.direct_addr);
+		s_info.direct_addr = NULL;
+		return;
+	}
+
+	DbgPrint("Direct update is prepared: %s - %d\n", client_direct_addr(), client_direct_fd());
 }
 
 static inline int make_connection(void)
@@ -2068,6 +2155,15 @@ static inline int make_connection(void)
 	struct packet *packet;
 	unsigned int cmd = CMD_ACQUIRE;
 	int ret;
+
+	/**
+	 * @note
+	 * Before creating a connection with master,
+	 * Initiate the private channel for getting the updated event from providers
+	 * And this channel should be created after the master is launched.
+	 * Or the master will delete all files in the shared folder.
+	 */
+	prepare_direct_update();
 
 	DbgPrint("Let's making connection!\n");
 
@@ -2097,7 +2193,9 @@ static inline int make_connection(void)
 
 static int connected_cb(int handle, void *data)
 {
-	master_rpc_check_and_fire_consumer();
+	if (s_info.fd == handle) {
+		master_rpc_check_and_fire_consumer();
+	}
 	return 0;
 }
 
@@ -2162,57 +2260,10 @@ static int disconnected_cb(int handle, void *data)
 	return 0;
 }
 
-static struct method s_direct_table[] = {
-	{
-		.cmd = CMD_STR_WIDGET_UPDATED, /* pkgname, id, lb_w, lb_h, priority, ret */
-		.handler = master_widget_updated,
-	},
-	{
-		.cmd = CMD_STR_GBAR_UPDATED, /* pkgname, id, descfile, pd_w, pd_h, ret */
-		.handler = master_gbar_updated,
-	},
-	{
-		.cmd = CMD_STR_EXTRA_UPDATED,
-		.handler = master_extra_updated,
-	},
-	{
-		.cmd = NULL,
-		.handler = NULL,
-	},
-};
-
-static void prepare_direct_update(void)
-{
-	char path[MAX_DIRECT_ADDR];
-
-	if (!conf_direct_update()) {
-		return;
-	}
-
-	if (!strncmp(s_info.client_addr, COM_CORE_REMOTE_SCHEME, strlen(COM_CORE_REMOTE_SCHEME))) {
-		ErrPrint("Remote model is not support this\n");
-		return;
-	}
-
-	snprintf(path, sizeof(path) - 1, "/tmp/.%d.%lf.widget.viewer", getpid(), util_timestamp());
-
-	s_info.direct_addr = strdup(path);
-	if (!s_info.direct_addr) {
-		ErrPrint("strdup: %d\n", errno);
-		return;
-	}
-
-	s_info.direct_fd = com_core_packet_server_init(client_direct_addr(), s_direct_table);
-	if (s_info.direct_fd < 0) {
-		ErrPrint("Failed to prepare server: %s\n", client_direct_addr());
-		return;
-	}
-
-	DbgPrint("Direct update is prepared: %s - %d\n", client_direct_addr(), client_direct_fd());
-}
-
 int client_init(int use_thread)
 {
+	widget_conf_init();
+
 	com_core_packet_use_thread(use_thread);
 
 	s_info.client_addr = vconf_get_str(VCONFKEY_MASTER_CLIENT_ADDR);
@@ -2230,14 +2281,6 @@ int client_init(int use_thread)
 
 	com_core_add_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_add_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
-
-	/**
-	 * @note
-	 * Before creating a connection with master,
-	 * Initiate the private channel for getting the updated event from providers
-	 * How could we propagates the our address to every providers?
-	 */
-	prepare_direct_update();
 
 	if (vconf_notify_key_changed(VCONFKEY_MASTER_STARTED, master_started_cb, NULL) < 0) {
 		ErrPrint("Failed to add vconf for service state\n");
@@ -2282,12 +2325,25 @@ int client_fini(void)
 
 	com_core_del_event_callback(CONNECTOR_DISCONNECTED, disconnected_cb, NULL);
 	com_core_del_event_callback(CONNECTOR_CONNECTED, connected_cb, NULL);
-	com_core_packet_client_fini(s_info.fd);
-	s_info.fd = -1;
+
+	if (s_info.fd >= 0) {
+		com_core_packet_client_fini(s_info.fd);
+		s_info.fd = -1;
+	}
+
+	if (s_info.master_direct_fd >= 0) {
+		com_core_packet_client_fini(s_info.master_direct_fd);
+		s_info.master_direct_fd = -1;
+	}
 
 	if (s_info.direct_fd >= 0) {
 		com_core_packet_server_fini(s_info.direct_fd);
 		s_info.direct_fd = -1;
+	}
+
+	if (s_info.timer_id > 0) {
+		g_source_remove(s_info.timer_id);
+		s_info.timer_id = 0;
 	}
 
 	free(s_info.client_addr);
@@ -2295,6 +2351,8 @@ int client_fini(void)
 
 	free(s_info.direct_addr);
 	s_info.direct_addr = NULL;
+
+	widget_conf_reset();
 	return WIDGET_ERROR_NONE;
 }
 

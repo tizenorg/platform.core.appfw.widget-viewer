@@ -2,7 +2,7 @@
 
 Name: libwidget_viewer
 Summary: Library for developing the application
-Version: 1.1.4
+Version: 1.1.5
 Release: 1
 Group: Applications/Core Applications
 License: Flora-1.1

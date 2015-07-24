@@ -15,9 +15,9 @@
  */
 
 /**
- * @defgroup CAPI_WIDGET_VIEWER_EVAS_MODULE Widget Viewer Evas
+ * @defgroup CAPI_WIDGET_VIEWER_EVAS_MODULE Widget Viewer
  * @ingroup CAPI_WIDGET_FRAMEWORK
- * @brief API for widget viewer evas (widget screen, home screen, ...)
+ * @brief API for widget viewer (widget screen, home screen, ...)
  * @section CAPI_WIDGET_VIEWER_EVAS_MODULE_HEADER Required Header
  * \#include <widget_viewer_evas.h>
  * @section CAPI_WIDGET_VIEWER_EVAS_MODULE_OVERVIEW Overview
