@@ -12,9 +12,9 @@ int util_screen_size_get(int *x, int *y)
 	return 0;
 }
 
-int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap, int skip_acquire)
+unsigned int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap)
 {
-	return 0;
+	return 0u;
 }
 
 int util_set_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap, int skip_acquire)

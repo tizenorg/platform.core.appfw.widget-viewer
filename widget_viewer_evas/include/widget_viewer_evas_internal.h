@@ -58,7 +58,9 @@ typedef enum widget_evas_raw_event_type {
  * @brief Options for each widget.
  */
 typedef enum widget_option_widget_type {
-	WIDGET_OPTION_WIDGET_DELAYED_RESUME = 0x01,	/* 0: Follow the global configuration, 1: Disable the Delayed Pause Resume, 2: Enable the Delayed Pause Resume */
+	WIDGET_OPTION_WIDGET_DELAYED_RESUME = 0x01,	/**< 0: Follow the global configuration, 1: Disable the Delayed Pause Resume, 2: Enable the Delayed Pause Resume */
+	WIDGET_OPTION_WIDGET_DISABLE_OVERLAY_ANIMATION = 0x02, /**< 0: Enable overlay animation, 1: Disable overlay animation */
+	WIDGET_OPTION_WIDGET_MANUAL_OVERLAY_HIDE = 0x04, /**< 0: Automatically hidden by system, 1: Should be hidden by caller explicitly */
 	WIDGET_OPTION_UNKNOWN = 0xFF
 } widget_option_widget_e;
 
@@ -256,6 +258,16 @@ extern int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_
  * @return #WIDGET_ERROR_NONE on success, otherwise a negative error value
  */
 extern int widget_viewer_evas_set_preview_image(Evas_Object *widget, widget_size_type_e type, const char *preview);
+
+/**
+ * @brief Hide the overlay (preview) immeidiately.
+ * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @param[in] widget
+ * @return #WIDGET_ERROR_NONE on success, otherwise negative error value
+ */
+extern int widget_viewer_evas_hide_overlay(Evas_Object *widget);
 
 #ifdef __cplusplus
 }

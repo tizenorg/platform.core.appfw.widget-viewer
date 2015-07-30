@@ -296,6 +296,7 @@ extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
 /**
  * @brief Hides the help text of the widget
  * @details While loading a box, hide the help text
+ * @remarks This function should be called right after create the widget object before resizing it
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  */
@@ -304,6 +305,7 @@ extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
 /**
  * @brief Hides the loading message of the widget
  * @details if you disable it, there is no preview & help text while creating a widget object
+ * @remarks This function should be called right after create the widget object before resizing it
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  */

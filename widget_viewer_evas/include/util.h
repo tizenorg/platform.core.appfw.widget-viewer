@@ -19,7 +19,7 @@
 #define __WIDGET_VIEWER_UTIL_H
 
 extern int util_screen_size_get(int *w, int *h);
-extern int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap, int skip_acquire);
+extern unsigned int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap);
 extern int util_set_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap, int skip_acquire);
 extern unsigned int util_get_resource_id_of_native_surface(Evas_Native_Surface *surface);
 extern void *util_display_get(void);

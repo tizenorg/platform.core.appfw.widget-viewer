@@ -289,6 +289,14 @@ collections {
 				transition: LINEAR 0.5;
 				after: "animation,done";
 			}
+			program {
+				name: "enable,overlay,without,animation";
+				signal: "enable,without,animation";
+				source: "overlay";
+				action: STATE_SET "default" 0.0;
+				target: "overlay";
+				after: "animation,done";
+			}
 
 			program {
 				name: "disable,overlay";
@@ -297,6 +305,14 @@ collections {
 				action: STATE_SET "disable,overlay" 0.0;
 				target: "overlay";
 				transition: LINEAR 0.5;
+				after: "animation,done";
+			}
+			program {
+				name: "disable,overlay,without,animation";
+				signal: "disable,without,animation";
+				source: "overlay";
+				action: STATE_SET "disable,overlay" 0.0;
+				target: "overlay";
 				after: "animation,done";
 			}
 

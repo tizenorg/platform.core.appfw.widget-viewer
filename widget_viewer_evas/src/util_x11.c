@@ -27,10 +27,11 @@ int util_screen_size_get(int *w, int *h)
 	return 0;
 }
 
-int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap, int skip_acquire)
+unsigned int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap)
 {
 	Evas_Native_Surface *old_surface;
 	Evas_Native_Surface surface;
+	unsigned int old_pixmap = 0u;
 
 	surface.version = EVAS_NATIVE_SURFACE_VERSION;
 	surface.type = EVAS_NATIVE_SURFACE_X11;
@@ -44,27 +45,19 @@ int util_replace_native_surface(struct widget *handle, int gbar, Evas_Object *co
 
 		DbgPrint("Created: %u\n", surface.data.x11.pixmap);
 	} else {
-		unsigned int old_pixmap;
-
 		old_pixmap = old_surface->data.x11.pixmap;
 
 		if (old_pixmap != pixmap) {
 			surface.data.x11.visual = old_surface->data.x11.visual;
 			evas_object_image_native_surface_set(content, &surface);
-
-			if (old_pixmap && handle) {
-				if (!skip_acquire) {
-					widget_viewer_release_resource_id(handle, gbar, old_pixmap);
-				}
-			}
-
 			DbgPrint("Replaced: %u (%u)\n", pixmap, old_pixmap);
 		} else {
 			DbgPrint("Same resource, reuse it [%u]\n", pixmap);
+			old_pixmap = 0u;
 		}
 	}
 
-	return 0;
+	return old_pixmap;
 }
 
 int util_set_native_surface(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap, int skip_acquire)

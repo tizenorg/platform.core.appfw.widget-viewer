@@ -334,7 +334,10 @@ struct widget_data {
 			unsigned int delayed_resume:2;
 			unsigned int initial_resumed:1;
 
-			unsigned int reserved:3;
+			unsigned int disabled_overlay_animation:1;
+			unsigned int extra_info_updated:1;
+
+			unsigned int hide_overlay_manually:1;
 		} field;	/* Do we really have the performance loss because of bit fields? */
 
 		unsigned int flags;
@@ -412,7 +415,7 @@ static int widget_system_created(struct widget *handle, struct widget_data *data
 static void __widget_created_cb(struct widget *handle, int ret, void *cbdata);
 static void __widget_overlay_loading(struct widget_data *data);
 static void __widget_overlay_faulted(struct widget_data *data);
-static void __widget_overlay_disable(struct widget_data *data, int no_timer);
+static void __widget_overlay_disable(struct widget_data *data, int no_timer, int ignore_update_count);
 
 static void gbar_overlay_loading(struct widget_data *data);
 static void gbar_overlay_disable(struct widget_data *data);
@@ -3106,8 +3109,7 @@ static void activate_ret_cb(struct widget *handle, int ret, void *cbdata)
 		return;
 	}
 
-	data->overlay_update_counter = 0;
-	__widget_overlay_disable(data, 1);
+	__widget_overlay_disable(data, 1, 1);
 
 	DbgPrint("Activated (%s): %d\n", data->widget_id, ret);
 	if (!data->is.field.deleted && (ret == WIDGET_ERROR_NONE || ret == WIDGET_ERROR_INVALID_PARAMETER)) {
@@ -3451,10 +3453,10 @@ static Evas_Object *create_image_object(struct widget_data *data)
 static void replace_widget_pixmap_with_image(struct widget_data *data)
 {
 	Evas_Object *img;
-	Evas_Object *widget_viewer_get_content_string;
+	Evas_Object *content;
 
-	widget_viewer_get_content_string = elm_object_part_content_unset(data->widget_layout, "widget,content");
-	if (!widget_viewer_get_content_string) {
+	content = elm_object_part_content_unset(data->widget_layout, "widget,content");
+	if (!content) {
 		ErrPrint("Failed to get content object\n");
 		return;
 	}
@@ -3463,14 +3465,14 @@ static void replace_widget_pixmap_with_image(struct widget_data *data)
 	if (img) {
 		Evas_Coord w;
 		Evas_Coord h;
-		void *content;
+		void *image_data;
 
-		evas_object_image_size_get(widget_viewer_get_content_string, &w, &h);
+		evas_object_image_size_get(content, &w, &h);
 		evas_object_image_size_set(img, w, h);
 
-		content = evas_object_image_data_get(widget_viewer_get_content_string, 0);
-		if (content) {
-			evas_object_image_data_copy_set(img, content);
+		image_data = evas_object_image_data_get(content, 0);
+		if (image_data) {
+			evas_object_image_data_copy_set(img, image_data);
 		}
 
 		evas_object_image_fill_set(img, 0, 0, w, h);
@@ -3482,7 +3484,7 @@ static void replace_widget_pixmap_with_image(struct widget_data *data)
 		ErrPrint("Failed to create an image object\n");
 	}
 
-	evas_object_del(widget_viewer_get_content_string);
+	evas_object_del(content);
 }
 
 static void replace_gbar_pixmap_with_image(struct widget_data *data)
@@ -4042,19 +4044,19 @@ static int widget_create_image_object(struct widget_data *data)
 
 static int widget_create_buffer_object(struct widget_data *data)
 {
-	Evas_Object *widget_viewer_get_content_string;
+	Evas_Object *content;
 
-	widget_viewer_get_content_string = elm_object_part_content_get(data->widget_layout, "widget,content");
-	if (!widget_viewer_get_content_string) {
-		widget_viewer_get_content_string = evas_object_image_filled_add(data->e);
-		if (!widget_viewer_get_content_string) {
+	content = elm_object_part_content_get(data->widget_layout, "widget,content");
+	if (!content) {
+		content = evas_object_image_filled_add(data->e);
+		if (!content) {
 			ErrPrint("Failed to create an image object\n");
 			return WIDGET_ERROR_FAULT;
 		}
 
-		evas_object_image_colorspace_set(widget_viewer_get_content_string, EVAS_COLORSPACE_ARGB8888);
-		evas_object_image_alpha_set(widget_viewer_get_content_string, EINA_TRUE);
-		elm_object_part_content_set(data->widget_layout, "widget,content", widget_viewer_get_content_string);
+		evas_object_image_colorspace_set(content, EVAS_COLORSPACE_ARGB8888);
+		evas_object_image_alpha_set(content, EINA_TRUE);
+		elm_object_part_content_set(data->widget_layout, "widget,content", content);
 	}
 
 	return WIDGET_ERROR_NONE;
@@ -4363,21 +4365,21 @@ static int widget_create_text_object(struct widget_data *data)
 
 static int widget_create_pixmap_object(struct widget_data *data)
 {
-	Evas_Object *widget_viewer_get_content_string;
+	Evas_Object *content;
 
-	widget_viewer_get_content_string = elm_object_part_content_get(data->widget_layout, "widget,content");
-	if (!widget_viewer_get_content_string) {
-		widget_viewer_get_content_string = evas_object_image_filled_add(data->e);
-		if (!widget_viewer_get_content_string) {
+	content = elm_object_part_content_get(data->widget_layout, "widget,content");
+	if (!content) {
+		content = evas_object_image_filled_add(data->e);
+		if (!content) {
 			ErrPrint("Failed to create an image object\n");
 			return WIDGET_ERROR_FAULT;
 		}
 
-		evas_object_image_colorspace_set(widget_viewer_get_content_string, EVAS_COLORSPACE_ARGB8888);
-		evas_object_image_alpha_set(widget_viewer_get_content_string, EINA_TRUE);
-		evas_object_event_callback_add(widget_viewer_get_content_string, EVAS_CALLBACK_DEL, __widget_pixmap_del_cb, data);
+		evas_object_image_colorspace_set(content, EVAS_COLORSPACE_ARGB8888);
+		evas_object_image_alpha_set(content, EINA_TRUE);
+		evas_object_event_callback_add(content, EVAS_CALLBACK_DEL, __widget_pixmap_del_cb, data);
 
-		elm_object_part_content_set(data->widget_layout, "widget,content", widget_viewer_get_content_string);
+		elm_object_part_content_set(data->widget_layout, "widget,content", content);
 	}
 
 	return WIDGET_ERROR_NONE;
@@ -4407,7 +4409,12 @@ static void acquire_gbar_extra_resource_cb(struct widget *handle, int pixmap, vo
 
 static void replace_pixmap(struct widget *handle, int gbar, Evas_Object *content, unsigned int pixmap)
 {
-	util_replace_native_surface(handle, gbar, content, pixmap, s_info.conf.field.skip_acquire);
+	unsigned int old_pixmap;
+
+	old_pixmap = util_replace_native_surface(handle, gbar, content, pixmap);
+	if (!s_info.conf.field.skip_acquire && old_pixmap != 0u) {
+		widget_viewer_release_resource_id(handle, gbar, old_pixmap);
+	}
 }
 
 static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cbdata)
@@ -4416,7 +4423,7 @@ static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cb
 	struct widget_data *data = acquire_data->data;
 
 	data->is.field.widget_pixmap_acquire_requested = 0;
-	__widget_overlay_disable(data, 0);
+	__widget_overlay_disable(data, 0, 0);
 
 	if (pixmap == 0) {
 		DbgPrint("Pixmap gotten (0)\n");
@@ -4666,6 +4673,15 @@ static void __widget_created_cb(struct widget *handle, int ret, void *cbdata)
 		 * Right after creating its instance.
 		 */
 		append_widget_dirty_object_list(data, WIDGET_KEEP_BUFFER);
+
+		if (data->is.field.extra_info_updated) {
+			data->is.field.extra_info_updated = 0;
+
+			info.widget_app_id = data->widget_id;
+			info.event = WIDGET_EVENT_EXTRA_INFO_UPDATED;
+			info.error = WIDGET_ERROR_NONE;
+			smart_callback_call(data, WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED, &info);
+		}
 	} else {
 		info.error = ret;
 		info.widget_app_id = data->widget_id;
@@ -4845,7 +4861,11 @@ static Eina_Bool delayed_overlay_disable_cb(void *_data)
 {
 	struct widget_data *data = _data;
 
-	elm_object_signal_emit(data->widget_layout, "disable", "overlay");
+	if (data->is.field.disabled_overlay_animation) {
+		elm_object_signal_emit(data->widget_layout, "disable,without,animation", "overlay");
+	} else {
+		elm_object_signal_emit(data->widget_layout, "disable", "overlay");
+	}
 
 	data->is.field.widget_overlay_loaded = 0;
 	data->overlay_update_counter = DEFAULT_OVERLAY_COUNTER;
@@ -4853,7 +4873,7 @@ static Eina_Bool delayed_overlay_disable_cb(void *_data)
 	return ECORE_CALLBACK_CANCEL;
 }
 
-static void __widget_overlay_disable(struct widget_data *data, int no_timer)
+static void __widget_overlay_disable(struct widget_data *data, int no_timer, int ignore_update_count)
 {
 	if (!data->widget_layout) {
 		return;
@@ -4863,26 +4883,46 @@ static void __widget_overlay_disable(struct widget_data *data, int no_timer)
 		return;
 	}
 
+	if (ignore_update_count) {
+		data->overlay_update_counter = 0;
+	} else {
+		if (data->is.field.hide_overlay_manually) {
+			return;
+		}
+	}
+
+	/**
+	 * @note
+	 * After the frame update counter reaches to ZERO,
+	 * The overlay will be disabled immediately if the "no_timer" is true(1),
+	 * or it will be disabled after a few milli-seconds later.
+	 * The timer will be fired when it gets the first frame update event.
+	 * And it will start estimating seconds.
+	 * Even after the last frame is updated (by "overlay_update_counter"),
+	 * The timer will be expired after DEFAULT_OVERLAY_WAIT_TIME secs later
+	 * which is started from the first frame update event.
+	 */
 	data->overlay_update_counter--;
 	if (data->overlay_update_counter <= 0) {
 		if (no_timer) {
 			if (data->overlay_timer) {
 				ecore_timer_del(data->overlay_timer);
-				data->overlay_timer = NULL;
+				/**
+				 * @note
+				 * data->overlay_timer will be reset'd to NULL by delayed_overlay_disable_cb().
+				 */
 			}
 			delayed_overlay_disable_cb(data);
-		} else {
-			if (data->overlay_timer) {
-				ecore_timer_del(data->overlay_timer);
-				data->overlay_timer = NULL;
-				delayed_overlay_disable_cb(data);
-			} else {
-				return;
-			}
+			return;
 		}
 	}
 
 	if (!no_timer && !data->overlay_timer) {
+		/**
+		 * @note
+		 * This routine will be executed when the update_counter is greater than 0,
+		 * (means that the frame should be updated more as this count)
+		 */
 		data->overlay_timer = ecore_timer_add(DEFAULT_OVERLAY_WAIT_TIME, delayed_overlay_disable_cb, data);
 		if (!data->overlay_timer) {
 			ErrPrint("Failed to create a timer\n");
@@ -4945,7 +4985,11 @@ static void __widget_overlay_loading(struct widget_data *data)
 	}
 
 	elm_object_signal_emit(data->widget_layout, "reset", "overlay");
-	elm_object_signal_emit(data->widget_layout, "enable", "overlay");
+	if (data->is.field.disabled_overlay_animation) {
+		elm_object_signal_emit(data->widget_layout, "enable,without,animation", "overlay");
+	} else {
+		elm_object_signal_emit(data->widget_layout, "enable", "overlay");
+	}
 
 	evas_object_geometry_get(data->widget, NULL, NULL, &acquire_data.w, &acquire_data.h);
 	acquire_data.content = NULL;
@@ -4963,8 +5007,7 @@ static void __widget_overlay_faulted(struct widget_data *data)
 	widget_type_e widget_type;
 
 	if (data->is.field.widget_overlay_loaded) {
-		data->overlay_update_counter = 0;
-		__widget_overlay_disable(data, 1);
+		__widget_overlay_disable(data, 1, 1);
 	}
 
 	overlay = elm_object_part_content_get(data->widget_layout, "overlay,content");
@@ -5429,10 +5472,15 @@ static void __widget_event_extra_info_updated(struct widget_data *data)
 		/* Nothing changed */
 	}
 
-	info.widget_app_id = data->widget_id;
-	info.event = WIDGET_EVENT_EXTRA_INFO_UPDATED;
-	info.error = WIDGET_ERROR_NONE;
-	smart_callback_call(data, WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED, &info);
+	if (data->is.field.created == 0) {
+		DbgPrint("Extra info is updated[%s]\n", data->widget_id);
+		data->is.field.extra_info_updated = 1;
+	} else {
+		info.widget_app_id = data->widget_id;
+		info.event = WIDGET_EVENT_EXTRA_INFO_UPDATED;
+		info.error = WIDGET_ERROR_NONE;
+		smart_callback_call(data, WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED, &info);
+	}
 }
 
 /*!
@@ -5440,7 +5488,7 @@ static void __widget_event_extra_info_updated(struct widget_data *data)
  */
 static void __widget_event_widget_updated(struct widget_data *data)
 {
-	Evas_Object *widget_viewer_get_content_string;
+	Evas_Object *content;
 	widget_size_type_e type;
 	widget_type_e widget_type;
 	int w, h;
@@ -5453,8 +5501,8 @@ static void __widget_event_widget_updated(struct widget_data *data)
 		return;
 	}
 
-	widget_viewer_get_content_string = elm_object_part_content_get(data->widget_layout, "widget,content");
-	if (!widget_viewer_get_content_string) {
+	content = elm_object_part_content_get(data->widget_layout, "widget,content");
+	if (!content) {
 		ErrPrint("Failed to get content object\n");
 		return;
 	}
@@ -5481,21 +5529,21 @@ static void __widget_event_widget_updated(struct widget_data *data)
 
 	switch (widget_type) {
 	case WIDGET_CONTENT_TYPE_IMAGE:
-		__widget_update_image_object(data, widget_viewer_get_content_string, w, h);
-		__widget_overlay_disable(data, 0);
+		__widget_update_image_object(data, content, w, h);
+		__widget_overlay_disable(data, 0, 0);
 		break;
 	case WIDGET_CONTENT_TYPE_RESOURCE_ID:
 		if (!s_info.conf.field.force_to_buffer) {
-			__widget_update_pixmap_object(data, widget_viewer_get_content_string, w, h);
+			__widget_update_pixmap_object(data, content, w, h);
 			break;
 		}
 	case WIDGET_CONTENT_TYPE_BUFFER:
-		__widget_update_buffer_object(data, widget_viewer_get_content_string, w, h);
-		__widget_overlay_disable(data, 0);
+		__widget_update_buffer_object(data, content, w, h);
+		__widget_overlay_disable(data, 0, 0);
 		break;
 	case WIDGET_CONTENT_TYPE_TEXT:
-		__widget_update_text_object(data, widget_viewer_get_content_string, w, h);
-		__widget_overlay_disable(data, 0);
+		__widget_update_text_object(data, content, w, h);
+		__widget_overlay_disable(data, 0, 0);
 		break;
 	case WIDGET_CONTENT_TYPE_UIFW:
 		break;
@@ -7222,6 +7270,12 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
 #endif
 }
 
+/**
+ * @note
+ * While displaying "loading" overlay, there is a preview image.
+ * But if this function is called, the preview image will not be displayed.
+ * Only the help text will be there. if it is not disabled of course.
+ */
 EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 {
 	struct widget_data *data;
@@ -7243,6 +7297,12 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 	data->is.field.disable_preview = 1;
 }
 
+/**
+ * @note
+ * While displaying "loading" overlay, there is a help text.
+ * But if this function is called, the text help message will not be displayed.
+ * Only the preview image will be there. if it is not disabled of course.
+ */
 EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 {
 	struct widget_data *data;
@@ -7264,6 +7324,12 @@ EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 	data->is.field.disable_text = 1;
 }
 
+/**
+ * @note
+ * This function should be called before resize the widget object after create it.
+ * If this function is called, the widget object will not display "preview" image.
+ * Instead of it, the widget content object will be displayed immediately.
+ */
 EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 {
 	struct widget_data *data;
@@ -7783,6 +7849,12 @@ EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option
 	case WIDGET_OPTION_WIDGET_DELAYED_RESUME:
 		data->is.field.delayed_resume = (value & 0x03);
 		break;
+	case WIDGET_OPTION_WIDGET_DISABLE_OVERLAY_ANIMATION:
+		data->is.field.disabled_overlay_animation = !!value;
+		break;
+	case WIDGET_OPTION_WIDGET_MANUAL_OVERLAY_HIDE:
+		data->is.field.hide_overlay_manually = !!value;
+		break;
 	default:
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -7849,6 +7921,47 @@ EAPI int widget_viewer_evas_set_preview_image(Evas_Object *widget, widget_size_t
 	}
 
 	data->preview_list = eina_list_append(data->preview_list, info);
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_viewer_evas_hide_overlay(Evas_Object *widget)
+{
+	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
+	data = get_smart_data(widget);
+	if (!data) {
+		ErrPrint("Invalid object\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!data->is.field.widget_overlay_loaded) {
+		/**
+		 * Already disabled
+		 */
+		return WIDGET_ERROR_NONE;
+	}
+
+	if (!data->is.field.hide_overlay_manually) {
+		DbgPrint("Overlay is not controlled manually\n");
+	}
+
+	if (data->overlay_timer) {
+		ecore_timer_del(data->overlay_timer);
+		/**
+		 * @note
+		 * data->overlay_timer will be reset'd to NULL by delayed_overlay_disable_cb().
+		 */
+	}
+	delayed_overlay_disable_cb(data);
+
 	return WIDGET_ERROR_NONE;
 }
 
