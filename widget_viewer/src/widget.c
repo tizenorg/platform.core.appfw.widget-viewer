@@ -2347,6 +2347,7 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 			break;
 		case WIDGET_MOUSE_EVENT_ON_HOLD | WIDGET_MOUSE_EVENT_MASK:
 			cmd = CMD_GBAR_MOUSE_ON_HOLD;
+			DbgPrint("Send ON_HOLD\n");
 			break;
 		case WIDGET_MOUSE_EVENT_OFF_SCROLL | WIDGET_MOUSE_EVENT_MASK:
 			cmd = CMD_GBAR_MOUSE_OFF_SCROLL;
@@ -2420,6 +2421,7 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 			break;
 		case WIDGET_MOUSE_EVENT_ON_HOLD | WIDGET_MOUSE_EVENT_MASK:
 			cmd = CMD_WIDGET_MOUSE_ON_HOLD;
+			DbgPrint("Send ON_HOLD\n");
 			break;
 		case WIDGET_MOUSE_EVENT_OFF_SCROLL | WIDGET_MOUSE_EVENT_MASK:
 			cmd = CMD_WIDGET_MOUSE_OFF_SCROLL;

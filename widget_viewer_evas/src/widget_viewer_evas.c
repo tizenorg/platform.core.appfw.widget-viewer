@@ -1044,14 +1044,19 @@ static void gbar_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 	if (s_info.conf.field.auto_feed) {
 		minfo.x = (double)data->down.geo.x;
 		minfo.y = (double)data->down.geo.y;
-		minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
-		minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+		if (s_info.conf.field.use_fixed_size) {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		} else {
+			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
+			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+		}
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_SET, &minfo);
 	} else {
 		minfo.x = (double)(down->canvas.x - data->down.geo.x);
 		minfo.y = (double)(down->canvas.y - data->down.geo.y);
 
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
 			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
 		} else {
@@ -1089,7 +1094,7 @@ static void gbar_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 		minfo.x = (double)(move->cur.canvas.x - x);
 		minfo.y = (double)(move->cur.canvas.y - y);
 
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 			minfo.ratio_w = (double)data->fixed_width / (double)w;
 			minfo.ratio_h = (double)data->fixed_height / (double)h;
 		} else {
@@ -1200,7 +1205,7 @@ static void gbar_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info
 		minfo.x = (double)up->canvas.x;
 		minfo.y = (double)up->canvas.y;
 
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 			minfo.ratio_w = (double)data->fixed_width / (double)w;
 			minfo.ratio_h = (double)data->fixed_height / (double)h;
 		} else {
@@ -1213,7 +1218,7 @@ static void gbar_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info
 		minfo.x = (double)(up->canvas.x - x);
 		minfo.y = (double)(up->canvas.y - y);
 
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 			minfo.ratio_w = (double)data->fixed_width / (double)w;
 			minfo.ratio_h = (double)data->fixed_height / (double)h;
 		} else {
@@ -1277,15 +1282,20 @@ static void __widget_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
 			minfo.x = (double)data->down.geo.x;
 			minfo.y = (double)data->down.geo.y;
-			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
-			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+			if (!s_info.conf.field.use_fixed_size) {
+				minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
+				minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
+			} else {
+				minfo.ratio_w = 1.0f;
+				minfo.ratio_h = 1.0f;
+			}
 			DbgPrint("%lfx%lf (%lfx%lf), %dx%d %dx%d\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h, data->fixed_width, data->fixed_height, data->down.geo.w, data->down.geo.h);
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_SET, &minfo);
 		} else {
 			minfo.x = (double)(data->x - data->down.geo.x);
 			minfo.y = (double)(data->y - data->down.geo.y);
 
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 				minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
 				minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
 			} else {
@@ -2834,7 +2844,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 		minfo.x = (double)(data->x - x);
 		minfo.y = (double)(data->y - y);
 
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 			minfo.ratio_w = (double)data->fixed_width / (double)w;
 			minfo.ratio_h = (double)data->fixed_height / (double)h;
 		} else {
@@ -2866,7 +2876,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 			_minfo.y = (double)up->canvas.y;
 			DbgPrint("X,Y = %lfx%lf\n", _minfo.x, _minfo.y);
 
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 				_minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
 				_minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
 				DbgPrint("Width: %d/%d - Height: %d/%d\n", data->fixed_width, data->down.geo.w, data->fixed_height, data->down.geo.h);
@@ -2884,7 +2894,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 				minfo.x = (double)(data->down.x - x);
 				minfo.y = (double)(data->down.y - y);
 
-				if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+				if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 					minfo.ratio_w = (double)data->fixed_width / (double)w;
 					minfo.ratio_h = (double)data->fixed_height / (double)h;
 				} else {
@@ -2977,7 +2987,7 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 			minfo.x = (double)(data->x - x);
 			minfo.y = (double)(data->y - y);
 
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 				minfo.ratio_w = (double)data->fixed_width / (double)w;
 				minfo.ratio_h = (double)data->fixed_height / (double)h;
 			} else {
@@ -3007,7 +3017,7 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 			minfo.x = (double)(data->x - x);
 			minfo.y = (double)(data->y - y);
 
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 				minfo.ratio_w = (double)data->fixed_width / (double)w;
 				minfo.ratio_h = (double)data->fixed_height / (double)h;
 			} else {
@@ -3783,7 +3793,7 @@ static int do_force_mouse_up(struct widget_data *data)
 	minfo.x = (double)(data->x - x);
 	minfo.y = (double)(data->y - y);
 
-	if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+	if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 		minfo.ratio_w = (double)data->fixed_width / (double)w;
 		minfo.ratio_h = (double)data->fixed_height / (double)h;
 	} else {
@@ -3812,7 +3822,7 @@ static int do_force_mouse_up(struct widget_data *data)
 		minfo.y = (double)data->y;
 		DbgPrint("X,Y = %lfx%lf\n", minfo.x, minfo.y);
 
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
 			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
 			DbgPrint("Width: %d/%d - Height: %d/%d\n", data->fixed_width, data->down.geo.w, data->fixed_height, data->down.geo.h);
@@ -3829,7 +3839,7 @@ static int do_force_mouse_up(struct widget_data *data)
 			/* We have to keep the first position of touch down */
 			minfo.x = (double)(data->down.x - x);
 			minfo.y = (double)(data->down.y - y);
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN) {
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 				minfo.ratio_w = (double)data->fixed_width / (double)w;
 				minfo.ratio_h = (double)data->fixed_height / (double)h;
 			} else {
@@ -3918,6 +3928,7 @@ static void __widget_move(Evas_Object *widget, Evas_Coord x, Evas_Coord y)
 			rx = 0.5f;
 			break;
 		}
+
 		if (prev_y + widget_h + gbar_h > s_info.screen_height) {
 			ry = 1.0f;
 		} else {
