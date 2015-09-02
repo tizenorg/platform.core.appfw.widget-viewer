@@ -20,6 +20,9 @@
 #include <errno.h>
 #include <widget_errno.h>
 #include <widget_service.h>
+#include <widget_service_internal.h>
+#include <widget_conf.h>
+#include <widget_util.h>
 #include <widget_viewer_evas.h>
 #include <vconf.h>
 #include <bundle.h>
@@ -33,6 +36,12 @@ int errno;
 
 #include "main.h"
 #include "debug.h"
+
+#define WATCH_CATEGORY "http://tizen.org/category/wearable_clock"
+#define DEFAULT_WATCH "org.tizen.digitalclock"
+#define LAZY_WATCH_TIME 3.0f
+#define CR 13
+#define LF 10
 
 static struct info {
 	int w;
@@ -51,6 +60,11 @@ static struct info {
 		int *size_types;
 		int count_of_size_type;
 	} ctx;
+
+	Ecore_Timer *lazy_widget_loader;
+	double lazy_watch_time;
+	char *default_watch;
+	char *watch_category;
 } s_info = {
 	.w = 0,
 	.h = 0,
@@ -66,9 +80,90 @@ static struct info {
 		.size_types = NULL,
 		.count_of_size_type = 20,
 	},
+
+	.lazy_widget_loader = NULL,
+	.lazy_watch_time = LAZY_WATCH_TIME,
+	.default_watch = DEFAULT_WATCH,
+	.watch_category = WATCH_CATEGORY,
 };
 
 #define LONG_PRESS 1.0f
+#define CONF_FNAME "/etc/widget_viewer_sdk.conf"
+
+static void watch_category_handler(char *buffer)
+{
+	char *old_category;
+
+	old_category = s_info.watch_category;
+
+	s_info.watch_category = strdup(buffer);
+	if (!s_info.watch_category) {
+		ErrPrint("strdup: %d\n", errno);
+		s_info.watch_category = old_category;
+	} else if ((long)old_category != (long)WATCH_CATEGORY) { /** Forcely compare the address */
+		free(old_category);
+	}
+
+	DbgPrint("Watch category: [%s]\n", s_info.watch_category);
+}
+
+static void default_watch_handler(char *buffer)
+{
+	char *old_watch;
+
+	old_watch = s_info.default_watch;
+
+	s_info.default_watch = strdup(buffer);
+	if (!s_info.default_watch) {
+		ErrPrint("strdup: %d\n", errno);
+		s_info.default_watch = old_watch;
+	} else if ((long)old_watch != (long)DEFAULT_WATCH) { /** Forcely compare the address */
+		free(old_watch);
+	}
+
+	DbgPrint("Default watch: [%s]\n", s_info.default_watch);
+}
+
+static void lazy_load_time_handler(char *buffer)
+{
+	double val;
+	if (sscanf(buffer, "%lf", &val) != 1) {
+		ErrPrint("Unable to parse data: [%s]\n", buffer);
+		return;
+	}
+
+	if (val < 0.0f) {
+		ErrPrint("Invalid value: %lf\n", val);
+		val = LAZY_WATCH_TIME;
+	}
+
+	s_info.lazy_watch_time = val;
+	DbgPrint("Lazy watch time: %lf\n", s_info.lazy_watch_time);
+}
+
+static void load_configuration(void)
+{
+	static const widget_conf_parser_table_t token_handler[] = {
+		{
+			.name = "watch_category",
+			.handler = watch_category_handler,
+		},
+		{
+			.name = "default_watch",
+			.handler = default_watch_handler,
+		},
+		{
+			.name = "lazy_load_time",
+			.handler = lazy_load_time_handler,
+		},
+		{
+			.name = NULL,
+			.handler = NULL,
+		},
+	};
+
+	(void)widget_conf_parser(CONF_FNAME, token_handler);
+}
 
 static void back_key_cb(void *data, Evas_Object *obj, void *event_info)
 {
@@ -113,6 +208,8 @@ static void layout_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info
 
 static bool app_create(void *data)
 {
+	load_configuration();
+
 	s_info.win = elm_win_add(NULL, "Widget Viewer (SDK)", ELM_WIN_BASIC);
 	if (!s_info.win) {
 		LOGD("Failed to create a window\n");
@@ -527,6 +624,16 @@ static int prepare_widget(const char *widget_id, app_control_h control)
 	return ret;
 }
 
+static Eina_Bool lazy_widget_loader_cb(void *widget_id)
+{
+	DbgPrint("Lazy loader expired. load widget [%s]\n", widget_id);
+
+	(void)load_widget(widget_id);
+	free(widget_id);
+	s_info.lazy_widget_loader = NULL;
+	return ECORE_CALLBACK_CANCEL;
+}
+
 static void _app_control(app_control_h service, void *data)
 {
 	char *widget_id = NULL;
@@ -534,15 +641,70 @@ static void _app_control(app_control_h service, void *data)
 
 	ret = app_control_get_extra_data(service, WIDGET_APPID, &widget_id);
 	if (ret == APP_CONTROL_ERROR_NONE) {
+		char *category;
+		int lazy_loader = 0;
+
 		DbgPrint("Loading a widget: [%s]\n", widget_id);
 		if (!widget_id) {
 			return;
 		}
 
+		category = widget_service_get_category(widget_id);
+		if (category) {
+			if (!strcmp(category, WATCH_CATEGORY)) {
+				/**
+				 * Trying to unload the WATCH from W-HOME
+				 */
+				char *watch_id;
+				int need_to_unload = 0;
+
+				watch_id = vconf_get_str(VCONFKEY_WMS_CLOCKS_SET_IDLE);
+				if (watch_id) {
+					need_to_unload = !!strcmp(watch_id, s_info.default_watch);
+					free(watch_id);
+				}
+
+				if (need_to_unload) {
+					DbgPrint("Watch: [%s] - unload first, SET(%s)\n", widget_id, s_info.default_watch);
+					ret = vconf_set_str(VCONFKEY_WMS_CLOCKS_SET_IDLE, s_info.default_watch);
+					if (ret != 0) {
+						ErrPrint("If this is not wearable, there is no such CLOCKS_SET_IDLE key (%d)\n", ret);
+					}
+
+					/**
+					 * @note
+					 * In this case, we should waiting some time to unload watch first.
+					 */
+					lazy_loader = 1;
+				}
+			}
+			free(category);
+		}
+
 		ret = unload_widget();
 		ret = prepare_widget(widget_id, service);
-		ret = load_widget(widget_id);
-		free(widget_id);
+
+		if (s_info.lazy_widget_loader) {
+			char *tmp;
+			tmp = ecore_timer_del(s_info.lazy_widget_loader);
+			free(tmp);
+		}
+
+		if (lazy_loader) {
+			DbgPrint("Load a watch after some time later (%lf)\n", s_info.lazy_watch_time);
+			s_info.lazy_widget_loader = ecore_timer_add(s_info.lazy_watch_time, lazy_widget_loader_cb, widget_id);
+			if (!s_info.lazy_widget_loader) {
+				ErrPrint("Unable to fire the timer\n");
+				lazy_widget_loader_cb(widget_id);
+			}
+			/**
+			 * @note
+			 * widget_id will be deleted from lazy_widget_loader_cb. or return value of ecore_timer_del().
+			 */
+		} else {
+			DbgPrint("Immediately loads the watch[%s]\n", widget_id);
+			lazy_widget_loader_cb(widget_id);
+		}
 	} else {
 		/**
 		 * @note

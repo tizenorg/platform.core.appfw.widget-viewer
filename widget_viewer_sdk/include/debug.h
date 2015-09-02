@@ -19,9 +19,9 @@
 #define ErrPrint(format, arg...)    SECURE_LOGE(format, ##arg)
 #else
 extern FILE *__file_log_fp;
-#define DbgPrint(format, arg...) do { fprintf(__file_log_fp, "[LOG] [[32m%s/%s[0m:%d] " format, util_basename(__FILE__), __func__, __LINE__, ##arg); fflush(__file_log_fp); } while (0)
+#define DbgPrint(format, arg...) do { fprintf(__file_log_fp, "[LOG] [[32m%s/%s[0m:%d] " format, widget_util_basename(__FILE__), __func__, __LINE__, ##arg); fflush(__file_log_fp); } while (0)
 
-#define ErrPrint(format, arg...) do { fprintf(__file_log_fp, "[ERR] [[32m%s/%s[0m:%d] " format, util_basename(__FILE__), __func__, __LINE__, ##arg); fflush(__file_log_fp); } while (0)
+#define ErrPrint(format, arg...) do { fprintf(__file_log_fp, "[ERR] [[32m%s/%s[0m:%d] " format, widget_util_basename(__FILE__), __func__, __LINE__, ##arg); fflush(__file_log_fp); } while (0)
 #endif
 
 

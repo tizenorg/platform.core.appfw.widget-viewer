@@ -91,19 +91,6 @@ double util_timestamp(void)
 #endif
 }
 
-const char *util_basename(const char *name)
-{
-	int length;
-	length = name ? strlen(name) : 0;
-	if (!length) {
-		return ".";
-	}
-
-	while (--length > 0 && name[length] != '/');
-
-	return length <= 0 ? name : name + length + (name[length] == '/');
-}
-
 const char *util_uri_to_path(const char *uri)
 {
 	int len;

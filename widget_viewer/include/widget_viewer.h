@@ -48,6 +48,10 @@ typedef struct widget *widget_h;
  */
 #define WIDGET_DEFAULT_PERIOD -1.0f
 
+#define WIDGET_VIEWER_CLICK_BUTTON_LEFT    "clicked"
+#define WIDGET_VIEWER_CLICK_BUTTON_RIGHT   "clicked,1"
+#define WIDGET_VIEWER_CLICK_BUTTON_CENTER  "clicked,2"
+
 /**
  * @internal
  * @brief Enumeration for Mouse & Key event for buffer type widget or Glance Bar.
@@ -284,6 +288,7 @@ typedef struct widget_mouse_event_info {
 	double y;                                   /**< Y coordinates of Mouse Event */
 	double ratio_w;
 	double ratio_h;
+	int device;
 } *widget_mouse_event_info_s;
 
 /**
@@ -293,6 +298,7 @@ typedef struct widget_mouse_event_info {
  */
 typedef struct widget_key_event_info {
     unsigned int keycode;                       /**< Key code */
+	int device;
 } *widget_key_event_info_s;
 
 /**
@@ -652,7 +658,7 @@ extern int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type,
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  */
-extern int widget_viewer_send_click_event(widget_h handle, double x, double y);
+extern int widget_viewer_send_click_event(widget_h handle, const char *event, double x, double y);
 
 /**
  * @internal

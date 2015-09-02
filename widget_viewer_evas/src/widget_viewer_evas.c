@@ -126,6 +126,22 @@
 #define DEFAULT_CLUSTER "user,created"
 #define DEFAULT_CATEGORY "default"
 
+/**
+ * @note
+ * Supported touch devices are limited to 32.
+ * Because of count of bits of integer type. (32 bits)
+ */
+#define MAX_DEVICE 32
+
+#define IS_PRESSED(info, device)	(((device) < MAX_DEVICE) ? (((info)->pressed & (0x01 << (device))) == (0x01 << (device))) : 0)
+
+/**
+ * @note
+ * Short-Circuit
+ */
+#define SET_PRESSED(info, device)	((void)(((device) < MAX_DEVICE) && (((info)->pressed |= (0x01 << (device))))))
+#define SET_RELEASED(info, device)	((void)(((device) < MAX_DEVICE) && (((info)->pressed &= (~(0x01 << (device)))))))
+
 /*!
  * \note
  * Enable this to apply shadow effect to image object (for text widget)
@@ -167,8 +183,9 @@ static struct {
 			unsigned int render_animator:1;
 			unsigned int auto_render_selector:1;
 			unsigned int skip_acquire:1;
+			unsigned int disable_internal_scroller: 1;
 
-			unsigned int reserved:18;
+			unsigned int reserved:17;
 		} field;
 		unsigned int mask;
 	} conf;
@@ -179,6 +196,8 @@ static struct {
 	Eina_List *gbar_dirty_objects;
 	Eina_List *subscribed_category_list;
 	Eina_List *subscribed_group_list;
+	Eina_List *updated_pixmap_list;
+	Eina_List *updated_pixmap_lock_list;
 
 	int initialized;
 } s_info = {
@@ -200,6 +219,8 @@ static struct {
 	.gbar_dirty_objects = NULL,
 	.subscribed_category_list = NULL,
 	.subscribed_group_list = NULL,
+	.updated_pixmap_list = NULL,
+	.updated_pixmap_lock_list = NULL,
 	.initialized = 0,
 };
 
@@ -278,30 +299,30 @@ struct widget_data {
 	int widget_latest_idx; /* -1 = primary buffer, 0 ~ = extra buffer */
 	int gbar_latest_idx; /* -1 = primary buffer, 0 ~ = extra buffer */
 
-	struct down {
+	struct _down {
 		int x;
 		int y;
 
-		struct {
+		struct _geo {
 			int x;
 			int y;
-			int w;
-			int h;
 		} geo;
+
+		int is_gbar;
 	} down;
 
-	int x;
-	int y;
+	int x[MAX_DEVICE];
+	int y[MAX_DEVICE];
 
 	int widget_width;
 	int widget_height;
 	int fixed_width;
 	int fixed_height;
 	widget_size_type_e size_type;
+	unsigned int pressed;                     /**< Mouse is pressed */
 
 	union {
 		struct {
-			unsigned int pressed:1;                     /**< Mouse is pressed */
 			unsigned int touch_effect:1;                /**< Requires to play touch effect */
 			unsigned int mouse_event:1;                 /**< Requires to feed mouse event */
 			unsigned int scroll_x:1;                    /**< */
@@ -338,6 +359,12 @@ struct widget_data {
 			unsigned int extra_info_updated:1;
 
 			unsigned int hide_overlay_manually:1;
+
+			/**
+			 * @note
+			 * Do not raise up the overlay for faulted.
+			 */
+			unsigned int hide_faulted_overlay: 1;
 		} field;	/* Do we really have the performance loss because of bit fields? */
 
 		unsigned int flags;
@@ -1020,52 +1047,138 @@ struct widget_data *widget_unref(struct widget_data *data)
 	return NULL;
 }
 
-static void gbar_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
+static void gbar_multi_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
 {
-	Evas_Event_Mouse_Down *down = event_info;
+	Evas_Event_Multi_Down *down = event_info;
 	struct widget_data *data = cbdata;
 	struct widget_mouse_event_info minfo;
+	Evas_Coord x, y, w, h;
 
 	if (data->state != WIDGET_DATA_CREATED) {
 		ErrPrint("Invalid widget data: %p\n", data);
 		return;
 	}
 
-	evas_object_geometry_get(obj, &data->down.geo.x, &data->down.geo.y, &data->down.geo.w, &data->down.geo.h);
+	SET_PRESSED(data, down->device);
 
-	data->x = data->down.x = down->canvas.x;
-	data->y = data->down.y = down->canvas.y;
-	data->is.field.pressed = 1;
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
+		minfo.ratio_w = (double)data->fixed_width / (double)w;
+		minfo.ratio_h = (double)data->fixed_height / (double)h;
+	} else {
+		minfo.ratio_w = 1.0f;
+		minfo.ratio_h = 1.0f;
+	}
+	minfo.device = down->device;
+
+	if (s_info.conf.field.auto_feed) {
+		minfo.x = (double)x;
+		minfo.y = (double)y;
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_SET, &minfo);
+	} else {
+		minfo.x = (double)(down->canvas.x - x);
+		minfo.y = (double)(down->canvas.y - y);
+
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ENTER, &minfo);
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_DOWN, &minfo);
+	}
+
+	if (data->is.field.cancel_click == CANCEL_USER) {
+		minfo.x = (double)(down->canvas.x - x);
+		minfo.y = (double)(down->canvas.y - y);
+
+		minfo.device = 0;
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ON_HOLD, &minfo);
+		data->is.field.cancel_click = CANCEL_PROCESSED;
+	}
+}
+
+static void gbar_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Mouse_Down *down = event_info;
+	struct widget_data *data = cbdata;
+	struct widget_mouse_event_info minfo;
+	Evas_Coord x, y, w, h;
+
+	if (data->state != WIDGET_DATA_CREATED) {
+		ErrPrint("Invalid widget data: %p\n", data);
+		return;
+	}
+
+	evas_object_geometry_get(obj, &data->down.geo.x, &data->down.geo.y, &w, &h);
+	x = data->down.geo.x;
+	y = data->down.geo.y;
+	data->down.is_gbar = 1;
+
+	data->x[0] = data->down.x = down->canvas.x;
+	data->y[0] = data->down.y = down->canvas.y;
+	SET_PRESSED(data, 0);
 	if (s_info.conf.field.auto_render_selector) {
 		DbgPrint("Change to direct render\n");
 		s_info.conf.field.render_animator = 0;
 	}
 
+	/**
+	 * In case of the GBar,
+	 * There is no pre-defined size set.
+	 * Every time its size will be notified to the provider app.
+	 * So we don't need to handling the scale info of it.
+	 */
+	minfo.ratio_w = 1.0f;
+	minfo.ratio_h = 1.0f;
+	minfo.device = 0;
+
 	if (s_info.conf.field.auto_feed) {
-		minfo.x = (double)data->down.geo.x;
-		minfo.y = (double)data->down.geo.y;
-		if (s_info.conf.field.use_fixed_size) {
-			minfo.ratio_w = 1.0f;
-			minfo.ratio_h = 1.0f;
-		} else {
-			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
-			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
-		}
+		minfo.x = (double)x;
+		minfo.y = (double)y;
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_SET, &minfo);
 	} else {
-		minfo.x = (double)(down->canvas.x - data->down.geo.x);
-		minfo.y = (double)(down->canvas.y - data->down.geo.y);
-
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
-			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
-		} else {
-			minfo.ratio_w = 1.0f;
-			minfo.ratio_h = 1.0f;
-		}
-
+		minfo.x = (double)(down->canvas.x - x);
+		minfo.y = (double)(down->canvas.y - y);
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ENTER, &minfo);
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_DOWN, &minfo);
+	}
+}
+
+static void gbar_multi_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Multi_Move *move = event_info;
+	struct widget_data *data = cbdata;
+	Evas_Coord x, y, w, h;
+
+	if (data->state != WIDGET_DATA_CREATED) {
+		ErrPrint("Invalid widget data: %p\n", data);
+		return;
+	}
+
+	if (!IS_PRESSED(data, move->device)) {
+		return;
+	}
+
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	/**
+	 * @note
+	 * In this case, the ON_HOLD event is already sent.
+	 * We don't need to check the cancel_state.
+	 */
+	if (!s_info.conf.field.auto_feed) {
+		struct widget_mouse_event_info minfo;
+
+		minfo.x = (double)(move->cur.canvas.x - x);
+		minfo.y = (double)(move->cur.canvas.y - y);
+
+		minfo.ratio_w = 1.0f;
+		minfo.ratio_h = 1.0f;
+		minfo.device = move->device;
+
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_MOVE, &minfo);
+
+		if (s_info.conf.field.auto_render_selector) {
+			DbgPrint("Change to direct render\n");
+			s_info.conf.field.render_animator = 0;
+		}
 	}
 }
 
@@ -1074,41 +1187,38 @@ static void gbar_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 	Evas_Event_Mouse_Move *move = event_info;
 	struct widget_data *data = cbdata;
 	Evas_Coord x, y, w, h;
-	struct widget_mouse_event_info minfo;
 
 	if (data->state != WIDGET_DATA_CREATED) {
 		ErrPrint("Invalid widget data: %p\n", data);
 		return;
 	}
 
-	if (!data->is.field.pressed) {
+	if (!IS_PRESSED(data,0)) {
 		return;
 	}
 
 	evas_object_geometry_get(obj, &x, &y, &w, &h);
 
-	data->x = move->cur.canvas.x;
-	data->y = move->cur.canvas.y;
+	data->x[0] = move->cur.canvas.x;
+	data->y[0] = move->cur.canvas.y;
 
-	if (data->is.field.cancel_click != CANCEL_DISABLED || !s_info.conf.field.auto_feed) {
+	if (data->is.field.cancel_click == CANCEL_USER || !s_info.conf.field.auto_feed) {
+		struct widget_mouse_event_info minfo;
+
 		minfo.x = (double)(move->cur.canvas.x - x);
 		minfo.y = (double)(move->cur.canvas.y - y);
 
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-			minfo.ratio_w = (double)data->fixed_width / (double)w;
-			minfo.ratio_h = (double)data->fixed_height / (double)h;
-		} else {
-			minfo.ratio_w = 1.0f;
-			minfo.ratio_h = 1.0f;
+		minfo.ratio_w = 1.0f;
+		minfo.ratio_h = 1.0f;
+		minfo.device = 0;
+
+		if (!s_info.conf.field.auto_feed) {
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_MOVE, &minfo);
 		}
 
 		if (data->is.field.cancel_click == CANCEL_USER) {
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ON_HOLD, &minfo);
 			data->is.field.cancel_click = CANCEL_PROCESSED;
-		}
-
-		if (!s_info.conf.field.auto_feed) {
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_MOVE, &minfo);
 		}
 
 		if (s_info.conf.field.auto_render_selector) {
@@ -1178,6 +1288,49 @@ static void gbar_pixmap_del_cb(void *cbdata, Evas *e, Evas_Object *obj, void *ev
 	}
 }
 
+static void gbar_multi_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Multi_Up *up = event_info;
+	struct widget_data *data = cbdata;
+	Evas_Coord x, y, w, h;
+	struct widget_mouse_event_info minfo;
+
+	if (data->state != WIDGET_DATA_CREATED) {
+		ErrPrint("Invalid widget data: %p\n", data);
+		return;
+	}
+
+	if (!IS_PRESSED(data, up->device)) {
+		return;
+	}
+
+	SET_RELEASED(data, up->device);
+
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	minfo.ratio_w = 1.0f;
+	minfo.ratio_h = 1.0f;
+	minfo.device = up->device;
+
+	if (s_info.conf.field.auto_feed) {
+		/**
+		 * @note
+		 * UNSET will subtract object.x and object.y by master
+		 * so we just send original touch position based on screen
+		 */
+		minfo.x = (double)up->canvas.x;
+		minfo.y = (double)up->canvas.y;
+
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_UNSET, &minfo);
+	} else {
+		minfo.x = (double)(up->canvas.x - x);
+		minfo.y = (double)(up->canvas.y - y);
+
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_UP, &minfo);
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_LEAVE, &minfo);
+	}
+}
+
 static void gbar_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
 {
 	Evas_Event_Mouse_Up *up = event_info;
@@ -1190,11 +1343,30 @@ static void gbar_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info
 		return;
 	}
 
-	if (!data->is.field.pressed) {
+	if (!IS_PRESSED(data, 0)) {
 		return;
 	}
 
+	SET_RELEASED(data, 0);
+
 	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	minfo.ratio_w = 1.0f;
+	minfo.ratio_h = 1.0f;
+	minfo.device = 0;
+
+	/**
+	 * @note
+	 * If the object is moved, we should send ON_HOLD event.
+	 */
+	if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.cancel_click == CANCEL_USER) {
+		if (data->is.field.cancel_click != CANCEL_PROCESSED) {
+			minfo.x = (double)(up->canvas.x - x);
+			minfo.y = (double)(up->canvas.y - y);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ON_HOLD, &minfo);
+			data->is.field.cancel_click = CANCEL_PROCESSED;
+		}
+	}
 
 	if (s_info.conf.field.auto_feed) {
 		/**
@@ -1205,110 +1377,16 @@ static void gbar_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info
 		minfo.x = (double)up->canvas.x;
 		minfo.y = (double)up->canvas.y;
 
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-			minfo.ratio_w = (double)data->fixed_width / (double)w;
-			minfo.ratio_h = (double)data->fixed_height / (double)h;
-		} else {
-			minfo.ratio_w = 1.0f;
-			minfo.ratio_h = 1.0f;
-		}
-
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_UNSET, &minfo);
 	} else {
 		minfo.x = (double)(up->canvas.x - x);
 		minfo.y = (double)(up->canvas.y - y);
-
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-			minfo.ratio_w = (double)data->fixed_width / (double)w;
-			minfo.ratio_h = (double)data->fixed_height / (double)h;
-		} else {
-			minfo.ratio_w = 1.0f;
-			minfo.ratio_h = 1.0f;
-		}
-
-		if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.cancel_click == CANCEL_USER) {
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_ON_HOLD, &minfo);
-			data->is.field.cancel_click = CANCEL_PROCESSED;
-		}
 
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_UP, &minfo);
 		widget_viewer_feed_mouse_event(data->handle, WIDGET_GBAR_MOUSE_LEAVE, &minfo);
 	}
 
 	data->is.field.cancel_click = CANCEL_DISABLED;
-}
-
-static void __widget_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
-{
-	Evas_Event_Mouse_Down *down = event_info;
-	struct widget_data *data = cbdata;
-
-	if (data->state != WIDGET_DATA_CREATED) {
-		ErrPrint("Invalid widget data: %p\n", data);
-		return;
-	}
-
-	if (s_info.conf.field.support_gbar && !data->is.field.gbar_created) {
-		data->is.field.flick_down = 1;
-	}
-
-	data->down.x = data->x = down->canvas.x;
-	data->down.y = data->y = down->canvas.y;
-	data->is.field.pressed = 1;
-	data->is.field.scroll_x = 0;
-	data->is.field.scroll_y = 0;
-	data->is.field.cancel_scroll_x = 0;
-	data->is.field.cancel_scroll_y = 0;
-
-	if (s_info.conf.field.auto_render_selector) {
-		DbgPrint("Change to direct render\n");
-		s_info.conf.field.render_animator = 0;
-	}
-
-	evas_object_geometry_get(obj, &data->down.geo.x, &data->down.geo.y, &data->down.geo.w, &data->down.geo.h);
-
-	if (s_info.conf.field.sensitive_move && (data->down.geo.x != data->view_port.x || data->down.geo.y != data->view_port.y)) {
-		data->is.field.pressed = 0;
-		if (s_info.conf.field.auto_render_selector) {
-			DbgPrint("Change to render animator\n");
-			s_info.conf.field.render_animator = 1;
-		}
-		return;
-	}
-
-	if (data->handle && !data->is.field.faulted) {
-		struct widget_mouse_event_info minfo;
-
-		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
-			minfo.x = (double)data->down.geo.x;
-			minfo.y = (double)data->down.geo.y;
-			if (!s_info.conf.field.use_fixed_size) {
-				minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
-				minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
-			} else {
-				minfo.ratio_w = 1.0f;
-				minfo.ratio_h = 1.0f;
-			}
-			DbgPrint("%lfx%lf (%lfx%lf), %dx%d %dx%d\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h, data->fixed_width, data->fixed_height, data->down.geo.w, data->down.geo.h);
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_SET, &minfo);
-		} else {
-			minfo.x = (double)(data->x - data->down.geo.x);
-			minfo.y = (double)(data->y - data->down.geo.y);
-
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-				minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
-				minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
-			} else {
-				minfo.ratio_w = 1.0f;
-				minfo.ratio_h = 1.0f;
-			}
-			DbgPrint("%lfx%lf (%lfx%lf)\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
-
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ENTER, &minfo);
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_DOWN, &minfo);
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_MOVE, &minfo);
-		}
-	}
 }
 
 static void smart_callback_call(struct widget_data *data, const char *signal, void *cbdata)
@@ -1319,6 +1397,162 @@ static void smart_callback_call(struct widget_data *data, const char *signal, vo
 	}
 
 	evas_object_smart_callback_call(data->widget, signal, cbdata);
+}
+
+static void __widget_multi_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Multi_Down *down = event_info;
+	struct widget_data *data = cbdata;
+	Evas_Coord x, y, w, h;
+
+	if (data->state != WIDGET_DATA_CREATED) {
+		ErrPrint("Invalid widget data: %p\n", data);
+		return;
+	}
+
+	data->x[down->device] = down->canvas.x;
+	data->y[down->device] = down->canvas.y;
+
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+	/**
+	 * @note
+	 * If the multi-touch started,
+	 * GBar will not be created.
+	 */
+	if (s_info.conf.field.support_gbar && data->is.field.flick_down) {
+		struct widget_evas_event_info info;
+
+		DbgPrint("Flick down is canceled\n");
+		data->is.field.flick_down = 0;
+		info.widget_app_id = data->widget_id;
+		info.event = WIDGET_EVENT_GBAR_CREATED;
+		info.error = WIDGET_ERROR_CANCELED;
+
+		smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
+	}
+
+	if (s_info.conf.field.auto_render_selector) {
+		DbgPrint("Change to direct render\n");
+		s_info.conf.field.render_animator = 0;
+	}
+
+	SET_PRESSED(data, down->device);
+
+	if (data->handle && !data->is.field.faulted) {
+		struct widget_mouse_event_info minfo;
+
+		if (!s_info.conf.field.use_fixed_size) {
+			minfo.ratio_w = (double)data->fixed_width / (double)w;
+			minfo.ratio_h = (double)data->fixed_height / (double)h;
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
+		minfo.device = down->device;
+
+		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
+			minfo.x = (double)data->down.geo.x;
+			minfo.y = (double)data->down.geo.y;
+			DbgPrint("[%d] %lfx%lf (%lfx%lf), %dx%d %dx%d\n", minfo.device, minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h, data->fixed_width, data->fixed_height, w, h);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_SET, &minfo);
+		} else {
+			minfo.x = (double)(data->x[down->device] - x);
+			minfo.y = (double)(data->y[down->device] - y);
+
+			DbgPrint("[%d] %lfx%lf (%lfx%lf)\n", minfo.device, minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
+
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ENTER, &minfo);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_DOWN, &minfo);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_MOVE, &minfo);
+		}
+
+		/**
+		 * @note
+		 * Send the ON_HOLD event if the multi-touch events are triggered.
+		 */
+		if (data->is.field.cancel_click != CANCEL_PROCESSED) {
+			DbgPrint("ON_HOLD send\n");
+			minfo.x = (double)(data->x[0] - x);
+			minfo.y = (double)(data->y[0] - y);
+			minfo.device = 0;
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
+			data->is.field.cancel_click = CANCEL_PROCESSED;
+		}
+	}
+}
+
+static void __widget_down_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Mouse_Down *down = event_info;
+	struct widget_data *data = cbdata;
+	Evas_Coord x, y, w, h;
+
+	if (data->state != WIDGET_DATA_CREATED) {
+		ErrPrint("Invalid widget data: %p\n", data);
+		return;
+	}
+
+	if (s_info.conf.field.support_gbar && !data->is.field.gbar_created) {
+		data->is.field.flick_down = 1;
+	}
+
+	data->down.x = data->x[0] = down->canvas.x;
+	data->down.y = data->y[0] = down->canvas.y;
+	data->down.is_gbar = 0;
+	data->is.field.scroll_x = 0;
+	data->is.field.scroll_y = 0;
+	data->is.field.cancel_scroll_x = 0;
+	data->is.field.cancel_scroll_y = 0;
+
+	if (s_info.conf.field.auto_render_selector) {
+		DbgPrint("Change to direct render\n");
+		s_info.conf.field.render_animator = 0;
+	}
+
+	evas_object_geometry_get(obj, &data->down.geo.x, &data->down.geo.y, &w, &h);
+	x = data->down.geo.x;
+	y = data->down.geo.y;
+
+	if (s_info.conf.field.sensitive_move && (data->down.geo.x != data->view_port.x || data->down.geo.y != data->view_port.y)) {
+		SET_RELEASED(data, 0);
+		if (s_info.conf.field.auto_render_selector) {
+			DbgPrint("Change to render animator\n");
+			s_info.conf.field.render_animator = 1;
+		}
+		return;
+	}
+
+	SET_PRESSED(data, 0);
+
+	if (data->handle && !data->is.field.faulted) {
+		struct widget_mouse_event_info minfo;
+
+		if (!s_info.conf.field.use_fixed_size) {
+			minfo.ratio_w = (double)data->fixed_width / (double)w;
+			minfo.ratio_h = (double)data->fixed_height / (double)h;
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
+		minfo.device = 0;
+
+		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
+			minfo.x = (double)x;
+			minfo.y = (double)y;
+			DbgPrint("%lfx%lf (%lfx%lf), %dx%d %dx%d\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h, data->fixed_width, data->fixed_height, w, h);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_SET, &minfo);
+		} else {
+			minfo.x = (double)(data->x[0] - x);
+			minfo.y = (double)(data->y[0] - y);
+
+			DbgPrint("%lfx%lf (%lfx%lf)\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
+
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ENTER, &minfo);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_DOWN, &minfo);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_MOVE, &minfo);
+		}
+	}
 }
 
 static void __widget_destroy_gbar_cb(struct widget *handle, int ret, void *cbdata)
@@ -2559,6 +2793,11 @@ static void gbar_create_pixmap_object(struct widget_data *data)
 		evas_object_event_callback_add(gbar_content, EVAS_CALLBACK_MOUSE_DOWN, gbar_down_cb, data);
 		evas_object_event_callback_add(gbar_content, EVAS_CALLBACK_MOUSE_MOVE, gbar_move_cb, data);
 		evas_object_event_callback_add(gbar_content, EVAS_CALLBACK_MOUSE_UP, gbar_up_cb, data);
+
+		evas_object_event_callback_add(gbar_content, EVAS_CALLBACK_MULTI_DOWN, gbar_multi_down_cb, data);
+		evas_object_event_callback_add(gbar_content, EVAS_CALLBACK_MULTI_MOVE, gbar_multi_move_cb, data);
+		evas_object_event_callback_add(gbar_content, EVAS_CALLBACK_MULTI_UP, gbar_multi_up_cb, data);
+
 		evas_object_event_callback_add(gbar_content, EVAS_CALLBACK_DEL, gbar_pixmap_del_cb, data);
 	}
 }
@@ -2725,6 +2964,70 @@ static void update_scroll_flag(struct widget_data *data, int x, int y)
 	data->is.field.scroll_y = !data->is.field.cancel_scroll_y && data->is.field.scroll_y;
 }
 
+static void __widget_multi_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Multi_Up *up = event_info;
+	struct widget_data *data = cbdata;
+	Evas_Coord x, y, w, h;
+
+	if (data->state != WIDGET_DATA_CREATED) {
+		ErrPrint("Invalid widget data: %p\n", data);
+		return;
+	}
+
+	if (s_info.conf.field.auto_render_selector) {
+		DbgPrint("Change to render animator\n");
+		s_info.conf.field.render_animator = 1;
+	}
+
+	if (!IS_PRESSED(data, up->device)) {
+		return;
+	}
+
+	SET_RELEASED(data, up->device);
+
+	if (data->handle && !data->is.field.faulted) {
+		struct widget_mouse_event_info minfo;
+
+		data->x[up->device] = up->canvas.x;
+		data->y[up->device] = up->canvas.y;
+
+		evas_object_geometry_get(data->widget, &x, &y, &w, &h);
+
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
+			minfo.ratio_w = (double)data->fixed_width / (double)w;
+			minfo.ratio_h = (double)data->fixed_height / (double)h;
+			DbgPrint("Width: %d/%d - Height: %d/%d\n", data->fixed_width, w, data->fixed_height, h);
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
+		DbgPrint("Ratio: %lfx%lf\n", minfo.ratio_w, minfo.ratio_h);
+		minfo.device = up->device;
+
+		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
+			/**
+			 * @note
+			 * UNSET will subtract object.x and object.y by master
+			 * so we just send original touch position based on screen
+			 */
+			minfo.x = (double)data->x[up->device];
+			minfo.y = (double)data->y[up->device];
+			DbgPrint("X,Y = %lfx%lf\n", minfo.x, minfo.y);
+
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &minfo);
+		} else {
+			/* We have to keep the first position of touch down */
+			minfo.x = (double)(data->x[up->device] - x);
+			minfo.y = (double)(data->y[up->device] - y);
+
+			DbgPrint("%lfx%lf (%lfx%lf)\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UP, &minfo);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_LEAVE, &minfo);
+		}
+	}
+}
+
 static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
 {
 	Evas_Event_Mouse_Up *up = event_info;
@@ -2739,15 +3042,15 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 		return;
 	}
 
-	if (!data->is.field.pressed) {
+	if (!IS_PRESSED(data, 0)) {
 		return;
 	}
 
 	update_scroll_flag(data, up->canvas.x, up->canvas.y);
 
-	data->x = up->canvas.x;
-	data->y = up->canvas.y;
-	data->is.field.pressed = 0;
+	data->x[0] = up->canvas.x;
+	data->y[0] = up->canvas.y;
+	SET_RELEASED(data, 0);
 
 	if (s_info.conf.field.auto_render_selector) {
 		DbgPrint("Change to render animator\n");
@@ -2757,14 +3060,14 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 	info.widget_app_id = data->widget_id;
 	info.event = WIDGET_EVENT_GBAR_CREATED;
 
-	if (s_info.conf.field.support_gbar && data->is.field.flick_down && data->y - data->down.y < CLICK_REGION) {
+	if (s_info.conf.field.support_gbar && data->is.field.flick_down && (data->y[0] - data->down.y) < CLICK_REGION) {
 		DbgPrint("Flick down is canceled\n");
 		data->is.field.flick_down = 0;
 		info.error = WIDGET_ERROR_CANCELED;
 		smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
 	}
 
-	evas_object_geometry_get(data->widget, &x, &y, &w, &h);
+	evas_object_geometry_get(obj, &x, &y, &w, &h);
 
 	if (data->is.field.flick_down) {
 		data->is.field.flick_down = 0;
@@ -2841,9 +3144,6 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 	if (data->handle && !data->is.field.faulted) {
 		struct widget_mouse_event_info minfo;
 
-		minfo.x = (double)(data->x - x);
-		minfo.y = (double)(data->y - y);
-
 		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
 			minfo.ratio_w = (double)data->fixed_width / (double)w;
 			minfo.ratio_h = (double)data->fixed_height / (double)h;
@@ -2851,73 +3151,37 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 			minfo.ratio_w = 1.0f;
 			minfo.ratio_h = 1.0f;
 		}
-
-		evas_object_geometry_get(obj, &x, &y, NULL, NULL);
+		minfo.device = 0;
 
 		reset_scroller(data);
 
-		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
-			struct widget_mouse_event_info _minfo;
-
-			if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.scroll_x || data->is.field.scroll_y || data->is.field.cancel_click == CANCEL_USER) {
-				widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
-				data->is.field.cancel_click = CANCEL_PROCESSED;
-			} else if ((up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD) {
+		if (data->is.field.cancel_click != CANCEL_PROCESSED) {
+			if (data->down.geo.x != x || data->down.geo.y != y ||
+				data->is.field.scroll_x || data->is.field.scroll_y ||
+				data->is.field.cancel_click == CANCEL_USER ||
+				(!data->is.field.mouse_event && (abs(data->x[0] - data->down.x) > CLICK_REGION || abs(data->y[0] - data->down.y) > CLICK_REGION)) ||
+				(up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD)
+			{
+				minfo.x = (double)(data->x[0] - x);
+				minfo.y = (double)(data->y[0] - y);
 				widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
 				data->is.field.cancel_click = CANCEL_PROCESSED;
 			}
+		}
 
+		if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
 			/**
 			 * @note
 			 * UNSET will subtract object.x and object.y by master
 			 * so we just send original touch position based on screen
 			 */
-			_minfo.x = (double)up->canvas.x;
-			_minfo.y = (double)up->canvas.y;
-			DbgPrint("X,Y = %lfx%lf\n", _minfo.x, _minfo.y);
-
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-				_minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
-				_minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
-				DbgPrint("Width: %d/%d - Height: %d/%d\n", data->fixed_width, data->down.geo.w, data->fixed_height, data->down.geo.h);
-				DbgPrint("Ratio: %lfx%lf\n", _minfo.ratio_w, _minfo.ratio_h);
-			} else {
-				_minfo.ratio_w = 1.0f;
-				_minfo.ratio_h = 1.0f;
-				DbgPrint("UNKNOWN Ratio: %lfx%lf\n", minfo.ratio_w, minfo.ratio_h);
-			}
-
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &_minfo);
+			minfo.x = (double)data->x[0];
+			minfo.y = (double)data->y[0];
+			DbgPrint("X,Y = %lfx%lf\n", minfo.x, minfo.y);
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &minfo);
 		} else {
-			if (!data->is.field.mouse_event) {
-				/* We have to keep the first position of touch down */
-				minfo.x = (double)(data->down.x - x);
-				minfo.y = (double)(data->down.y - y);
-
-				if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-					minfo.ratio_w = (double)data->fixed_width / (double)w;
-					minfo.ratio_h = (double)data->fixed_height / (double)h;
-				} else {
-					minfo.ratio_w = 1.0f;
-					minfo.ratio_h = 1.0f;
-				}
-
-				if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.scroll_x || data->is.field.scroll_y || data->is.field.cancel_click == CANCEL_USER || abs(data->x - data->down.x) > CLICK_REGION || abs(data->y - data->down.y) > CLICK_REGION) {
-					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
-					data->is.field.cancel_click = CANCEL_PROCESSED;
-				} else if ((up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD) {
-					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
-					data->is.field.cancel_click = CANCEL_PROCESSED;
-				}
-			} else {
-				if (data->down.geo.x != x || data->down.geo.y != y || data->is.field.scroll_x || data->is.field.scroll_y || data->is.field.cancel_click == CANCEL_USER) {
-					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
-					data->is.field.cancel_click = CANCEL_PROCESSED;
-				} else if ((up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD) {
-					widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
-					data->is.field.cancel_click = CANCEL_PROCESSED;
-				}
-			}
+			minfo.x = (double)(data->x[0] - x);
+			minfo.y = (double)(data->y[0] - y);
 
 			DbgPrint("%lfx%lf (%lfx%lf)\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UP, &minfo);
@@ -2928,10 +3192,11 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 			ret = WIDGET_ERROR_INVALID_PARAMETER;
 			if (data->is.field.gbar_created) {
 				ret = widget_viewer_destroy_glance_bar(data->handle, __widget_destroy_gbar_cb, widget_ref(data));
-				if (ret < 0)
+				if (ret < 0) {
 					data = widget_unref(data);
+				}
 			} else if (data->is.field.cancel_click == CANCEL_DISABLED) {
-				ret = widget_viewer_send_click_event(data->handle, minfo.x, minfo.y);
+				ret = widget_viewer_send_click_event(data->handle, WIDGET_VIEWER_CLICK_BUTTON_LEFT, minfo.x, minfo.y);
 			}
 		}
 
@@ -2946,6 +3211,51 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 	}
 }
 
+static void __widget_multi_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
+{
+	Evas_Event_Multi_Move *move = event_info;
+	struct widget_data *data = cbdata;
+
+	if (data->state != WIDGET_DATA_CREATED) {
+		ErrPrint("Invalid widget data: %p\n", data);
+		return;
+	}
+
+	if (!IS_PRESSED(data, move->device)) {
+		return;
+	}
+
+	data->x[move->device] = move->cur.canvas.x;
+	data->y[move->device] = move->cur.canvas.y;
+
+	if (data->handle && !data->is.field.faulted) {
+		if (!s_info.conf.field.auto_feed && data->is.field.mouse_event) {
+			struct widget_mouse_event_info minfo;
+			Evas_Coord x, y, w, h;
+
+			evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+			minfo.x = (double)(data->x[move->device] - x);
+			minfo.y = (double)(data->y[move->device] - y);
+
+			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
+				minfo.ratio_w = (double)data->fixed_width / (double)w;
+				minfo.ratio_h = (double)data->fixed_height / (double)h;
+			} else {
+				minfo.ratio_w = 1.0f;
+				minfo.ratio_h = 1.0f;
+			}
+			minfo.device = move->device;
+
+			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_MOVE, &minfo);
+		}
+	} else {
+		if (s_info.conf.field.auto_render_selector) {
+			s_info.conf.field.render_animator = 1;
+		}
+	}
+}
+
 static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_info)
 {
 	Evas_Event_Mouse_Move *move = event_info;
@@ -2956,11 +3266,11 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 		return;
 	}
 
-	if (!data->is.field.pressed) {
+	if (!IS_PRESSED(data, 0)) {
 		return;
 	}
 
-	if (s_info.conf.field.support_gbar && data->is.field.flick_down && data->y - move->cur.canvas.y > 0) {
+	if (s_info.conf.field.support_gbar && data->is.field.flick_down && data->y[0] - move->cur.canvas.y > 0) {
 		struct widget_evas_event_info info;
 
 		DbgPrint("Flick down is canceled\n");
@@ -2974,27 +3284,29 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 
 	update_scroll_flag(data, move->cur.canvas.x, move->cur.canvas.y);
 
-	data->x = move->cur.canvas.x;
-	data->y = move->cur.canvas.y;
+	data->x[0] = move->cur.canvas.x;
+	data->y[0] = move->cur.canvas.y;
 
 	if (data->handle && !data->is.field.faulted) {
+		Evas_Coord x, y, w, h;
+		struct widget_mouse_event_info minfo;
+		int need_move_event = 0;
+
+		evas_object_geometry_get(obj, &x, &y, &w, &h);
+
+		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
+			minfo.ratio_w = (double)data->fixed_width / (double)w;
+			minfo.ratio_h = (double)data->fixed_height / (double)h;
+		} else {
+			minfo.ratio_w = 1.0f;
+			minfo.ratio_h = 1.0f;
+		}
+		minfo.device = 0;
+
 		if (data->is.field.cancel_click == CANCEL_USER) {
-			struct widget_mouse_event_info minfo;
-			Evas_Coord x, y, w, h;
 
-			evas_object_geometry_get(obj, &x, &y, &w, &h);
-
-			minfo.x = (double)(data->x - x);
-			minfo.y = (double)(data->y - y);
-
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-				minfo.ratio_w = (double)data->fixed_width / (double)w;
-				minfo.ratio_h = (double)data->fixed_height / (double)h;
-			} else {
-				minfo.ratio_w = 1.0f;
-				minfo.ratio_h = 1.0f;
-			}
-
+			minfo.x = (double)(data->x[0] - x);
+			minfo.y = (double)(data->y[0] - y);
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
 
 			/*
@@ -3006,29 +3318,22 @@ static void __widget_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *even
 				DbgPrint("Change to render animator\n");
 				s_info.conf.field.render_animator = 1;
 			}
+
+			/**
+			 * @note
+			 * After ON_HOLD, we should send one MOVE event.
+			 */
+			need_move_event = 1;
 		}
 
-		if (!s_info.conf.field.auto_feed) {
-			struct widget_mouse_event_info minfo;
-			Evas_Coord x, y, w, h;
-
-			evas_object_geometry_get(obj, &x, &y, &w, &h);
-
-			minfo.x = (double)(data->x - x);
-			minfo.y = (double)(data->y - y);
-
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-				minfo.ratio_w = (double)data->fixed_width / (double)w;
-				minfo.ratio_h = (double)data->fixed_height / (double)h;
-			} else {
-				minfo.ratio_w = 1.0f;
-				minfo.ratio_h = 1.0f;
-			}
+		if (!s_info.conf.field.auto_feed && (need_move_event || data->is.field.mouse_event)) {
+			minfo.x = (double)(data->x[0] - x);
+			minfo.y = (double)(data->y[0] - y);
 
 			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_MOVE, &minfo);
 		}
 
-		if (s_info.conf.field.support_gbar && data->is.field.flick_down && abs(data->y - data->down.y) > CLICK_REGION) {
+		if (s_info.conf.field.support_gbar && data->is.field.flick_down && abs(data->y[0] - data->down.y) > CLICK_REGION) {
 			struct widget_evas_event_info info;
 			data->is.field.flick_down = 0;
 			info.widget_app_id = data->widget_id;
@@ -3255,7 +3560,7 @@ static void __widget_data_setup(struct widget_data *data)
 		return;
 	}
 
-	if (s_info.conf.field.is_scroll_x || s_info.conf.field.is_scroll_y) {
+	if (!s_info.conf.field.disable_internal_scroller && (s_info.conf.field.is_scroll_x || s_info.conf.field.is_scroll_y)) {
 		Evas_Object *scroller;
 		scroller = elm_scroller_add(data->parent);
 		if (scroller) {
@@ -3302,6 +3607,10 @@ static void __widget_data_setup(struct widget_data *data)
 	evas_object_event_callback_add(data->widget_layout, EVAS_CALLBACK_MOUSE_MOVE, __widget_move_cb, data);
 	evas_object_event_callback_add(data->widget_layout, EVAS_CALLBACK_MOUSE_UP, __widget_up_cb, data);
 
+	evas_object_event_callback_add(data->widget_layout, EVAS_CALLBACK_MULTI_DOWN, __widget_multi_down_cb, data);
+	evas_object_event_callback_add(data->widget_layout, EVAS_CALLBACK_MULTI_MOVE, __widget_multi_move_cb, data);
+	evas_object_event_callback_add(data->widget_layout, EVAS_CALLBACK_MULTI_UP, __widget_multi_up_cb, data);
+
 	evas_object_smart_member_add(data->stage, data->widget);
 	evas_object_smart_member_add(data->widget_layout, data->widget);
 	evas_object_clip_set(data->widget_layout, data->stage);
@@ -3338,7 +3647,7 @@ static void append_widget_dirty_object_list(struct widget_data *data, int idx)
 	}
 
 	if (widget_viewer_get_visibility(data->handle) != WIDGET_SHOW) {
-		DbgPrint("Box is not visible\n");
+		DbgPrint("Box[%s] is not visible\n", data->widget_id);
 		return;
 	}
 
@@ -3778,95 +4087,96 @@ static int do_force_mouse_up(struct widget_data *data)
 	struct widget_mouse_event_info minfo;
 	Evas_Coord x, y, w, h;
 	struct widget_evas_event_info info;
+	int i;
 
 	if (s_info.conf.field.auto_render_selector && s_info.conf.field.render_animator == 0) {
 		DbgPrint("Change to render animator\n");
 		s_info.conf.field.render_animator = 1;
 	}
 
-	if (!data->is.field.pressed) {
+	if (!data->pressed) {
+		/**
+		 * @note
+		 * No buttons are pressed or there is no touch.
+		 */
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	/**
+	 * @todo
+	 * What happens if this is called for GBar?
+	 */
 	evas_object_geometry_get(data->widget, &x, &y, &w, &h);
 
-	minfo.x = (double)(data->x - x);
-	minfo.y = (double)(data->y - y);
-
-	if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
+	/**
+	 * @note
+	 * If the GBar is pressed, we don't need to calculate the ratio.
+	 */
+	if (!data->down.is_gbar && (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size)) {
 		minfo.ratio_w = (double)data->fixed_width / (double)w;
 		minfo.ratio_h = (double)data->fixed_height / (double)h;
+		DbgPrint("Width: %d/%d - Height: %d/%d\n", data->fixed_width, w, data->fixed_height, h);
 	} else {
 		minfo.ratio_w = 1.0f;
 		minfo.ratio_h = 1.0f;
 	}
+	DbgPrint("Ratio: %lfx%lf\n", minfo.ratio_w, minfo.ratio_h);
 
-	data->is.field.pressed = 0;
+	DbgPrint("%x\n", data->is.field.cancel_click);
+	if (data->is.field.cancel_click != CANCEL_PROCESSED) {
+		DbgPrint("ON_HOLD send\n");
+		minfo.device = 0;
+		minfo.x = (double)(data->x[0] - x);
+		minfo.y = (double)(data->y[0] - y);
+
+		widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
+		data->is.field.cancel_click = CANCEL_PROCESSED;
+	}
 
 	reset_scroller(data);
 
 	if (s_info.conf.field.auto_feed && data->is.field.mouse_event) {
-		DbgPrint("%x\n", data->is.field.cancel_click);
-		if (data->is.field.cancel_click != CANCEL_PROCESSED) {
-			DbgPrint("ON_HOLD send\n");
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
-			data->is.field.cancel_click = CANCEL_PROCESSED;
-		}
+		for (i = 0; i < MAX_DEVICE; i++) {
+			if (IS_PRESSED(data, i)) {
+				/**
+				 * @note
+				 * UNSET will subtract object.x and object.y by master
+				 * so we just send original touch position based on screen
+				 */
+				minfo.x = (double)data->x[i];
+				minfo.y = (double)data->y[i];
+				DbgPrint("X,Y = %lfx%lf\n", minfo.x, minfo.y);
+				minfo.device = i;
 
-		/**
-		 * @note
-		 * UNSET will subtract object.x and object.y by master
-		 * so we just send original touch position based on screen
-		 */
-		minfo.x = (double)data->x;
-		minfo.y = (double)data->y;
-		DbgPrint("X,Y = %lfx%lf\n", minfo.x, minfo.y);
-
-		if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-			minfo.ratio_w = (double)data->fixed_width / (double)data->down.geo.w;
-			minfo.ratio_h = (double)data->fixed_height / (double)data->down.geo.h;
-			DbgPrint("Width: %d/%d - Height: %d/%d\n", data->fixed_width, data->down.geo.w, data->fixed_height, data->down.geo.h);
-			DbgPrint("Ratio: %lfx%lf\n", minfo.ratio_w, minfo.ratio_h);
-		} else {
-			minfo.ratio_w = 1.0f;
-			minfo.ratio_h = 1.0f;
-			DbgPrint("UNKNOWN Ratio: %lfx%lf\n", minfo.ratio_w, minfo.ratio_h);
-		}
-
-		widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &minfo);
-	} else {
-		if (!data->is.field.mouse_event) {
-			/* We have to keep the first position of touch down */
-			minfo.x = (double)(data->down.x - x);
-			minfo.y = (double)(data->down.y - y);
-			if (data->size_type != WIDGET_SIZE_TYPE_UNKNOWN && !s_info.conf.field.use_fixed_size) {
-				minfo.ratio_w = (double)data->fixed_width / (double)w;
-				minfo.ratio_h = (double)data->fixed_height / (double)h;
-			} else {
-				minfo.ratio_w = 1.0f;
-				minfo.ratio_h = 1.0f;
+				widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UNSET, &minfo);
 			}
 		}
-
-		DbgPrint("%x\n", data->is.field.cancel_click);
-		if (data->is.field.cancel_click != CANCEL_PROCESSED) {
-			DbgPrint("ON_HOLD send\n");
-			widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
-			data->is.field.cancel_click = CANCEL_PROCESSED;
-		}
-
+	} else {
 		DbgPrint("%lfx%lf (%lfx%lf)\n", minfo.x, minfo.y, minfo.ratio_w, minfo.ratio_h);
-		widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UP, &minfo);
-		widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_LEAVE, &minfo);
+		for (i = 0; i < MAX_DEVICE; i++) {
+			if (IS_PRESSED(data, i)) {
+				minfo.x = (double)(data->x[i] - x);
+				minfo.y = (double)(data->y[i] - y);
+				minfo.device = i;
+
+				widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_UP, &minfo);
+				widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_LEAVE, &minfo);
+			}
+		}
 	}
 
+	data->pressed = 0;
 	data->is.field.cancel_click = CANCEL_DISABLED;
-	data->is.field.flick_down = 0;
-	info.widget_app_id = data->widget_id;
-	info.event = WIDGET_EVENT_GBAR_CREATED;
-	info.error = WIDGET_ERROR_CANCELED;
-	smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
-	DbgPrint("Flick down is canceled\n");
+
+	if (s_info.conf.field.support_gbar && data->is.field.flick_down) {
+		data->is.field.flick_down = 0;
+		info.widget_app_id = data->widget_id;
+		info.event = WIDGET_EVENT_GBAR_CREATED;
+		info.error = WIDGET_ERROR_CANCELED;
+		smart_callback_call(data, WIDGET_SMART_SIGNAL_FLICKDOWN_CANCELLED, &info);
+		DbgPrint("Flick down is canceled\n");
+	}
+
 	return WIDGET_ERROR_NONE;
 }
 
@@ -4460,6 +4770,12 @@ static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cb
 	if (!s_info.conf.field.skip_acquire) {
 		free(acquire_data);
 	}
+
+	if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
+		if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)((unsigned long long)pixmap))) {
+			s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)((unsigned long long)pixmap));
+		}
+	}
 }
 
 static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object *widget_content, int w, int h)
@@ -4468,53 +4784,71 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 	struct acquire_data *acquire_data;
 
 	if (data->widget_latest_idx == WIDGET_PRIMARY_BUFFER) {
-		unsigned int resource_id;
+		unsigned int resource_id = 0u;
 
-		widget_viewer_get_resource_id(data->handle, 0, &resource_id);
-		if (data->widget_pixmap == resource_id) {
-			if (data->widget_extra) {
-				/* Just replace the pixmap in this case, do not release old pixmap */
-				replace_pixmap(NULL, 0, widget_content, data->widget_pixmap);
+		if (widget_viewer_get_resource_id(data->handle, 0, &resource_id) < 0) {
+			ErrPrint("Failed to get resource_id\n");
+		} else if (resource_id > 0) {
+			if (data->widget_pixmap == resource_id) {
+				if (data->widget_extra) {
+					/* Just replace the pixmap in this case, do not release old pixmap */
+					replace_pixmap(NULL, 0, widget_content, data->widget_pixmap);
+				}
+
+				update_widget_pixmap(widget_content, w, h);
+
+				if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
+					if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)((unsigned long long)resource_id))) {
+						s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)((unsigned long long)resource_id));
+					}
+				}
+				return;
 			}
 
-			update_widget_pixmap(widget_content, w, h);
-			return;
-		}
+			if (s_info.conf.field.skip_acquire && resource_id != 0) {
+				struct acquire_data local_acquire_data = {
+					.data = widget_ref(data),
+					.content = widget_content,
+					.w = w,
+					.h = h,
+				};
 
-		if (s_info.conf.field.skip_acquire && resource_id != 0) {
-			struct acquire_data local_acquire_data = {
-				.data = widget_ref(data),
-				.content = widget_content,
-				.w = w,
-				.h = h,
-			};
+				/**
+				 * @note
+				 * Resource lock will be acquired from below callback.
+				 */
+				acquire_widget_pixmap_cb(data->handle, resource_id, &local_acquire_data);
+				return;
+			}
 
-			acquire_widget_pixmap_cb(data->handle, resource_id, &local_acquire_data);
-			return;
-		}
+			if (data->is.field.widget_pixmap_acquire_requested) {
+				DbgPrint("Pixmap is not acquired (in-process)\n");
+				return;
+			}
 
-		if (data->is.field.widget_pixmap_acquire_requested) {
-			DbgPrint("Pixmap is not acquired\n");
-			return;
-		}
+			acquire_data = malloc(sizeof(*acquire_data));
+			if (!acquire_data) {
+				ErrPrint("malloc: %d\n", errno);
+				return;
+			}
 
-		acquire_data = malloc(sizeof(*acquire_data));
-		if (!acquire_data) {
-			ErrPrint("malloc: %d\n", errno);
-			return;
-		}
+			acquire_data->data = widget_ref(data);
+			acquire_data->content = widget_content;
+			acquire_data->w = w;
+			acquire_data->h = h;
 
-		acquire_data->data = widget_ref(data);
-		acquire_data->content = widget_content;
-		acquire_data->w = w;
-		acquire_data->h = h;
+			ret = widget_viewer_acquire_resource_id(data->handle, 0, acquire_widget_pixmap_cb, acquire_data);
+			if (ret != WIDGET_ERROR_NONE) {
+				widget_unref(data);
+				free(acquire_data);
+			} else {
+				data->is.field.widget_pixmap_acquire_requested = 1;
+			}
 
-		ret = widget_viewer_acquire_resource_id(data->handle, 0, acquire_widget_pixmap_cb, acquire_data);
-		if (ret != WIDGET_ERROR_NONE) {
-			widget_unref(data);
-			free(acquire_data);
-		} else {
-			data->is.field.widget_pixmap_acquire_requested = 1;
+			/**
+			 * @note
+			 * Resource lock should be acquired from acquire_widget_pixmap_cb
+			 */
 		}
 	} else {
 		if (!data->widget_extra) {
@@ -4524,7 +4858,13 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 
 		replace_pixmap(NULL, 0, widget_content, data->widget_extra[data->widget_latest_idx]);
 		update_widget_pixmap(widget_content, w, h);
+		if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
+			if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)((unsigned long long)data->widget_extra[data->widget_latest_idx]))) {
+				s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)((unsigned long long)data->widget_extra[data->widget_latest_idx]));
+			}
+		}
 	}
+
 }
 
 static int widget_system_created(struct widget *handle, struct widget_data *data)
@@ -4620,11 +4960,21 @@ static void __widget_created_cb(struct widget *handle, int ret, void *cbdata)
 
 			if (!data->is.field.faulted) {
 				data->is.field.faulted = 1;
-				__widget_overlay_faulted(data);
-			}
 
-			DbgPrint("Display tap to load (%p) [%s]\n", data, data->widget_id);
-			smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &fault_event);
+				DbgPrint("Display tap to load (%p) [%s]\n", data, data->widget_id);
+				smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &fault_event);
+
+				__widget_overlay_faulted(data);
+			} else {
+				smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &fault_event);
+
+				/**
+				 * @note
+				 * While processing the faulted smart callback, the user can request hide_faulted_overlay
+				 * So we should reset it from here. in other cases, the widget_overlay_faulted function deals with this.
+				 */
+				data->is.field.hide_faulted_overlay = 0;
+			}
 
 			ret = WIDGET_ERROR_FAULT;
 		} else {
@@ -5016,6 +5366,12 @@ static void __widget_overlay_faulted(struct widget_data *data)
 	struct acquire_data acquire_data;
 	Evas_Object *overlay;
 	widget_type_e widget_type;
+
+	if (data->is.field.hide_faulted_overlay == 1) {
+		DbgPrint("Faulted overlay is hidden by request (%s)\n", data->widget_id);
+		data->is.field.hide_faulted_overlay = 0;
+		return;
+	}
 
 	if (data->is.field.widget_overlay_loaded) {
 		__widget_overlay_disable(data, 1, 1);
@@ -6367,11 +6723,14 @@ static int widget_fault_handler(enum widget_fault_type fault, const char *pkgnam
 			if (!strcmp(data->widget_id, pkgname)) {
 				DbgPrint("Faulted: %s (%p)\n", pkgname, data);
 				data->is.field.faulted = 1;
-				__widget_overlay_faulted(data);
+
 				info.error = WIDGET_ERROR_FAULT;
 				info.widget_app_id = data->widget_id;
 				info.event = WIDGET_FAULT_DEACTIVATED;
+
 				smart_callback_call(data, WIDGET_SMART_SIGNAL_WIDGET_FAULTED, &info);
+
+				__widget_overlay_faulted(data);
 			}
 		}
 		break;
@@ -6385,11 +6744,14 @@ static int widget_fault_handler(enum widget_fault_type fault, const char *pkgnam
 			if (!strcmp(data->widget_id, pkgname)) {
 				DbgPrint("Disconnected: %s (%p)\n", pkgname, data);
 				data->is.field.faulted = 1;
-				__widget_overlay_faulted(data);
+
 				info.error = WIDGET_ERROR_FAULT;
 				info.widget_app_id = data->widget_id;
 				info.event = WIDGET_FAULT_PROVIDER_DISCONNECTED;
+
 				smart_callback_call(data, WIDGET_SMART_SIGNAL_PROVIDER_DISCONNECTED, &info);
+
+				__widget_overlay_faulted(data);
 			}
 		}
 		break;
@@ -6397,6 +6759,32 @@ static int widget_fault_handler(enum widget_fault_type fault, const char *pkgnam
 		break;
 	}
 	return 0;
+}
+
+static void evas_render_post_cb(void *data, Evas *e, void *event_info)
+{
+	widget_resource_lock_t handle;
+
+	EINA_LIST_FREE(s_info.updated_pixmap_lock_list, handle) {
+		widget_service_release_resource_lock(handle);
+		widget_service_destroy_resource_lock(handle, 0);
+	}
+}
+
+static void evas_render_pre_cb(void *data, Evas *e, void *event_info)
+{
+	widget_resource_lock_t handle;
+	void *pixmap;
+
+	EINA_LIST_FREE(s_info.updated_pixmap_list, pixmap) {
+		handle = widget_service_create_resource_lock((unsigned int)((unsigned long long)pixmap), WIDGET_LOCK_READ);
+		if (handle) {
+			widget_service_acquire_resource_lock(handle);
+			s_info.updated_pixmap_lock_list = eina_list_append(s_info.updated_pixmap_lock_list, handle);
+		} else {
+			ErrPrint("Failed to create a resource lock\n");
+		}
+	}
 }
 
 EAPI int widget_viewer_evas_init(Evas_Object *win)
@@ -6454,6 +6842,15 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 	s_info.conf.field.force_to_buffer = 0;
 	s_info.win = win;
 
+	if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
+		Evas *e;
+		e = evas_object_evas_get(win);
+		if (e) {
+			evas_event_callback_add(e, EVAS_CALLBACK_RENDER_PRE, evas_render_pre_cb, NULL);
+			evas_event_callback_add(e, EVAS_CALLBACK_RENDER_POST, evas_render_post_cb, NULL);
+		}
+	}
+
 	return ret;
 }
 
@@ -6466,6 +6863,15 @@ EAPI int widget_viewer_evas_fini(void)
 	}
 
 	if (s_info.initialized) {
+		if (WIDGET_CONF_ENABLE_RESOURCE_LOCK && s_info.win) {
+			Evas *e;
+			e = evas_object_evas_get(s_info.win);
+			if (e) {
+				evas_event_callback_del(e, EVAS_CALLBACK_RENDER_PRE, evas_render_pre_cb);
+				evas_event_callback_del(e, EVAS_CALLBACK_RENDER_POST, evas_render_post_cb);
+			}
+		}
+
 		widget_viewer_remove_event_handler(widget_event_handler);
 		widget_viewer_remove_fault_handler(widget_fault_handler);
 		widget_viewer_fini();
@@ -6733,6 +7139,10 @@ EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 		s_info.conf.field.skip_acquire = !!value;
 		DbgPrint("Turn %s skip-acquire option\n", s_info.conf.field.skip_acquire ? "on" : "off");
 		break;
+	case WIDGET_VIEWER_EVAS_DISABLE_SCROLLER:
+		s_info.conf.field.disable_internal_scroller = !!value;
+		DbgPrint("Turn %s internal_scroller option\n", s_info.conf.field.disable_internal_scroller ? "off" : "on");
+		break;
 	default:
 		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
@@ -6915,7 +7325,7 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 		return;
 	}
 
-	if (!data->is.field.pressed) {
+	if (!data->pressed) {
 		DbgPrint("Cancel ignored\n");
 		return;
 	}
@@ -7973,6 +8383,56 @@ EAPI int widget_viewer_evas_hide_overlay(Evas_Object *widget)
 	}
 	delayed_overlay_disable_cb(data);
 
+	return WIDGET_ERROR_NONE;
+}
+
+/**
+ * @note
+ * This function must has to be called after the object is faulted.
+ * And this will not reset the faulted flag. it just dislable the faulted overlay if it is exists.
+ *
+ * The best usage of this function is called from smart-callback.
+ * Any faulted smart callback can call this.
+ * Then the widget_viewer_evas will check the flag to decide whether enable the faulted overlay or not.
+ */
+EAPI int widget_viewer_evas_hide_faulted_overlay_once(Evas_Object *widget)
+{
+	struct widget_data *data;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (!s_info.initialized) {
+		return WIDGET_ERROR_FAULT;
+	}
+
+	data = get_smart_data(widget);
+	if (!data) {
+		ErrPrint("Invalid object\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (data->is.field.faulted == 0) {
+		ErrPrint("Object is not faulted\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	/**
+	 * @note
+	 * If the overlay (faulted) is already enabled,
+	 * Turn it off first.
+	 */
+	if (data->is.field.widget_overlay_loaded) {
+		DbgPrint("Faulted overlay is disabled\n");
+		__widget_overlay_disable(data, 1, 1);
+	}
+
+	/**
+	 * This flag will be checked before enable the faulted overlay.
+	 * And this will be reset'd right after ignore the faulted overlay.
+	 */
+	data->is.field.hide_faulted_overlay = 1;
 	return WIDGET_ERROR_NONE;
 }
 

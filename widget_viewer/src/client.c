@@ -37,6 +37,7 @@
 #include <widget_cmd_list.h>
 #include <widget_buffer.h>
 #include <widget_conf.h>
+#include <widget_util.h>
 #include <secure_socket.h>
 
 #include "debug.h"
@@ -729,7 +730,7 @@ static struct packet *master_extra_updated(pid_t pid, int handle, const struct p
 			if (!conf_manual_sync()) {
 				ret = _widget_sync_widget_fb(common);
 				if (ret != (int)WIDGET_ERROR_NONE) {
-					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, widget_util_basename(util_uri_to_path(id)), ret);
 				}
 			} else {
 				ret = WIDGET_ERROR_NONE;
@@ -822,7 +823,7 @@ static struct packet *master_widget_updated(pid_t pid, int handle, const struct 
 			if (!conf_manual_sync()) {
 				ret = _widget_sync_widget_fb(common);
 				if (ret != (int)WIDGET_ERROR_NONE) {
-					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+					ErrPrint("Failed to do sync FB (%s - %s) (%d)\n", pkgname, widget_util_basename(util_uri_to_path(id)), ret);
 				}
 			} else {
 				ret = WIDGET_ERROR_NONE;
@@ -915,7 +916,7 @@ static struct packet *master_gbar_created(pid_t pid, int handle, const struct pa
 
 			ret = _widget_sync_gbar_fb(common);
 			if (ret < 0) {
-				ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+				ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, widget_util_basename(util_uri_to_path(id)));
 			}
 		}
 	}
@@ -1015,7 +1016,7 @@ static struct packet *master_gbar_destroyed(pid_t pid, int handle, const struct 
 		switch (fb_type(_widget_get_gbar_fb(common))) {
 		case WIDGET_FB_TYPE_FILE:
 		case WIDGET_FB_TYPE_SHM:
-			widget_service_destroy_lock(common->gbar.lock);
+			widget_service_destroy_lock(common->gbar.lock, 0);
 			common->gbar.lock = NULL;
 			break;
 		case WIDGET_FB_TYPE_PIXMAP:
@@ -1089,7 +1090,7 @@ static struct packet *master_gbar_updated(pid_t pid, int handle, const struct pa
 			if (!conf_manual_sync()) {
 				ret = _widget_sync_gbar_fb(common);
 				if (ret < 0) {
-					ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, util_basename(util_uri_to_path(id)), ret);
+					ErrPrint("Failed to do sync FB (%s - %s), %d\n", pkgname, widget_util_basename(util_uri_to_path(id)), ret);
 				} else {
 					dlist_foreach(common->widget_list, l, handler) {
 						_widget_invoke_event_handler(handler, WIDGET_EVENT_GBAR_UPDATED);
@@ -1470,7 +1471,7 @@ static struct packet *master_size_changed(pid_t pid, int handle, const struct pa
 
 				ret = _widget_sync_widget_fb(common);
 				if (ret < 0) {
-					ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+					ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, widget_util_basename(util_uri_to_path(id)));
 				}
 
 				/* Just update the size info only. */
@@ -1791,7 +1792,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 		ret = _widget_sync_widget_fb(common);
 		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, widget_util_basename(util_uri_to_path(id)));
 		}
 		break;
 	case WIDGET_TYPE_TEXT:
@@ -1815,7 +1816,7 @@ static struct packet *master_created(pid_t pid, int handle, const struct packet 
 
 		ret = _widget_sync_gbar_fb(common);
 		if (ret < 0) {
-			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, util_basename(util_uri_to_path(id)));
+			ErrPrint("Failed to do sync FB (%s - %s)\n", pkgname, widget_util_basename(util_uri_to_path(id)));
 		}
 
 		/*!

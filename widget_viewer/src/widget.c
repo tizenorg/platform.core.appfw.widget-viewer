@@ -847,13 +847,13 @@ static int send_access_event(widget_h handle, const char *event, int x, int y, i
 	return master_rpc_async_request(handle, packet, 0, access_ret_cb, NULL);
 }
 
-static int send_key_event(widget_h handle, const char *event, unsigned int keycode)
+static int send_key_event(widget_h handle, const char *event, unsigned int keycode, int device)
 {
 	struct packet *packet;
 	double timestamp;
 
 	timestamp = util_timestamp();
-	packet = packet_create(event, "ssdi", handle->common->pkgname, handle->common->id, timestamp, keycode);
+	packet = packet_create(event, "ssdii", handle->common->pkgname, handle->common->id, timestamp, keycode, device);
 	if (!packet) {
 		ErrPrint("Failed to build packet\n");
 		return WIDGET_ERROR_FAULT;
@@ -862,13 +862,13 @@ static int send_key_event(widget_h handle, const char *event, unsigned int keyco
 	return master_rpc_async_request(handle, packet, 0, key_ret_cb, NULL);
 }
 
-static int send_mouse_event(widget_h handle, const char *event, int x, int y, double ratio_w, double ratio_h)
+static int send_mouse_event(widget_h handle, const char *event, int x, int y, double ratio_w, double ratio_h, int device)
 {
 	struct packet *packet;
 	double timestamp;
 
 	timestamp = util_timestamp();
-	packet = packet_create_noack(event, "ssdiiidd", handle->common->pkgname, handle->common->id, timestamp, x, y, INPUT_EVENT_SOURCE_VIEWER, ratio_w, ratio_h);
+	packet = packet_create_noack(event, "ssdiiiddi", handle->common->pkgname, handle->common->id, timestamp, x, y, INPUT_EVENT_SOURCE_VIEWER, ratio_w, ratio_h, device);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return WIDGET_ERROR_FAULT;
@@ -1841,7 +1841,7 @@ EAPI int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, w
 	return ret;
 }
 
-EAPI int widget_viewer_send_click_event(widget_h handle, double x, double y)
+EAPI int widget_viewer_send_click_event(widget_h handle, const char *event, double x, double y)
 {
 	struct packet *packet;
 	double timestamp;
@@ -1855,6 +1855,11 @@ EAPI int widget_viewer_send_click_event(widget_h handle, double x, double y)
 
 	if (!handle->common || handle->common->state != WIDGET_STATE_CREATE) {
 		ErrPrint("Handler is invalid\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!event || (strcmp(event, WIDGET_VIEWER_CLICK_BUTTON_LEFT) && strcmp(event, WIDGET_VIEWER_CLICK_BUTTON_RIGHT) && strcmp(event, WIDGET_VIEWER_CLICK_BUTTON_CENTER))) {
+		ErrPrint("Unknown event: (%s)\n", event);
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1875,7 +1880,7 @@ EAPI int widget_viewer_send_click_event(widget_h handle, double x, double y)
 	timestamp = util_timestamp();
 	DbgPrint("CLICKED: %lf\n", timestamp);
 
-	packet = packet_create_noack((const char *)&cmd, "sssddd", handle->common->pkgname, handle->common->id, "clicked", timestamp, x, y);
+	packet = packet_create_noack((const char *)&cmd, "sssddd", handle->common->pkgname, handle->common->id, event, timestamp, x, y);
 	if (!packet) {
 		ErrPrint("Failed to build param\n");
 		return WIDGET_ERROR_FAULT;
@@ -2438,7 +2443,7 @@ EAPI int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	return send_mouse_event(handle, (const char *)&cmd, info->x, info->y, info->ratio_w, info->ratio_h);
+	return send_mouse_event(handle, (const char *)&cmd, info->x, info->y, info->ratio_w, info->ratio_h, info->device);
 }
 
 EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e type, widget_key_event_info_s info, widget_ret_cb cb, void *data)
@@ -2570,7 +2575,7 @@ EAPI int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e t
 		cb = default_key_event_cb;
 	}
 
-	ret = send_key_event(handle, (const char *)&cmd, info->keycode);
+	ret = send_key_event(handle, (const char *)&cmd, info->keycode, info->device);
 	if (ret == (int)WIDGET_ERROR_NONE) {
 		handle->cbs.key_event.cb = cb;
 		handle->cbs.key_event.data = data;

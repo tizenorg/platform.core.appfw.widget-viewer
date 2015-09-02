@@ -754,7 +754,7 @@ widget_h _widget_unref(widget_h handler, int destroy_common)
 			 * \note
 			 * Lock file should be deleted after all callbacks are processed.
 			 */
-			(void)widget_service_destroy_lock(handler->common->widget.lock);
+			(void)widget_service_destroy_lock(handler->common->widget.lock, 0);
 			handler->common->widget.lock = NULL;
 			_widget_destroy_common_handle(handler->common);
 		}

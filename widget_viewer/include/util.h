@@ -16,7 +16,6 @@
 
 extern int util_check_extension(const char *filename, const char *check_ptr);
 extern double util_timestamp(void);
-extern const char *util_basename(const char *name);
 extern const char *util_uri_to_path(const char *uri);
 extern int util_unlink(const char *filename);
 

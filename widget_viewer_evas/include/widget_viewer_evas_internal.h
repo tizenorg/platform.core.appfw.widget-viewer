@@ -34,6 +34,8 @@ extern "C" {
 #define WIDGET_VIEWER_EVAS_SHARED_CONTENT  0x0002	    /**< Multiple instances will share the content of one real instance */
 #define WIDGET_VIEWER_EVAS_SUPPORT_GBAR    0x0004	    /**< GBAR will be used */
 
+#define WIDGET_VIEWER_EVAS_DISABLE_SCROLLER 0x4000
+
 typedef enum widget_access_result {
     WIDGET_ACCESS_RESULT_DONE = 0x00,
     WIDGET_ACCESS_RESULT_FIRST = 0x01,
@@ -269,6 +271,7 @@ extern int widget_viewer_evas_set_preview_image(Evas_Object *widget, widget_size
  */
 extern int widget_viewer_evas_hide_overlay(Evas_Object *widget);
 
+extern int widget_viewer_evas_hide_faulted_overlay_once(Evas_Object *widget);
 #ifdef __cplusplus
 }
 #endif

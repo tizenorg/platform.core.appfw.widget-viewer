@@ -285,7 +285,7 @@ extern double widget_viewer_evas_get_period(Evas_Object *widget);
  */
 extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
 
-/*
+/**
  * @brief Hides the preview of the widget
  * @remarks This function should be called right after create the widget object before resizing it
  * @since_tizen 2.3.1

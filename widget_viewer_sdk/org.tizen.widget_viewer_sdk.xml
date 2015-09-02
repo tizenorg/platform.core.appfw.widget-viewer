@@ -10,7 +10,7 @@
 	</privileges>
 
 	<!-- Main application -->
-	<ui-application appid="org.tizen.widget_viewer_sdk" exec="/usr/apps/org.tizen.widget_viewer_sdk/bin/widget_viewer_sdk" nodisplay="true" multiple="false" type="capp" taskmanage="true">
+	<ui-application appid="org.tizen.widget_viewer_sdk" exec="/usr/apps/org.tizen.widget_viewer_sdk/bin/widget_viewer_sdk" nodisplay="true" multiple="false" type="capp" taskmanage="false">
 		<label>Widget Viewer for SDK</label>
 		<label xml:lang="ko-kr">위젯 뷰어 for SDK</label>
 		<icon>org.tizen.widget_viewer_sdk</icon>
