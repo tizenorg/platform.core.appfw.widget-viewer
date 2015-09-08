@@ -78,7 +78,6 @@
 #define _(str) gettext(str)
 #endif
 
-
 #if !defined(DbgPrint)
 #define DbgPrint(format, arg...)	SECURE_LOGD(format, ##arg)
 #endif
@@ -155,6 +154,12 @@ int errno;
  * Detect click event if the pointer does moved in this region (x , y < 5 pixels)
  */
 #define CLICK_REGION WIDGET_CONF_CLICK_REGION
+
+#if defined(__LP64__) || defined(_LP64)
+#define PTR_TYPE(a) ((long long)(a))
+#else
+#define PTR_TYPE(a) ((int)(a))
+#endif
 
 static struct {
 	Evas_Smart_Class sc;
@@ -4772,8 +4777,8 @@ static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cb
 	}
 
 	if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
-		if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)pixmap)) {
-			s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)pixmap);
+		if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)(PTR_TYPE(pixmap)))) {
+			s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)(PTR_TYPE(pixmap)));
 		}
 	}
 }
@@ -4798,8 +4803,8 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 				update_widget_pixmap(widget_content, w, h);
 
 				if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
-					if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)resource_id)) {
-						s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)resource_id);
+					if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)(PTR_TYPE(resource_id)))) {
+						s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)(PTR_TYPE(resource_id)));
 					}
 				}
 				return;
@@ -4859,8 +4864,8 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 		replace_pixmap(NULL, 0, widget_content, data->widget_extra[data->widget_latest_idx]);
 		update_widget_pixmap(widget_content, w, h);
 		if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
-			if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)data->widget_extra[data->widget_latest_idx])) {
-				s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)data->widget_extra[data->widget_latest_idx]);
+			if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)(PTR_TYPE(data->widget_extra[data->widget_latest_idx])))) {
+				s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)(PTR_TYPE(data->widget_extra[data->widget_latest_idx])));
 			}
 		}
 	}
@@ -6777,7 +6782,7 @@ static void evas_render_pre_cb(void *data, Evas *e, void *event_info)
 	void *pixmap;
 
 	EINA_LIST_FREE(s_info.updated_pixmap_list, pixmap) {
-		handle = widget_service_create_resource_lock((unsigned int)pixmap, WIDGET_LOCK_READ);
+		handle = widget_service_create_resource_lock((unsigned int)(PTR_TYPE(pixmap)), WIDGET_LOCK_READ);
 		if (handle) {
 			widget_service_acquire_resource_lock(handle);
 			s_info.updated_pixmap_lock_list = eina_list_append(s_info.updated_pixmap_lock_list, handle);
