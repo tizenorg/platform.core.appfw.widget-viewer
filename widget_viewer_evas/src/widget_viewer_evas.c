@@ -3908,7 +3908,7 @@ static void __widget_del(Evas_Object *widget)
 			} else {
 				delete_type = WIDGET_DELETE_TEMPORARY;
 			}
-			DbgPrint("Send delete request (0x%X)\n", delete_type);
+			DbgPrint("Send delete request (0x%X) - %s\n", delete_type, data->widget_id);
 
 			if (data->is.field.created) {
 				if (widget_viewer_delete_widget(data->handle, delete_type, __widget_destroy_widget_cb, widget_ref(data)) < 0) {
@@ -4772,8 +4772,8 @@ static void acquire_widget_pixmap_cb(struct widget *handle, int pixmap, void *cb
 	}
 
 	if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
-		if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)((unsigned long long)pixmap))) {
-			s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)((unsigned long long)pixmap));
+		if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)pixmap)) {
+			s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)pixmap);
 		}
 	}
 }
@@ -4798,8 +4798,8 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 				update_widget_pixmap(widget_content, w, h);
 
 				if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
-					if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)((unsigned long long)resource_id))) {
-						s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)((unsigned long long)resource_id));
+					if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)resource_id)) {
+						s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)resource_id);
 					}
 				}
 				return;
@@ -4859,8 +4859,8 @@ static void __widget_update_pixmap_object(struct widget_data *data, Evas_Object 
 		replace_pixmap(NULL, 0, widget_content, data->widget_extra[data->widget_latest_idx]);
 		update_widget_pixmap(widget_content, w, h);
 		if (WIDGET_CONF_ENABLE_RESOURCE_LOCK) {
-			if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)((unsigned long long)data->widget_extra[data->widget_latest_idx]))) {
-				s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)((unsigned long long)data->widget_extra[data->widget_latest_idx]));
+			if (!eina_list_data_find(s_info.updated_pixmap_list, (void *)data->widget_extra[data->widget_latest_idx])) {
+				s_info.updated_pixmap_list = eina_list_append(s_info.updated_pixmap_list, (void *)data->widget_extra[data->widget_latest_idx]);
 			}
 		}
 	}
@@ -6777,7 +6777,7 @@ static void evas_render_pre_cb(void *data, Evas *e, void *event_info)
 	void *pixmap;
 
 	EINA_LIST_FREE(s_info.updated_pixmap_list, pixmap) {
-		handle = widget_service_create_resource_lock((unsigned int)((unsigned long long)pixmap), WIDGET_LOCK_READ);
+		handle = widget_service_create_resource_lock((unsigned int)pixmap, WIDGET_LOCK_READ);
 		if (handle) {
 			widget_service_acquire_resource_lock(handle);
 			s_info.updated_pixmap_lock_list = eina_list_append(s_info.updated_pixmap_lock_list, handle);

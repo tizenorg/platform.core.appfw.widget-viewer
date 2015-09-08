@@ -1216,7 +1216,7 @@ static void _job_del_cb(widget_h handle, int type, void *data)
 			}
 		}
 
-		DbgPrint("Send delete request\n");
+		DbgPrint("Send delete request [%s]\n", handle->common->id);
 		_widget_send_delete(handle, type, cb, data);
 	} else {
 		if (cb) {

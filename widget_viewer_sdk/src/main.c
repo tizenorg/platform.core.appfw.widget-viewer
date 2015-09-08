@@ -42,6 +42,9 @@ int errno;
 #define LAZY_WATCH_TIME 3.0f
 #define CR 13
 #define LF 10
+#if !defined(VCONFKEY_WMS_CLOCKS_SET_IDLE)
+#define VCONFKEY_WMS_CLOCKS_SET_IDLE "db/wms/clocks_set_idle"
+#endif
 
 static struct info {
 	int w;
