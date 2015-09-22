@@ -988,11 +988,6 @@ struct widget_data *widget_unref(struct widget_data *data)
 		data->overlay_timer = NULL;
 	}
 
-	if (data->stage) {
-		DbgPrint("Remove Stage\n");
-		evas_object_del(data->stage);
-	}
-
 	if (data->widget_layout) {
 		Evas_Object *content;
 
@@ -1019,6 +1014,8 @@ struct widget_data *widget_unref(struct widget_data *data)
 
 		DbgPrint("Remove WIDGET Layout\n");
 		evas_object_del(data->widget_layout);
+	} else {
+		DbgPrint("Layout is already deleted\n");
 	}
 
 	if (data->gbar_layout) {
@@ -1034,6 +1031,15 @@ struct widget_data *widget_unref(struct widget_data *data)
 		}
 		DbgPrint("Remove GBAR Layout\n");
 		evas_object_del(data->gbar_layout);
+	} else {
+		DbgPrint("GBar layout is already deleted\n");
+	}
+
+	if (data->stage) {
+		DbgPrint("Remove Stage\n");
+		evas_object_del(data->stage);
+	} else {
+		DbgPrint("Stage is already deleted\n");
 	}
 
 	if (data->widget_fb) {
@@ -2807,6 +2813,20 @@ static void gbar_create_pixmap_object(struct widget_data *data)
 	}
 }
 
+static void gbar_layout_del_cb(void *_data, Evas *e, Evas_Object *obj, void *event_info)
+{
+	struct widget_data *data = _data;
+	DbgPrint("GBar layout is deleted(%p - %p)\n", data->gbar_layout, obj);
+	/**
+	 * @note
+	 * We should not access the data->gbar_layout in this function.
+	 * We can only believe the "obj" now..
+	 */
+	evas_object_smart_member_del(obj);
+	evas_object_clip_unset(obj);
+	data->gbar_layout = NULL;
+}
+
 static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata)
 {
 	struct widget_data *data = cbdata;
@@ -2866,6 +2886,7 @@ static void __widget_create_gbar_cb(struct widget *handle, int ret, void *cbdata
 			widget_unref(data);
 			return;
 		}
+		evas_object_event_callback_add(data->gbar_layout, EVAS_CALLBACK_DEL, gbar_layout_del_cb, data);
 
 		if (elm_layout_file_set(data->gbar_layout, WIDGET_VIEWER_EVAS_RESOURCE_EDJ, WIDGET_VIEWER_EVAS_RESOURCE_GBAR) == EINA_FALSE) {
 			ErrPrint("Failed to load edje object: %s(%s)\n", WIDGET_VIEWER_EVAS_RESOURCE_EDJ, WIDGET_VIEWER_EVAS_RESOURCE_GBAR);
@@ -3527,6 +3548,28 @@ static void __widget_overlay_clicked_cb(void *cbdata, Evas_Object *obj, const ch
 	}
 }
 
+static void widget_layout_del_cb(void *_data, Evas *e, Evas_Object *obj, void *event_info)
+{
+	struct widget_data *data = _data;
+	DbgPrint("Layout is deleted (%p - %p)\n", data->widget_layout, obj);
+	evas_object_smart_member_del(obj);
+	evas_object_clip_unset(obj);
+	data->widget_layout = NULL;
+}
+
+static void stage_del_cb(void *_data, Evas *e, Evas_Object *obj, void *event_info)
+{
+	struct widget_data *data = _data;
+
+	DbgPrint("Stage is deleted (%p - %p)\n", data->stage, obj);
+	if (data->widget_layout) {
+		evas_object_clip_unset(data->widget_layout);
+	}
+
+	evas_object_smart_member_del(obj);
+	data->stage = NULL;
+}
+
 static void __widget_data_setup(struct widget_data *data)
 {
 	data->e = evas_object_evas_get(data->widget);
@@ -3620,6 +3663,8 @@ static void __widget_data_setup(struct widget_data *data)
 	evas_object_smart_member_add(data->widget_layout, data->widget);
 	evas_object_clip_set(data->widget_layout, data->stage);
 
+	evas_object_event_callback_add(data->widget_layout, EVAS_CALLBACK_DEL, widget_layout_del_cb, data);
+	evas_object_event_callback_add(data->stage, EVAS_CALLBACK_DEL, stage_del_cb, data);
 }
 
 static Eina_Bool renderer_cb(void *_data)
