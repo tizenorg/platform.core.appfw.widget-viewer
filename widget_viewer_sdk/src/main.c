@@ -22,7 +22,6 @@
 #include <widget_service.h>
 #include <widget_service_internal.h>
 #include <widget_conf.h>
-#include <widget_util.h>
 #include <widget_viewer_evas.h>
 #include <vconf.h>
 #include <bundle.h>
@@ -644,14 +643,16 @@ static void _app_control(app_control_h service, void *data)
 
 	ret = app_control_get_extra_data(service, WIDGET_APPID, &widget_id);
 	if (ret == APP_CONTROL_ERROR_NONE) {
+#if 0
 		char *category;
+#endif
 		int lazy_loader = 0;
 
 		DbgPrint("Loading a widget: [%s]\n", widget_id);
 		if (!widget_id) {
 			return;
 		}
-
+#if 0
 		category = widget_service_get_category(widget_id);
 		if (category) {
 			if (!strcmp(category, WATCH_CATEGORY)) {
@@ -683,6 +684,7 @@ static void _app_control(app_control_h service, void *data)
 			}
 			free(category);
 		}
+#endif
 
 		ret = unload_widget();
 		ret = prepare_widget(widget_id, service);
