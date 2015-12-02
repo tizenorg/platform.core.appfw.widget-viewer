@@ -32,6 +32,9 @@
 
 #include <widget_errno.h>
 
+#include <widget_instance.h>
+#include <Pepper_Efl.h>
+
 #include "util.h"
 
 #if defined(LOG_TAG)
@@ -117,6 +120,8 @@
 #define DEFAULT_CLUSTER "user,created"
 #define DEFAULT_CATEGORY "default"
 
+#define WIDGET_INFO_TAG "__WIDGET_INFO__"
+
 /*!
  * \note
  * Enable this to apply shadow effect to image object (for text widget)
@@ -125,14 +130,76 @@
 
 int errno;
 
+static struct info {
+	int w;
+	int h;
+	Evas_Object *win;
+	char *compositor_name;
+	GHashTable *widget_table;
+} s_info = {
+	.w = 0,
+	.h = 0,
+	.win = NULL,
+	.compositor_name = NULL,
+	.widget_table = NULL,
+};
+
+struct widget_info {
+	char *widget_id;
+	char *instance_id;
+	char *content_info;
+	bundle *b;
+	int pid;
+
+	int permanent_delete;
+
+	Evas_Object *layout;
+};
+
+static void set_runtime_dir(void)
+{
+	char buf[256];
+
+	snprintf(buf, sizeof(buf) - 1, "/run/user/%d", getuid());
+	if (setenv("XDG_RUNTIME_DIR", buf, 0) < 0) {
+		ErrPrint("Unable to set XDB_RUNTIME_DIR: %s (%s)\n", buf, strerror(errno));
+	}
+}
+
 EAPI int widget_viewer_evas_init(Evas_Object *win)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	widget_instance_init("WHAT I HAVE TO DO SET FOR THIS?");
+
+	set_runtime_dir();
+
+	s_info.compositor_name = pepper_efl_compositor_create(win, NULL);
+	if (!s_info.compositor_name) {
+		return WIDGET_ERROR_FAULT;
+	}
+
+	if (setenv("WAYLAND_DISPLAY", s_info.compositor_name, 1) < 0) {
+		ErrPrint("Failed to set WAYLAND_DISPLAY: %s\n", strerror(errno));
+	}
+
+	evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_ADD, object_added_cb, NULL);
+	evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_DEL, object_deleted_cb, NULL);
+
+	s_info.widget_table = g_hash_table_new(g_str_hash, g_str_equal);
+	s_info.win = win;
+
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_fini(void)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	if (s_info.win && s_info.compositor_name) {
+		pepper_efl_compositor_destroy(s_info.compositor_name);
+		s_info.compositor_name = NULL;
+	}
+
+	widget_instance_fini();
+
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
@@ -150,19 +217,186 @@ EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
+static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
+{
+	struct widget_info *info = data;
+
+	if (info->pid > 0) {
+		widget_instance_terminate(info->pid);
+		info->pid = 0;
+	}
+
+	if (info->permanent_delete) {
+		widget_instance_destroy(info->widget_id, info->instance_id);
+	}
+
+	evas_object_data_del(layout, WIDGET_INFO_TAG);
+
+	info->layout = NULL;
+	free(info->widget_id);
+	free(info->instance_id);
+	free(info->content_info);
+	bundle_del(info->b);
+	free(info);
+}
+
+static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
+{
+	struct widget_info *info = data;
+	int x, y, w, h;
+
+	evas_object_geometry_get(layout, &x, &y, &w, &h);
+
+	if (info->pid == 0) {
+		/**
+		 * @note
+		 * Create a new instance in this case.
+		 */
+		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
+		if (info->pid < 0) {
+			ErrPrint("Failed to launch an widget\n");
+			return;
+		}
+	} else {
+		/**
+		 * @note
+		 * Layout will be resized, consequently, the pepper object also will be resized.
+		 */
+	}
+}
+
+static inline struct widget_info *create_info(Evas_Object *parent, const char *widget_id, const char *instance_id, const char *content_info)
+{
+	struct widget_info *info;
+
+	info = (struct widget_info *)malloc(sizeof(*info));
+	if (!info) {
+		ErrPrint("malloc: %s\n", strerror(errno));
+		return NULL;
+	}
+
+	info->widget_id = strdup(widget_id);
+	if (!info->widget_id) {
+		free(info);
+		return NULL;
+	}
+
+	info->instance_id = strdup(instance_id);
+	if (!info->instance_id) {
+		free(info->widget_id);
+		free(info);
+		return NULL;
+	}
+
+	info->content_info = strdup(content_info);
+	if (!info->content_info) {
+		free(info->instance_id);
+		free(info->widget_id);
+		free(info);
+		return NULL;
+	}
+
+	info->layout = elm_layout_add(parent);
+	if (!info->layout) {
+		free(info->content_info);
+		free(info->instance_id);
+		free(info->widget_id);
+		free(info);
+		return NULL;
+	}
+
+	if (elm_layout_file_set(info->layout, WIDGET_VIEWER_EVAS_RESOURCE_EDJ, "layout") == EINA_FALSE) {
+		evas_object_del(info->layout);
+		free(info->content_info);
+		free(info->instance_id);
+		free(info->widget_id);
+		free(info);
+		return NULL;
+	}
+
+	evas_object_data_set(info->layout, WIDGET_INFO_TAG, info);
+
+	evas_object_event_callback_add(info->layout, EVAS_CALLBACK_RESIZE, resize_cb, info);
+	evas_object_event_callback_add(info->layout, EVAS_CALLBACK_DEL, del_cb, info);
+
+	info->permanent_delete = 0;
+	return info;
+}
+
 EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
+	char buf[256];
+	char *instance_id = NULL;
+	bundle *b = NULL;
+	struct widget_info *info = NULL;
 
-EAPI int widget_viewer_evas_set_view_port(Evas_Object *widget, int x, int y, int w, int h)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
+	if (content_info) {
+		b = bundle_decode(content_info, strlen(content_info));
+		if (b == NULL) {
+			ErrPrint("Invalid content format: [%s]\n", content_info);
+		}
+	}
 
-EAPI int widget_viewer_evas_get_view_port(Evas_Object *widget, int *x, int *y, int *w, int *h)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	if (b) {
+		instance_id = bundle_get_val(b, WIDGET_K_INSTANCE);
+	}
+
+	if (!instance_id) {
+		if (widget_instance_create(widget_id, &instance_id) < 0) {
+			if (b) {
+				bundle_del(b);
+			}
+			return NULL;
+		}
+
+		if (!instance_id) {
+			ErrPrint("Failed to get instance_id: %s\n", widget_id);
+			widget_instance_destroy(widget_id, instance_id);
+			if (b) {
+				bundle_del(b);
+			}
+			return NULL;
+		}
+
+		info = create_info(parent, widget_id, instance_id, content_info);
+		if (!info) {
+			ErrPrint("Unable to create an information object\n");
+			widget_instance_destroy(widget_id, instance_id);
+			if (b) {
+				bundle_del(b);
+			}
+			return NULL;
+		}
+
+		info->b = b;
+		info->pid = 0;
+
+		g_hash_table_insert(s_info.widget_table, instance_id, info);
+	} else {
+		info = g_hash_table_lookup(s_info.widget_table, instance_id);
+		if (!info) {
+			info = create_info(parent, widget_id, instance_id, content_info);
+			if (!info) {
+				if (b) {
+					bundle_del(b);
+				}
+				return NULL;
+			}
+
+			info->b = b;
+			info->pid = 0;
+
+			g_hash_table_insert(s_info.widget_table, instance_id, info);
+		}
+	}
+
+	/**
+	 * @note
+	 * In this case, user(developer) can get a same object using this API.
+	 * If he knows the widget_id and instance_id, he can get the object of it.
+	 * Same Evas_Object.
+	 */
+	return info->layout;
 }
 
 EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
@@ -180,44 +414,95 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
-EAPI int widget_viewer_evas_destroy_glance_bar(Evas_Object *widget)
+static int foreach_cb(widget_instance_h handle, void *data)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	struct widget_info *info = data;
+	char *content_info = NULL;
+	int content_len = 0;
+	bundle *b = NULL;
+
+	if (!handle) {
+		return 0;
+	}
+
+	if (widget_instance_get_content(handle, &b) < 0 || b == NULL) {
+		return 0;
+	}
+
+	if (bundle_encode(b, &content_info, &content_len) < 0) {
+		return 0;
+	}
+
+	free(info->content_info);
+	info->content_info = content_info;
+	return 0;
 }
 
 EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	widget_instance_foreach(info->widget_id, foreach_cb, info);
+
+	return info->content_info;
 }
 
 EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	// WIDGET_ERROR_NOT_SUPPORTED;
+	return NULL;
 }
 
 EAPI const char *widget_viewer_evas_get_widget_id(Evas_Object *widget)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return NULL;
+	}
+
+	return info->widget_id;
 }
 
 EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return -1.0f;
+	}
+
+	return 0.0f;
 }
 
 EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return;
+	}
+
+	return;
 }
 
 EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
+	struct widget_info *info;
 
-EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, void *_info, void (*ret_cb)(Evas_Object *obj, int ret, void *data), void *cbdata)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+	return WIDGET_ERROR_NONE;
 }
 
 /**
@@ -228,6 +513,15 @@ EAPI int widget_viewer_evas_feed_access_event(Evas_Object *widget, int type, voi
  */
 EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 {
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return;
+	}
+
+	elm_object_signal_emit(info->layout, "disable", "preview");
+
 	return;
 }
 
@@ -239,6 +533,14 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
  */
 EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 {
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return;
+	}
+
+	elm_object_signal_emit(info->layout, "disable", "text");
 	return;
 }
 
@@ -250,27 +552,56 @@ EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
  */
 EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 {
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return;
+	}
+
+	elm_object_signal_emit(info->layout, "disable", "loading");
 	return;
 }
 
 EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 {
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return;
+	}
+
+	if (info->pid < 0) {
+		int w;
+		int h;
+
+		evas_object_geometry_get(info->layout, NULL, NULL, &w, &h);
+
+		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
+		if (info->pid < 0) {
+			ErrPrint("Failed to launch an widget\n");
+			return;
+		}
+	} else {
+		/**
+		 * @note
+		 * Widget process is running well...
+		 */
+	}
 	return;
 }
 
 EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 {
-	return false;
-}
+	struct widget_info *info;
 
-EAPI int widget_viewer_evas_set_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return false;
+	}
 
-EAPI int widget_viewer_evas_unset_raw_event_callback(widget_evas_raw_event_type_e type, raw_event_cb cb, void *data)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	return info->pid < 0 ? true : false;
 }
 
 EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status)
@@ -288,78 +619,28 @@ EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 	return false;
 }
 
-EAPI int widget_viewer_evas_dump_to_file(Evas_Object *widget, const char *filename)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
 EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 {
-	return false;
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return false;
+	}
+	return true;
 }
 
 EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)
 {
+	struct widget_info *info;
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		return;
+	}
+
+	info->permanent_delete = 1;
 	return;
-}
-
-EAPI int widget_viewer_evas_subscribe_group(const char *cluster, const char *sub_cluster)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-EAPI int widget_viewer_evas_unsubscribe_group(const char *cluster, const char *sub_cluster)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-EAPI int widget_viewer_evas_subscribe_category(const char *category)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-EAPI int widget_viewer_evas_unsubscribe_category(const char *category)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-EAPI int widget_viewer_evas_emit_text_signal(Evas_Object *widget, widget_text_signal_s event_info, void *data)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-EAPI int widget_viewer_evas_get_instance_id(Evas_Object *widget, char **instance_id)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-EAPI int widget_viewer_evas_set_widget_option(Evas_Object *widget, widget_option_widget_e option, int value)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-EAPI int widget_viewer_evas_set_preview_image(Evas_Object *widget, widget_size_type_e type, const char *preview)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-EAPI int widget_viewer_evas_hide_overlay(Evas_Object *widget)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
-}
-
-/**
- * @note
- * This function must has to be called after the object is faulted.
- * And this will not reset the faulted flag. it just dislable the faulted overlay if it is exists.
- *
- * The best usage of this function is called from smart-callback.
- * Any faulted smart callback can call this.
- * Then the widget_viewer_evas will check the flag to decide whether enable the faulted overlay or not.
- */
-EAPI int widget_viewer_evas_hide_faulted_overlay_once(Evas_Object *widget)
-{
-	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
 /* End of a file */
