@@ -188,7 +188,7 @@ static struct {
 			unsigned int render_animator:1;
 			unsigned int auto_render_selector:1;
 			unsigned int skip_acquire:1;
-			unsigned int disable_internal_scroller: 1;
+			unsigned int disable_internal_scroller:1;
 
 			unsigned int reserved:17;
 		} field;
@@ -369,7 +369,7 @@ struct widget_data {
 			 * @note
 			 * Do not raise up the overlay for faulted.
 			 */
-			unsigned int hide_faulted_overlay: 1;
+			unsigned int hide_faulted_overlay:1;
 		} field;	/* Do we really have the performance loss because of bit fields? */
 
 		unsigned int flags;
@@ -1204,7 +1204,7 @@ static void gbar_move_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_in
 		return;
 	}
 
-	if (!IS_PRESSED(data,0)) {
+	if (!IS_PRESSED(data, 0)) {
 		return;
 	}
 
@@ -3186,8 +3186,7 @@ static void __widget_up_cb(void *cbdata, Evas *e, Evas_Object *obj, void *event_
 				data->is.field.scroll_x || data->is.field.scroll_y ||
 				data->is.field.cancel_click == CANCEL_USER ||
 				(!data->is.field.mouse_event && (abs(data->x[0] - data->down.x) > CLICK_REGION || abs(data->y[0] - data->down.y) > CLICK_REGION)) ||
-				(up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD)
-			{
+				(up->event_flags & EVAS_EVENT_FLAG_ON_HOLD) == EVAS_EVENT_FLAG_ON_HOLD) {
 				minfo.x = (double)(data->x[0] - x);
 				minfo.y = (double)(data->y[0] - y);
 				widget_viewer_feed_mouse_event(data->handle, WIDGET_MOUSE_ON_HOLD, &minfo);
