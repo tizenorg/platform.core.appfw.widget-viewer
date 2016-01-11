@@ -157,6 +157,24 @@ struct widget_info {
 	Evas_Object *layout;
 };
 
+static inline bool is_widget_feature_enabled(void)
+{
+	static bool feature = false;
+	static bool retrieved = false;
+
+	if (retrieved == false) {
+		int ret;
+
+		ret = system_info_get_platform_bool("http://tizen.org/feature/shell.appwidget", &feature);
+		if (ret != SYSTEM_INFO_ERROR_NONE) {
+			ErrPrint("system_info: %d\n", ret);
+		} else {
+			retrieved = true;
+		}
+	}
+
+	return feature;
+}
 static void set_runtime_dir(void)
 {
 	char buf[256];
@@ -218,6 +236,10 @@ static void object_added_cb(void *data, Evas_Object *obj, void *event_info)
 
 EAPI int widget_viewer_evas_init(Evas_Object *win)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	s_info.win = win;
 
 	/**
@@ -247,6 +269,10 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 
 EAPI int widget_viewer_evas_fini(void)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (s_info.win && s_info.compositor_name) {
 		pepper_efl_compositor_destroy(s_info.compositor_name);
 		s_info.compositor_name = NULL;
@@ -259,16 +285,28 @@ EAPI int widget_viewer_evas_fini(void)
 
 EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
 EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
 EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
@@ -386,6 +424,11 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	bundle *b = NULL;
 	struct widget_info *info = NULL;
 
+	if (!is_widget_feature_enabled()) {
+		ErrPrint("Widget Feature is disabled\n");
+		return NULL;
+	}
+
 	if (content_info) {
 		b = bundle_decode(content_info, strlen(content_info));
 		if (b == NULL) {
@@ -457,16 +500,25 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 
 EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
 EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
 EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
@@ -498,9 +550,13 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 {
 	struct widget_info *info;
 
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
+
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		return WIDGET_ERROR_INVALID_PARAMETER;
+		return NULL;
 	}
 
 	widget_instance_foreach(info->widget_id, foreach_cb, info);
@@ -510,6 +566,10 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 
 EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 {
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
+
 	// WIDGET_ERROR_NOT_SUPPORTED;
 	return NULL;
 }
@@ -517,6 +577,10 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 EAPI const char *widget_viewer_evas_get_widget_id(Evas_Object *widget)
 {
 	struct widget_info *info;
+
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
@@ -530,6 +594,10 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 {
 	struct widget_info *info;
 
+	if (!is_widget_feature_enabled()) {
+		return -1.0f;
+	}
+
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
 		return -1.0f;
@@ -542,6 +610,10 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 {
 	struct widget_info *info;
 
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
+
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
 		return;
@@ -553,6 +625,10 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 {
 	struct widget_info *info;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
@@ -570,6 +646,10 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 {
 	struct widget_info *info;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
@@ -591,6 +671,10 @@ EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 {
 	struct widget_info *info;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
 		return;
@@ -610,6 +694,10 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 {
 	struct widget_info *info;
 
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
+
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
 		return;
@@ -622,6 +710,10 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 {
 	struct widget_info *info;
+
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
@@ -652,6 +744,10 @@ EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 {
 	struct widget_info *info;
 
+	if (!is_widget_feature_enabled()) {
+		return false;
+	}
+
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
 		return false;
@@ -662,22 +758,38 @@ EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 
 EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
 EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	return WIDGET_ERROR_NOT_SUPPORTED;
 }
 
 EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 {
+	if (!is_widget_feature_enabled()) {
+		return false;
+	}
+
 	return false;
 }
 
 EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 {
 	struct widget_info *info;
+
+	if (!is_widget_feature_enabled()) {
+		return false;
+	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
@@ -689,6 +801,10 @@ EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)
 {
 	struct widget_info *info;
+
+	if (!is_widget_feature_enabled()) {
+		return;
+	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
