@@ -1,8 +1,8 @@
 %bcond_with wayland
 
-Name: libwidget_viewer_evas
-Summary: Library for developing the widget viewer evas
-Version: 2.0.0
+Name: libwidget_viewer
+Summary: Library for developing the application
+Version: 1.2.2
 Release: 1
 Group: Applications/Core Applications
 License: Flora-1.1
@@ -29,15 +29,15 @@ BuildRequires: pkgconfig(wayland-client)
 BuildRequires: pkgconfig(libtbm)
 
 %description
-Provider APIs to develop the widget viewer EFL application.
+API for creating a new instance of the widget and managing its life-cycle.
 
 %package devel
-Summary: Widget provider application development library (dev) (EFL version)
+Summary: Development Library for widget Viewer Application (dev)
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
 %description devel
-Header & package configuration files to support development of the widget viewer applications. (for EFL app)
+Header and package configuration files for the widget viewer development
 
 %prep
 %setup -q
@@ -45,7 +45,6 @@ cp %{SOURCE1001} .
 cp %{SOURCE1002} .
 
 %build
-
 %cmake . -DWIDGET_ENABLED=On
 make %{?jobs:-j%jobs}
 
@@ -65,8 +64,29 @@ rm -rf %{buildroot}
 %files devel
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_includedir}/widget_viewer_evas/widget_viewer_evas.h
-%{_libdir}/pkgconfig/widget_viewer_evas.pc
+%{_includedir}/widget_viewer/widget_viewer.h
+%{_libdir}/pkgconfig/widget_viewer.pc
+
+#################################################
+# libwidget_viewer_evas
+%package -n %{name}_evas
+Summary: Library for developing the widget viewer evas
+Group: Applications/Core Applications
+License: Flora-1.1
+
+%description -n %{name}_evas
+Provider APIs to develop the widget viewer EFL application.
+
+%package -n %{name}_evas-devel
+Summary: Widget provider application development library (dev) (EFL version)
+Group: Development/Libraries
+Requires: %{name}_evas
+
+%description -n %{name}_evas-devel
+Header & package configuration files to support development of the widget viewer applications. (for EFL app)
+
+%post -n %{name}_evas -p /sbin/ldconfig
+%postun -n %{name}_evas -p /sbin/ldconfig
 
 #################################################
 # org.tizen.widget_viewer_sdk
@@ -82,6 +102,18 @@ While developing the widget applications, this viewer will load it and execute i
 
 %post -n org.tizen.widget_viewer_sdk -p /sbin/ldconfig
 %postun -n org.tizen.widget_viewer_sdk -p /sbin/ldconfig
+
+%files -n %{name}_evas
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_libdir}/%{name}_evas.so*
+%{_datarootdir}/license/%{name}_evas
+
+%files -n %{name}_evas-devel
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_includedir}/widget_viewer_evas/widget_viewer_evas.h
+%{_libdir}/pkgconfig/widget_viewer_evas.pc
 
 %files -n org.tizen.widget_viewer_sdk
 %manifest org.tizen.widget_viewer_sdk.manifest
