@@ -27,6 +27,9 @@ BuildRequires: pkgconfig(capi-system-info)
 BuildRequires: pkgconfig(efl-extension)
 BuildRequires: pkgconfig(wayland-client)
 BuildRequires: pkgconfig(libtbm)
+BuildRequires: pkgconfig(dali)
+BuildRequires: pkgconfig(dali-toolkit)
+BuildRequires: pkgconfig(pepper-dali)
 
 %description
 API for creating a new instance of the widget and managing its life-cycle.
@@ -89,6 +92,27 @@ Header & package configuration files to support development of the widget viewer
 %postun -n %{name}_evas -p /sbin/ldconfig
 
 #################################################
+# libwidget_viewer_dali
+%package -n %{name}_dali
+Summary: Library for developing the widget viewer DALi
+Group: Applications/Core Applications
+License: Flora-1.1
+
+%description -n %{name}_dali
+Provider APIs to develop the widget viewer DALi application.
+
+%package -n %{name}_dali-devel
+Summary: Widget provider application development library (dev) (DALi version)
+Group: Development/Libraries
+Requires: %{name}_dali
+
+%description -n %{name}_dali-devel
+Header & package configuration files to support development of the widget viewer applications. (for DALi app)
+
+%post -n %{name}_dali -p /sbin/ldconfig
+%postun -n %{name}_dali -p /sbin/ldconfig
+
+#################################################
 # org.tizen.widget_viewer_sdk
 %package -n org.tizen.widget_viewer_sdk
 Summary: The widget viewer for development using SDK(IDE)
@@ -114,6 +138,19 @@ While developing the widget applications, this viewer will load it and execute i
 %defattr(-,root,root,-)
 %{_includedir}/widget_viewer_evas/widget_viewer_evas.h
 %{_libdir}/pkgconfig/widget_viewer_evas.pc
+
+%files -n %{name}_dali
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_libdir}/%{name}_dali.so*
+%{_datarootdir}/license/%{name}_dali
+
+%files -n %{name}_dali-devel
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_includedir}/widget_viewer_dali/widget_viewer_dali.h
+%{_includedir}/widget_viewer_dali/public_api/*
+%{_libdir}/pkgconfig/widget_viewer_dali.pc
 
 %files -n org.tizen.widget_viewer_sdk
 %manifest org.tizen.widget_viewer_sdk.manifest
