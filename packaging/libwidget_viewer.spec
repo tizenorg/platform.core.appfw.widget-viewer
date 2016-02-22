@@ -7,7 +7,7 @@ Release: 1
 Group: Applications/Core Applications
 License: Flora-1.1
 Source0: %{name}-%{version}.tar.gz
-Source1001: %{name}.manifest
+Source1001: %{name}_evas.manifest
 Source1002: org.tizen.widget_viewer_sdk.manifest
 BuildRequires: cmake, gettext-tools, coreutils, edje-bin
 BuildRequires: pkgconfig(dlog)
@@ -27,6 +27,7 @@ BuildRequires: pkgconfig(capi-system-info)
 BuildRequires: pkgconfig(efl-extension)
 BuildRequires: pkgconfig(wayland-client)
 BuildRequires: pkgconfig(libtbm)
+BuildRequires: pkgconfig(libpepper-efl)
 
 %description
 API for creating a new instance of the widget and managing its life-cycle.
@@ -56,13 +57,11 @@ rm -rf %{buildroot}
 %postun -n %{name} -p /sbin/ldconfig
 
 %files -n %{name}
-%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/%{name}.so*
 %{_datarootdir}/license/%{name}
 
 %files devel
-%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/widget_viewer/widget_viewer.h
 %{_libdir}/pkgconfig/widget_viewer.pc
@@ -104,13 +103,13 @@ While developing the widget applications, this viewer will load it and execute i
 %postun -n org.tizen.widget_viewer_sdk -p /sbin/ldconfig
 
 %files -n %{name}_evas
-%manifest %{name}.manifest
+%manifest %{name}_evas.manifest
 %defattr(-,root,root,-)
 %{_libdir}/%{name}_evas.so*
 %{_datarootdir}/license/%{name}_evas
 
 %files -n %{name}_evas-devel
-%manifest %{name}.manifest
+%manifest %{name}_evas.manifest
 %defattr(-,root,root,-)
 %{_includedir}/widget_viewer_evas/widget_viewer_evas.h
 %{_libdir}/pkgconfig/widget_viewer_evas.pc

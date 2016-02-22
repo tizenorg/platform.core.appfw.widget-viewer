@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <glib.h>
 
 #include <Elementary.h>
 #include <Ecore.h>
@@ -34,8 +35,6 @@
 
 #include <widget_instance.h>
 #include <Pepper_Efl.h>
-
-#include "util.h"
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -134,7 +133,7 @@ static struct info {
 	int w;
 	int h;
 	Evas_Object *win;
-	char *compositor_name;
+	const char *compositor_name;
 	GHashTable *widget_table;
 } s_info = {
 	.w = 0,
@@ -301,8 +300,8 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 {
 	struct widget_info *info = data;
 
-	if (info->pid > 0) {
-		widget_instance_terminate(info->pid);
+	if (info->widget_id && info->instance_id) {
+		widget_instance_terminate(info->widget_id, info->instance_id);
 		info->pid = 0;
 	}
 
@@ -316,7 +315,7 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 	free(info->widget_id);
 	free(info->instance_id);
 	free(info->content_info);
-	bundle_del(info->b);
+	bundle_free(info->b);
 	free(info);
 }
 
@@ -406,10 +405,10 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 
 EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
-	char buf[256];
 	char *instance_id = NULL;
 	bundle *b = NULL;
 	struct widget_info *info = NULL;
+	const bundle_raw *bundle_info = NULL;
 
 	if (!is_widget_feature_enabled()) {
 		ErrPrint("Widget Feature is disabled\n");
@@ -417,20 +416,21 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	}
 
 	if (content_info) {
-		b = bundle_decode(content_info, strlen(content_info));
+		bundle_info = (bundle_raw *) content_info;
+		b = bundle_decode(bundle_info, strlen(content_info));
 		if (b == NULL) {
 			ErrPrint("Invalid content format: [%s]\n", content_info);
 		}
 	}
 
 	if (b) {
-		instance_id = bundle_get_val(b, WIDGET_K_INSTANCE);
+		bundle_get_str(b, WIDGET_K_INSTANCE, &instance_id);
 	}
 
 	if (!instance_id) {
 		if (widget_instance_create(widget_id, &instance_id) < 0) {
 			if (b) {
-				bundle_del(b);
+				bundle_free(b);
 			}
 			return NULL;
 		}
@@ -439,7 +439,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 			ErrPrint("Failed to get instance_id: %s\n", widget_id);
 			widget_instance_destroy(widget_id, instance_id);
 			if (b) {
-				bundle_del(b);
+				bundle_free(b);
 			}
 			return NULL;
 		}
@@ -449,7 +449,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 			ErrPrint("Unable to create an information object\n");
 			widget_instance_destroy(widget_id, instance_id);
 			if (b) {
-				bundle_del(b);
+				bundle_free(b);
 			}
 			return NULL;
 		}
@@ -464,7 +464,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 			info = create_info(parent, widget_id, instance_id, content_info);
 			if (!info) {
 				if (b) {
-					bundle_del(b);
+					bundle_free(b);
 				}
 				return NULL;
 			}
@@ -512,7 +512,7 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 static int foreach_cb(widget_instance_h handle, void *data)
 {
 	struct widget_info *info = data;
-	char *content_info = NULL;
+	bundle_raw *content_info = NULL;
 	int content_len = 0;
 	bundle *b = NULL;
 
@@ -529,7 +529,7 @@ static int foreach_cb(widget_instance_h handle, void *data)
 	}
 
 	free(info->content_info);
-	info->content_info = content_info;
+	info->content_info = (char *)content_info;
 	return 0;
 }
 
@@ -635,7 +635,7 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 	struct widget_info *info;
 
 	if (!is_widget_feature_enabled()) {
-		return WIDGET_ERROR_NOT_SUPPORTED;
+		return;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
@@ -659,7 +659,7 @@ EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 	struct widget_info *info;
 
 	if (!is_widget_feature_enabled()) {
-		return WIDGET_ERROR_NOT_SUPPORTED;
+		return;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);

@@ -19,6 +19,7 @@ pkg_check_modules(viewer_evas REQUIRED
 	elementary
 	pkgmgr-info
 	capi-system-info
+	libpepper-efl
 )
 
 SET(BUILD_SOURCE
