@@ -2,7 +2,7 @@
 
 Name: libwidget_viewer
 Summary: Library for developing the application
-Version: 1.2.2
+Version: 1.3
 Release: 1
 Group: Applications/Core Applications
 License: Flora-1.1
@@ -112,6 +112,7 @@ While developing the widget applications, this viewer will load it and execute i
 %manifest %{name}_evas.manifest
 %defattr(-,root,root,-)
 %{_includedir}/widget_viewer_evas/widget_viewer_evas.h
+%{_includedir}/widget_viewer_evas/watch_control.h
 %{_libdir}/pkgconfig/widget_viewer_evas.pc
 
 %files -n org.tizen.widget_viewer_sdk
