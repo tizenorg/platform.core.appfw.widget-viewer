@@ -368,17 +368,21 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 		return NULL;
 	}
 
-	info->content_info = strdup(content_info);
-	if (!info->content_info) {
-		free(info->instance_id);
-		free(info->widget_id);
-		free(info);
-		return NULL;
+	if (content_info) {
+		info->content_info = strdup(content_info);
+		if (!info->content_info) {
+			free(info->instance_id);
+			free(info->widget_id);
+			free(info);
+			return NULL;
+		}
 	}
 
 	info->layout = elm_layout_add(parent);
 	if (!info->layout) {
-		free(info->content_info);
+		if (info->content_info)
+			free(info->content_info);
+
 		free(info->instance_id);
 		free(info->widget_id);
 		free(info);
@@ -387,7 +391,9 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 
 	if (elm_layout_file_set(info->layout, WIDGET_VIEWER_EVAS_RESOURCE_EDJ, "layout") == EINA_FALSE) {
 		evas_object_del(info->layout);
-		free(info->content_info);
+		if (info->content_info)
+			free(info->content_info);
+
 		free(info->instance_id);
 		free(info->widget_id);
 		free(info);
@@ -438,10 +444,9 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 
 		if (!instance_id) {
 			ErrPrint("Failed to get instance_id: %s\n", widget_id);
-			widget_instance_destroy(widget_id, instance_id);
-			if (b) {
+			if (b)
 				bundle_free(b);
-			}
+
 			return NULL;
 		}
 
@@ -449,9 +454,9 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 		if (!info) {
 			ErrPrint("Unable to create an information object\n");
 			widget_instance_destroy(widget_id, instance_id);
-			if (b) {
+			if (b)
 				bundle_free(b);
-			}
+
 			return NULL;
 		}
 
