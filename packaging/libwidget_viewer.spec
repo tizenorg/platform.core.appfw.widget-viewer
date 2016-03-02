@@ -107,6 +107,9 @@ While developing the widget applications, this viewer will load it and execute i
 %defattr(-,root,root,-)
 %{_libdir}/%{name}_evas.so*
 %{_datarootdir}/license/%{name}_evas
+%{_datadir}/widget_viewer_evas/res/edje/widget_viewer_evas.edj
+%{_datadir}/widget_viewer_evas/res/image/*.png
+
 
 %files -n %{name}_evas-devel
 %manifest %{name}_evas.manifest
