@@ -158,7 +158,23 @@ struct widget_info {
 
 static inline bool is_widget_feature_enabled(void)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	static bool feature = false;
+	static bool retrieved = false;
+	int ret;
+
+	if (retrieved == true)
+		return feature;
+
+	ret = system_info_get_platform_bool(
+			"http://tizen.org/feature/shell.appwidget", &feature);
+	if (ret != SYSTEM_INFO_ERROR_NONE) {
+		ErrPrint("failed to get system info");
+		return false;
+	}
+
+	retrieved = true;
+
+	return feature;
 }
 
 static void set_runtime_dir(void)
