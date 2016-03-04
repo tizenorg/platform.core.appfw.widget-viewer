@@ -255,6 +255,7 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 
 	s_info.compositor_name = pepper_efl_compositor_create(win, NULL);
 	if (!s_info.compositor_name) {
+		ErrPrint("failed to create widget compositor");
 		return WIDGET_ERROR_FAULT;
 	}
 
@@ -895,7 +896,7 @@ static int __watch_viewer_init(Evas_Object *win)
 	_D("init pepper");
 	compositor_name = pepper_efl_compositor_create(win, "watchview");
 	if (compositor_name == NULL) {
-		_E("failed to create compositor");
+		_E("failed to create watch compositor");
 		return -1;
 	}
 
