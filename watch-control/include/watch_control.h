@@ -23,7 +23,7 @@ typedef struct watch_control_s *watch_control_h;
 
 typedef int (*watch_control_callback)(watch_control_h watch_control, void *data);
 
-extern int watch_manager_init(Evas_Object *win, void *data);
+extern int watch_manager_init(Evas_Object *win);
 extern int watch_manager_fini();
 extern int watch_manager_add_handler(watch_control_event e, watch_control_callback cb, void *data);
 extern int watch_manager_get_app_control(const char *app_id, app_control_h *app_control);
