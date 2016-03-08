@@ -1,0 +1,12 @@
+prefix=@PREFIX@
+exec_prefix=@EXEC_PREFIX@
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: watch-control
+Description: Support development of the Watch Viewer
+Version: @VERSION@
+Requires: widget_toolkit
+Libs: -L${libdir} -lpepper-efl -lwidget_toolkit -lwatch-control
+Cflags: -I${includedir}
+cppflags: -I${includedir}

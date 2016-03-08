@@ -6,7 +6,7 @@ includedir=@INCLUDEDIR@
 Name: widget_viewer_evas
 Description: Support development of the widget Viewer EVAS Frontend library
 Version: @VERSION@
-Requires: widget_service
-Libs: -L${libdir} -lwidget_viewer_evas
+Requires: widget_service widget_toolkit
+Libs: -L${libdir} -lwidget_viewer_evas -lwidget_toolkit
 Cflags: -I${includedir}
 cppflags: -I${includedir}

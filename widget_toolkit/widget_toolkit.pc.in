@@ -1,0 +1,12 @@
+prefix=@PREFIX@
+exec_prefix=@EXEC_PREFIX@
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: widget_toolkit
+Description: Support development of the widget Viewer Library
+Version: @VERSION@
+Requires: libpepper-efl
+Libs: -L${libdir} -lpepper-efl -lwidget_toolkit
+Cflags: -I${includedir}
+cppflags: -I${includedir}
