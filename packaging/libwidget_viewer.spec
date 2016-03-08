@@ -27,6 +27,7 @@ BuildRequires: pkgconfig(efl-extension)
 BuildRequires: pkgconfig(wayland-client)
 BuildRequires: pkgconfig(libtbm)
 BuildRequires: pkgconfig(libpepper-efl)
+BuildRequires: pkgconfig(libtzplatform-config)
 
 %description
 API for creating a new instance of the widget and managing its life-cycle.
@@ -45,7 +46,7 @@ cp %{SOURCE1001} .
 cp %{SOURCE1002} .
 
 %build
-%cmake . -DWIDGET_ENABLED=On
+%cmake . -DWIDGET_ENABLED=On -DTZ_SYS_SHARE=%{TZ_SYS_SHARE}
 make %{?jobs:-j%jobs}
 
 %install
@@ -56,14 +57,33 @@ rm -rf %{buildroot}
 %postun -n %{name} -p /sbin/ldconfig
 
 %files -n %{name}
-%defattr(-,root,root,-)
-%{_libdir}/%{name}.so*
+%attr(0644,root,root)%{_libdir}/%{name}.so*
 %{_datarootdir}/license/%{name}
 
 %files devel
-%defattr(-,root,root,-)
 %{_includedir}/widget_viewer/widget_viewer.h
 %{_libdir}/pkgconfig/widget_viewer.pc
+
+################################################
+# libwidget_toolkit
+%package -n widget_toolkit
+Summary: APIs to develop the widget viewer libraries
+Version: 0.0.1
+Group: Applications/Core Applications
+
+%description -n widget_toolkit
+A sset of APIs to implement widget libraries
+
+%package -n widget_toolkit-devel
+Summary: APIs to develop the widget viewer libraries
+Group: Development/Libraries
+Requires: widget_toolkit
+
+%description -n widget_toolkit-devel
+Header & package configuration files of widget_toolkit
+
+%post -n widget_toolkit -p /sbin/ldconfig
+%postun -n widget_toolkit -p /sbin/ldconfig
 
 #################################################
 # libwidget_viewer_evas
@@ -71,6 +91,7 @@ rm -rf %{buildroot}
 Summary: Library for developing the widget viewer evas
 Group: Applications/Core Applications
 License: Flora-1.1
+Requires: widget_toolkit
 
 %description -n %{name}_evas
 Provider APIs to develop the widget viewer EFL application.
@@ -101,28 +122,60 @@ While developing the widget applications, this viewer will load it and execute i
 %post -n org.tizen.widget_viewer_sdk -p /sbin/ldconfig
 %postun -n org.tizen.widget_viewer_sdk -p /sbin/ldconfig
 
+################################################
+# libwatch_control
+%package -n watch-control
+Summary: APIs to control watch applications
+Version: 0.0.1
+Group: Applications/Core Applications
+Requires: widget_toolkit
+
+%description -n watch-control
+A set of APIs to control watch applications
+
+%package -n watch-control-devel
+Summary: APIs to control watch applications
+Group: Development/Libraries
+Requires: watch-control
+
+%description -n watch-control-devel
+Header & package configuration of watch-control
+
+%post -n watch-control -p /sbin/ldconfig
+%postun -n watch-control -p /sbin/ldconfig
+
 %files -n %{name}_evas
-%manifest %{name}_evas.manifest
-%defattr(-,root,root,-)
-%{_libdir}/%{name}_evas.so*
+%attr(0644,root,root) %{_libdir}/%{name}_evas.so*
 %{_datarootdir}/license/%{name}_evas
-%{_datadir}/widget_viewer_evas/res/edje/widget_viewer_evas.edj
-%{_datadir}/widget_viewer_evas/res/image/*.png
+%{TZ_SYS_SHARE}/widget_viewer_evas/res/edje/widget_viewer_evas.edj
+%{TZ_SYS_SHARE}/widget_viewer_evas/res/image/*.png
 
 
 %files -n %{name}_evas-devel
 %manifest %{name}_evas.manifest
-%defattr(-,root,root,-)
 %{_includedir}/widget_viewer_evas/widget_viewer_evas.h
-%{_includedir}/widget_viewer_evas/watch_control.h
 %{_libdir}/pkgconfig/widget_viewer_evas.pc
 
 %files -n org.tizen.widget_viewer_sdk
 %manifest org.tizen.widget_viewer_sdk.manifest
-%defattr(-,root,root,-)
 %attr(-,app,app) %dir /opt/usr/apps/org.tizen.widget_viewer_sdk/data
 %{_datarootdir}/packages/org.tizen.widget_viewer_sdk.xml
 %{_datarootdir}/license/org.tizen.widget_viewer_sdk
 %{_prefix}/apps/org.tizen.widget_viewer_sdk/*
+
+%files -n widget_toolkit
+%{_libdir}/libwidget_toolkit.so*
+
+%files -n widget_toolkit-devel
+%{_includedir}/widget_toolkit/*.h
+%{_libdir}/pkgconfig/widget_toolkit.pc
+
+%files -n watch-control
+%{_libdir}/libwatch-control.so*
+
+%files -n watch-control-devel
+%{_includedir}/watch-control/*.h
+%{_libdir}/pkgconfig/watch-control.pc
+
 
 # End of a file

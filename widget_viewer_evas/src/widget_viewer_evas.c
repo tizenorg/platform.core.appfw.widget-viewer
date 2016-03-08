@@ -34,8 +34,7 @@
 #include <widget_errno.h>
 
 #include <widget_instance.h>
-#include <Pepper_Efl.h>
-#include "watch_control.h"
+#include <compositor.h>
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -134,13 +133,11 @@ static struct info {
 	int w;
 	int h;
 	Evas_Object *win;
-	const char *compositor_name;
 	GHashTable *widget_table;
 } s_info = {
 	.w = 0,
 	.h = 0,
 	.win = NULL,
-	.compositor_name = NULL,
 	.widget_table = NULL,
 };
 
@@ -178,47 +175,14 @@ static inline bool is_widget_feature_enabled(void)
 	return feature;
 }
 
-static void set_runtime_dir(void)
-{
-	char buf[256];
-
-	snprintf(buf, sizeof(buf) - 1, "/run/user/%d", getuid());
-	if (setenv("XDG_RUNTIME_DIR", buf, 0) < 0) {
-		ErrPrint("Unable to set XDB_RUNTIME_DIR: %s (%s)\n", buf, strerror(errno));
-	}
-}
-
-static void object_deleted_cb(void *data, Evas_Object *obj, void *event_info)
-{
-	ErrPrint("Object is deleted.\n");
-	/**
-	 * @todo
-	 * ...
-	 */
-}
-
-static void object_added_cb(void *data, Evas_Object *obj, void *event_info)
+static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *data)
 {
 	struct widget_info *info;
 	Evas_Object *surface;
-	const char *instance_id;
 
-	surface = event_info;
+	surface = obj;
 	if (!surface) {
 		ErrPrint("Invalid parameters\n");
-		return;
-	}
-
-	/**
-	 * @note
-	 * Current version of Pepper only supports to pass the title of surface.
-	 * So we should find the infomation data using this title.
-	 * This title will be used as an instance id of the widget.
-	 */
-	instance_id = pepper_efl_object_title_get(surface);
-	if (!instance_id) {
-		ErrPrint("Instance Id is not valid\n");
-		evas_object_del(surface);
 		return;
 	}
 
@@ -239,32 +203,22 @@ static void object_added_cb(void *data, Evas_Object *obj, void *event_info)
 
 EAPI int widget_viewer_evas_init(Evas_Object *win)
 {
+	char app_id[255];
+
 	if (!is_widget_feature_enabled()) {
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
 
 	s_info.win = win;
 
-	/**
-	 * @todo
-	 * What should I set to initialize widget subsystem??
-	 */
-	widget_instance_init("WHAT I HAVE TO SET FOR THIS?");
+	_compositor_init(win); /* YOU MUST CALL _compositor_init() PRIOR TO widget_instance_init() */
 
-	set_runtime_dir();
-
-	s_info.compositor_name = pepper_efl_compositor_create(win, NULL);
-	if (!s_info.compositor_name) {
-		ErrPrint("failed to create widget compositor");
-		return WIDGET_ERROR_FAULT;
+	if (aul_app_get_appid_bypid(getpid(), app_id, sizeof(app_id)) != AUL_R_OK) {
+		ErrPrint("failed to get appid of pid:%d", getpid());
+		return -1;
 	}
 
-	if (setenv("WAYLAND_DISPLAY", s_info.compositor_name, 1) < 0) {
-		ErrPrint("Failed to set WAYLAND_DISPLAY: %s\n", strerror(errno));
-	}
-
-	evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_ADD, object_added_cb, NULL);
-	evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_DEL, object_deleted_cb, NULL);
+	widget_instance_init(app_id);
 
 	s_info.widget_table = g_hash_table_new(g_str_hash, g_str_equal);
 
@@ -277,11 +231,7 @@ EAPI int widget_viewer_evas_fini(void)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
 
-	if (s_info.win && s_info.compositor_name) {
-		pepper_efl_compositor_destroy(s_info.compositor_name);
-		s_info.compositor_name = NULL;
-	}
-
+	_compositor_fini();	
 	widget_instance_fini();
 
 	return WIDGET_ERROR_NONE;
@@ -349,6 +299,7 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 		 * @note
 		 * Create a new instance in this case.
 		 */
+		_compositor_set_handler(info->instance_id, widget_added_cb, NULL);
 		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
 		if (info->pid < 0) {
 			ErrPrint("Failed to launch an widget\n");
@@ -366,7 +317,7 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 {
 	struct widget_info *info;
 
-	info = (struct widget_info *)malloc(sizeof(*info));
+	info = (struct widget_info *)calloc(1, sizeof(*info));
 	if (!info) {
 		ErrPrint("malloc: %s\n", strerror(errno));
 		return NULL;
@@ -408,6 +359,7 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 
 	if (elm_layout_file_set(info->layout, WIDGET_VIEWER_EVAS_RESOURCE_EDJ, "layout") == EINA_FALSE) {
 		evas_object_del(info->layout);
+
 		if (info->content_info)
 			free(info->content_info);
 
@@ -825,177 +777,4 @@ EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)
 	return;
 }
 
-#include <aul_svc.h>
-#include <bundle_internal.h>
-#include <app_control_internal.h>
-
-#undef LOG_TAG
-#define LOG_TAG "WATCH_CONTROL"
-
-#ifdef LOGE
-#define _E LOGE
-#endif
-
-#ifdef LOGD
-#define _D LOGD
-#endif
-
-struct watch_control_s {
-	Evas_Object *evas_obj;
-};
-
-static const char *compositor_name = NULL;
-
-static int __watch_viewer_initialized = 0;
-
-static watch_control_h __default_control = NULL;
-static watch_control_callback __default_handler = NULL;
-static void *__default_data = NULL;
-static int __watch_size_policy = WATCH_POLICY_HINT_EXPAND;
-
-static void __set_runtime_dir()
-{
-	char buf[256];
-
-	snprintf(buf, sizeof(buf) - 1, "/run/user/%d", getuid());
-	if (setenv("XDG_RUNTIME_DIR", buf, 0) < 0)
-		_E("Unable to set XDG_RUNTIME_DIR: %s (%s)\n", buf, strerror(errno));
-}
-
-void __obj_added_cb(void *data, Evas_Object *obj, void *event_info)
-{
-	_E("obj added");
-	int w, h, x, y;
-	Evas_Object *surface = (Evas_Object *)event_info;
-	evas_object_geometry_get(surface, &x, &y, &w, &h);
-	_E("w: %d, h: %d, x: %d y: %d", w, h, x, y);
-	if (__default_control && __default_handler) {
-		__default_control->evas_obj = surface;
-		__default_handler(__default_control, __default_data);
-		_E("default handler called");
-	}
-}
-
-void __obj_deleted_cb(void *data, Evas_Object *obj, void *event_info)
-{
-	_E("obj removed");
-	/* TODO */
-}
-
-static int __watch_viewer_init(Evas_Object *win)
-{
-	if (__watch_viewer_initialized)
-		return 0;
-
-	if (win == NULL) {
-		_E("invalid arguments");
-		return -1;
-	}
-
-	__set_runtime_dir();
-	_D("init pepper");
-	compositor_name = pepper_efl_compositor_create(win, "watchview");
-	if (compositor_name == NULL) {
-		_E("failed to create watch compositor");
-		return -1;
-	}
-
-	if (setenv("WAYLAND_DISPLAY", compositor_name, 1) < 0) {
-		_E("failed to set wayland display: %s", strerror(errno));
-	}
-
-	evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_ADD, __obj_added_cb, NULL);
-	evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_DEL, __obj_deleted_cb, NULL);
-	_D("pepper init done");
-	__watch_viewer_initialized = 1;
-
-	return 0;
-}
-
-static void __watch_viewer_fini()
-{
-	
-}
-
-EAPI int watch_manager_init(Evas_Object *win, void *data)
-{
-	__watch_viewer_init(win);
-
-	return 0;
-}
-
-EAPI Evas_Object *watch_control_get_evas_object(watch_control_h control)
-{
-	return control->evas_obj;
-}
-
-EAPI int watch_manager_add_handler(watch_control_event e, watch_control_callback cb, void *data)
-{
-	switch (e) {
-	case WATCH_OBJ_ADD:
-		__default_handler = cb;
-		__default_data = data;
-		break;
-	case WATCH_OBJ_DEL:
-		/* TODO */
-		break;
-	}
-
-	return 0;
-}
-
-static int __watch_screen_get_width()
-{
-	if (__watch_size_policy == WATCH_POLICY_HINT_EXPAND)
-		return 360; /* TODO get width from win */
-
-	return 0;
-}
-
-static int __watch_screen_get_height()
-{
-	if (__watch_size_policy == WATCH_POLICY_HINT_EXPAND)
-		return 360; /* TODO get width from win */
-
-	return 0;
-}
-
-EAPI int watch_manager_get_app_control(const char *app_id, app_control_h *app_control)
-{
-	char buf[10];
-	bundle *b = NULL;
-	app_control_create(app_control);
-	app_control_set_app_id(*app_control, app_id);
-
-	__default_control = (watch_control_h)malloc(sizeof(struct watch_control_s));
-
-	snprintf(buf, sizeof(buf), "%d", __watch_screen_get_width());
-	app_control_add_extra_data(*app_control, "WATCH_WIDTH", buf);
-	snprintf(buf, sizeof(buf), "%d", __watch_screen_get_height());
-	app_control_add_extra_data(*app_control, "WATCH_HEIGHT", buf);
-
-	app_control_add_extra_data(*app_control, "WAYLAND_DISPLAY", getenv("WAYLAND_DISPLAY"));
-	app_control_add_extra_data(*app_control, "XDG_RUNTIME_DIR", getenv("XDG_RUNTIME_DIR"));
-
-	app_control_set_operation(*app_control, APP_CONTROL_OPERATION_MAIN);
-
-	app_control_to_bundle(*app_control, &b);
-	aul_svc_set_loader_id(b, 1);
-
-	return 0;
-}
-
-EAPI int watch_manager_fini()
-{
-	__watch_viewer_fini();
-
-	return 0;
-}
-
-EAPI int watch_policy_set_size_hint(watch_policy_size_hint hint)
-{
-	__watch_size_policy = hint;
-
-	return 0;
-}
 /* End of a file */
