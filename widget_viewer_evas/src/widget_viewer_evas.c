@@ -92,18 +92,6 @@
 #define WIDGET_VIEWER_EVAS_RESOURCE_EDJ "/usr/share/widget_viewer_evas/res/edje/widget_viewer_evas.edj"
 #endif
 
-#if !defined(WIDGET_VIEWER_EVAS_UNKNOWN)
-#define WIDGET_VIEWER_EVAS_UNKNOWN "/usr/share/widget_viewer_evas/res/image/unknown.png"
-#endif
-
-#if !defined(WIDGET_VIEWER_EVAS_RESOURCE_LB)
-#define WIDGET_VIEWER_EVAS_RESOURCE_LB "widget"
-#endif
-
-#if !defined(WIDGET_VIEWER_EVAS_RESOURCE_IMG)
-#define WIDGET_VIEWER_EVAS_RESOURCE_IMG "widget,image"
-#endif
-
 #if !defined(WIDGET_VIEWER_EVAS_RESOURCE_OVERLAY_LOADING)
 #define WIDGET_VIEWER_EVAS_RESOURCE_OVERLAY_LOADING "overlay"
 #endif
