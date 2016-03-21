@@ -136,6 +136,7 @@ struct widget_info {
 	char *title;
 	bundle *b;
 	int pid;
+	double period;
 
 	int permanent_delete;
 
@@ -219,7 +220,7 @@ EAPI int widget_viewer_evas_fini(void)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
 
-	_compositor_fini();	
+	_compositor_fini();
 	widget_instance_fini();
 
 	return WIDGET_ERROR_NONE;
@@ -419,6 +420,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 
 		info->b = b;
 		info->pid = 0;
+		info->period = period;
 
 		g_hash_table_insert(s_info.widget_table, instance_id, info);
 	} else {
@@ -434,6 +436,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 
 			info->b = b;
 			info->pid = 0;
+			info->period = period;
 
 			g_hash_table_insert(s_info.widget_table, instance_id, info);
 		}
@@ -478,8 +481,22 @@ static int foreach_cb(widget_instance_h handle, void *data)
 	bundle_raw *content_info = NULL;
 	int content_len = 0;
 	bundle *b = NULL;
+	char *id = NULL;
 
 	if (!handle) {
+		return 0;
+	}
+
+	if (widget_instance_get_id(handle, &id) < 0) {
+		return 0;
+	}
+
+	if (!id && !info->instance_id) {
+		return 0;
+	}
+
+	if (strcmp(id, info->instance_id)) {
+		free(id);
 		return 0;
 	}
 
@@ -548,12 +565,16 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 		return -1.0f;
 	}
 
+	if (!widget) {
+		return -1.0f;
+	}
+
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
 		return -1.0f;
 	}
 
-	return 0.0f;
+	return info->period;
 }
 
 EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
