@@ -623,6 +623,9 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 
 EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 {
+	Evas_Object *pepper_obj = NULL;
+	char *title = NULL;
+
 	if (!is_widget_feature_enabled()) {
 		return NULL;
 	}
@@ -637,7 +640,16 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 		return NULL;
 	}
 
-	return NULL;
+	pepper_obj = elm_object_part_content_get(widget, "pepper,widget");
+	if (!pepper_obj) {
+		ErrPrint("widget object is invalid\n");
+		return NULL;
+	}
+
+	title = pepper_efl_object_title_get(pepper_obj);
+	DbgPrint("%s : title is [%s]\n", __func__, title);
+
+	return title;
 }
 
 EAPI const char *widget_viewer_evas_get_widget_id(Evas_Object *widget)
