@@ -21,6 +21,7 @@ pkg_check_modules(viewer_evas REQUIRED
 	capi-system-info
 	capi-appfw-application
 	aul
+	libpepper-efl
 )
 
 SET(BUILD_SOURCE
