@@ -147,6 +147,7 @@ Header & package configuration of watch-control
 %postun -n watch-control -p /sbin/ldconfig
 
 %files -n %{name}_evas
+%manifest %{name}_evas.manifest
 %attr(0644,root,root) %{_libdir}/%{name}_evas.so*
 %{_datarootdir}/license/%{name}_evas
 %{TZ_SYS_SHARE}/widget_viewer_evas/res/edje/widget_viewer_evas.edj
@@ -154,7 +155,6 @@ Header & package configuration of watch-control
 
 
 %files -n %{name}_evas-devel
-%manifest %{name}_evas.manifest
 %{_includedir}/widget_viewer_evas/widget_viewer_evas.h
 %{_libdir}/pkgconfig/widget_viewer_evas.pc
 
