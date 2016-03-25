@@ -167,9 +167,20 @@ static inline bool is_widget_feature_enabled(void)
 	return feature;
 }
 
+static void smart_callback_call(Evas_Object *obj, const char *signal, void *cbdata)
+{
+	if (!obj) {
+		DbgPrint("widget is deleted, ignore smart callback call\n");
+		return;
+	}
+	evas_object_smart_callback_call(obj, signal, cbdata);
+}
+
+
 static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *data)
 {
 	struct widget_info *info;
+	struct widget_evas_event_info event_info;
 	Evas_Object *surface;
 
 	surface = obj;
@@ -191,6 +202,12 @@ static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *dat
 	 * It will be automatically resized by EDJE.
 	 */
 	elm_object_part_content_set(info->layout, "pepper,widget", surface);
+
+	event_info.error = WIDGET_ERROR_NONE;
+	event_info.widget_app_id = info->widget_id;
+	event_info.event = WIDGET_EVENT_CREATED;
+
+	smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATED, &event_info);
 }
 
 EAPI int widget_viewer_evas_init(Evas_Object *win)
