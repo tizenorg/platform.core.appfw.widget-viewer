@@ -607,6 +607,7 @@ static int foreach_cb(widget_instance_h handle, void *data)
 
 	free(info->content_info);
 	info->content_info = (char *)content_info;
+
 	return 0;
 }
 
@@ -665,7 +666,15 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 	}
 
 	title = pepper_efl_object_title_get(pepper_obj);
-	DbgPrint("%s : title is [%s]\n", __func__, title);
+	if (!title) {
+		struct widget_info *info;
+		info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+		if (!info) {
+			ErrPrint("widget(%p) don't have the info\n", widget);
+			return NULL;
+		}
+		title = info->widget_id;
+	}
 
 	return title;
 }
