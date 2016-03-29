@@ -572,47 +572,14 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 	return WIDGET_ERROR_NONE;
 }
 
-static int foreach_cb(widget_instance_h handle, void *data)
-{
-	struct widget_info *info = data;
-	bundle_raw *content_info = NULL;
-	int content_len = 0;
-	bundle *b = NULL;
-	char *id = NULL;
-
-	if (!handle) {
-		return 0;
-	}
-
-	if (widget_instance_get_id(handle, &id) < 0) {
-		return 0;
-	}
-
-	if (!id && !info->instance_id) {
-		return 0;
-	}
-
-	if (strcmp(id, info->instance_id)) {
-		free(id);
-		return 0;
-	}
-
-	if (widget_instance_get_content(handle, &b) < 0 || b == NULL) {
-		return 0;
-	}
-
-	if (bundle_encode(b, &content_info, &content_len) < 0) {
-		return 0;
-	}
-
-	free(info->content_info);
-	info->content_info = (char *)content_info;
-	return 0;
-}
-
 EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 {
 	struct widget_info *info;
+	widget_instance_h handle = NULL;
+	bundle_raw *content_info = NULL;
+	int content_len = 0;
+	bundle *b = NULL;
+
 
 	if (!is_widget_feature_enabled()) {
 		return NULL;
@@ -634,7 +601,38 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 		return NULL;
 	}
 
-	widget_instance_foreach(info->widget_id, foreach_cb, info);
+	if (!info->widget_id && !info->instance_id) {
+		ErrPrint("widget id(%s) or instance id(%s) is invalid data\n", info->widget_id, info->instance_id);
+		return NULL;
+	}
+
+	handle = widget_instance_get_instance(info->widget_id, info->instance_id);
+
+	if (!handle) {
+		ErrPrint("instance handle of widget(%s) is invalid data\n", info->instance_id);
+		return NULL;
+	}
+
+	if (widget_instance_get_content(handle, &b) < 0) {
+		ErrPrint("Failed to get content of widget(%s)\n", info->instance_id);
+		return NULL;
+	}
+
+	if (b == NULL) {
+		ErrPrint("content of widget(%s) is invalid data\n", info->instance_id);
+		return NULL;
+	}
+
+	if (bundle_encode(b, &content_info, &content_len) < 0) {
+		ErrPrint("Failed to encode (%s)\n", info->instance_id);
+		return NULL;
+	}
+
+	if (info->content_info) {
+		free(info->content_info);
+	}
+	info->content_info = (char *)content_info;
+
 
 	return info->content_info;
 }
@@ -665,7 +663,15 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 	}
 
 	title = pepper_efl_object_title_get(pepper_obj);
-	DbgPrint("%s : title is [%s]\n", __func__, title);
+	if (!title) {
+		struct widget_info *info;
+		info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+		if (!info) {
+			ErrPrint("widget(%p) don't have the info\n", widget);
+			return NULL;
+		}
+		title = info->widget_id;
+	}
 
 	return title;
 }
