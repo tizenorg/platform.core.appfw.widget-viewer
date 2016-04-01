@@ -119,6 +119,8 @@ typedef enum widget_evas_conf {
 /**
  * @brief Initializes the widget system
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] win Window object
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE If success
@@ -131,6 +133,8 @@ extern int widget_viewer_evas_init(Evas_Object *win);
 /**
  * @brief Finalizes the widget system
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE If success
  * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
@@ -141,6 +145,8 @@ extern int widget_viewer_evas_fini(void);
 /**
  * @brief Creates a new widget object
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] parent Evas Object of parent
  * @param[in] widget_id widget id
  * @param[in] content_info Contents that will be given to the widget instance
