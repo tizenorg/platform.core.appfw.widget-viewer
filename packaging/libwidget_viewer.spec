@@ -51,6 +51,7 @@ cp %{SOURCE1002} .
 cp %{SOURCE1003} .
 
 %build
+export CFLAGS+=" -flto "
 %cmake . -DWIDGET_ENABLED=On -DTZ_SYS_SHARE=%{TZ_SYS_SHARE}
 make %{?jobs:-j%jobs}
 
