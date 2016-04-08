@@ -25,13 +25,18 @@
 #include <dali/public-api/object/base-handle.h>
 #include <dali/public-api/adaptor-framework/application.h>
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 namespace Dali
 {
 
 namespace WidgetView
 {
 
-namespace Internal DALI_INTERNAL
+namespace Internal EXPORT_API DALI_INTERNAL
 {
 class WidgetViewManager;
 }

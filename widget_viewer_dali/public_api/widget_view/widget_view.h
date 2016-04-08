@@ -21,13 +21,18 @@
 // EXTERNAL INCLUDES
 #include <dali-toolkit/public-api/controls/control.h>
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 namespace Dali
 {
 
 namespace WidgetView
 {
 
-namespace Internal DALI_INTERNAL
+namespace Internal EXPORT_API DALI_INTERNAL
 {
 class WidgetView;
 }

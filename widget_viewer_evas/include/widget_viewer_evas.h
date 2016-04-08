@@ -79,6 +79,11 @@ extern "C" {
  * @see #WIDGET_SMART_SIGNAL_WIDGET_DELETED
  * @see #WIDGET_SMART_SIGNAL_PERIOD_CHANGED
  */
+ 
+ #ifndef EXPORT_API
+ #define EXPORT_API
+ #endif // EXPORT_API
+ 
 typedef struct widget_evas_event_info {
     const char *widget_app_id;       /**< Widget application id */
     widget_event_type_e event; /**< Event type for detail event information - WIDGET_EVENT_XXX, refer the widget_serivce.h */
@@ -126,7 +131,7 @@ typedef enum widget_evas_conf {
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see #widget_viewer_evas_fini
  */
-extern int widget_viewer_evas_init(Evas_Object *win);
+EXPORT_API extern int widget_viewer_evas_init(Evas_Object *win);
 
 /**
  * @brief Finalizes the widget system
@@ -136,7 +141,7 @@ extern int widget_viewer_evas_init(Evas_Object *win);
  * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
  * @see #widget_viewer_evas_init
  */
-extern int widget_viewer_evas_fini(void);
+EXPORT_API extern int widget_viewer_evas_fini(void);
 
 /**
  * @brief Creates a new widget object
@@ -149,7 +154,7 @@ extern int widget_viewer_evas_fini(void);
  * @retval NULL if it fails to create a new widget object and you can get the reason of failure using get_last_result()
  * @see #widget_service_get_widget_id
  */
-extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period);
+EXPORT_API extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period);
 
 /**
  * @brief Notifies the status of the viewer to all providers
@@ -163,7 +168,7 @@ extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const cha
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_viewer_evas_notify_paused_status_of_viewer()
  */
-extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
+EXPORT_API extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
 
 /**
  * @brief Notifies the status of the viewer to all providers
@@ -177,7 +182,7 @@ extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_viewer_evas_notify_resumed_status_of_viewer()
  */
-extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
+EXPORT_API extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
 
 /**
  * @brief Notifies the orientation of the viewer to all providers
@@ -191,7 +196,7 @@ extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
-extern int widget_viewer_evas_notify_orientation_of_viewer(int orientation);
+EXPORT_API extern int widget_viewer_evas_notify_orientation_of_viewer(int orientation);
 
 /**
  * @brief Pauses given widget.
@@ -205,7 +210,7 @@ extern int widget_viewer_evas_notify_orientation_of_viewer(int orientation);
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  */
-extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
+EXPORT_API extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
 
 /**
  * @brief Resume given widget.
@@ -219,7 +224,7 @@ extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
-extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
+EXPORT_API extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
 
 /**
  * @brief Changes the configurable values of widget system
@@ -231,7 +236,7 @@ extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @see #widget_evas_conf
  */
-extern int widget_viewer_evas_set_option(widget_evas_conf_e type, int value);
+EXPORT_API extern int widget_viewer_evas_set_option(widget_evas_conf_e type, int value);
 
 /**
  * @brief Gets content string of widget
@@ -243,7 +248,7 @@ extern int widget_viewer_evas_set_option(widget_evas_conf_e type, int value);
  * @retval NULL if there is no specific content string.
  * @post Returned string should not be freed
  */
-extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
+EXPORT_API extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
 
 /**
  * @brief Gets summarized string of the widget content for accessibility.
@@ -254,7 +259,7 @@ extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
  * @return title string to be used for summarizing the widget
  * @retval NULL if there is no summarized text for content of given widget.
  */
-extern const char *widget_viewer_evas_get_title_string(Evas_Object *widget);
+EXPORT_API extern const char *widget_viewer_evas_get_title_string(Evas_Object *widget);
 
 /**
  * @brief Gets the id of the widget
@@ -264,7 +269,7 @@ extern const char *widget_viewer_evas_get_title_string(Evas_Object *widget);
  * @return widget id
  * @retval NULL if an error occurred and you can get the reason of failure using get_last_result()
  */
-extern const char *widget_viewer_evas_get_widget_id(Evas_Object *widget);
+EXPORT_API extern const char *widget_viewer_evas_get_widget_id(Evas_Object *widget);
 
 /**
  * @brief Gets the update period of the widget.
@@ -273,7 +278,7 @@ extern const char *widget_viewer_evas_get_widget_id(Evas_Object *widget);
  * @return period the update period of the widget.
  * @retval the update interval of the widget
  */
-extern double widget_viewer_evas_get_period(Evas_Object *widget);
+EXPORT_API extern double widget_viewer_evas_get_period(Evas_Object *widget);
 
 /**
  * @brief Cancels click event procedure.
@@ -283,7 +288,7 @@ extern double widget_viewer_evas_get_period(Evas_Object *widget);
  * @param[in] widget a widget object
  *
  */
-extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
+EXPORT_API extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
 
 /**
  * @brief Hides the preview of the widget
@@ -291,7 +296,7 @@ extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  */
-extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
+EXPORT_API extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
 
 /**
  * @brief Hides the help text of the widget
@@ -300,7 +305,7 @@ extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  */
-extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
+EXPORT_API extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
 
 /**
  * @brief Hides the loading message of the widget
@@ -309,7 +314,7 @@ extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
  * @since_tizen 2.3.1
  * @param[in] widget a widget object
  */
-extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
+EXPORT_API extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
 
 /**
  * @brief Feeds the mouse_up event to the provider of the widget
@@ -324,7 +329,7 @@ extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
-extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
+EXPORT_API extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
 
 /**
  * @brief Activate a widget in faulted state.
@@ -334,7 +339,7 @@ extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object faulted
  */
-extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
+EXPORT_API extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
 
 /**
  * @brief Check whether the widget is faulted.
@@ -344,7 +349,7 @@ extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
  * @retval true for faulted state
  * @retval false for not faulted state
  */
-extern bool widget_viewer_evas_is_faulted(Evas_Object *widget);
+EXPORT_API extern bool widget_viewer_evas_is_faulted(Evas_Object *widget);
 
 /**
  * @brief Freezes visibility of the widget
@@ -358,7 +363,7 @@ extern bool widget_viewer_evas_is_faulted(Evas_Object *widget);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @see #widget_visibility_status_e
  */
-extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status);
+EXPORT_API extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status);
 
 /**
  * @brief Thaws visibility of the widget
@@ -369,7 +374,7 @@ extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visi
  * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  */
-extern int widget_viewer_evas_thaw_visibility(Evas_Object *widget);
+EXPORT_API extern int widget_viewer_evas_thaw_visibility(Evas_Object *widget);
 
 /**
  * @brief Get the frozen state of visibility option.
@@ -379,7 +384,7 @@ extern int widget_viewer_evas_thaw_visibility(Evas_Object *widget);
  * @retval true for frozen state
  * @retval false for not frozen state
  */
-extern bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget);
+EXPORT_API extern bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget);
 
 /**
  * @brief Validate the object, whether it is a widget object or not
@@ -389,7 +394,7 @@ extern bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget);
  * @retval true this is a widget
  * @retval false this is not a widget
  */
-extern bool widget_viewer_evas_is_widget(Evas_Object *widget);
+EXPORT_API extern bool widget_viewer_evas_is_widget(Evas_Object *widget);
 
 /**
  * @brief Before delete a widget, set the deletion mode
@@ -397,7 +402,7 @@ extern bool widget_viewer_evas_is_widget(Evas_Object *widget);
  * @param[in] widget a widget object which will be deleted soon
  * @param[in] flag Pass 1 if you delete this widget instance permanently, or pass 0 if you want to keep it and it will be re-created soon.
  */
-extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
+EXPORT_API extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
 
 /**
  * @}

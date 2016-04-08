@@ -24,13 +24,18 @@
 extern "C" {
 #endif
 
-const char *_compositor_init(Evas_Object *win);
-void _compositor_fini();
-int _compositor_set_handler(const char *app_id, void (*cb)(const char *app_id, Evas_Object *obj, void *data), void *data);
-int _compositor_unser_handler(const char *app_id);
-const char *_compositor_get_title(Evas_Object *obj);
-const char *_compositor_get_app_id(Evas_Object *obj);
-int _compositor_get_pid(Evas_Object *obj);
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
+EXPORT_API const char *_compositor_init(Evas_Object *win);
+EXPORT_API void _compositor_fini();
+EXPORT_API int _compositor_set_handler(const char *app_id, void (*cb)(const char *app_id, Evas_Object *obj, void *data), void *data);
+EXPORT_API int _compositor_unser_handler(const char *app_id);
+EXPORT_API const char *_compositor_get_title(Evas_Object *obj);
+EXPORT_API const char *_compositor_get_app_id(Evas_Object *obj);
+EXPORT_API int _compositor_get_pid(Evas_Object *obj);
 
 #ifdef __cplusplus
 }

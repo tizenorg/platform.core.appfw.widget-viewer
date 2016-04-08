@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-
+ADD_DEFINITIONS("-DEXPORT_API=__attribute__((visibility(\"default\")))")
 ADD_SUBDIRECTORY(widget_toolkit)
 ADD_SUBDIRECTORY(widget_viewer)
 ADD_SUBDIRECTORY(widget_viewer_dali)

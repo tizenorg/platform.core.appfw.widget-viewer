@@ -51,7 +51,7 @@ cp %{SOURCE1002} .
 cp %{SOURCE1003} .
 
 %build
-export CFLAGS+=" -flto "
+export CFLAGS+=" -flto -fvisibility=hidden "
 %cmake . -DWIDGET_ENABLED=On -DTZ_SYS_SHARE=%{TZ_SYS_SHARE}
 make %{?jobs:-j%jobs}
 

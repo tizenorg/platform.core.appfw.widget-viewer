@@ -39,6 +39,11 @@ extern "C" {
  * @brief Structure definition for a widget instance.
  * @since_tizen 2.3.1
  */
+ 
+ #ifndef EXPORT_API
+ #define EXPORT_API
+ #endif // EXPORT_API
+ 
 typedef struct widget *widget_h;
 
 /**
@@ -403,7 +408,7 @@ typedef int (*widget_auto_launch_handler_cb)(widget_h handle, const char *appid,
  * @see widget_fini()
  * @see widget_feed_mouse_event()
  */
-extern int widget_viewer_init(void *disp, int prevent_overwrite, double event_filter, int use_thread);
+EXPORT_API extern int widget_viewer_init(void *disp, int prevent_overwrite, double event_filter, int use_thread);
 
 /**
  * @internal
@@ -416,7 +421,7 @@ extern int widget_viewer_init(void *disp, int prevent_overwrite, double event_fi
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER if widget_init is not called
  * @see widget_init()
  */
-extern int widget_viewer_fini(void);
+EXPORT_API extern int widget_viewer_fini(void);
 
 /**
  * @brief Notifies the status of a client ("it is paused") to the provider.
@@ -428,7 +433,7 @@ extern int widget_viewer_fini(void);
  * @retval #WIDGET_STATUS_ERROR_FAULT if it failed to send state (paused) info
  * @see widget_client_set_resumed()
  */
-extern int widget_viewer_notify_paused_status_of_viewer(void);
+EXPORT_API extern int widget_viewer_notify_paused_status_of_viewer(void);
 
 /**
  * @brief Notifies the status of client ("it is resumed") to the provider.
@@ -440,7 +445,7 @@ extern int widget_viewer_notify_paused_status_of_viewer(void);
  * @retval #WIDGET_STATUS_ERROR_FAULT if it failed to send state (resumed) info
  * @see widget_client_set_paused()
  */
-extern int widget_viewer_notify_resumed_status_of_viewer(void);
+EXPORT_API extern int widget_viewer_notify_resumed_status_of_viewer(void);
 
 /**
  * @internal
@@ -493,7 +498,7 @@ extern int widget_viewer_notify_resumed_status_of_viewer(void);
  * @retval @c NULL if it fails to create a handle
  * @see widget_ret_cb
  */
-extern widget_h widget_viewer_add_widget(const char *widget_id, const char *content, const char *cluster, const char *category, double period, widget_size_type_e type, widget_ret_cb cb, void *data);
+EXPORT_API extern widget_h widget_viewer_add_widget(const char *widget_id, const char *content, const char *cluster, const char *category, double period, widget_size_type_e type, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -518,7 +523,7 @@ extern widget_h widget_viewer_add_widget(const char *widget_id, const char *cont
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully sent, return callack will be called
  * @see widget_ret_cb
  */
-extern int widget_viewer_delete_widget(widget_h handle, widget_delete_type_e type, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_delete_widget(widget_h handle, widget_delete_type_e type, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -534,7 +539,7 @@ extern int widget_viewer_delete_widget(widget_h handle, widget_delete_type_e typ
  * @retval #WIDGET_STATUS_ERROR_OUT_OF_MEMORY Not enough memory
  * @see widget_unset_event_handler()
  */
-extern int widget_viewer_add_event_handler(widget_event_handler_cb cb, void *data);
+EXPORT_API extern int widget_viewer_add_event_handler(widget_event_handler_cb cb, void *data);
 
 /**
  * @brief Unsets the widget event handle.
@@ -545,7 +550,7 @@ extern int widget_viewer_add_event_handler(widget_event_handler_cb cb, void *dat
  * @retval pointer Pointer of 'data' which is used with the widget_set_event_handler
  * @see widget_set_event_handler()
  */
-extern void *widget_viewer_remove_event_handler(widget_event_handler_cb cb);
+EXPORT_API extern void *widget_viewer_remove_event_handler(widget_event_handler_cb cb);
 
 /**
  * @internal
@@ -560,7 +565,7 @@ extern void *widget_viewer_remove_event_handler(widget_event_handler_cb cb);
  * @retval #WIDGET_STATUS_ERROR_OUT_OF_MEMORY Not enough memory
  * @see widget_unset_fault_handler()
  */
-extern int widget_viewer_add_fault_handler(widget_fault_handler_cb cb, void *data);
+EXPORT_API extern int widget_viewer_add_fault_handler(widget_fault_handler_cb cb, void *data);
 
 /**
  * @brief Unsets the widget fault event handle.
@@ -569,7 +574,7 @@ extern int widget_viewer_add_fault_handler(widget_fault_handler_cb cb, void *dat
  * @retval pointer Pointer of 'data' which is used with the widget_set_fault_handler
  * @see widget_set_fault_handler()
  */
-extern void *widget_viewer_remove_fault_handler(widget_fault_handler_cb cb);
+EXPORT_API extern void *widget_viewer_remove_fault_handler(widget_fault_handler_cb cb);
 
 /**
  * @internal
@@ -594,7 +599,7 @@ extern void *widget_viewer_remove_fault_handler(widget_fault_handler_cb cb);
  * @retval #WIDGET_STATUS_ERROR_FAULT Failed to make a request
  * @see widget_ret_cb
  */
-extern int widget_viewer_activate_faulted_widget(const char *widget_id, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_activate_faulted_widget(const char *widget_id, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -642,7 +647,7 @@ extern int widget_viewer_activate_faulted_widget(const char *widget_id, widget_r
  * @retval #WIDGET_STATUS_ERROR_FAULT Failed to make a request
  * @see widget_ret_cb
  */
-extern int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -658,7 +663,7 @@ extern int widget_viewer_resize_widget(widget_h handle, widget_size_type_e type,
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  */
-extern int widget_viewer_send_click_event(widget_h handle, const char *event, double x, double y);
+EXPORT_API extern int widget_viewer_send_click_event(widget_h handle, const char *event, double x, double y);
 
 /**
  * @internal
@@ -683,7 +688,7 @@ extern int widget_viewer_send_click_event(widget_h handle, const char *event, do
  * @retval #WIDGET_STATUS_ERROR_FAULT Failed to make a request
  * @see widget_ret_cb
  */
-extern int widget_viewer_set_group(widget_h handle, const char *cluster, const char *category, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_set_group(widget_h handle, const char *cluster, const char *category, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -699,7 +704,7 @@ extern int widget_viewer_set_group(widget_h handle, const char *cluster, const c
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  */
-extern int widget_viewer_get_group(widget_h handle, const char **cluster, const char **category);
+EXPORT_API extern int widget_viewer_get_group(widget_h handle, const char **cluster, const char **category);
 
 /**
  * @brief Gets the update period of the widget.
@@ -710,7 +715,7 @@ extern int widget_viewer_get_group(widget_h handle, const char **cluster, const 
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  */
-extern int widget_viewer_get_period(widget_h handle, double *period);
+EXPORT_API extern int widget_viewer_get_period(widget_h handle, double *period);
 
 /**
  * @internal
@@ -734,7 +739,7 @@ extern int widget_viewer_get_period(widget_h handle, double *period);
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @see widget_ret_cb
  */
-extern int widget_viewer_set_period(widget_h handle, double period, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_set_period(widget_h handle, double period, widget_ret_cb cb, void *data);
 
 /**
  * @brief Checks whether the given widget is a text type or not.
@@ -752,7 +757,7 @@ extern int widget_viewer_set_period(widget_h handle, double period, widget_ret_c
  * @retval #WIDGET_CONTENT_TYPE_INVALID Invalid type
  * @see widget_type()
  */
-extern int widget_viewer_get_type(widget_h handle, int gbar, widget_type_e *widget_type);
+EXPORT_API extern int widget_viewer_get_type(widget_h handle, int gbar, widget_type_e *widget_type);
 
 /**
  * @brief Checks if the given widget is created by user or not.
@@ -769,7 +774,7 @@ extern int widget_viewer_get_type(widget_h handle, int gbar, widget_type_e *widg
  * @see widget_add()
  * @see widget_set_event_handler()
  */
-extern int widget_viewer_is_created_by_user(widget_h handle);
+EXPORT_API extern int widget_viewer_is_created_by_user(widget_h handle);
 
 /**
  * @internal
@@ -781,7 +786,7 @@ extern int widget_viewer_is_created_by_user(widget_h handle);
  * @retval content_info widget content info that can be used again via content_info argument of widget_add()
  * @see widget_add()
  */
-extern const char *widget_viewer_get_content_string(widget_h handle);
+EXPORT_API extern const char *widget_viewer_get_content_string(widget_h handle);
 
 /**
  * @brief Gets the sub cluster title string of the given widget.
@@ -798,7 +803,7 @@ extern const char *widget_viewer_get_content_string(widget_h handle);
  * @retval sub Cluster name
  * @retval @c NULL
  */
-extern const char *widget_viewer_get_title_string(widget_h handle);
+EXPORT_API extern const char *widget_viewer_get_title_string(widget_h handle);
 
 /**
  * @internal
@@ -811,7 +816,7 @@ extern const char *widget_viewer_get_title_string(widget_h handle);
  * @retval filename If the widget type is image this function will give you a abs-path of an image file (content is rendered)
  * @retval @c NULL If this has no image file or type is not image file.
  */
-extern const char *widget_viewer_get_filename(widget_h handle);
+EXPORT_API extern const char *widget_viewer_get_filename(widget_h handle);
 
 /**
  * @brief Gets the package name of the given widget handle.
@@ -822,7 +827,7 @@ extern const char *widget_viewer_get_filename(widget_h handle);
  * @retval pkgname Package name
  * @retval @c NULL If the handle is not valid
  */
-extern const char *widget_viewer_get_pkgname(widget_h handle);
+EXPORT_API extern const char *widget_viewer_get_pkgname(widget_h handle);
 
 /**
  * @brief Gets the priority of a current content.
@@ -834,7 +839,7 @@ extern const char *widget_viewer_get_pkgname(widget_h handle);
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters
  */
-extern int widget_viewer_get_priority(widget_h handle, double *priority);
+EXPORT_API extern int widget_viewer_get_priority(widget_h handle, double *priority);
 
 /**
  * @internal
@@ -847,7 +852,7 @@ extern int widget_viewer_get_priority(widget_h handle, double *priority);
  * @retval address Address of a Frame Buffer
  * @retval @c NULL If it fails to get buffer address
  */
-extern void *widget_viewer_acquire_buffer(widget_h handle, int gbar);
+EXPORT_API extern void *widget_viewer_acquire_buffer(widget_h handle, int gbar);
 
 /**
  * @brief Releases the buffer of a widget (only for the buffer type).
@@ -862,7 +867,7 @@ extern void *widget_viewer_acquire_buffer(widget_h handle, int gbar);
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @see widget_acquire_buffer()
  */
-extern int widget_viewer_release_buffer(void *buffer);
+EXPORT_API extern int widget_viewer_release_buffer(void *buffer);
 
 /**
  * @internal
@@ -874,7 +879,7 @@ extern int widget_viewer_release_buffer(void *buffer);
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval refcnt Positive integer value including ZERO
  */
-extern int widget_viewer_get_buffer_reference_count(void *buffer);
+EXPORT_API extern int widget_viewer_get_buffer_reference_count(void *buffer);
 
 /**
  * @brief Gets the size of the widget.
@@ -888,7 +893,7 @@ extern int widget_viewer_get_buffer_reference_count(void *buffer);
  * @retval #WIDGET_SIZE_TYPE_NxM N by M size
  * @retval #WIDGET_SIZE_TYPE_UNKNOWN Invalid handle or size type is not defined yet
  */
-extern int widget_viewer_get_size_type(widget_h handle, widget_size_type_e *size_type);
+EXPORT_API extern int widget_viewer_get_size_type(widget_h handle, widget_size_type_e *size_type);
 
 /**
  * @internal
@@ -902,7 +907,7 @@ extern int widget_viewer_get_size_type(widget_h handle, widget_size_type_e *size
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameters are used
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  */
-extern int widget_viewer_get_glance_bar_size(widget_h handle, int *w, int *h);
+EXPORT_API extern int widget_viewer_get_glance_bar_size(widget_h handle, int *w, int *h);
 
 /**
  * @internal
@@ -918,7 +923,7 @@ extern int widget_viewer_get_glance_bar_size(widget_h handle, int *w, int *h);
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  */
-extern int widget_viewer_get_supported_sizes(widget_h handle, int *cnt, widget_size_type_e *size_list);
+EXPORT_API extern int widget_viewer_get_supported_sizes(widget_h handle, int *cnt, widget_size_type_e *size_list);
 
 /**
  * @internal
@@ -930,7 +935,7 @@ extern int widget_viewer_get_supported_sizes(widget_h handle, int *cnt, widget_s
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval size Size in bytes of the widget buffer
  */
-extern int widget_viewer_get_buffer_size(widget_h handle, int gbar);
+EXPORT_API extern int widget_viewer_get_buffer_size(widget_h handle, int gbar);
 
 /**
  * @internal
@@ -950,7 +955,7 @@ extern int widget_viewer_get_buffer_size(widget_h handle, int gbar);
  * @see widget_feed_access_event()
  * @see widget_feed_key_event()
  */
-extern int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type_e type, widget_mouse_event_info_s info);
+EXPORT_API extern int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_type_e type, widget_mouse_event_info_s info);
 
 /**
  * @internal
@@ -974,7 +979,7 @@ extern int widget_viewer_feed_mouse_event(widget_h handle, widget_mouse_event_ty
  * @see widget_feed_mouse_event()
  * @see widget_feed_key_event()
  */
-extern int widget_viewer_feed_access_event(widget_h handle, widget_access_event_type_e type, widget_access_event_info_s info, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_feed_access_event(widget_h handle, widget_access_event_type_e type, widget_access_event_info_s info, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -997,7 +1002,7 @@ extern int widget_viewer_feed_access_event(widget_h handle, widget_access_event_
  * @see widget_feed_mouse_event()
  * @see widget_feed_access_event()
  */
-extern int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e type, widget_key_event_info_s info, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e type, widget_key_event_info_s info, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1021,7 +1026,7 @@ extern int widget_viewer_feed_key_event(widget_h handle, widget_key_event_type_e
  * @see widget_set_visibility()
  * @see widget_is_pinned_up()
  */
-extern int widget_viewer_set_pinup(widget_h handle, int flag, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_set_pinup(widget_h handle, int flag, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1034,7 +1039,7 @@ extern int widget_viewer_set_pinup(widget_h handle, int flag, widget_ret_cb cb, 
  * @retval 0 Box is not pinned up
  * @see widget_set_pinup()
  */
-extern int widget_viewer_is_pinned_up(widget_h handle);
+EXPORT_API extern int widget_viewer_is_pinned_up(widget_h handle);
 
 /**
  * @internal
@@ -1048,7 +1053,7 @@ extern int widget_viewer_is_pinned_up(widget_h handle);
  * @see widget_is_pinned_up()
  * @see widget_set_pinup()
  */
-extern int widget_viewer_has_pinup(widget_h handle);
+EXPORT_API extern int widget_viewer_has_pinup(widget_h handle);
 
 /**
  * @internal
@@ -1060,7 +1065,7 @@ extern int widget_viewer_has_pinup(widget_h handle);
  * @retval 1 If the box support the Glance Bar
  * @retval 0 If the box has no Glance Bar
  */
-extern int widget_viewer_has_glance_bar(widget_h handle);
+EXPORT_API extern int widget_viewer_has_glance_bar(widget_h handle);
 
 /**
  * @internal
@@ -1084,7 +1089,7 @@ extern int widget_viewer_has_glance_bar(widget_h handle);
  * @see widget_destroy_glance_bar()
  * @see widget_move_glance_bar()
  */
-extern int widget_viewer_create_glance_bar(widget_h handle, double x, double y, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_create_glance_bar(widget_h handle, double x, double y, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1100,7 +1105,7 @@ extern int widget_viewer_create_glance_bar(widget_h handle, double x, double y, 
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  */
-extern int widget_viewer_move_glance_bar(widget_h handle, double x, double y);
+EXPORT_API extern int widget_viewer_move_glance_bar(widget_h handle, double x, double y);
 
 /**
  * @internal
@@ -1119,7 +1124,7 @@ extern int widget_viewer_move_glance_bar(widget_h handle, double x, double y);
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @see widget_ret_cb
  */
-extern int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1131,7 +1136,7 @@ extern int widget_viewer_destroy_glance_bar(widget_h handle, widget_ret_cb cb, v
  * @retval 0 Glance Bar is not created
  * @retval 1 Glance Bar is created
  */
-extern int widget_viewer_glance_bar_is_created(widget_h handle);
+EXPORT_API extern int widget_viewer_glance_bar_is_created(widget_h handle);
 
 /**
  * @internal
@@ -1145,7 +1150,7 @@ extern int widget_viewer_glance_bar_is_created(widget_h handle);
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see widget_set_gbar_text_handler()
  */
-extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_script_operator_s ops);
+EXPORT_API extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_script_operator_s ops);
 
 /**
  * @internal
@@ -1172,7 +1177,7 @@ extern int widget_viewer_set_text_handler(widget_h handle, int gbar, widget_scri
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully emitted
  * @see widget_ret_cb
  */
-extern int widget_viewer_emit_text_signal(widget_h handle, widget_text_signal_s event_info, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_emit_text_signal(widget_h handle, widget_text_signal_s event_info, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1185,7 +1190,7 @@ extern int widget_viewer_emit_text_signal(widget_h handle, widget_text_signal_s 
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @see widget_data()
  */
-extern int widget_viewer_set_data(widget_h handle, void *data);
+EXPORT_API extern int widget_viewer_set_data(widget_h handle, void *data);
 
 /**
  * @internal
@@ -1196,7 +1201,7 @@ extern int widget_viewer_set_data(widget_h handle, void *data);
  * @retval @c NULL If there is no data
  * @see widget_set_data()
  */
-extern void *widget_viewer_get_data(widget_h handle);
+EXPORT_API extern void *widget_viewer_get_data(widget_h handle);
 
 /**
  * @internal
@@ -1214,7 +1219,7 @@ extern void *widget_viewer_get_data(widget_h handle);
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_unsubscribe_group()
  */
-extern int widget_viewer_subscribe_group(const char *cluster, const char *sub_cluster);
+EXPORT_API extern int widget_viewer_subscribe_group(const char *cluster, const char *sub_cluster);
 
 /**
  * @internal
@@ -1229,7 +1234,7 @@ extern int widget_viewer_subscribe_group(const char *cluster, const char *sub_cl
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_subscribe_group()
  */
-extern int widget_viewer_unsubscribe_group(const char *cluster, const char *sub_cluster);
+EXPORT_API extern int widget_viewer_unsubscribe_group(const char *cluster, const char *sub_cluster);
 
 /**
  * @internal
@@ -1246,7 +1251,7 @@ extern int widget_viewer_unsubscribe_group(const char *cluster, const char *sub_
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_unsubscribe_category()
  */
-extern int widget_viewer_subscribe_category(const char *category);
+EXPORT_API extern int widget_viewer_subscribe_category(const char *category);
 
 /**
  * @internal
@@ -1260,7 +1265,7 @@ extern int widget_viewer_subscribe_category(const char *category);
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_subscribe_category()
  */
-extern int widget_viewer_unsubscribe_category(const char *category);
+EXPORT_API extern int widget_viewer_unsubscribe_category(const char *category);
 
 /**
  * @internal
@@ -1280,7 +1285,7 @@ extern int widget_viewer_unsubscribe_category(const char *category);
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_refresh()
  */
-extern int widget_viewer_refresh_group(const char *cluster, const char *category, int force);
+EXPORT_API extern int widget_viewer_refresh_group(const char *cluster, const char *category, int force);
 
 /**
  * @brief Refreshes a widget.
@@ -1297,7 +1302,7 @@ extern int widget_viewer_refresh_group(const char *cluster, const char *category
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
  * @see widget_refresh_group()
  */
-extern int widget_viewer_refresh(widget_h handle, int force);
+EXPORT_API extern int widget_viewer_refresh(widget_h handle, int force);
 
 /**
  * @brief Gets Resource id of a widget content.
@@ -1314,7 +1319,7 @@ extern int widget_viewer_refresh(widget_h handle, int force);
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  * @see widget_get_resource_id()
  */
-extern int widget_viewer_get_resource_id(const widget_h handle, int gbar, unsigned int *resouce_id);
+EXPORT_API extern int widget_viewer_get_resource_id(const widget_h handle, int gbar, unsigned int *resouce_id);
 
 /**
  * @internal
@@ -1339,7 +1344,7 @@ extern int widget_viewer_get_resource_id(const widget_h handle, int gbar, unsign
  * @see widget_release_resource_id()
  * @see widget_ret_cb
  */
-extern int widget_viewer_acquire_resource_id(widget_h handle, int gbar, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_acquire_resource_id(widget_h handle, int gbar, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1366,7 +1371,7 @@ extern int widget_viewer_acquire_resource_id(widget_h handle, int gbar, widget_r
  * @see widget_release_resource_id()
  * @see widget_ret_cb
  */
-extern int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, int idx, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, int idx, widget_ret_cb cb, void *data);
 
 /**
  * @brief Releases the Resource Id of a widget.
@@ -1387,7 +1392,7 @@ extern int widget_viewer_acquire_extra_resource_id(widget_h handle, int gbar, in
  * @pre The Resource Id should be acquired by widget_acquire_resource_id
  * @see widget_acquire_resource_id()
  */
-extern int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned int resource_id);
+EXPORT_API extern int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned int resource_id);
 
 /**
  * @brief Updates a visible state of the widget.
@@ -1405,7 +1410,7 @@ extern int widget_viewer_release_resource_id(widget_h handle, int gbar, unsigned
  * @retval #WIDGET_STATUS_ERROR_ALREADY Input state is same to existing state
  * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
  */
-extern int widget_viewer_set_visibility(widget_h handle, widget_visible_state_e state);
+EXPORT_API extern int widget_viewer_set_visibility(widget_h handle, widget_visible_state_e state);
 
 /**
  * @internal
@@ -1420,7 +1425,7 @@ extern int widget_viewer_set_visibility(widget_h handle, widget_visible_state_e 
  * @retval #WIDGET_HIDE_WITH_PAUSE widget is hidden, it will pause the update timer, but if a widget updates its contents, update event will occur
  * @retval #WIDGET_VISIBLE_ERROR To enlarge the size of this enumeration type
  */
-extern widget_visible_state_e widget_viewer_get_visibility(widget_h handle);
+EXPORT_API extern widget_visible_state_e widget_viewer_get_visibility(widget_h handle);
 
 /**
  * @internal
@@ -1448,7 +1453,7 @@ extern widget_visible_state_e widget_viewer_get_visibility(widget_h handle);
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @see widget_ret_cb
  */
-extern int widget_viewer_set_update_mode(widget_h handle, int active_update, widget_ret_cb cb, void *data);
+EXPORT_API extern int widget_viewer_set_update_mode(widget_h handle, int active_update, widget_ret_cb cb, void *data);
 
 /**
  * @internal
@@ -1461,7 +1466,7 @@ extern int widget_viewer_set_update_mode(widget_h handle, int active_update, wid
  * @retval 0 If passive mode
  * @retval 1 If active mode or error code
  */
-extern int widget_viewer_is_active_update(widget_h handle);
+EXPORT_API extern int widget_viewer_is_active_update(widget_h handle);
 
 /**
  * @internal
@@ -1477,7 +1482,7 @@ extern int widget_viewer_is_active_update(widget_h handle);
  * @see widget_set_manual_sync()
  * @see widget_manual_sync()
  */
-extern int widget_viewer_sync_buffer(widget_h handle, int gbar);
+EXPORT_API extern int widget_viewer_sync_buffer(widget_h handle, int gbar);
 
 /**
  * @internal
@@ -1490,7 +1495,7 @@ extern int widget_viewer_sync_buffer(widget_h handle, int gbar);
  * @retval #WIDGET_STATUS_ERROR_NONE if success
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid handle
  */
-extern int widget_viewer_get_damaged_region(widget_h handle, int gbar, const widget_damage_region_s *region);
+EXPORT_API extern int widget_viewer_get_damaged_region(widget_h handle, int gbar, const widget_damage_region_s *region);
 
 /**
  * @internal
@@ -1505,7 +1510,7 @@ extern int widget_viewer_get_damaged_region(widget_h handle, int gbar, const wid
  * @retval @c NULL widget has no alternative icon file
  * @see widget_alt_name()
  */
-extern const char *widget_viewer_get_alternative_icon(widget_h handle);
+EXPORT_API extern const char *widget_viewer_get_alternative_icon(widget_h handle);
 
 /**
  * @internal
@@ -1520,7 +1525,7 @@ extern const char *widget_viewer_get_alternative_icon(widget_h handle);
  * @retval @c NULL widget has no alternative name
  * @see widget_alt_icon()
  */
-extern const char *widget_viewer_get_alternative_name(widget_h handle);
+EXPORT_API extern const char *widget_viewer_get_alternative_name(widget_h handle);
 
 /**
  * @internal
@@ -1538,7 +1543,7 @@ extern const char *widget_viewer_get_alternative_name(widget_h handle);
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @see widget_release_buffer_lock()
  */
-extern int widget_viewer_acquire_buffer_lock(widget_h handle, int gbar);
+EXPORT_API extern int widget_viewer_acquire_buffer_lock(widget_h handle, int gbar);
 
 /**
  * @internal
@@ -1555,7 +1560,7 @@ extern int widget_viewer_acquire_buffer_lock(widget_h handle, int gbar);
  * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
  * @see widget_acquire_buffer_lock()
  */
-extern int widget_viewer_release_buffer_lock(widget_h handle, int gbar);
+EXPORT_API extern int widget_viewer_release_buffer_lock(widget_h handle, int gbar);
 
 /**
  * @brief Sets options for controlling a widget sub-system.
@@ -1582,7 +1587,7 @@ extern int widget_viewer_release_buffer_lock(widget_h handle, int gbar);
  * @see widget_get_option()
  * @see widget_sync_buffer()
  */
-extern int widget_viewer_set_option(widget_option_type_e option, int state);
+EXPORT_API extern int widget_viewer_set_option(widget_option_type_e option, int state);
 
 /**
  * @internal
@@ -1597,7 +1602,7 @@ extern int widget_viewer_set_option(widget_option_type_e option, int state);
  * @retval >=0 Value of given option (must be >=0)
  * @see widget_set_option()
  */
-extern int widget_viewer_get_option(widget_option_type_e option);
+EXPORT_API extern int widget_viewer_get_option(widget_option_type_e option);
 
 /**
  * @internal
@@ -1611,7 +1616,7 @@ extern int widget_viewer_get_option(widget_option_type_e option);
  *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
  * @retval #WIDGET_STATUS_ERROR_NONE Succeed to set new handle. there is no other cases
  */
-extern int widget_viewer_set_auto_launch_handler(widget_auto_launch_handler_cb cb, void *data);
+EXPORT_API extern int widget_viewer_set_auto_launch_handler(widget_auto_launch_handler_cb cb, void *data);
 
 /**
  * @internal
@@ -1630,11 +1635,11 @@ extern int widget_viewer_set_auto_launch_handler(widget_auto_launch_handler_cb c
  * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Handle is not valid
  * @retval #WIDGET_STATUS_ERROR_NOT_EXIST There is no extra buffer
  */
-extern int widget_viewer_get_affected_extra_buffer(widget_h handle, int gbar, int *idx, unsigned int *resource_id);
+EXPORT_API extern int widget_viewer_get_affected_extra_buffer(widget_h handle, int gbar, int *idx, unsigned int *resource_id);
 
-extern int widget_viewer_get_instance_id(widget_h handle, char **instance_id);
+EXPORT_API extern int widget_viewer_get_instance_id(widget_h handle, char **instance_id);
 
-extern int widget_viewer_notify_orientation_of_viewer(int orientation);
+EXPORT_API extern int widget_viewer_notify_orientation_of_viewer(int orientation);
 
 /**
  * @}
