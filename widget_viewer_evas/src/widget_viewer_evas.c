@@ -196,6 +196,8 @@ static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *dat
 		return;
 	}
 
+	DbgPrint("widget added: %s", instance_id);
+
 	/**
 	 * @note
 	 * After swallow this widget object to the layout,
@@ -208,6 +210,31 @@ static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *dat
 	event_info.event = WIDGET_EVENT_CREATED;
 
 	smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATED, &event_info);
+}
+
+static int content_info_update_cb(const char *widget_id, const char *instance_id, int status, void *data)
+{
+	struct widget_info *info;
+	struct widget_evas_event_info event_info;
+
+	info = g_hash_table_lookup(s_info.widget_table, instance_id);
+	if (!info) {
+		ErrPrint("Unable to find a proper object\n");
+		return -1;
+	}
+
+	DbgPrint("update: %s (%d)", instance_id, status);
+
+	event_info.error = WIDGET_ERROR_NONE;
+	event_info.widget_app_id = info->widget_id;
+	event_info.event = WIDGET_EVENT_EXTRA_INFO_UPDATED;
+
+	if (info->layout)
+		smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED, &event_info);
+	else
+		ErrPrint("object is not ready");
+
+	return 0;
 }
 
 EAPI int widget_viewer_evas_init(Evas_Object *win)
@@ -233,6 +260,7 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 	}
 
 	widget_instance_init(app_id);
+	widget_instance_listen_status(NULL, content_info_update_cb, NULL);
 
 	s_info.initialized = true;
 
@@ -253,6 +281,7 @@ EAPI int widget_viewer_evas_fini(void)
 	}
 
 	_compositor_fini();
+	widget_instance_unlisten_status(NULL);
 	widget_instance_fini();
 
 	s_info.initialized = false;
