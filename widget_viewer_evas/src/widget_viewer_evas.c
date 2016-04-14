@@ -214,9 +214,8 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 {
 	char app_id[255];
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!win) {
 		ErrPrint("win object is invalid\n");
@@ -243,9 +242,8 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 
 EAPI int widget_viewer_evas_fini(void)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -262,9 +260,8 @@ EAPI int widget_viewer_evas_fini(void)
 
 EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -276,9 +273,8 @@ EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 
 EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -290,9 +286,8 @@ EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 
 EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -316,9 +311,8 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 		info->pid = 0;
 	}
 
-	if (info->permanent_delete) {
+	if (info->permanent_delete)
 		widget_instance_destroy(info->widget_id, info->instance_id);
-	}
 
 	evas_object_data_del(layout, WIDGET_INFO_TAG);
 
@@ -457,15 +451,14 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 		}
 	}
 
-	if (b) {
+	if (b)
 		bundle_get_str(b, WIDGET_K_INSTANCE, &instance_id);
-	}
 
 	if (!instance_id) {
 		if (widget_instance_create(widget_id, &instance_id) < 0) {
-			if (b) {
+			if (b)
 				bundle_free(b);
-			}
+
 			return NULL;
 		}
 
@@ -497,9 +490,8 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 		if (!info) {
 			info = create_info(parent, widget_id, instance_id, content_info);
 			if (!info) {
-				if (b) {
+				if (b)
 					bundle_free(b);
-				}
 				return NULL;
 			}
 
@@ -522,9 +514,8 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 
 EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (type < WIDGET_VIEWER_EVAS_MANUAL_PAUSE_RESUME || type > WIDGET_VIEWER_EVAS_UNKNOWN) {
 		ErrPrint("type is invalid\n");
@@ -536,9 +527,8 @@ EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 
 EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -555,9 +545,8 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 
 EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -581,9 +570,8 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 	bundle *b = NULL;
 
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return NULL;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -628,9 +616,8 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 		return NULL;
 	}
 
-	if (info->content_info) {
+	if (info->content_info)
 		free(info->content_info);
-	}
 	info->content_info = (char *)content_info;
 
 
@@ -642,9 +629,8 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 	Evas_Object *pepper_obj = NULL;
 	const char *title = NULL;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return NULL;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -680,9 +666,8 @@ EAPI const char *widget_viewer_evas_get_widget_id(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return NULL;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -707,9 +692,8 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return -1.0f;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -734,9 +718,8 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -762,9 +745,8 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -794,9 +776,8 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -829,9 +810,8 @@ EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -863,9 +843,8 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -891,9 +870,8 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -935,9 +913,8 @@ EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return false;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -960,9 +937,8 @@ EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 
 EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -979,9 +955,8 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 
 EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -999,9 +974,8 @@ EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 
 EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 {
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return false;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -1020,9 +994,8 @@ EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return false;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");
@@ -1047,9 +1020,8 @@ EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled()) {
+	if (!is_widget_feature_enabled())
 		return;
-	}
 
 	if (!s_info.initialized) {
 		ErrPrint("widget viewer evas is not initialized\n");

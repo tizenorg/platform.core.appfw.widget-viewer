@@ -104,9 +104,8 @@ static void __set_runtime_dir(void)
 	char buf[256];
 
 	snprintf(buf, sizeof(buf) - 1, "/run/user/%d", getuid());
-	if (setenv("XDG_RUNTIME_DIR", buf, 0) < 0) {
+	if (setenv("XDG_RUNTIME_DIR", buf, 0) < 0)
 		_E("Unable to set XDB_RUNTIME_DIR: %s (%s)\n", buf, strerror(errno));
-	}
 }
 
 API const char *_compositor_init(Evas_Object *win)
@@ -130,9 +129,8 @@ API const char *_compositor_init(Evas_Object *win)
 		return NULL;
 	}
 
-	if (setenv("WAYLAND_DISPLAY", compositor_name, 1) < 0) {
+	if (setenv("WAYLAND_DISPLAY", compositor_name, 1) < 0)
 		_E("failed to set WAYLAND_DISPLAY: %s\n", strerror(errno));
-	}
 
 	evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_ADD, __obj_added_cb, NULL);
 	evas_object_smart_callback_add(win, PEPPER_EFL_OBJ_DEL, __obj_deleted_cb, NULL);

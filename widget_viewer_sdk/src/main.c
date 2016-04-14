@@ -195,9 +195,8 @@ static void layout_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_in
 	}
 
 	s_info.long_press = ecore_timer_add(LONG_PRESS, show_widget_info_cb, NULL);
-	if (!s_info.long_press) {
+	if (!s_info.long_press)
 		ErrPrint("Failed to add a timer\n");
-	}
 }
 
 static void layout_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
@@ -294,9 +293,8 @@ static int unload_widget(void)
 {
 	const char *tmp;
 
-	if (!s_info.ctx.widget) {
+	if (!s_info.ctx.widget)
 		return WIDGET_ERROR_NOT_EXIST;
-	}
 
 	tmp = widget_viewer_evas_get_widget_id(s_info.ctx.widget);
 	DbgPrint("Unload previous widget: %s\n", tmp);
@@ -361,9 +359,8 @@ static void list_item_clicked_cb(void *data, Evas_Object *obj, void *event_info)
 	int w;
 	int h;
 
-	if (widget_service_get_size(s_info.ctx.size_types[(long)data], &w, &h) != WIDGET_ERROR_NONE) {
+	if (widget_service_get_size(s_info.ctx.size_types[(long)data], &w, &h) != WIDGET_ERROR_NONE)
 		return;
-	}
 
 	evas_object_resize(s_info.ctx.widget, w, h);
 	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
@@ -378,9 +375,8 @@ static void extra_updated_cb(void *data, Evas_Object *obj, void *event_info)
 	string = widget_viewer_evas_get_title_string(obj);
 	if (string) {
 		tmp = strdup(string);
-		if (!tmp) {
+		if (!tmp)
 			return;
-		}
 
 		free(s_info.ctx.title);
 		s_info.ctx.title = tmp;
@@ -391,9 +387,8 @@ static void extra_updated_cb(void *data, Evas_Object *obj, void *event_info)
 	string = widget_viewer_evas_get_content_info(obj);
 	if (string) {
 		tmp = strdup(string);
-		if (!tmp) {
+		if (!tmp)
 			return;
-		}
 
 		free(s_info.ctx.content_info);
 		s_info.ctx.content_info = tmp;
@@ -449,9 +444,8 @@ static int load_widget(const char *widget_id)
 	int i;
 
 	for (i = 0; i < s_info.ctx.count_of_size_type; i++) {
-		if (widget_service_get_size(s_info.ctx.size_types[i], &w, &h) != WIDGET_ERROR_NONE || w == 0 || h == 0) {
+		if (widget_service_get_size(s_info.ctx.size_types[i], &w, &h) != WIDGET_ERROR_NONE || w == 0 || h == 0)
 			continue;
-		}
 
 		break;
 	}
@@ -506,9 +500,8 @@ static char *list_item_text_get_cb(void *data, Evas_Object *obj, const char *par
 	int h;
 
 	ret = widget_service_get_size(s_info.ctx.size_types[(long)data], &w, &h);
-	if (ret != WIDGET_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE)
 		return strdup("Invalid");
-	}
 
 	snprintf(buffer, sizeof(buffer), "%dx%d", w, h);
 	DbgPrint("Size: [%s]\n", buffer);
@@ -582,9 +575,8 @@ static int prepare_widget(const char *widget_id, app_control_h control)
 
 	s_info.ctx.count_of_size_type = 20;
 	ret = widget_service_get_supported_size_types(widget_id, &s_info.ctx.count_of_size_type, &s_info.ctx.size_types);
-	if (ret != WIDGET_ERROR_NONE) {
+	if (ret != WIDGET_ERROR_NONE)
 		ErrPrint("Failed to load an widget\n");
-	}
 
 	DbgPrint("[%s] %d\n", widget_id, s_info.ctx.count_of_size_type);
 
@@ -617,9 +609,8 @@ static int prepare_widget(const char *widget_id, app_control_h control)
 
 		DbgPrint("Size[%X]\n", s_info.ctx.size_types[i]);
 		item = elm_genlist_item_append(size_list, &class, (void *)i, NULL, ELM_GENLIST_ITEM_NONE, list_item_clicked_cb, (void *)i);
-		if (!item) {
+		if (!item)
 			ErrPrint("Failed to add a new size item\n");
-		}
 	}
 	DbgPrint("========\nEnd of a dump\n");
 
@@ -649,9 +640,8 @@ static void _app_control(app_control_h service, void *data)
 		int lazy_loader = 0;
 
 		DbgPrint("Loading a widget: [%s]\n", widget_id);
-		if (!widget_id) {
+		if (!widget_id)
 			return;
-		}
 #if 0
 		category = widget_service_get_category(widget_id);
 		if (category) {
@@ -671,9 +661,8 @@ static void _app_control(app_control_h service, void *data)
 				if (need_to_unload) {
 					DbgPrint("Watch: [%s] - unload first, SET(%s)\n", widget_id, s_info.default_watch);
 					ret = vconf_set_str(VCONFKEY_WMS_CLOCKS_SET_IDLE, s_info.default_watch);
-					if (ret != 0) {
+					if (ret != 0)
 						ErrPrint("If this is not wearable, there is no such CLOCKS_SET_IDLE key (%d)\n", ret);
-					}
 
 					/**
 					 * @note
@@ -730,13 +719,11 @@ int main(int argc, char *argv[])
 	event_callback.resume = app_resume;
 	event_callback.app_control = _app_control;
 
-	if (setenv("BUFMGR_LOCK_TYPE", "once", 0) < 0) {
+	if (setenv("BUFMGR_LOCK_TYPE", "once", 0) < 0)
 		LOGE("setenv(BUFMGR_LOCK_TYPE) is failed: %s", strerror(errno));
-	}
 
-	if (setenv("BUFMGR_MAP_CACHE", "true", 0) < 0) {
+	if (setenv("BUFMGR_MAP_CACHE", "true", 0) < 0)
 		LOGE("setenv(BUFMGR_MAP_CACHE) is failed: %s", strerror(errno));
-	}
 
 	return ui_app_main(argc, argv, &event_callback, NULL);
 }
