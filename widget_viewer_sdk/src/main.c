@@ -217,22 +217,13 @@ static bool app_create(void *data)
 		return false;
 	}
 
-	evas_object_show(s_info.win);
-
+	elm_app_base_scale_set(2.6);
 	elm_win_screen_size_get(s_info.win, NULL, NULL, &s_info.w, &s_info.h);
 	LOGD("Window: %dx%d\n", s_info.w, s_info.h);
 
-	s_info.bg = elm_bg_add(s_info.win);
-	if (!s_info.bg) {
-		ErrPrint("Failed to add a BG\n");
-		evas_object_del(s_info.win);
-		s_info.win = NULL;
-		return false;
-	}
-
-	elm_win_resize_object_add(s_info.win, s_info.bg);
-	elm_bg_color_set(s_info.bg, 0, 0, 0);
-	evas_object_show(s_info.bg);
+	elm_win_alpha_set(s_info.win, EINA_FALSE);
+	elm_win_indicator_mode_set(s_info.win, ELM_WIN_INDICATOR_SHOW);
+	evas_object_show(s_info.win);
 
 	s_info.box = elm_box_add(s_info.win);
 	if (!s_info.box) {
@@ -242,9 +233,9 @@ static bool app_create(void *data)
 		s_info.win = NULL;
 		return false;
 	}
-	evas_object_size_hint_expand_set(s_info.box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(s_info.box, EVAS_HINT_FILL, EVAS_HINT_FILL);
-	elm_box_align_set(s_info.box, 0.5, 0.5);
+	evas_object_size_hint_fill_set(s_info.box, 0.0, EVAS_HINT_FILL);
+	evas_object_size_hint_weight_set(s_info.box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	elm_box_align_set(s_info.box, 0.0, 0.0);
 
 	s_info.layout = elm_layout_add(s_info.win);
 	if (!s_info.layout) {
@@ -487,6 +478,7 @@ static int load_widget(const char *widget_id)
 	evas_object_resize(s_info.ctx.widget, w, h);
 	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
 	evas_object_size_hint_max_set(s_info.ctx.widget, w, h);
+	evas_object_size_hint_align_set(s_info.ctx.widget, 0.0, 0.5);
 	evas_object_show(s_info.ctx.widget);
 
 	return WIDGET_ERROR_NONE;
