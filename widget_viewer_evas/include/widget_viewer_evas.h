@@ -119,11 +119,15 @@ typedef enum widget_evas_conf {
 /**
  * @brief Initializes the widget system
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] win Window object
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE If success
  * @retval #WIDGET_ERROR_INVALID_PARAMETER
+ * @retval #WIDGET_ERROR_ALREADY_EXIST Already initialized
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  * @see #widget_viewer_evas_fini
  */
 extern int widget_viewer_evas_init(Evas_Object *win);
@@ -131,9 +135,13 @@ extern int widget_viewer_evas_init(Evas_Object *win);
 /**
  * @brief Finalizes the widget system
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE If success
  * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  * @see #widget_viewer_evas_init
  */
 extern int widget_viewer_evas_fini(void);
@@ -141,12 +149,18 @@ extern int widget_viewer_evas_fini(void);
 /**
  * @brief Creates a new widget object
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @param[in] parent Evas Object of parent
  * @param[in] widget_id widget id
  * @param[in] content_info Contents that will be given to the widget instance
  * @param[in] period Update period (@c WIDGET_DEFAULT_PERIOD can be used for this; this argument will be used to specify the period of updating contents of a widget)
- * @return Widget Object
- * @retval NULL if it fails to create a new widget object and you can get the reason of failure using get_last_result()
+ * @return Widget Object. NULL on error
+ * @exception #WIDGET_ERROR_NONE Successfully added
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  * @see #widget_service_get_widget_id
  */
 extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period);
@@ -161,6 +175,7 @@ extern Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const cha
  * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (paused) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  * @see widget_viewer_evas_notify_paused_status_of_viewer()
  */
 extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
@@ -175,6 +190,7 @@ extern int widget_viewer_evas_notify_resumed_status_of_viewer(void);
  * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  * @see widget_viewer_evas_notify_resumed_status_of_viewer()
  */
 extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
@@ -190,6 +206,7 @@ extern int widget_viewer_evas_notify_paused_status_of_viewer(void);
  * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  */
 extern int widget_viewer_evas_notify_orientation_of_viewer(int orientation);
 
@@ -204,6 +221,7 @@ extern int widget_viewer_evas_notify_orientation_of_viewer(int orientation);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  */
 extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
 
@@ -218,17 +236,22 @@ extern int widget_viewer_evas_pause_widget(Evas_Object *widget);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_FAULT if it failed to send state (resumed) info
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  */
 extern int widget_viewer_evas_resume_widget(Evas_Object *widget);
 
 /**
  * @brief Changes the configurable values of widget system
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] type Configuration item
  * @param[in] value Its value
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  * @see #widget_evas_conf
  */
 extern int widget_viewer_evas_set_option(widget_evas_conf_e type, int value);
@@ -237,10 +260,17 @@ extern int widget_viewer_evas_set_option(widget_evas_conf_e type, int value);
  * @brief Gets content string of widget
  * @details This string can be used for creating contents of widget again after reboot a device or recovered from crash(abnormal status)
  * @remarks Returned string should not be freed.
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return content string to be recognize content of the widget
  * @retval NULL if there is no specific content string.
+ * @exception #WIDGET_ERROR_NONE Successfully get content string
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  * @post Returned string should not be freed
  */
 extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
@@ -249,38 +279,65 @@ extern const char *widget_viewer_evas_get_content_info(Evas_Object *widget);
  * @brief Gets summarized string of the widget content for accessibility.
  * @details If the accessibility feature is turned on, a viewer can use this text to describe the widget.
  * @remarks Returned string should not be freed.
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return title string to be used for summarizing the widget
  * @retval NULL if there is no summarized text for content of given widget.
+ * @exception #WIDGET_ERROR_NONE Successfully get title string
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern const char *widget_viewer_evas_get_title_string(Evas_Object *widget);
 
 /**
  * @brief Gets the id of the widget
  * @remarks Returned string should not be freed.
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return widget id
  * @retval NULL if an error occurred and you can get the reason of failure using get_last_result()
+ * @exception #WIDGET_ERROR_NONE Successfully get widget id
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern const char *widget_viewer_evas_get_widget_id(Evas_Object *widget);
 
 /**
  * @brief Gets the update period of the widget.
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return period the update period of the widget.
  * @retval the update interval of the widget
+ * @exception #WIDGET_ERROR_NONE Successfully get period
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern double widget_viewer_evas_get_period(Evas_Object *widget);
 
 /**
  * @brief Cancels click event procedure.
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @details If you call this function after feed the mouse_down(or mouse_set) event, the widget will get ON_HOLD events.\n
  *          If a widget gets ON_HOLD event, it will not do anything even if you feed mouse_up(or mouse_unset) event.\n
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  *
  */
 extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
@@ -288,8 +345,15 @@ extern void widget_viewer_evas_cancel_click_event(Evas_Object *widget);
 /**
  * @brief Hides the preview of the widget
  * @remarks This function should be called right after create the widget object before resizing it
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
+ * @exception #WIDGET_ERROR_NONE Successfully disabled preview
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
 
@@ -297,8 +361,15 @@ extern void widget_viewer_evas_disable_preview(Evas_Object *widget);
  * @brief Hides the help text of the widget
  * @details While loading a box, hide the help text
  * @remarks This function should be called right after create the widget object before resizing it
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
+ * @exception #WIDGET_ERROR_NONE Successfully disabled overlay text
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
 
@@ -306,8 +377,15 @@ extern void widget_viewer_evas_disable_overlay_text(Evas_Object *widget);
  * @brief Hides the loading message of the widget
  * @details if you disable it, there is no preview & help text while creating a widget object
  * @remarks This function should be called right after create the widget object before resizing it
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
+ * @exception #WIDGET_ERROR_NONE Successfully disabled loading text
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
 
@@ -322,6 +400,7 @@ extern void widget_viewer_evas_disable_loading(Evas_Object *widget);
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
 extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
@@ -329,20 +408,32 @@ extern int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget);
 /**
  * @brief Activate a widget in faulted state.
  * @details A widget in faulted state MUST be activated before adding the widget.
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object faulted
+ * @exception #WIDGET_ERROR_NONE Successfully activate faulted widget
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget);
 
 /**
  * @brief Check whether the widget is faulted.
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return faulted state of the widget and you can get the result state of this function by using get_last_result()
  * @retval true for faulted state
  * @retval false for not faulted state
+ * @exception #WIDGET_ERROR_NONE Successfully get the faulted state of the widget
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern bool widget_viewer_evas_is_faulted(Evas_Object *widget);
 
@@ -351,11 +442,15 @@ extern bool widget_viewer_evas_is_faulted(Evas_Object *widget);
  * @details If you don't want to change the visibility automatically, freeze it.\n
  *        The visibility will not be changed even though a box disappeared(hidden)/displayed(shown) from/on the screen.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @param[in] status a visibility status of the widget
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see #widget_visibility_status_e
  */
 extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status);
@@ -364,38 +459,63 @@ extern int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visi
  * @brief Thaws visibility of the widget
  * @details If you want to let the visibility change automatically again, call this function.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE if success
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
 extern int widget_viewer_evas_thaw_visibility(Evas_Object *widget);
 
 /**
  * @brief Get the frozen state of visibility option.
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return fixed state of visibility and you can get the result state of this function by using get_last_result()
  * @retval true for frozen state
  * @retval false for not frozen state
+ * @exception #WIDGET_ERROR_NONE Successfully get the state of visibility
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget);
 
 /**
  * @brief Validate the object, whether it is a widget object or not
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object
  * @return result of validation and you can get the result state of this function by using get_last_result()
  * @retval true this is a widget
  * @retval false this is not a widget
+ * @exception #WIDGET_ERROR_NONE Successfully get result of validation
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern bool widget_viewer_evas_is_widget(Evas_Object *widget);
 
 /**
  * @brief Before delete a widget, set the deletion mode
+ * @remarks The specific error code can be obtained using the get_last_result() method. Error codes are described in Exception section.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget a widget object which will be deleted soon
  * @param[in] flag Pass 1 if you delete this widget instance permanently, or pass 0 if you want to keep it and it will be re-created soon.
+ * @exception #WIDGET_ERROR_NONE Successfully set the flag
+ * @exception #WIDGET_ERROR_NOT_SUPPORTED Not supported
+ * @exception #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see get_last_result()
  */
 extern void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag);
 
