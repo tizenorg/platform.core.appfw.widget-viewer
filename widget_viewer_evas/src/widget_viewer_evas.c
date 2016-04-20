@@ -90,12 +90,17 @@
 #endif
 
 #if !defined(WIDGET_VIEWER_EVAS_RESOURCE_EDJ)
-#define WIDGET_VIEWER_EVAS_RESOURCE_EDJ "/usr/share/widget_viewer_evas/res/edje/widget_viewer_evas.edj"
+#define WIDGET_VIEWER_EVAS_RESOURCE_EDJ "/opt/share/widget_viewer_evas/res/edje/widget_viewer_evas.edj"
 #endif
 
 #if !defined(WIDGET_VIEWER_EVAS_RESOURCE_OVERLAY_LOADING)
 #define WIDGET_VIEWER_EVAS_RESOURCE_OVERLAY_LOADING "overlay"
 #endif
+
+#if !defined(WIDGET_VIEWER_EVAS_RESOURCE_DEFAULT_IMG)
+#define WIDGET_VIEWER_EVAS_RESOURCE_DEFAULT_IMG "/opt/share/widget_viewer_evas/res/image/unknown.png"
+#endif
+
 
 #define DEFAULT_OVERLAY_COUNTER 2
 #define DEFAULT_OVERLAY_WAIT_TIME 1.0f
@@ -136,11 +141,13 @@ struct widget_info {
 	char *widget_id;
 	char *instance_id;
 	char *content_info;
-	char *title;
+	const char *title;
 	bundle *b;
 	int pid;
 	double period;
 
+	int disable_preview;
+	int disable_loading;
 	int permanent_delete;
 
 	Evas_Object *layout;
@@ -201,7 +208,14 @@ static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *dat
 	 * After swallow this widget object to the layout,
 	 * It will be automatically resized by EDJE.
 	 */
+
 	elm_object_part_content_set(info->layout, "pepper,widget", surface);
+
+	if (!info->disable_preview)
+		elm_object_signal_emit(info->layout, "disable", "preview");
+
+	if (!info->disable_loading)
+		elm_object_signal_emit(info->layout, "disable", "text");
 
 	event_info.error = WIDGET_ERROR_NONE;
 	event_info.widget_app_id = info->widget_id;
@@ -220,6 +234,12 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 	if (!win) {
 		ErrPrint("win object is invalid\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!bindtextdomain(PKGNAME, WIDGET_VIEWER_EVAS_RESOURCE_PO)) {
+		ErrPrint("bindtextdomain: %d\n", errno);
+	} else {
+		DbgPrint("%s - %s\n", PKGNAME, WIDGET_VIEWER_EVAS_RESOURCE_PO);
 	}
 
 	s_info.win = win;
@@ -305,6 +325,13 @@ EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 {
 	struct widget_info *info = data;
+	struct widget_evas_event_info evas_info;
+
+	evas_info.error = WIDGET_ERROR_NONE;
+	evas_info.widget_app_id = info->widget_id;
+	evas_info.event = WIDGET_EVENT_CREATED;
+
+	smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_DELETED, &evas_info);
 
 	if (info->widget_id && info->instance_id) {
 		widget_instance_terminate(info->widget_id, info->instance_id);
@@ -326,8 +353,16 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 
 static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 {
+	Evas_Object *preview = NULL;
 	struct widget_info *info = data;
+	char *preview_path = NULL;
 	int x, y, w, h;
+	widget_size_type_e size_type;
+
+	if (!info || !layout) {
+		ErrPrint("Failed to load the info(%p) or layout(%p)\n", info, layout);
+		return;
+	}
 
 	evas_object_geometry_get(layout, &x, &y, &w, &h);
 
@@ -336,6 +371,27 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 		 * @note
 		 * Create a new instance in this case.
 		 */
+
+		if (!info->disable_preview) {
+			widget_service_get_size_type(w, h, &size_type);
+			preview_path = widget_service_get_preview_image_path(info->widget_id, size_type);
+			if (!preview_path) {
+				preview_path = WIDGET_VIEWER_EVAS_RESOURCE_DEFAULT_IMG;
+			}
+
+			preview = elm_image_add(layout);
+			if (preview) {
+				elm_image_file_set(preview, preview_path, NULL);
+				elm_object_part_content_set(layout, "preview", preview);
+			}
+
+			free(preview_path);
+		}
+
+		if (!info->disable_loading) {
+			elm_object_part_text_set(layout, "text", T_("IDS_ST_POP_LOADING_ING"));
+		}
+
 		_compositor_set_handler(info->instance_id, widget_added_cb, NULL);
 		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
 		if (info->pid < 0) {
@@ -412,6 +468,8 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 	evas_object_event_callback_add(info->layout, EVAS_CALLBACK_DEL, del_cb, info);
 
 	info->permanent_delete = 0;
+	info->disable_preview = 0;
+	info->disable_loading = 0;
 
 	return info;
 }
@@ -628,6 +686,7 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 {
 	Evas_Object *pepper_obj = NULL;
 	const char *title = NULL;
+	struct widget_info *info;
 
 	if (!is_widget_feature_enabled())
 		return NULL;
@@ -642,6 +701,12 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 		return NULL;
 	}
 
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		ErrPrint("widget(%p) don't have the info\n", widget);
+		return NULL;
+	}
+
 	pepper_obj = elm_object_part_content_get(widget, "pepper,widget");
 	if (!pepper_obj) {
 		ErrPrint("widget object is invalid\n");
@@ -650,14 +715,11 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 
 	title = pepper_efl_object_title_get(pepper_obj);
 	if (!title) {
-		struct widget_info *info;
-		info = evas_object_data_get(widget, WIDGET_INFO_TAG);
-		if (!info) {
-			ErrPrint("widget(%p) don't have the info\n", widget);
-			return NULL;
-		}
-		title = info->widget_id;
+		//title = widget_service_get_app_id_of_setup_app(info->widget_id);
+		title = widget_service_get_name(info->widget_id, NULL);
 	}
+
+	info->title = title;
 
 	return title;
 }
@@ -795,6 +857,7 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 		return;
 	}
 
+	info->disable_preview = 1;
 	elm_object_signal_emit(info->layout, "disable", "preview");
 
 	return;
@@ -862,6 +925,7 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 		return;
 	}
 
+	info->disable_loading = 1;
 	elm_object_signal_emit(info->layout, "disable", "text");
 	return;
 }
@@ -894,6 +958,12 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 		int h;
 
 		evas_object_geometry_get(info->layout, NULL, NULL, &w, &h);
+
+		if (info->disable_preview)
+			elm_object_signal_emit(info->layout, "enable", "preview");
+
+		if (info->disable_loading)
+			elm_object_signal_emit(info->layout, "enable", "text");
 
 		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
 		if (info->pid < 0) {

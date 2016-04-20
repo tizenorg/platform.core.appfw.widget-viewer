@@ -82,8 +82,8 @@ collections {
 				repeat_events: 1;
 				description {
 					state: "default" 0.0;
-					rel1 { relative: 20/320 200/320; }
-					rel2 { relative: 300/320 320/320; }
+					rel1 { relative: 0.0 0.8; to: "preview"; }
+					rel2 { relative: 1.0 0.9; to: "preview"; }
 					max: 280 -1;
 					text {
 						style: "overlay,text";
@@ -99,6 +99,13 @@ collections {
 		}
 
 		programs {
+			program {
+				name: "enable,preview";
+				signal: "enable";
+				source: "preview";
+				action: STATE_SET "default" 0.0;
+				target: "preview";
+			}
 			program {
 				name: "disable,preview";
 				signal: "disable";

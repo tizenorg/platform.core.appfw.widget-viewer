@@ -178,6 +178,7 @@ Header & package configuration of watch-control
 %{_datarootdir}/license/%{name}_evas
 %{TZ_SYS_SHARE}/widget_viewer_evas/res/edje/widget_viewer_evas.edj
 %{TZ_SYS_SHARE}/widget_viewer_evas/res/image/*.png
+%{TZ_SYS_SHARE}/widget_viewer_evas/res/locale/*/LC_MESSAGES/*
 
 
 %files -n %{name}_evas-devel
