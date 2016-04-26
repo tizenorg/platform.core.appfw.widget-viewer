@@ -56,6 +56,8 @@ public:
    * @brief Create widget view manager.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @param[in] application Application class for the widget view manager.
    * @param[in] name Widget view manager name. It is used for socket name internally.
    * @return A handle to WidgetViewManager.
@@ -111,6 +113,8 @@ public:
    * @brief Creates a new widget view object
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @param[in] widgetId The widget id.
    * @param[in] contentInfo Contents that will be given to the widget instance.
    * @param[in] width The widget width.
