@@ -375,17 +375,17 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 		if (!info->disable_preview) {
 			widget_service_get_size_type(w, h, &size_type);
 			preview_path = widget_service_get_preview_image_path(info->widget_id, size_type);
-			if (!preview_path) {
-				preview_path = WIDGET_VIEWER_EVAS_RESOURCE_DEFAULT_IMG;
+			if (preview_path) {
+				preview = elm_image_add(layout);
+				if (preview) {
+					elm_image_file_set(preview, preview_path, NULL);
+					elm_object_part_content_set(layout, "preview", preview);
+				}
+
+				free(preview_path);
+
 			}
 
-			preview = elm_image_add(layout);
-			if (preview) {
-				elm_image_file_set(preview, preview_path, NULL);
-				elm_object_part_content_set(layout, "preview", preview);
-			}
-
-			free(preview_path);
 		}
 
 		if (!info->disable_loading) {
