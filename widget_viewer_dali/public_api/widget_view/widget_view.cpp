@@ -69,12 +69,12 @@ const std::string& WidgetView::GetInstanceId() const
   return Dali::WidgetView::GetImplementation( *this ).GetInstanceId();
 }
 
-const std::string& WidgetView::GetContentInfo() const
+const std::string& WidgetView::GetContentInfo()
 {
   return Dali::WidgetView::GetImplementation( *this ).GetContentInfo();
 }
 
-const std::string& WidgetView::GetTitle() const
+const std::string& WidgetView::GetTitle()
 {
   return Dali::WidgetView::GetImplementation( *this ).GetTitle();
 }
@@ -82,6 +82,26 @@ const std::string& WidgetView::GetTitle() const
 double WidgetView::GetPeriod() const
 {
   return Dali::WidgetView::GetImplementation( *this ).GetPeriod();
+}
+
+void WidgetView::SetPreviewEnabled( bool enabled )
+{
+  Dali::WidgetView::GetImplementation( *this ).SetPreviewEnabled( enabled );
+}
+
+bool WidgetView::GetPreviewEnabled() const
+{
+  return Dali::WidgetView::GetImplementation( *this ).GetPreviewEnabled();
+}
+
+void WidgetView::SetStateTextEnabled( bool enabled )
+{
+  Dali::WidgetView::GetImplementation( *this ).SetStateTextEnabled( enabled );
+}
+
+bool WidgetView::GetStateTextEnabled() const
+{
+  return Dali::WidgetView::GetImplementation( *this ).GetStateTextEnabled();
 }
 
 void WidgetView::ActivateFaultedWidget()

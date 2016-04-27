@@ -51,6 +51,8 @@ public:
    * @brief Create widget view.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @param[in] widgetId The widget id.
    * @param[in] contentInfo Contents that will be given to the widget instance.
    * @param[in] width The widget width.
@@ -107,6 +109,8 @@ public:
    * @brief Get the id of the widget.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The widget id on success, otherwise an empty string.
    */
   const std::string& GetWidgetId() const;
@@ -115,6 +119,8 @@ public:
    * @brief Get the instance id of the widget.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The instance id on success, otherwise an empty string.
    */
   const std::string& GetInstanceId() const;
@@ -124,26 +130,72 @@ public:
    * This string can be used for creating contents of widget again after reboot a device or recovered from crash(abnormal status).
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The content string to be recognize content of the widget or an empty string if there is no specific content string.
    */
-  const std::string& GetContentInfo() const;
+  const std::string& GetContentInfo();
 
   /**
    * @brief Get the summarized string of the widget content for accessibility.
    * If the accessibility feature is turned on, a viewer can use this text to describe the widget.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The title string to be used for summarizing the widget or an empty string if there is no summarized text for content of given widget.
    */
-  const std::string& GetTitle() const;
+  const std::string& GetTitle();
 
   /**
    * @brief Get the update period of the widget.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The update period of the widget.
    */
   double GetPeriod() const;
+
+  /**
+   * @brief Sets whether to enable or disable the preview of the widget
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @param[in] enable Whether to enable the preview of the widget or not
+   */
+  void SetPreviewEnabled( bool enabled );
+
+  /**
+   * @brief Checks if the preview of the widget has been enabled or not.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return Whether the preview of the widget is enabled
+   */
+  bool GetPreviewEnabled() const;
+
+  /**
+   * @brief Sets whether to enable or disable the state message of the widget
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @param[in] enable Whether to enable the state message of the widget or not
+   */
+  void SetStateTextEnabled( bool enabled );
+
+  /**
+   * @brief Checks if the state message of the widget has been enabled or not.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return Whether the state message of the widget is enabled
+   */
+  bool GetStateTextEnabled() const;
 
   /**
    * @brief Activate a widget in faulted state.
@@ -159,6 +211,8 @@ public:
    * @brief Check whether the widget is faulted.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return true for faulted state, otherwise false.
    */
   bool IsWidgetFaulted();
@@ -167,6 +221,8 @@ public:
    * @brief Set the deletion mode.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @param[in] permanentDelete Pass true if you want to delete this widget instance permanently, or pass false if you want to keep it and it will be re-created soon.
    */
   void SetPermanentDelete( bool permanentDelete );

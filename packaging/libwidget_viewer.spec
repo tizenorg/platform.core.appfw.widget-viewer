@@ -189,6 +189,7 @@ Header & package configuration of watch-control
 %manifest %{name}_dali.manifest
 %attr(0644,root,root) %{_libdir}/%{name}_dali.so*
 %{_datarootdir}/license/%{name}_dali
+%{TZ_SYS_SHARE}/widget_viewer_dali/images/*.png
 
 %files -n %{name}_dali-devel
 %{_includedir}/widget_viewer_dali/widget_viewer_dali.h

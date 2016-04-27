@@ -23,6 +23,8 @@
 
 // EXTERNAL INCLUDES
 #include <dali-toolkit/public-api/controls/control-impl.h>
+#include <dali-toolkit/public-api/controls/image-view/image-view.h>
+#include <dali-toolkit/public-api/controls/text-controls/text-label.h>
 #include <pepper-dali/public-api/object-view/object-view.h>
 #include <bundle.h>
 
@@ -57,17 +59,37 @@ public:
   /**
    * @copydoc Dali::WidgetView::WidgetView::GetContentInfo
    */
-  const std::string& GetContentInfo() const;
+  const std::string& GetContentInfo();
 
   /**
    * @copydoc Dali::WidgetView::WidgetView::GetTitle
    */
-  const std::string& GetTitle() const;
+  const std::string& GetTitle();
 
   /**
    * @copydoc Dali::WidgetView::WidgetView::GetPeriod
    */
   double GetPeriod() const;
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::SetPreviewEnabled
+   */
+  void SetPreviewEnabled( bool enabled );
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::GetPreviewEnabled
+   */
+  bool GetPreviewEnabled() const;
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::SetStateTextEnabled
+   */
+  void SetStateTextEnabled( bool enabled );
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::GetStateTextEnabled
+   */
+  bool GetStateTextEnabled() const;
 
   /**
    * @copydoc Dali::WidgetView::WidgetView::ActivateFaultedWidget
@@ -126,7 +148,9 @@ private:
 
 private:
 
-  Pepper::ObjectView mObjectView;
+  Pepper::ObjectView mObjectView;     ///< Widget content
+  Toolkit::ImageView mPreviewImage;   ///< Preview image
+  Toolkit::TextLabel mStateText;      ///< State text
 
   std::string mWidgetId;
   std::string mInstanceId;
@@ -140,6 +164,8 @@ private:
   int mPid;
   double mPeriod;
 
+  bool mPreviewEnabled;
+  bool mStateTextEnabled;
   bool mPermanentDelete;
 
   // Signals
