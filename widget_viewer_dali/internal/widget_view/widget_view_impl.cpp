@@ -190,6 +190,16 @@ double WidgetView::GetPeriod() const
   return mPeriod;
 }
 
+bool WidgetView::CancelTouchEvent()
+{
+  if( mObjectView )
+  {
+    return mObjectView.CancelTouchEvent();
+  }
+
+  return false;
+}
+
 void WidgetView::SetPreviewEnabled( bool enabled )
 {
   mPreviewEnabled = enabled;

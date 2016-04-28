@@ -84,6 +84,11 @@ double WidgetView::GetPeriod() const
   return Dali::WidgetView::GetImplementation( *this ).GetPeriod();
 }
 
+bool WidgetView::CancelTouchEvent()
+{
+  return Dali::WidgetView::GetImplementation( *this ).CancelTouchEvent();
+}
+
 void WidgetView::SetPreviewEnabled( bool enabled )
 {
   Dali::WidgetView::GetImplementation( *this ).SetPreviewEnabled( enabled );

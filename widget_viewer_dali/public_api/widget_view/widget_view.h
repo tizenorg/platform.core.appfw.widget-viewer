@@ -158,6 +158,18 @@ public:
   double GetPeriod() const;
 
   /**
+   * @brief Cancels touch event procedure.
+   * If you call this function after feed the touch down event, the widget will get ON_HOLD events.
+   * If a widget gets ON_HOLD event, it will not do anything even if you feed touch up event.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return true on success, false otherwise.
+   */
+  bool CancelTouchEvent();
+
+  /**
    * @brief Sets whether to enable or disable the preview of the widget
    *
    * @since_tizen 3.0

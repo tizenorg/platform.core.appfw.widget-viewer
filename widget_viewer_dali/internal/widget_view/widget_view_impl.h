@@ -72,6 +72,11 @@ public:
   double GetPeriod() const;
 
   /**
+   * @copydoc Dali::WidgetView::WidgetView::CancelTouchEvent
+   */
+  bool CancelTouchEvent();
+
+  /**
    * @copydoc Dali::WidgetView::WidgetView::SetPreviewEnabled
    */
   void SetPreviewEnabled( bool enabled );
