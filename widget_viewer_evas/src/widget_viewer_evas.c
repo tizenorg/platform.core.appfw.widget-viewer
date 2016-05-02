@@ -183,7 +183,6 @@ static void smart_callback_call(Evas_Object *obj, const char *signal, void *cbda
 	evas_object_smart_callback_call(obj, signal, cbdata);
 }
 
-
 static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *data)
 {
 	struct widget_info *info;
@@ -778,6 +777,7 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 
 EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 {
+	Evas_Object *pepper_obj = NULL;
 	struct widget_info *info;
 
 	if (!is_widget_feature_enabled())
@@ -797,6 +797,17 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
 		ErrPrint("widget(%p) don't have the info\n", widget);
+		return;
+	}
+
+	pepper_obj = elm_object_part_content_get(widget, "pepper,widget");
+	if (!pepper_obj) {
+		ErrPrint("widget object is invalid\n");
+		return;
+	}
+
+	if (!pepper_efl_object_touch_cancel(pepper_obj)) {
+		ErrPrint("Fail to cancel the click event");
 		return;
 	}
 
@@ -825,6 +836,7 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 		ErrPrint("widget(%p) don't have the info\n", widget);
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
+
 	return WIDGET_ERROR_NONE;
 }
 
