@@ -10,6 +10,7 @@ Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}_evas.manifest
 Source1002: %{name}_dali.manifest
 Source1003: org.tizen.widget_viewer_sdk.manifest
+Source1004: watch-control.manifest
 BuildRequires: cmake, gettext-tools, coreutils, edje-bin
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(aul)
@@ -49,6 +50,7 @@ Header and package configuration files for the widget viewer development
 cp %{SOURCE1001} .
 cp %{SOURCE1002} .
 cp %{SOURCE1003} .
+cp %{SOURCE1004} .
 
 %build
 %cmake . -DWIDGET_ENABLED=On -DTZ_SYS_SHARE=%{TZ_SYS_SHARE}
@@ -211,6 +213,7 @@ Header & package configuration of watch-control
 %{_libdir}/pkgconfig/widget_toolkit.pc
 
 %files -n watch-control
+%manifest watch-control.manifest
 %{_libdir}/libwatch-control.so*
 
 %files -n watch-control-devel

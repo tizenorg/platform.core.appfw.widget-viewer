@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <aul.h>
+#include "compositor.h"
 
 #ifndef _E
 #define _E LOGE
@@ -37,7 +38,7 @@
 
 struct compositor_handler {
 	char *app_id;
-	void (*cb)(const char *, Evas_Object *, void *);
+	_compositor_handler_cb cb;
 	void *data;
 	Evas_Object *evas_obj;
 };
@@ -78,13 +79,42 @@ static void __obj_added_cb(void *data, Evas_Object *obj, void *event_info)
 	handler->evas_obj = added;
 
 	if (handler->cb)
-		handler->cb(handler->app_id, added, handler->data);
+		handler->cb(handler->app_id, "added", added, handler->data);
 }
 
 static void __obj_deleted_cb(void *data, Evas_Object *obj, void *event_info)
 {
+	Evas_Object *removed = (Evas_Object *)event_info;
+	const char *app_id;
+	struct compositor_handler *handler;
+
 	_E("object removed");
-	/* TODO */
+
+	if (!removed) {
+		_E("invalid parameter");
+		return;
+	}
+
+	app_id = pepper_efl_object_app_id_get((Evas_Object *)event_info);
+	_E("get object:%d", app_id);
+	if (!app_id) {
+		_E("can't get app_id of (%d)", pepper_efl_object_pid_get(removed));
+		return;
+	}
+
+	handler = g_hash_table_lookup(__appid_tbl, app_id);
+	if (!handler) {
+		_E("can't find compositor handler for %s", app_id);
+		/* workaround */
+		char buf[255] = {0,};
+		aul_app_get_appid_bypid(pepper_efl_object_pid_get(removed), buf, sizeof(buf));
+		handler = g_hash_table_lookup(__appid_tbl, buf);
+		if (!handler)
+			return;
+	}
+
+	if (handler->cb)
+		handler->cb(handler->app_id, "removed", removed, handler->data);
 }
 
 static void __handler_free(gpointer val)
@@ -153,7 +183,7 @@ API void _compositor_fini()
 		g_hash_table_destroy(__appid_tbl);
 }
 
-API int _compositor_set_handler(const char *app_id, void (*cb)(const char *app_id, Evas_Object *obj, void *data), void *data)
+API int _compositor_set_handler(const char *app_id, _compositor_handler_cb cb, void *data)
 {
 	struct compositor_handler *handler;
 	if (!app_id || !cb) {

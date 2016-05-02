@@ -183,11 +183,16 @@ static void smart_callback_call(Evas_Object *obj, const char *signal, void *cbda
 	evas_object_smart_callback_call(obj, signal, cbdata);
 }
 
-static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *data)
+static void widget_object_cb(const char *instance_id, const char *event, Evas_Object *obj, void *data)
 {
 	struct widget_info *info;
 	struct widget_evas_event_info event_info;
 	Evas_Object *surface;
+
+	if (!event) {
+		ErrPrint("invalid parameters\n");
+		return;
+	}
 
 	surface = obj;
 	if (!surface) {
@@ -202,25 +207,93 @@ static void widget_added_cb(const char *instance_id, Evas_Object *obj, void *dat
 		return;
 	}
 
-	/**
-	 * @note
-	 * After swallow this widget object to the layout,
-	 * It will be automatically resized by EDJE.
-	 */
+	if (strcmp(event, "added") == 0) {
+		DbgPrint("widget added: %s", instance_id);
+		elm_object_part_content_set(info->layout, "pepper,widget", surface);
 
-	elm_object_part_content_set(info->layout, "pepper,widget", surface);
+		if (!info->disable_preview)
+			elm_object_signal_emit(info->layout, "disable", "preview");
 
-	if (!info->disable_preview)
-		elm_object_signal_emit(info->layout, "disable", "preview");
+		if (!info->disable_loading)
+			elm_object_signal_emit(info->layout, "disable", "text");
 
-	if (!info->disable_loading)
-		elm_object_signal_emit(info->layout, "disable", "text");
+		event_info.error = WIDGET_ERROR_NONE;
+		event_info.widget_app_id = info->widget_id;
+		event_info.event = WIDGET_EVENT_CREATED;
+
+		smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATED, &event_info);
+		/**
+		 * @note
+		 * After swallow this widget object to the layout,
+		 * It will be automatically resized by EDJE.
+		 */
+	} else if (strcmp(event, "removed") == 0) {
+		DbgPrint("widget removed: %s", instance_id);
+		elm_object_part_content_set(info->layout, "pepper,widget", NULL);
+
+		if (info->disable_preview)
+			elm_object_signal_emit(info->layout, "enable", "previewe");
+
+		if (info->disable_loading)
+			elm_object_signal_emit(info->layout, "enable", "text");
+
+		event_info.error =  WIDGET_ERROR_NONE;
+		event_info.widget_app_id = info->widget_id;
+		event_info.event = WIDGET_EVENT_DELETED;
+
+		smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_DELETED, &event_info);
+	} else {
+		ErrPrint("undefiend event occured");
+		return;
+	}
+
+}
+
+static int instance_event_cb(const char *widget_id, const char *instance_id, int event, void *data)
+{
+	struct widget_info *info;
+	struct widget_evas_event_info event_info;
+	const char *smart_signal;
+
+	info = g_hash_table_lookup(s_info.widget_table, instance_id);
+	if (!info) {
+		ErrPrint("Unable to find a proper object\n");
+		return -1;
+	}
+
+	DbgPrint("update: %s (%d)", instance_id, event);
 
 	event_info.error = WIDGET_ERROR_NONE;
 	event_info.widget_app_id = info->widget_id;
-	event_info.event = WIDGET_EVENT_CREATED;
 
-	smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATED, &event_info);
+	switch (event) {
+	case WIDGET_INSTANCE_EVENT_UPDATE:
+		event_info.event = WIDGET_EVENT_WIDGET_UPDATED;
+		smart_signal = WIDGET_SMART_SIGNAL_UPDATED;
+		break;
+	case WIDGET_INSTANCE_EVENT_PERIOD_CHANGED:
+		event_info.event = WIDGET_EVENT_PERIOD_CHANGED;
+		smart_signal = WIDGET_SMART_SIGNAL_PERIOD_CHANGED;
+		break;
+	case WIDGET_INSTANCE_EVENT_SIZE_CHANGED:
+		event_info.event = WIDGET_EVENT_WIDGET_SIZE_CHANGED;
+		smart_signal = WIDGET_SMART_SIGNAL_WIDGET_RESIZED;
+		break;
+	case WIDGET_INSTANCE_EVENT_EXTRA_UPDATED:
+		event_info.event = WIDGET_EVENT_EXTRA_INFO_UPDATED;
+		smart_signal = WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED;
+		break;
+	default:
+		/* unhandled event */
+		return 0;
+	}
+
+	if (info->layout)
+		smart_callback_call(info->layout, smart_signal, &event_info);
+	else
+		ErrPrint("object is not ready");
+
+	return 0;
 }
 
 EAPI int widget_viewer_evas_init(Evas_Object *win)
@@ -251,6 +324,7 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 	}
 
 	widget_instance_init(app_id);
+	widget_instance_listen_event(instance_event_cb, NULL);
 
 	s_info.initialized = true;
 
@@ -270,6 +344,7 @@ EAPI int widget_viewer_evas_fini(void)
 	}
 
 	_compositor_fini();
+	widget_instance_unlisten_event(instance_event_cb);
 	widget_instance_fini();
 
 	s_info.initialized = false;
@@ -391,10 +466,16 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 			elm_object_part_text_set(layout, "text", T_("IDS_ST_POP_LOADING_ING"));
 		}
 
-		_compositor_set_handler(info->instance_id, widget_added_cb, NULL);
+		_compositor_set_handler(info->instance_id, widget_object_cb, NULL);
 		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
 		if (info->pid < 0) {
+			struct widget_evas_event_info event_info;
 			ErrPrint("Failed to launch an widget\n");
+			event_info.error = info->pid;
+			event_info.widget_app_id = info->widget_id;
+			event_info.event = WIDGET_EVENT_CREATED;
+
+			smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &event_info);
 			return;
 		}
 	} else {

@@ -24,9 +24,11 @@
 extern "C" {
 #endif
 
+typedef void (*_compositor_handler_cb)(const char *app_id, const char *event, Evas_Object *obj, void *data);
+
 const char *_compositor_init(Evas_Object *win);
 void _compositor_fini();
-int _compositor_set_handler(const char *app_id, void (*cb)(const char *app_id, Evas_Object *obj, void *data), void *data);
+int _compositor_set_handler(const char *app_id, _compositor_handler_cb cb, void *data);
 int _compositor_unser_handler(const char *app_id);
 const char *_compositor_get_title(Evas_Object *obj);
 const char *_compositor_get_app_id(Evas_Object *obj);
