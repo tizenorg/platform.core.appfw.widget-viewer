@@ -107,6 +107,8 @@ int WidgetViewManager::Initialize( Application application, const std::string& n
 
   DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::Initialize: success.\n" );
 
+  setenv("WAYLAND_DISPLAY", mCompositor.GetName().c_str(), 1);
+
   return WIDGET_ERROR_NONE;
 }
 
