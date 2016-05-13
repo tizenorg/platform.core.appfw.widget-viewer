@@ -34,6 +34,7 @@
 #include <widget_errno.h>
 
 #include <widget_instance.h>
+#include <widget_viewer.h>
 #include <compositor.h>
 #include <Pepper_Efl.h>
 
@@ -149,6 +150,7 @@ struct widget_info {
 	int disable_preview;
 	int disable_loading;
 	int permanent_delete;
+	int visibility_freeze;
 
 	Evas_Object *layout;
 };
@@ -283,6 +285,12 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 		event_info.event = WIDGET_EVENT_EXTRA_INFO_UPDATED;
 		smart_signal = WIDGET_SMART_SIGNAL_EXTRA_INFO_UPDATED;
 		break;
+	case WIDGET_INSTANCE_EVENT_FAULT:
+		event_info.event = WIDGET_FAULT_DEACTIVATED;
+		smart_signal = WIDGET_SMART_SIGNAL_WIDGET_FAULTED;
+		info->pid = -1;
+		break;
+
 	default:
 		/* unhandled event */
 		return 0;
@@ -550,6 +558,7 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 	info->permanent_delete = 0;
 	info->disable_preview = 0;
 	info->disable_loading = 0;
+	info->visibility_freeze = 0;
 
 	return info;
 }
@@ -665,6 +674,9 @@ EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 
 EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 {
+	struct widget_info *info;
+	int ret = WIDGET_ERROR_NONE;
+
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
@@ -676,6 +688,23 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 	if (!widget) {
 		ErrPrint("widget object is invalid\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		ErrPrint("widget(%p) don't have the info\n", widget);
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (info->visibility_freeze) {
+		ErrPrint("widget(%p) is freezing visibility(%d)\n", widget, info->visibility_freeze);
+		return WIDGET_ERROR_DISABLED;
+	}
+
+	ret = widget_instance_pause(info->widget_id, info->instance_id);
+	if (ret < 0) {
+		ErrPrint("Fail to pause the widget(%p):(%d)\n", widget, ret);
+		return ret;
 	}
 
 	return WIDGET_ERROR_NONE;
@@ -683,6 +712,9 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 
 EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 {
+	struct widget_info *info;
+	int ret = WIDGET_ERROR_NONE;
+
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
@@ -694,6 +726,23 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 	if (!widget) {
 		ErrPrint("widget object is invalid\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		ErrPrint("widget(%p) don't have the info\n", widget);
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (info->visibility_freeze) {
+		ErrPrint("widget(%p) is freezing visibility(%d)\n", widget, info->visibility_freeze);
+		return WIDGET_ERROR_DISABLED;
+	}
+
+	ret = widget_instance_resume(info->widget_id, info->instance_id);
+	if (ret < 0) {
+		ErrPrint("Fail to resume the widget(%p):(%d)\n", widget, ret);
+		return ret;
 	}
 
 	return WIDGET_ERROR_NONE;
@@ -1047,6 +1096,8 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 	}
 
 	if (info->pid < 0) {
+
+		struct widget_evas_event_info event_info;
 		int w;
 		int h;
 
@@ -1061,6 +1112,12 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
 		if (info->pid < 0) {
 			ErrPrint("Failed to launch an widget\n");
+			event_info.error = info->pid;
+			event_info.widget_app_id = info->widget_id;
+			event_info.event = WIDGET_EVENT_CREATED;
+
+			smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &event_info);
+
 			return;
 		}
 	} else {
@@ -1100,6 +1157,9 @@ EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 
 EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibility_status_e status)
 {
+	struct widget_info *info;
+	int ret = 0;
+
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
@@ -1110,6 +1170,31 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 
 	if (!widget) {
 		ErrPrint("widget object is invalid\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		ErrPrint("widget(%p) don't have the info\n", widget);
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (status == WIDGET_VISIBILITY_STATUS_SHOW_FIXED) {
+		ret = widget_instance_resume(info->widget_id, info->instance_id);
+		if (ret < 0) {
+			ErrPrint("Fail to resume the widget(%p):(%d)\n", widget, ret);
+			return ret;
+		}
+		info->visibility_freeze = status;
+	} else if (status == WIDGET_VISIBILITY_STATUS_HIDE_FIXED) {
+		ret = widget_instance_pause(info->widget_id, info->instance_id);
+		if (ret < 0) {
+			ErrPrint("Fail to pause the widget(%p):(%d)\n", widget, ret);
+			return ret;
+		}
+		info->visibility_freeze = status;
+	} else {
+		ErrPrint("status value is invalid\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1118,6 +1203,8 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 
 EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 {
+	struct widget_info *info;
+
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
@@ -1131,12 +1218,21 @@ EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		ErrPrint("widget(%p) don't have the info\n", widget);
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	info->visibility_freeze = 0;
 
 	return WIDGET_ERROR_NONE;
 }
 
 EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 {
+	struct widget_info *info;
+
 	if (!is_widget_feature_enabled())
 		return false;
 
@@ -1149,6 +1245,15 @@ EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 		ErrPrint("widget object is invalid\n");
 		return false;
 	}
+
+	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
+	if (!info) {
+		ErrPrint("widget(%p) don't have the info\n", widget);
+		return false;
+	}
+
+	if (info->visibility_freeze)
+		return true;
 
 	return false;
 }
