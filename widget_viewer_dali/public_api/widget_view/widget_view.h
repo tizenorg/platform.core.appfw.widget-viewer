@@ -158,6 +158,26 @@ public:
   double GetPeriod() const;
 
   /**
+   * @brief Shows the widget.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @note Use this function instead of Dali::Actor::SetVisible() to restart updating widget content.
+   */
+  void Show();
+
+  /**
+   * @brief Hides the widget.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @note Use this function instead of Dali::Actor::SetVisible() to stop updating widget content.
+   */
+  void Hide();
+
+  /**
    * @brief Cancels touch event procedure.
    * If you call this function after feed the touch down event, the widget will get ON_HOLD events.
    * If a widget gets ON_HOLD event, it will not do anything even if you feed touch up event.

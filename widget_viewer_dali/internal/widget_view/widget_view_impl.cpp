@@ -190,6 +190,22 @@ double WidgetView::GetPeriod() const
   return mPeriod;
 }
 
+void WidgetView::Show()
+{
+  if( mObjectView )
+  {
+    mObjectView.Show();
+  }
+}
+
+void WidgetView::Hide()
+{
+  if( mObjectView )
+  {
+    mObjectView.Hide();
+  }
+}
+
 bool WidgetView::CancelTouchEvent()
 {
   if( mObjectView )
