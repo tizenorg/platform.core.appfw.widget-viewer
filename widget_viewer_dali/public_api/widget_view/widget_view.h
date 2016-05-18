@@ -267,6 +267,8 @@ public: //Signals
    * @brief This signal is emitted when the widget is added.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
   WidgetViewSignalType& WidgetAddedSignal();
@@ -275,9 +277,61 @@ public: //Signals
    * @brief This signal is emitted when the widget is deleted.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
   WidgetViewSignalType& WidgetDeletedSignal();
+
+  /**
+   * @brief This signal is emitted when the widget is aborted.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetAbortedSignal();
+
+  /**
+   * @brief This signal is emitted when the widget is resized.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetResized();
+
+  /**
+   * @brief This signal is emitted when the widget content is updated.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetContentUpdated();
+
+  /**
+   * @brief This signal is emitted when the widget extra info is updated.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetExtraInfoUpdated();
+
+  /**
+   * @brief This signal is emitted when the widget period is changed.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetPeriodChanged();
 
 public: // Not intended for application developers
 

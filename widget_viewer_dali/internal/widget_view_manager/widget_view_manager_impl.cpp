@@ -85,6 +85,7 @@ WidgetViewManager::WidgetViewManager()
 
 WidgetViewManager::~WidgetViewManager()
 {
+  widget_instance_unlisten_event( WidgetViewManager::WidgetEventCallback );
   widget_instance_fini();
 }
 
@@ -104,6 +105,7 @@ int WidgetViewManager::Initialize( Application application, const std::string& n
 
   // init widget service
   widget_instance_init( name.c_str() );
+  widget_instance_listen_event( WidgetViewManager::WidgetEventCallback, this );
 
   DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::Initialize: success.\n" );
 
@@ -167,6 +169,28 @@ void WidgetViewManager::OnObjectViewDeleted( Pepper::Compositor compositor, Pepp
   }
 
   DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::OnObjectViewDeleted: ObjectView is deleted!\n" );
+}
+
+int WidgetViewManager::WidgetEventCallback( const char* widgetId, const char* instanceId, int event, void* data )
+{
+  WidgetViewManager* widgetViewManager = static_cast< WidgetViewManager* >( data );
+
+  if( widgetViewManager->mWidgetViewContainer.size() > 0)
+  {
+    WidgetViewIter iter = widgetViewManager->mWidgetViewContainer.find( std::string( instanceId ) );
+    if( iter != widgetViewManager->mWidgetViewContainer.end() )
+    {
+      Dali::WidgetView::WidgetView widgetView = iter->second;
+
+      Dali::WidgetView::GetImplementation( widgetView ).SendWidgetEvent( event );
+
+      return 0;
+    }
+  }
+
+  DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::WidgetEventCallback: WidgetView is not found! [%s, %s]\n", widgetId, instanceId );
+
+  return 0;
 }
 
 } // namespace Internal

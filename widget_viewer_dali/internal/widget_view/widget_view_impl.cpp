@@ -306,15 +306,66 @@ void WidgetView::AddObjectView( Pepper::ObjectView objectView )
   // Emit signal
   Dali::WidgetView::WidgetView handle( GetOwner() );
   mWidgetAddedSignal.Emit( handle );
+
+  DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::AddObjectView: ObjectView is added.\n" );
 }
 
 void WidgetView::RemoveObjectView()
 {
+  // Enable preview and text
+  if( mPreviewEnabled )
+  {
+    mPreviewImage.SetVisible( true );
+  }
+
+  if( mStateTextEnabled )
+  {
+    mStateText.SetVisible( true );
+  }
+
   // Emit signal
   Dali::WidgetView::WidgetView handle( GetOwner() );
   mWidgetDeletedSignal.Emit( handle );
 
   mObjectView.Reset();
+
+  DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::RemoveObjectView: ObjectView is removed.\n" );
+}
+
+void WidgetView::SendWidgetEvent( int event )
+{
+  Dali::WidgetView::WidgetView handle( GetOwner() );
+
+  DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::SendWidgetEvent: event = %d widget = %s\n", event,  mWidgetId.c_str() );
+
+  // Emit signal
+  switch( event )
+  {
+    case WIDGET_INSTANCE_EVENT_UPDATE:
+    {
+      mWidgetContentUpdatedSignal.Emit( handle );
+      break;
+    }
+    case WIDGET_INSTANCE_EVENT_PERIOD_CHANGED:
+    {
+      mWidgetPeriodChangedSignal.Emit( handle );
+      break;
+    }
+    case WIDGET_INSTANCE_EVENT_SIZE_CHANGED:
+    {
+      mWidgetResizedSignal.Emit( handle );
+      break;
+    }
+    case WIDGET_INSTANCE_EVENT_EXTRA_UPDATED:
+    {
+      mWidgetExtraInfoUpdatedSignal.Emit( handle );
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
 }
 
 Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetAddedSignal()
@@ -325,6 +376,31 @@ Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetAddedSigna
 Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetDeletedSignal()
 {
   return mWidgetDeletedSignal;
+}
+
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetAbortedSignal()
+{
+  return mWidgetAbortedSignal;
+}
+
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetResized()
+{
+  return mWidgetResizedSignal;
+}
+
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetContentUpdated()
+{
+  return mWidgetContentUpdatedSignal;
+}
+
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetExtraInfoUpdated()
+{
+  return mWidgetExtraInfoUpdatedSignal;
+}
+
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetPeriodChanged()
+{
+  return mWidgetPeriodChangedSignal;
 }
 
 void WidgetView::OnInitialize()
@@ -409,6 +485,11 @@ void WidgetView::OnInitialize()
   if( mPid < 0)
   {
     DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: widget_instance_launch is failed. [%s]\n", mWidgetId.c_str() );
+
+    // Emit signal
+    Dali::WidgetView::WidgetView handle( GetOwner() );
+    mWidgetAbortedSignal.Emit( handle );
+
     return;
   }
 

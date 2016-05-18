@@ -124,10 +124,44 @@ public:
   void AddObjectView( Pepper::ObjectView objectView );
   void RemoveObjectView();
 
+  void SendWidgetEvent( int event );
+
 public: //Signals
 
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetAddedSignal
+   */
   Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetAddedSignal();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetDeletedSignal
+   */
   Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetDeletedSignal();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetAbortedSignal
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetAbortedSignal();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetResized
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetResized();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetContentUpdated
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetContentUpdated();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetExtraInfoUpdated
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetExtraInfoUpdated();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetPeriodChanged
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetPeriodChanged();
 
 protected:
 
@@ -186,6 +220,11 @@ private:
   // Signals
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetAddedSignal;
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetDeletedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetAbortedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetResizedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetContentUpdatedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetExtraInfoUpdatedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetPeriodChangedSignal;
 };
 
 } // namespace Internal

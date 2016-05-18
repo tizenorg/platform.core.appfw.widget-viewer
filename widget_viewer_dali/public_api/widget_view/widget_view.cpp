@@ -144,6 +144,31 @@ WidgetView::WidgetViewSignalType& WidgetView::WidgetDeletedSignal()
   return Dali::WidgetView::GetImplementation(*this).WidgetDeletedSignal();
 }
 
+WidgetView::WidgetViewSignalType& WidgetView::WidgetAbortedSignal()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetAbortedSignal();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetResized()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetResized();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetContentUpdated()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetContentUpdated();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetExtraInfoUpdated()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetExtraInfoUpdated();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetPeriodChanged()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetPeriodChanged();
+}
+
 WidgetView::WidgetView( Internal::WidgetView& implementation )
 : Control( implementation )
 {

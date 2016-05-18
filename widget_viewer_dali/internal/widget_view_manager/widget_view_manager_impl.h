@@ -72,6 +72,8 @@ private:
   void OnObjectViewAdded( Pepper::Compositor compositor, Pepper::ObjectView objectView );
   void OnObjectViewDeleted( Pepper::Compositor compositor, Pepper::ObjectView objectView );
 
+  static int WidgetEventCallback( const char* widgetId, const char* instanceId, int event, void* data );
+
 private:
 
   // Undefined
