@@ -44,7 +44,7 @@ public:
   /**
    * @copydoc Dali::WidgetView::WidgetView::New
    */
-  static Dali::WidgetView::WidgetView New( const std::string& widgetId, const std::string& contentInfo, int width, int height, double period );
+  static Dali::WidgetView::WidgetView New( const std::string& widgetId, const std::string& contentInfo, int width, int height, double updatePeriod );
 
   /**
    * @copydoc Dali::WidgetView::WidgetView::GetWidgetId
@@ -67,9 +67,9 @@ public:
   const std::string& GetTitle();
 
   /**
-   * @copydoc Dali::WidgetView::WidgetView::GetPeriod
+   * @copydoc Dali::WidgetView::WidgetView::GetUpdatePeriod
    */
-  double GetPeriod() const;
+  double GetUpdatePeriod() const;
 
   /**
    * @copydoc Dali::WidgetView::WidgetView::Show
@@ -124,10 +124,44 @@ public:
   void AddObjectView( Pepper::ObjectView objectView );
   void RemoveObjectView();
 
+  void SendWidgetEvent( int event );
+
 public: //Signals
 
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetAddedSignal
+   */
   Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetAddedSignal();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetDeletedSignal
+   */
   Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetDeletedSignal();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetAbortedSignal
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetAbortedSignal();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetResized
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetResized();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetContentUpdated
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetContentUpdated();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetExtraInfoUpdated
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetExtraInfoUpdated();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetUpdatePeriodChanged
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetUpdatePeriodChanged();
 
 protected:
 
@@ -139,7 +173,7 @@ protected:
   /**
    * Construct a new WidgetView.
    */
-  WidgetView( const std::string& widgetId, const std::string& contentInfo, int width, int height, double period );
+  WidgetView( const std::string& widgetId, const std::string& contentInfo, int width, int height, double updatePeriod );
 
   /**
    * A reference counted object may only be deleted by calling Unreference()
@@ -177,7 +211,7 @@ private:
   int mWidth;
   int mHeight;
   int mPid;
-  double mPeriod;
+  double mUpdatePeriod;
 
   bool mPreviewEnabled;
   bool mStateTextEnabled;
@@ -186,6 +220,11 @@ private:
   // Signals
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetAddedSignal;
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetDeletedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetAbortedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetResizedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetContentUpdatedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetExtraInfoUpdatedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetUpdatePeriodChangedSignal;
 };
 
 } // namespace Internal

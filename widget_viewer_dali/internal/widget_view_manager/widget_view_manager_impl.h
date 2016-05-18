@@ -50,7 +50,7 @@ public:
   /**
    * @copydoc Dali::WidgetView::WidgetViewManager::AddWidget()
    */
-  Dali::WidgetView::WidgetView AddWidget( const std::string& widgetId, const std::string& contentInfo, int width, int height, double period );
+  Dali::WidgetView::WidgetView AddWidget( const std::string& widgetId, const std::string& contentInfo, int width, int height, double updatePeriod );
 
 private:
 
@@ -71,6 +71,8 @@ private:
 
   void OnObjectViewAdded( Pepper::Compositor compositor, Pepper::ObjectView objectView );
   void OnObjectViewDeleted( Pepper::Compositor compositor, Pepper::ObjectView objectView );
+
+  static int WidgetEventCallback( const char* widgetId, const char* instanceId, int event, void* data );
 
 private:
 

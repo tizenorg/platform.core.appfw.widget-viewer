@@ -119,10 +119,10 @@ public:
    * @param[in] contentInfo Contents that will be given to the widget instance.
    * @param[in] width The widget width.
    * @param[in] height The widget height.
-   * @param[in] period The period of updating contents of the widget.
+   * @param[in] updatePeriod The period of updating contents of the widget.
    * @return A handle to WidgetView.
    */
-  WidgetView AddWidget( const std::string& widgetId, const std::string& contentInfo, int width, int height, double period );
+  WidgetView AddWidget( const std::string& widgetId, const std::string& contentInfo, int width, int height, double updatePeriod );
 
 public: // Not intended for application developers
 

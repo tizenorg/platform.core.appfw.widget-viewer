@@ -27,9 +27,9 @@ namespace Dali
 namespace WidgetView
 {
 
-WidgetView WidgetView::New( const std::string& widgetId, const std::string& contentInfo, int width, int height, double period )
+WidgetView WidgetView::New( const std::string& widgetId, const std::string& contentInfo, int width, int height, double updatePeriod )
 {
-  return Internal::WidgetView::New( widgetId, contentInfo, width, height, period );
+  return Internal::WidgetView::New( widgetId, contentInfo, width, height, updatePeriod );
 }
 
 WidgetView WidgetView::DownCast( BaseHandle handle )
@@ -79,9 +79,9 @@ const std::string& WidgetView::GetTitle()
   return Dali::WidgetView::GetImplementation( *this ).GetTitle();
 }
 
-double WidgetView::GetPeriod() const
+double WidgetView::GetUpdatePeriod() const
 {
-  return Dali::WidgetView::GetImplementation( *this ).GetPeriod();
+  return Dali::WidgetView::GetImplementation( *this ).GetUpdatePeriod();
 }
 
 void WidgetView::Show()
@@ -142,6 +142,31 @@ WidgetView::WidgetViewSignalType& WidgetView::WidgetAddedSignal()
 WidgetView::WidgetViewSignalType& WidgetView::WidgetDeletedSignal()
 {
   return Dali::WidgetView::GetImplementation(*this).WidgetDeletedSignal();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetAbortedSignal()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetAbortedSignal();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetResized()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetResized();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetContentUpdated()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetContentUpdated();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetExtraInfoUpdated()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetExtraInfoUpdated();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetUpdatePeriodChanged()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetUpdatePeriodChanged();
 }
 
 WidgetView::WidgetView( Internal::WidgetView& implementation )

@@ -57,10 +57,10 @@ public:
    * @param[in] contentInfo Contents that will be given to the widget instance.
    * @param[in] width The widget width.
    * @param[in] height The widget height.
-   * @param[in] period The period of updating contents of the widget.
+   * @param[in] updatePeriod The period of updating contents of the widget.
    * @return A handle to WidgetView.
    */
-  static WidgetView New( const std::string& widgetId, const std::string& contentInfo, int width, int height, double period );
+  static WidgetView New( const std::string& widgetId, const std::string& contentInfo, int width, int height, double updatePeriod );
 
   /**
    * @brief Downcast a handle to WidgetView handle.
@@ -148,14 +148,14 @@ public:
   const std::string& GetTitle();
 
   /**
-   * @brief Get the update period of the widget.
+   * @brief Get the update period of the widget content.
    *
    * @since_tizen 3.0
    * @privlevel public
    * @privilege %http://tizen.org/privilege/widget.viewer
-   * @return The update period of the widget.
+   * @return The update period of the widget content.
    */
-  double GetPeriod() const;
+  double GetUpdatePeriod() const;
 
   /**
    * @brief Shows the widget.
@@ -267,6 +267,8 @@ public: //Signals
    * @brief This signal is emitted when the widget is added.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
   WidgetViewSignalType& WidgetAddedSignal();
@@ -275,9 +277,61 @@ public: //Signals
    * @brief This signal is emitted when the widget is deleted.
    *
    * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
   WidgetViewSignalType& WidgetDeletedSignal();
+
+  /**
+   * @brief This signal is emitted when the widget is aborted.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetAbortedSignal();
+
+  /**
+   * @brief This signal is emitted when the widget is resized.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetResized();
+
+  /**
+   * @brief This signal is emitted when the widget content is updated.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetContentUpdated();
+
+  /**
+   * @brief This signal is emitted when the widget extra info is updated.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetExtraInfoUpdated();
+
+  /**
+   * @brief This signal is emitted when the widget update period is changed.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetUpdatePeriodChanged();
 
 public: // Not intended for application developers
 

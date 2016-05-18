@@ -65,9 +65,9 @@ WidgetViewManager::WidgetViewManager( Internal::WidgetViewManager* implementatio
 {
 }
 
-WidgetView WidgetViewManager::AddWidget( const std::string& widgetId, const std::string& contentInfo, int width, int height, double period )
+WidgetView WidgetViewManager::AddWidget( const std::string& widgetId, const std::string& contentInfo, int width, int height, double updatePeriod )
 {
-  return GetImplementation(*this).AddWidget( widgetId, contentInfo, width, height, period );
+  return GetImplementation(*this).AddWidget( widgetId, contentInfo, width, height, updatePeriod );
 }
 
 } // namespace WidgetView
