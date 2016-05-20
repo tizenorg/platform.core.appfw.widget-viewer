@@ -38,6 +38,7 @@
 #include <widget_instance.h>
 #include <widget_viewer.h>
 #include <compositor.h>
+#include <aul_app_com.h>
 #include <Pepper_Efl.h>
 
 #if defined(LOG_TAG)
@@ -420,6 +421,25 @@ static int __aul_status_changed(int status, void *data)
 	return 0;
 }
 
+static int __aul_status_changed(int status, void *data)
+{
+	LOGD("aul status updated:%d", status);
+
+	switch (status) {
+	case STATUS_VISIBLE: /* viewer resumed */
+		/* call notify resumed if manual pause resume is not set */
+		break;
+	case STATUS_BG: /* viewer paused */
+		/* call notify paused if manual pause resume is not set */
+		break;
+	default:
+		/* do nothing */
+		break;
+	}
+
+	return 0;
+}
+
 EAPI int widget_viewer_evas_init(Evas_Object *win)
 {
 	char app_id[255];
@@ -449,6 +469,8 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 		ErrPrint("failed to get appid of pid:%d", getpid());
 		return -1;
 	}
+
+	aul_add_status_local_cb(__aul_status_changed, NULL);
 
 	widget_instance_init(app_id);
 	widget_instance_listen_event(instance_event_cb, NULL);
@@ -481,6 +503,7 @@ EAPI int widget_viewer_evas_fini(void)
 
 EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 {
+	bundle *b;
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
@@ -488,12 +511,23 @@ EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 		ErrPrint("widget viewer evas is not initialized\n");
 		return WIDGET_ERROR_FAULT;
 	}
+
+	b = bundle_create();
+	if (b == NULL) {
+		ErrPrint("out of memory\n");
+		return WIDGET_ERROR_OUT_OF_MEMORY;
+	}
+
+	bundle_add_str(b, "status", "resume");
+	aul_app_com_send("widget,viewer,status", b);
+	bundle_free(b);
 
 	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 {
+	bundle *b;
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
@@ -502,11 +536,22 @@ EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 		return WIDGET_ERROR_FAULT;
 	}
 
+	b = bundle_create();
+	if (b == NULL) {
+		ErrPrint("out of memory\n");
+		return WIDGET_ERROR_OUT_OF_MEMORY;
+	}
+
+	bundle_add_str(b, "status", "pause");
+	aul_app_com_send("widget,viewer,status", b);
+	bundle_free(b);
+
 	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 {
+	bundle *b;
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
@@ -519,6 +564,16 @@ EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 		ErrPrint("orientation is invalid parameter\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
+
+	b = bundle_create();
+	if (b == NULL) {
+		ErrPrint("out of memory\n");
+		return WIDGET_ERROR_OUT_OF_MEMORY;
+	}
+
+	bundle_add_str(b, "status", "resume");
+	aul_app_com_send("widget,viewer,orientation", b);
+	bundle_free(b);
 
 	return WIDGET_ERROR_NONE;
 }
