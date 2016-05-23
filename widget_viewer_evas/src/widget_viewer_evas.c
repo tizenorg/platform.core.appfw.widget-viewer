@@ -30,6 +30,8 @@
 
 #include <pkgmgr-info.h>
 #include <system_info.h>
+#include <cynara-client.h>
+#include <fcntl.h>
 
 #include <widget_errno.h>
 
@@ -176,6 +178,52 @@ static inline bool is_widget_feature_enabled(void)
 	return feature;
 }
 
+#define SMACK_LABEL_LEN 255
+static int __check_privilege(const char *privilege)
+{
+	cynara *p_cynara;
+
+	int fd = 0;
+	int ret = 0;
+
+	char subject_label[SMACK_LABEL_LEN +1] = "";
+	char uid[10] = {0, };
+	char *client_session = "";
+
+	ret = cynara_initialize(&p_cynara, NULL);
+	if (ret != CYNARA_API_SUCCESS)
+		return -1;
+
+	fd = open("/proc/self/attr/current", O_RDONLY);
+	if (fd < 0) {
+		ret = -1;
+		goto ERROR;
+	}
+
+	ret = read(fd, subject_label, SMACK_LABEL_LEN);
+	if (ret < 0) {
+		ErrPrint("read is failed");
+		close(fd);
+		goto ERROR;
+	}
+	close(fd);
+
+	snprintf(uid, 10, "%d", getuid());
+
+	ret = cynara_check(p_cynara, subject_label, client_session, uid, privilege);
+	if (ret != CYNARA_API_ACCESS_ALLOWED) {
+		ret = -1;
+		goto ERROR;
+	}
+
+	ret = 0;
+
+ERROR:
+	if (p_cynara)
+		cynara_finish(p_cynara);
+	return ret;
+}
+
 static void smart_callback_call(Evas_Object *obj, const char *signal, void *cbdata)
 {
 	if (!obj) {
@@ -310,6 +358,9 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
+
+	if (__check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
 
 	if (!win) {
 		ErrPrint("win object is invalid\n");

@@ -33,6 +33,7 @@ BuildRequires: pkgconfig(libtzplatform-config)
 BuildRequires: pkgconfig(dali-adaptor)
 BuildRequires: pkgconfig(dali-toolkit)
 BuildRequires: pkgconfig(pepper-dali)
+BuildRequires: pkgconfig(cynara-client)
 
 %description
 API for creating a new instance of the widget and managing its life-cycle.

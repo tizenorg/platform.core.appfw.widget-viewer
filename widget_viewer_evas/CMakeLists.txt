@@ -22,6 +22,7 @@ pkg_check_modules(viewer_evas REQUIRED
 	capi-appfw-application
 	aul
 	libpepper-efl
+	cynara-client
 )
 
 SET(BUILD_SOURCE
