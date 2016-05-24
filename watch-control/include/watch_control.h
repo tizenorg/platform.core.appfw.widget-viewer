@@ -36,6 +36,7 @@ typedef enum {
 extern int watch_manager_init(Evas_Object *win);
 extern int watch_manager_fini();
 extern int watch_manager_get_app_control(const char *app_id, app_control_h *app_control);
+extern int watch_manager_send_terminate_request(Evas_Object *watch);
 extern int watch_policy_set_size_hint(watch_policy_size_hint hint);
 
 #ifdef __cplusplus
