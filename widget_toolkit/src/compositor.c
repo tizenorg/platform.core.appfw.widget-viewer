@@ -45,6 +45,7 @@ struct compositor_handler {
 
 const char *__compositor_name = NULL;
 GHashTable *__appid_tbl = NULL;
+GHashTable *__evas_tbl = NULL;
 
 static void __obj_added_cb(void *data, Evas_Object *obj, void *event_info)
 {
@@ -52,7 +53,7 @@ static void __obj_added_cb(void *data, Evas_Object *obj, void *event_info)
 	const char *app_id;
 	struct compositor_handler *handler;
 
-	_E("object added");
+	_D("object added");
 
 	if (!added) {
 		_E("invalid parameter");
@@ -77,6 +78,7 @@ static void __obj_added_cb(void *data, Evas_Object *obj, void *event_info)
 	}
 
 	handler->evas_obj = added;
+	g_hash_table_insert(__evas_tbl, handler->evas_obj, handler);
 
 	if (handler->cb)
 		handler->cb(handler->app_id, "added", added, handler->data);
@@ -88,7 +90,7 @@ static void __obj_deleted_cb(void *data, Evas_Object *obj, void *event_info)
 	const char *app_id;
 	struct compositor_handler *handler;
 
-	_E("object removed");
+	_D("object removed");
 
 	if (!removed) {
 		_E("invalid parameter");
@@ -96,13 +98,19 @@ static void __obj_deleted_cb(void *data, Evas_Object *obj, void *event_info)
 	}
 
 	app_id = pepper_efl_object_app_id_get((Evas_Object *)event_info);
-	_E("get object:%d", app_id);
-	if (!app_id) {
-		_E("can't get app_id of (%d)", pepper_efl_object_pid_get(removed));
-		return;
+
+	if (app_id) {
+		_D("get object:%s", app_id);
+		handler = g_hash_table_lookup(__appid_tbl, app_id);
+	} else {
+		handler = g_hash_table_lookup(__evas_tbl, removed);
+		if (handler) {
+			_D("get object:%s", handler->app_id);
+			g_hash_table_remove(__evas_tbl, removed);
+			handler->evas_obj = NULL;
+		}
 	}
 
-	handler = g_hash_table_lookup(__appid_tbl, app_id);
 	if (!handler) {
 		_E("can't find compositor handler for %s", app_id);
 		/* workaround */
@@ -122,6 +130,9 @@ static void __handler_free(gpointer val)
 	struct compositor_handler *handler = (struct compositor_handler *)val;
 
 	if (handler) {
+		if (handler->evas_obj)
+			g_hash_table_remove(__evas_tbl, handler->evas_obj);
+
 		if (handler->app_id)
 			g_free(handler->app_id);
 
@@ -169,6 +180,10 @@ API const char *_compositor_init(Evas_Object *win)
 	if (!__appid_tbl)
 		_E("failed to create table");
 
+	__evas_tbl = g_hash_table_new(g_direct_hash, g_direct_equal);
+	if (!__evas_tbl)
+		_E("failed to create table");
+
 	__compositor_name = compositor_name;
 
 	return __compositor_name;
@@ -181,6 +196,9 @@ API void _compositor_fini()
 
 	if (__appid_tbl)
 		g_hash_table_destroy(__appid_tbl);
+
+	if (__evas_tbl)
+		g_hash_table_destroy(__evas_tbl);
 }
 
 API int _compositor_set_handler(const char *app_id, _compositor_handler_cb cb, void *data)
