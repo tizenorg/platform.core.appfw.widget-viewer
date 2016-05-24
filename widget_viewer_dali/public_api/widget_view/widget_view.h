@@ -106,6 +106,26 @@ public:
   ~WidgetView();
 
   /**
+   * @brief Pauses a given widget.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return true on success, false otherwise.
+   */
+  bool PauseWidget();
+
+  /**
+   * @brief Resume a given widget.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return true on success, false otherwise.
+   */
+  bool ResumeWidget();
+
+  /**
    * @brief Get the id of the widget.
    *
    * @since_tizen 3.0
@@ -284,14 +304,14 @@ public: //Signals
   WidgetViewSignalType& WidgetDeletedSignal();
 
   /**
-   * @brief This signal is emitted when the widget is aborted.
+   * @brief This signal is emitted when the widget creation is aborted.
    *
    * @since_tizen 3.0
    * @privlevel public
    * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
-  WidgetViewSignalType& WidgetAbortedSignal();
+  WidgetViewSignalType& WidgetCreationAbortedSignal();
 
   /**
    * @brief This signal is emitted when the widget is resized.
@@ -301,7 +321,7 @@ public: //Signals
    * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
-  WidgetViewSignalType& WidgetResized();
+  WidgetViewSignalType& WidgetResizedSignal();
 
   /**
    * @brief This signal is emitted when the widget content is updated.
@@ -311,7 +331,7 @@ public: //Signals
    * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
-  WidgetViewSignalType& WidgetContentUpdated();
+  WidgetViewSignalType& WidgetContentUpdatedSignal();
 
   /**
    * @brief This signal is emitted when the widget extra info is updated.
@@ -321,7 +341,7 @@ public: //Signals
    * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
-  WidgetViewSignalType& WidgetExtraInfoUpdated();
+  WidgetViewSignalType& WidgetExtraInfoUpdatedSignal();
 
   /**
    * @brief This signal is emitted when the widget update period is changed.
@@ -331,7 +351,17 @@ public: //Signals
    * @privilege %http://tizen.org/privilege/widget.viewer
    * @return The signal to connect to.
    */
-  WidgetViewSignalType& WidgetUpdatePeriodChanged();
+  WidgetViewSignalType& WidgetUpdatePeriodChangedSignal();
+
+  /**
+   * @brief This signal is emitted when the widget process is not running.
+   *
+   * @since_tizen 3.0
+   * @privlevel public
+   * @privilege %http://tizen.org/privilege/widget.viewer
+   * @return The signal to connect to.
+   */
+  WidgetViewSignalType& WidgetFaultedSignal();
 
 public: // Not intended for application developers
 

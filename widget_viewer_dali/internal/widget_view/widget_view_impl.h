@@ -47,6 +47,16 @@ public:
   static Dali::WidgetView::WidgetView New( const std::string& widgetId, const std::string& contentInfo, int width, int height, double updatePeriod );
 
   /**
+   * @copydoc Dali::WidgetView::WidgetView::PauseWidget
+   */
+  bool PauseWidget();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::ResumeWidget
+   */
+  bool ResumeWidget();
+
+  /**
    * @copydoc Dali::WidgetView::WidgetView::GetWidgetId
    */
   const std::string& GetWidgetId() const;
@@ -139,29 +149,34 @@ public: //Signals
   Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetDeletedSignal();
 
   /**
-   * @copydoc Dali::WidgetView::WidgetView::WidgetAbortedSignal
+   * @copydoc Dali::WidgetView::WidgetView::WidgetCreationAbortedSignal
    */
-  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetAbortedSignal();
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetCreationAbortedSignal();
 
   /**
-   * @copydoc Dali::WidgetView::WidgetView::WidgetResized
+   * @copydoc Dali::WidgetView::WidgetView::WidgetResizedSignal
    */
-  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetResized();
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetResizedSignal();
 
   /**
-   * @copydoc Dali::WidgetView::WidgetView::WidgetContentUpdated
+   * @copydoc Dali::WidgetView::WidgetView::WidgetContentUpdatedSignal
    */
-  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetContentUpdated();
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetContentUpdatedSignal();
 
   /**
-   * @copydoc Dali::WidgetView::WidgetView::WidgetExtraInfoUpdated
+   * @copydoc Dali::WidgetView::WidgetView::WidgetExtraInfoUpdatedSignal
    */
-  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetExtraInfoUpdated();
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetExtraInfoUpdatedSignal();
 
   /**
-   * @copydoc Dali::WidgetView::WidgetView::WidgetUpdatePeriodChanged
+   * @copydoc Dali::WidgetView::WidgetView::WidgetUpdatePeriodChangedSignal
    */
-  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetUpdatePeriodChanged();
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetUpdatePeriodChangedSignal();
+
+  /**
+   * @copydoc Dali::WidgetView::WidgetView::WidgetFaultedSignal
+   */
+  Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetFaultedSignal();
 
 protected:
 
@@ -186,6 +201,13 @@ private: // From Control
    * @copydoc Toolkit::Control::OnInitialize()
    */
   virtual void OnInitialize();
+
+private: // From CustomActorImpl
+
+  /**
+   * @copydoc CustomActorImpl::OnSizeSet( const Vector3& targetSize )
+   */
+  virtual void OnSizeSet( const Vector3& targetSize );
 
 private:
 
@@ -220,11 +242,12 @@ private:
   // Signals
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetAddedSignal;
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetDeletedSignal;
-  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetAbortedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetCreationAbortedSignal;
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetResizedSignal;
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetContentUpdatedSignal;
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetExtraInfoUpdatedSignal;
   Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetUpdatePeriodChangedSignal;
+  Dali::WidgetView::WidgetView::WidgetViewSignalType mWidgetFaultedSignal;
 };
 
 } // namespace Internal
