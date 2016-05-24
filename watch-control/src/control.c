@@ -19,6 +19,7 @@
 #include <app_control_internal.h>
 #include <compositor.h>
 #include <dlog.h>
+#include <unistd.h>
 #include "watch_control.h"
 #include <aul.h>
 
@@ -127,6 +128,25 @@ static void __pepper_cb(const char *app_id, const char *event, Evas_Object *obj,
 		_E("obj removed");
 		evas_object_smart_callback_call(__win, WATCH_SMART_SIGNAL_REMOVED, surface);
 	}
+}
+
+API int watch_manager_send_terminate(Evas_Object *watch)
+{
+	int pid = _compositor_get_pid(watch);
+	int r;
+
+	if (pid) {
+		r = aul_terminate_pid_for_uid(pid, getuid());
+		if (r < 0) {
+			_E("failed to terminate pid:%d (%d)", pid, r);
+			return -1;
+		}
+	} else {
+		_E("failed to get pid from %p", watch);
+		return -1;
+	}
+
+	return 0;
 }
 
 API int watch_manager_get_app_control(const char *app_id, app_control_h *app_control)
