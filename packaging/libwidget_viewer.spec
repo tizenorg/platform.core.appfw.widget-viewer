@@ -7,10 +7,7 @@ Release: 1
 Group: Applications/Core Applications
 License: Flora-1.1
 Source0: %{name}-%{version}.tar.gz
-Source1001: %{name}_evas.manifest
-Source1002: %{name}_dali.manifest
-Source1003: org.tizen.widget_viewer_sdk.manifest
-Source1004: watch-control.manifest
+Source1001: %{name}.manifest
 BuildRequires: cmake, gettext-tools, coreutils, edje-bin
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(aul)
@@ -49,9 +46,6 @@ Header and package configuration files for the widget viewer development
 %prep
 %setup -q
 cp %{SOURCE1001} .
-cp %{SOURCE1002} .
-cp %{SOURCE1003} .
-cp %{SOURCE1004} .
 
 %build
 %cmake . -DWIDGET_ENABLED=On -DTZ_SYS_SHARE=%{TZ_SYS_SHARE}
@@ -65,6 +59,7 @@ rm -rf %{buildroot}
 %postun -n %{name} -p /sbin/ldconfig
 
 %files -n %{name}
+%manifest %{name}.manifest
 %attr(0644,root,root)%{_libdir}/%{name}.so*
 %{_datarootdir}/license/%{name}
 
@@ -176,7 +171,7 @@ Header & package configuration of watch-control
 %postun -n watch-control -p /sbin/ldconfig
 
 %files -n %{name}_evas
-%manifest %{name}_evas.manifest
+%manifest %{name}.manifest
 %attr(0644,root,root) %{_libdir}/%{name}_evas.so*
 %{_datarootdir}/license/%{name}_evas
 %{TZ_SYS_SHARE}/widget_viewer_evas/res/edje/widget_viewer_evas.edj
@@ -189,7 +184,7 @@ Header & package configuration of watch-control
 %{_libdir}/pkgconfig/widget_viewer_evas.pc
 
 %files -n %{name}_dali
-%manifest %{name}_dali.manifest
+%manifest %{name}.manifest
 %attr(0644,root,root) %{_libdir}/%{name}_dali.so*
 %{_datarootdir}/license/%{name}_dali
 %{TZ_SYS_SHARE}/widget_viewer_dali/images/*.png
@@ -200,13 +195,14 @@ Header & package configuration of watch-control
 %{_libdir}/pkgconfig/widget_viewer_dali.pc
 
 %files -n org.tizen.widget_viewer_sdk
-%manifest org.tizen.widget_viewer_sdk.manifest
+%manifest %{name}.manifest
 %attr(-,app,app) %dir /opt/usr/apps/org.tizen.widget_viewer_sdk/data
 %{_datarootdir}/packages/org.tizen.widget_viewer_sdk.xml
 %{_datarootdir}/license/org.tizen.widget_viewer_sdk
 %{_prefix}/apps/org.tizen.widget_viewer_sdk/*
 
 %files -n widget_toolkit
+%manifest %{name}.manifest
 %{_libdir}/libwidget_toolkit.so*
 
 %files -n widget_toolkit-devel
@@ -214,7 +210,7 @@ Header & package configuration of watch-control
 %{_libdir}/pkgconfig/widget_toolkit.pc
 
 %files -n watch-control
-%manifest watch-control.manifest
+%manifest %{name}.manifest
 %{_libdir}/libwatch-control.so*
 
 %files -n watch-control-devel
