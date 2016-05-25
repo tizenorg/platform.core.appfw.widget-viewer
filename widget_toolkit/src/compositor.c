@@ -71,7 +71,11 @@ static void __obj_added_cb(void *data, Evas_Object *obj, void *event_info)
 		_E("can't find compositor handler for %s", app_id);
 		/* workaround */
 		char buf[255] = {0,};
-		aul_app_get_appid_bypid(pepper_efl_object_pid_get(added), buf, sizeof(buf));
+		int pid;
+
+		pid = pepper_efl_object_pid_get(added);
+		aul_app_get_appid_bypid(pid, buf, sizeof(buf));
+		_E("found appid:%s with pid:%d", buf, pid);
 		handler = g_hash_table_lookup(__appid_tbl, buf);
 		if (!handler)
 			return;
@@ -219,6 +223,7 @@ API int _compositor_set_handler(const char *app_id, _compositor_handler_cb cb, v
 	handler->cb = cb;
 	handler->data = data;
 
+	g_hash_table_remove(__appid_tbl, app_id);
 	g_hash_table_insert(__appid_tbl, handler->app_id, handler);
 
 	return 0;
