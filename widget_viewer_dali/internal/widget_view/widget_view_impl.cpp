@@ -114,6 +114,34 @@ WidgetView::~WidgetView()
   }
 }
 
+bool WidgetView::PauseWidget()
+{
+  int ret = widget_instance_pause( mWidgetId.c_str(), mInstanceId.c_str() );
+  if( ret < 0 )
+  {
+    DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::PauseWidget: Fail to pause widget(%s, %s) [%d]\n", mWidgetId.c_str(), mInstanceId.c_str(), ret );
+    return false;
+  }
+
+  DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::PauseWidget: Widget is paused (%s, %s)\n", mWidgetId.c_str(), mInstanceId.c_str() );
+
+  return true;
+}
+
+bool WidgetView::ResumeWidget()
+{
+  int ret = widget_instance_resume( mWidgetId.c_str(), mInstanceId.c_str() );
+  if( ret < 0 )
+  {
+    DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::ResumeWidget: Fail to resume widget(%s, %s) [%d]\n", mWidgetId.c_str(), mInstanceId.c_str(), ret );
+    return false;
+  }
+
+  DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::ResumeWidget: Widget is resumed (%s, %s)\n", mWidgetId.c_str(), mInstanceId.c_str() );
+
+  return true;
+}
+
 const std::string& WidgetView::GetWidgetId() const
 {
   return mWidgetId;
@@ -266,6 +294,11 @@ void WidgetView::ActivateFaultedWidget()
     if( mPid < 0)
     {
       DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::ActivateFaultedWidget: widget_instance_launch is failed. [%s]\n", mWidgetId.c_str() );
+
+      // Emit signal
+      Dali::WidgetView::WidgetView handle( GetOwner() );
+      mWidgetCreationAbortedSignal.Emit( handle );
+
       return;
     }
 
@@ -361,6 +394,11 @@ void WidgetView::SendWidgetEvent( int event )
       mWidgetExtraInfoUpdatedSignal.Emit( handle );
       break;
     }
+    case WIDGET_INSTANCE_EVENT_FAULT:
+    {
+      mWidgetFaultedSignal.Emit( handle );
+      break;
+    }
     default:
     {
       break;
@@ -378,29 +416,34 @@ Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetDeletedSig
   return mWidgetDeletedSignal;
 }
 
-Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetAbortedSignal()
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetCreationAbortedSignal()
 {
-  return mWidgetAbortedSignal;
+  return mWidgetCreationAbortedSignal;
 }
 
-Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetResized()
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetResizedSignal()
 {
   return mWidgetResizedSignal;
 }
 
-Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetContentUpdated()
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetContentUpdatedSignal()
 {
   return mWidgetContentUpdatedSignal;
 }
 
-Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetExtraInfoUpdated()
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetExtraInfoUpdatedSignal()
 {
   return mWidgetExtraInfoUpdatedSignal;
 }
 
-Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetUpdatePeriodChanged()
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetUpdatePeriodChangedSignal()
 {
   return mWidgetUpdatePeriodChangedSignal;
+}
+
+Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetFaultedSignal()
+{
+  return mWidgetFaultedSignal;
 }
 
 void WidgetView::OnInitialize()
@@ -488,12 +531,20 @@ void WidgetView::OnInitialize()
 
     // Emit signal
     Dali::WidgetView::WidgetView handle( GetOwner() );
-    mWidgetAbortedSignal.Emit( handle );
+    mWidgetCreationAbortedSignal.Emit( handle );
 
     return;
   }
 
   DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: widget_instance_launch is called. [%s, mPid = %d]\n", mWidgetId.c_str(), mPid );
+}
+
+void WidgetView::OnSizeSet( const Vector3& targetSize )
+{
+  if( mObjectView )
+  {
+    mObjectView.SetSize( targetSize );
+  }
 }
 
 } // namespace Internal

@@ -59,6 +59,16 @@ WidgetView::~WidgetView()
 {
 }
 
+bool WidgetView::PauseWidget()
+{
+  return Dali::WidgetView::GetImplementation( *this ).PauseWidget();
+}
+
+bool WidgetView::ResumeWidget()
+{
+  return Dali::WidgetView::GetImplementation( *this ).ResumeWidget();
+}
+
 const std::string& WidgetView::GetWidgetId() const
 {
   return Dali::WidgetView::GetImplementation( *this ).GetWidgetId();
@@ -144,29 +154,34 @@ WidgetView::WidgetViewSignalType& WidgetView::WidgetDeletedSignal()
   return Dali::WidgetView::GetImplementation(*this).WidgetDeletedSignal();
 }
 
-WidgetView::WidgetViewSignalType& WidgetView::WidgetAbortedSignal()
+WidgetView::WidgetViewSignalType& WidgetView::WidgetCreationAbortedSignal()
 {
-  return Dali::WidgetView::GetImplementation(*this).WidgetAbortedSignal();
+  return Dali::WidgetView::GetImplementation(*this).WidgetCreationAbortedSignal();
 }
 
-WidgetView::WidgetViewSignalType& WidgetView::WidgetResized()
+WidgetView::WidgetViewSignalType& WidgetView::WidgetResizedSignal()
 {
-  return Dali::WidgetView::GetImplementation(*this).WidgetResized();
+  return Dali::WidgetView::GetImplementation(*this).WidgetResizedSignal();
 }
 
-WidgetView::WidgetViewSignalType& WidgetView::WidgetContentUpdated()
+WidgetView::WidgetViewSignalType& WidgetView::WidgetContentUpdatedSignal()
 {
-  return Dali::WidgetView::GetImplementation(*this).WidgetContentUpdated();
+  return Dali::WidgetView::GetImplementation(*this).WidgetContentUpdatedSignal();
 }
 
-WidgetView::WidgetViewSignalType& WidgetView::WidgetExtraInfoUpdated()
+WidgetView::WidgetViewSignalType& WidgetView::WidgetExtraInfoUpdatedSignal()
 {
-  return Dali::WidgetView::GetImplementation(*this).WidgetExtraInfoUpdated();
+  return Dali::WidgetView::GetImplementation(*this).WidgetExtraInfoUpdatedSignal();
 }
 
-WidgetView::WidgetViewSignalType& WidgetView::WidgetUpdatePeriodChanged()
+WidgetView::WidgetViewSignalType& WidgetView::WidgetUpdatePeriodChangedSignal()
 {
-  return Dali::WidgetView::GetImplementation(*this).WidgetUpdatePeriodChanged();
+  return Dali::WidgetView::GetImplementation(*this).WidgetUpdatePeriodChangedSignal();
+}
+
+WidgetView::WidgetViewSignalType& WidgetView::WidgetFaultedSignal()
+{
+  return Dali::WidgetView::GetImplementation(*this).WidgetFaultedSignal();
 }
 
 WidgetView::WidgetView( Internal::WidgetView& implementation )
