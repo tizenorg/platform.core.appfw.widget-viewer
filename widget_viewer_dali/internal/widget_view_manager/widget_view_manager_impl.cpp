@@ -24,6 +24,10 @@
 // EXTERNAL INCLUDES
 #include <dali/integration-api/debug.h>
 #include <system_info.h>
+#include <cynara-client.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <widget_errno.h>
 #include <widget_instance.h>
 
@@ -39,11 +43,13 @@ namespace Internal
 namespace
 {
 
+#define SMACK_LABEL_LENGTH 255
+
 #if defined(DEBUG_ENABLED)
 Integration::Log::Filter* gWidgetViewManagerLogging  = Integration::Log::Filter::New( Debug::Verbose, false, "LOG_WIDGET_VIEW_MANAGER" );
 #endif
 
-static inline bool IsWidgetFeatureEnabled()
+static bool IsWidgetFeatureEnabled()
 {
   static bool feature = false;
   static bool retrieved = false;
@@ -61,6 +67,52 @@ static inline bool IsWidgetFeatureEnabled()
   retrieved = true;
 
   return feature;
+}
+
+static bool CheckPrivilege( const char* privilege )
+{
+  cynara* cynara;
+  int fd = 0;
+  int ret = 0;
+  char subjectLabel[SMACK_LABEL_LENGTH + 1] = "";
+  char uid[10] = { 0, };
+  const char* clientSession = "";
+
+  ret = cynara_initialize( &cynara, NULL );
+  if( ret != CYNARA_API_SUCCESS )
+  {
+    return false;
+  }
+
+  fd = open( "/proc/self/attr/current", O_RDONLY );
+  if( fd < 0 )
+  {
+    cynara_finish( cynara );
+    return false;
+  }
+
+  ret = read( fd, subjectLabel, SMACK_LABEL_LENGTH );
+  if( ret < 0 )
+  {
+    close( fd );
+    cynara_finish( cynara );
+    return false;
+  }
+
+  close( fd );
+
+  snprintf( uid, 10, "%d", getuid() );
+
+  ret = cynara_check( cynara, subjectLabel, clientSession, uid, privilege );
+  if( ret != CYNARA_API_ACCESS_ALLOWED )
+  {
+    cynara_finish( cynara );
+    return false;
+  }
+
+  cynara_finish( cynara );
+
+  return true;
 }
 
 } // unnamed namespace
@@ -95,6 +147,12 @@ int WidgetViewManager::Initialize( Application application, const std::string& n
   {
     DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::Initialize: Widget feature is not enabled.\n" );
     return WIDGET_ERROR_NOT_SUPPORTED;
+  }
+
+  if( !CheckPrivilege( "http://tizen.org/privilege/widget.viewer" ) )
+  {
+    DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::Initialize: Privilege error.\n" );
+    return WIDGET_ERROR_PERMISSION_DENIED;
   }
 
   // create compositor
