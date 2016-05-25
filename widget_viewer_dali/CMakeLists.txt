@@ -18,6 +18,7 @@ pkg_check_modules(viewer_dali REQUIRED
 	dali-adaptor
 	dali-toolkit
 	pepper-dali
+	cynara-client
 )
 
 SET(BUILD_SOURCE
