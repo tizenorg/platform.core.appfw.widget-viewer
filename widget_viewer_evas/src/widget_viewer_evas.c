@@ -124,6 +124,11 @@
  * #define SUPPORT_IMAGE_EFFECT
  */
 
+enum {
+	WIDGET_STATE_DETACHED,
+	WIDGET_STATE_ATTACHED
+};
+
 int errno;
 
 static struct info {
@@ -153,9 +158,14 @@ struct widget_info {
 	int disable_loading;
 	int permanent_delete;
 	int visibility_freeze;
+	int state;
+
+	GQueue *event_queue;
 
 	Evas_Object *layout;
 };
+
+static void __flush_event_queue(struct widget_info *info);
 
 static inline bool is_widget_feature_enabled(void)
 {
@@ -258,7 +268,10 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 	}
 
 	if (strcmp(event, "added") == 0) {
+		int x, y, w, h;
 		DbgPrint("widget added: %s", instance_id);
+		evas_object_geometry_get(surface, &x, &y, &w, &h);
+		DbgPrint("widget geometry:%d %d %d %d", x, y, w, h);
 		elm_object_part_content_set(info->layout, "pepper,widget", surface);
 
 		if (!info->disable_preview)
@@ -271,7 +284,10 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 		event_info.widget_app_id = info->widget_id;
 		event_info.event = WIDGET_EVENT_CREATED;
 
+		info->state = WIDGET_STATE_ATTACHED;
+
 		smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATED, &event_info);
+		__flush_event_queue(info);
 		/**
 		 * @note
 		 * After swallow this widget object to the layout,
@@ -299,6 +315,20 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 
 }
 
+static void __push_event_queue(struct widget_info *info, int event)
+{
+	if (info->event_queue == NULL)
+		info->event_queue = g_queue_new();
+
+	if (info->event_queue == NULL) {
+		ErrPrint("out of memory");
+		return;
+	}
+
+	DbgPrint("add event to queue:%d", event);
+	g_queue_push_tail(info->event_queue, GINT_TO_POINTER(event));
+}
+
 static int instance_event_cb(const char *widget_id, const char *instance_id, int event, void *data)
 {
 	struct widget_info *info;
@@ -309,6 +339,11 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 	if (!info) {
 		ErrPrint("Unable to find a proper object\n");
 		return -1;
+	}
+
+	if (info->state == WIDGET_STATE_DETACHED) {
+		__push_event_queue(info, event);
+		return 0;
 	}
 
 	DbgPrint("update: %s (%d)", instance_id, event);
@@ -337,6 +372,7 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 		event_info.event = WIDGET_FAULT_DEACTIVATED;
 		smart_signal = WIDGET_SMART_SIGNAL_WIDGET_FAULTED;
 		info->pid = -1;
+		info->state = WIDGET_STATE_DETACHED;
 		break;
 
 	default:
@@ -344,12 +380,31 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 		return 0;
 	}
 
-	if (info->layout)
-		smart_callback_call(info->layout, smart_signal, &event_info);
-	else
+	if (!info->layout) {
 		ErrPrint("object is not ready");
+		return 0;
+	}
+
+	smart_callback_call(info->layout, smart_signal, &event_info);
 
 	return 0;
+}
+
+static void __flush_event_queue(struct widget_info *info)
+{
+	if (!info->event_queue) {
+		DbgPrint("event queue is empty. nothing to flush");
+		return;
+	}
+
+	while (!g_queue_is_empty(info->event_queue)) {
+		int event = GPOINTER_TO_INT(g_queue_pop_head(info->event_queue));
+		DbgPrint("call pending event %d", event);
+		instance_event_cb(info->widget_id, info->instance_id, event, NULL);
+	}
+
+	g_queue_free(info->event_queue);
+	info->event_queue = NULL;
 }
 
 EAPI int widget_viewer_evas_init(Evas_Object *win)
@@ -610,6 +665,8 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 	info->disable_preview = 0;
 	info->disable_loading = 0;
 	info->visibility_freeze = 0;
+	info->state = WIDGET_STATE_DETACHED;
+	info->event_queue = NULL;
 
 	return info;
 }
