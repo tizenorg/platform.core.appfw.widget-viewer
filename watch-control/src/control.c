@@ -153,6 +153,9 @@ API int watch_manager_get_app_control(const char *app_id, app_control_h *app_con
 {
 	char buf[10];
 	bundle *b = NULL;
+	char caller_appid[255] = {0,};
+	int ret;
+
 	app_control_create(app_control);
 	app_control_set_app_id(*app_control, app_id);
 
@@ -172,6 +175,11 @@ API int watch_manager_get_app_control(const char *app_id, app_control_h *app_con
 		bundle_add_str(b, AUL_K_WAYLAND_WORKING_DIR, getenv("XDG_RUNTIME_DIR"));
 		bundle_add_str(b, "XDG_RUNTIME_DIR", getenv("XDG_RUNTIME_DIR"));
 		aul_svc_set_loader_id(b, 1);
+
+		ret = aul_app_get_appid_bypid(getpid(), caller_appid,
+				sizeof(caller_appid));
+		if (ret == AUL_R_OK)
+			bundle_add_str(b, AUL_K_WIDGET_VIEWER, caller_appid);
 	}
 
 	return 0;
