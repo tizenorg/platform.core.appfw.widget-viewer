@@ -22,6 +22,8 @@
 #include <internal/widget_view/widget_view_impl.h>
 
 // EXTERNAL INCLUDES
+#include <dali/public-api/object/type-registry.h>
+#include <dali/devel-api/object/type-registry-helper.h>
 #include <dali/integration-api/debug.h>
 #include <system_info.h>
 #include <cynara-client.h>
@@ -48,6 +50,13 @@ namespace
 #if defined(DEBUG_ENABLED)
 Integration::Log::Filter* gWidgetViewManagerLogging  = Integration::Log::Filter::New( Debug::Verbose, false, "LOG_WIDGET_VIEW_MANAGER" );
 #endif
+
+BaseHandle Create()
+{
+  return Dali::BaseHandle();
+}
+
+DALI_TYPE_REGISTRATION_BEGIN( Dali::WidgetView::WidgetViewManager, Dali::BaseHandle, Create );
 
 static bool IsWidgetFeatureEnabled()
 {
@@ -202,6 +211,10 @@ void WidgetViewManager::OnObjectViewAdded( Pepper::Compositor compositor, Pepper
       Dali::WidgetView::WidgetView widgetView = iter->second;
 
       Dali::WidgetView::GetImplementation( widgetView ).AddObjectView( objectView );
+    }
+    else
+    {
+      DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::OnObjectViewAdded: Can not find the widget from map! [%s]\n", appId.c_str() );
     }
   }
 
