@@ -97,26 +97,6 @@ public:
   bool CancelTouchEvent();
 
   /**
-   * @copydoc Dali::WidgetView::WidgetView::SetPreviewEnabled
-   */
-  void SetPreviewEnabled( bool enabled );
-
-  /**
-   * @copydoc Dali::WidgetView::WidgetView::GetPreviewEnabled
-   */
-  bool GetPreviewEnabled() const;
-
-  /**
-   * @copydoc Dali::WidgetView::WidgetView::SetStateTextEnabled
-   */
-  void SetStateTextEnabled( bool enabled );
-
-  /**
-   * @copydoc Dali::WidgetView::WidgetView::GetStateTextEnabled
-   */
-  bool GetStateTextEnabled() const;
-
-  /**
    * @copydoc Dali::WidgetView::WidgetView::ActivateFaultedWidget
    */
   void ActivateFaultedWidget();
@@ -127,7 +107,42 @@ public:
   bool IsWidgetFaulted();
 
   /**
-   * @copydoc Dali::WidgetView::WidgetView::SetPermanentDelete
+   * @brief Sets whether to enable or disable the preview of the widget
+   *
+   * @since_tizen 3.0
+   * @param[in] enable Whether to enable the preview of the widget or not
+   */
+  void SetPreviewEnabled( bool enabled );
+
+  /**
+   * @brief Checks if the preview of the widget has been enabled or not.
+   *
+   * @since_tizen 3.0
+   * @return Whether the preview of the widget is enabled
+   */
+  bool GetPreviewEnabled() const;
+
+  /**
+   * @brief Sets whether to enable or disable the state message of the widget
+   *
+   * @since_tizen 3.0
+   * @param[in] enable Whether to enable the state message of the widget or not
+   */
+  void SetStateTextEnabled( bool enabled );
+
+  /**
+   * @brief Checks if the state message of the widget has been enabled or not.
+   *
+   * @since_tizen 3.0
+   * @return Whether the state message of the widget is enabled
+   */
+  bool GetStateTextEnabled() const;
+
+  /**
+   * @brief Set the deletion mode.
+   *
+   * @since_tizen 3.0
+   * @param[in] permanentDelete Pass true if you want to delete this widget instance permanently, or pass false if you want to keep it and it will be re-created soon.
    */
   void SetPermanentDelete( bool permanentDelete );
 
@@ -177,6 +192,34 @@ public: //Signals
    * @copydoc Dali::WidgetView::WidgetView::WidgetFaultedSignal
    */
   Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetFaultedSignal();
+
+  /**
+   * Connects a callback function with the object's signals.
+   * @param[in] object The object providing the signal.
+   * @param[in] tracker Used to disconnect the signal.
+   * @param[in] signalName The signal to connect to.
+   * @param[in] functor A newly allocated FunctorDelegate.
+   * @return True if the signal was connected.
+   * @post If a signal was connected, ownership of functor was passed to CallbackBase. Otherwise the caller is responsible for deleting the unused functor.
+   */
+  static bool DoConnectSignal( BaseObject* object, ConnectionTrackerInterface* tracker, const std::string& signalName, FunctorDelegate* functor );
+
+  // Properties
+  /**
+   * Called when a property of an object of this type is set.
+   * @param[in] object The object whose property is set.
+   * @param[in] index The property index.
+   * @param[in] value The new property value.
+   */
+  static void SetProperty( BaseObject* object, Property::Index index, const Property::Value& value );
+
+  /**
+   * Called to retrieve a property of an object of this type.
+   * @param[in] object The object whose property is to be retrieved.
+   * @param[in] index The property index.
+   * @return The current value of the property.
+   */
+  static Property::Value GetProperty( BaseObject* object, Property::Index propertyIndex );
 
 protected:
 

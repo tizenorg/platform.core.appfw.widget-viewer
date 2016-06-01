@@ -21,6 +21,8 @@
 // INTERNAL INCLUDES
 
 // EXTERNAL INCLUDES
+#include <dali/public-api/object/type-registry.h>
+#include <dali/devel-api/object/type-registry-helper.h>
 #include <dali/integration-api/debug.h>
 #include <string.h>
 #include <widget_service.h>
@@ -44,6 +46,32 @@ namespace
 #if defined(DEBUG_ENABLED)
 Integration::Log::Filter* gWidgetViewLogging  = Integration::Log::Filter::New( Debug::Verbose, false, "LOG_WIDGET_VIEW" );
 #endif
+
+BaseHandle Create()
+{
+  // empty handle as we cannot create button (but type registered for clicked signal)
+  return BaseHandle();
+}
+
+// Setup properties, signals and actions using the type-registry.
+DALI_TYPE_REGISTRATION_BEGIN( Dali::WidgetView::WidgetView, Toolkit::Control, Create );
+
+// Register Event-Side Properties
+DALI_PROPERTY_REGISTRATION( Dali::WidgetView, WidgetView, "previewEnabled",     BOOLEAN, PREVIEW_ENABLED    )
+DALI_PROPERTY_REGISTRATION( Dali::WidgetView, WidgetView, "stateTextEnabled",   BOOLEAN, STATE_TEXT_ENABLED )
+DALI_PROPERTY_REGISTRATION( Dali::WidgetView, WidgetView, "permanentDelete",    FLOAT,   PERMANENT_DELETE   )
+
+// Register Signals
+DALI_SIGNAL_REGISTRATION(   Dali::WidgetView, WidgetView, "widgetAdded",               SIGNAL_WIDGET_ADDED                 )
+DALI_SIGNAL_REGISTRATION(   Dali::WidgetView, WidgetView, "widgetDeleted",             SIGNAL_WIDGET_DELETED               )
+DALI_SIGNAL_REGISTRATION(   Dali::WidgetView, WidgetView, "widgetCreationAborted",     SIGNAL_WIDGET_CREATION_ABORTED      )
+DALI_SIGNAL_REGISTRATION(   Dali::WidgetView, WidgetView, "widgetResized",             SIGNAL_WIDGET_RESIZED               )
+DALI_SIGNAL_REGISTRATION(   Dali::WidgetView, WidgetView, "widgetContentUpdated",      SIGNAL_WIDGET_CONTENT_UPDATED       )
+DALI_SIGNAL_REGISTRATION(   Dali::WidgetView, WidgetView, "widgetExtraInfoUpdated",    SIGNAL_WIDGET_EXTRA_INFO_UPDATED    )
+DALI_SIGNAL_REGISTRATION(   Dali::WidgetView, WidgetView, "widgetUpdatePeriodChanged", SIGNAL_WIDGET_UPDATE_PERIOD_CHANGED )
+DALI_SIGNAL_REGISTRATION(   Dali::WidgetView, WidgetView, "widgetFaulted",             SIGNAL_WIDGET_FAULTED               )
+
+DALI_TYPE_REGISTRATION_END()
 
 } // unnamed namespace
 
@@ -244,36 +272,6 @@ bool WidgetView::CancelTouchEvent()
   return false;
 }
 
-void WidgetView::SetPreviewEnabled( bool enabled )
-{
-  mPreviewEnabled = enabled;
-
-  if( mPreviewImage )
-  {
-    mPreviewImage.SetVisible( enabled );
-  }
-}
-
-bool WidgetView::GetPreviewEnabled() const
-{
-  return mPreviewEnabled;
-}
-
-void WidgetView::SetStateTextEnabled( bool enabled )
-{
-  mStateTextEnabled = enabled;
-
-  if( mStateText )
-  {
-    mStateText.SetVisible( enabled );
-  }
-}
-
-bool WidgetView::GetStateTextEnabled() const
-{
-  return mStateTextEnabled;
-}
-
 void WidgetView::ActivateFaultedWidget()
 {
   if( mPid < 0 )
@@ -309,6 +307,36 @@ void WidgetView::ActivateFaultedWidget()
 bool WidgetView::IsWidgetFaulted()
 {
   return mPid < 0 ? true : false;
+}
+
+void WidgetView::SetPreviewEnabled( bool enabled )
+{
+  mPreviewEnabled = enabled;
+
+  if( mPreviewImage )
+  {
+    mPreviewImage.SetVisible( enabled );
+  }
+}
+
+bool WidgetView::GetPreviewEnabled() const
+{
+  return mPreviewEnabled;
+}
+
+void WidgetView::SetStateTextEnabled( bool enabled )
+{
+  mStateTextEnabled = enabled;
+
+  if( mStateText )
+  {
+    mStateText.SetVisible( enabled );
+  }
+}
+
+bool WidgetView::GetStateTextEnabled() const
+{
+  return mStateTextEnabled;
 }
 
 void WidgetView::SetPermanentDelete( bool permanentDelete )
@@ -446,6 +474,116 @@ Dali::WidgetView::WidgetView::WidgetViewSignalType& WidgetView::WidgetFaultedSig
   return mWidgetFaultedSignal;
 }
 
+bool WidgetView::DoConnectSignal( BaseObject* object, ConnectionTrackerInterface* tracker, const std::string& signalName, FunctorDelegate* functor )
+{
+  Dali::BaseHandle handle( object );
+
+  bool connected( true );
+  Dali::WidgetView::WidgetView widgetView = Dali::WidgetView::WidgetView::DownCast( handle );
+
+  if( 0 == strcmp( signalName.c_str(), SIGNAL_WIDGET_ADDED ) )
+  {
+    widgetView.WidgetAddedSignal().Connect( tracker, functor );
+  }
+  else if( 0 == strcmp( signalName.c_str(), SIGNAL_WIDGET_DELETED ) )
+  {
+    widgetView.WidgetDeletedSignal().Connect( tracker, functor );
+  }
+  else if( 0 == strcmp( signalName.c_str(), SIGNAL_WIDGET_CREATION_ABORTED ) )
+  {
+    widgetView.WidgetCreationAbortedSignal().Connect( tracker, functor );
+  }
+  else if( 0 == strcmp( signalName.c_str(), SIGNAL_WIDGET_RESIZED ) )
+  {
+    widgetView.WidgetResizedSignal().Connect( tracker, functor );
+  }
+  else if( 0 == strcmp( signalName.c_str(), SIGNAL_WIDGET_CONTENT_UPDATED ) )
+  {
+    widgetView.WidgetContentUpdatedSignal().Connect( tracker, functor );
+  }
+  else if( 0 == strcmp( signalName.c_str(), SIGNAL_WIDGET_EXTRA_INFO_UPDATED ) )
+  {
+    widgetView.WidgetExtraInfoUpdatedSignal().Connect( tracker, functor );
+  }
+  else if( 0 == strcmp( signalName.c_str(), SIGNAL_WIDGET_UPDATE_PERIOD_CHANGED ) )
+  {
+    widgetView.WidgetUpdatePeriodChangedSignal().Connect( tracker, functor );
+  }
+  else if( 0 == strcmp( signalName.c_str(), SIGNAL_WIDGET_FAULTED ) )
+  {
+    widgetView.WidgetFaultedSignal().Connect( tracker, functor );
+  }
+  else
+  {
+    // signalName does not match any signal
+    connected = false;
+  }
+
+  return connected;
+}
+
+void WidgetView::SetProperty( BaseObject* object, Property::Index index, const Property::Value& value )
+{
+  Dali::WidgetView::WidgetView widgetView = Dali::WidgetView::WidgetView::DownCast( Dali::BaseHandle( object ) );
+
+  if ( widgetView )
+  {
+    switch ( index )
+    {
+      case Dali::WidgetView::WidgetView::Property::PREVIEW_ENABLED:
+      {
+        GetImplementation( widgetView ).SetPreviewEnabled( value.Get< bool >() );
+        break;
+      }
+
+      case Dali::WidgetView::WidgetView::Property::STATE_TEXT_ENABLED:
+      {
+        GetImplementation( widgetView ).SetStateTextEnabled( value.Get< bool >() );
+        break;
+      }
+
+      case Dali::WidgetView::WidgetView::Property::PERMANENT_DELETE:
+      {
+        GetImplementation( widgetView ).SetPermanentDelete( value.Get< bool >() );
+        break;
+      }
+    }
+  }
+}
+
+Property::Value WidgetView::GetProperty( BaseObject* object, Property::Index propertyIndex )
+{
+  Property::Value value;
+
+  Dali::WidgetView::WidgetView widgetView = Dali::WidgetView::WidgetView::DownCast( Dali::BaseHandle( object ) );
+
+  if ( widgetView )
+  {
+    switch ( propertyIndex )
+    {
+      case Dali::WidgetView::WidgetView::Property::PREVIEW_ENABLED:
+      {
+        value = GetImplementation( widgetView ).mPreviewEnabled;
+        break;
+      }
+
+      case Dali::WidgetView::WidgetView::Property::STATE_TEXT_ENABLED:
+      {
+        value = GetImplementation( widgetView ).mStateTextEnabled;
+        break;
+      }
+
+      case Dali::WidgetView::WidgetView::Property::PERMANENT_DELETE:
+      {
+        value = GetImplementation( widgetView ).mPermanentDelete;
+        break;
+      }
+    }
+  }
+
+  return value;
+}
+
 void WidgetView::OnInitialize()
 {
   char* instanceId = NULL;
@@ -541,6 +679,9 @@ void WidgetView::OnInitialize()
 
 void WidgetView::OnSizeSet( const Vector3& targetSize )
 {
+  // Up call to Control
+  Control::OnSizeSet( targetSize );
+
   if( mObjectView )
   {
     mObjectView.SetSize( targetSize );
