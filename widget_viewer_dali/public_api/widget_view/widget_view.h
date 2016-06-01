@@ -41,10 +41,67 @@ class WidgetView;
  * @brief WidgetView is a class for displaying the widget image and controlling the widget.
  * Input events that WidgetView gets are delivered to the widget.
  *
+ * Signals
+ * | %Signal Name               | Method                                  |
+ * |----------------------------|-----------------------------------------|
+ * | widgetAdded                | @ref WidgetAddedSignal()                |
+ * | widgetDeleted              | @ref WidgetDeletedSignal()              |
+ * | widgetCreationAborted      | @ref WidgetCreationAbortedSignal()      |
+ * | widgetResized              | @ref WidgetResizedSignal()              |
+ * | widgetContentUpdated       | @ref WidgetContentUpdatedSignal()       |
+ * | widgetExtraInfoUpdated     | @ref WidgetExtraInfoUpdatedSignal()     |
+ * | widgetUpdatePeriodChanged  | @ref WidgetUpdatePeriodChangedSignal()  |
+ * | widgetFaulted              | @ref WidgetFaultedSignal()              |
+ *
  * @since_tizen 3.0
  */
 class DALI_IMPORT_API WidgetView : public Toolkit::Control
 {
+public:
+
+  /**
+   * @brief The start and end property ranges for this control.
+   * @since_tizen 3.0
+   */
+  enum PropertyRange
+  {
+    PROPERTY_START_INDEX = Control::CONTROL_PROPERTY_END_INDEX + 1, ///< @since_tizen 3.0
+    PROPERTY_END_INDEX =   PROPERTY_START_INDEX + 1000              ///< Reserve property indices @since_tizen 3.0
+  };
+
+  /**
+   * @brief An enumeration of properties belonging to the WidgetView class.
+   * @since_tizen 3.0
+   */
+  struct Property
+  {
+    enum
+    {
+      // Event side properties
+
+      /**
+       * @brief name "previewEnabled", type BOOLEAN
+       * @details Whether the preview of the widget is enabled.
+       * @since_tizen 3.0
+       */
+      PREVIEW_ENABLED = PROPERTY_START_INDEX,
+
+      /**
+       * @brief name "stateTextEnabled", type BOOLEAN
+       * @details Whether the state message of the widget is enabled.
+       * @since_tizen 3.0
+       */
+      STATE_TEXT_ENABLED,
+
+      /**
+       * @brief name "permanentDelete", type BOOLEAN
+       * @details Set true if you want to delete this widget instance permanently, or false if you want to keep it and it will be re-created soon.
+       * @since_tizen 3.0
+       */
+      PERMANENT_DELETE,
+    };
+  };
+
 public:
 
   /**
@@ -210,46 +267,6 @@ public:
   bool CancelTouchEvent();
 
   /**
-   * @brief Sets whether to enable or disable the preview of the widget
-   *
-   * @since_tizen 3.0
-   * @privlevel public
-   * @privilege %http://tizen.org/privilege/widget.viewer
-   * @param[in] enable Whether to enable the preview of the widget or not
-   */
-  void SetPreviewEnabled( bool enabled );
-
-  /**
-   * @brief Checks if the preview of the widget has been enabled or not.
-   *
-   * @since_tizen 3.0
-   * @privlevel public
-   * @privilege %http://tizen.org/privilege/widget.viewer
-   * @return Whether the preview of the widget is enabled
-   */
-  bool GetPreviewEnabled() const;
-
-  /**
-   * @brief Sets whether to enable or disable the state message of the widget
-   *
-   * @since_tizen 3.0
-   * @privlevel public
-   * @privilege %http://tizen.org/privilege/widget.viewer
-   * @param[in] enable Whether to enable the state message of the widget or not
-   */
-  void SetStateTextEnabled( bool enabled );
-
-  /**
-   * @brief Checks if the state message of the widget has been enabled or not.
-   *
-   * @since_tizen 3.0
-   * @privlevel public
-   * @privilege %http://tizen.org/privilege/widget.viewer
-   * @return Whether the state message of the widget is enabled
-   */
-  bool GetStateTextEnabled() const;
-
-  /**
    * @brief Activate a widget in faulted state.
    * A widget in faulted state MUST be activated before adding the widget.
    *
@@ -268,16 +285,6 @@ public:
    * @return true for faulted state, otherwise false.
    */
   bool IsWidgetFaulted();
-
-  /**
-   * @brief Set the deletion mode.
-   *
-   * @since_tizen 3.0
-   * @privlevel public
-   * @privilege %http://tizen.org/privilege/widget.viewer
-   * @param[in] permanentDelete Pass true if you want to delete this widget instance permanently, or pass false if you want to keep it and it will be re-created soon.
-   */
-  void SetPermanentDelete( bool permanentDelete );
 
 public: //Signals
 

@@ -109,26 +109,6 @@ bool WidgetView::CancelTouchEvent()
   return Dali::WidgetView::GetImplementation( *this ).CancelTouchEvent();
 }
 
-void WidgetView::SetPreviewEnabled( bool enabled )
-{
-  Dali::WidgetView::GetImplementation( *this ).SetPreviewEnabled( enabled );
-}
-
-bool WidgetView::GetPreviewEnabled() const
-{
-  return Dali::WidgetView::GetImplementation( *this ).GetPreviewEnabled();
-}
-
-void WidgetView::SetStateTextEnabled( bool enabled )
-{
-  Dali::WidgetView::GetImplementation( *this ).SetStateTextEnabled( enabled );
-}
-
-bool WidgetView::GetStateTextEnabled() const
-{
-  return Dali::WidgetView::GetImplementation( *this ).GetStateTextEnabled();
-}
-
 void WidgetView::ActivateFaultedWidget()
 {
   return Dali::WidgetView::GetImplementation( *this ).ActivateFaultedWidget();
@@ -137,11 +117,6 @@ void WidgetView::ActivateFaultedWidget()
 bool WidgetView::IsWidgetFaulted()
 {
   return Dali::WidgetView::GetImplementation( *this ).IsWidgetFaulted();
-}
-
-void WidgetView::SetPermanentDelete( bool permanentDelete )
-{
-  return Dali::WidgetView::GetImplementation( *this ).SetPermanentDelete( permanentDelete );
 }
 
 WidgetView::WidgetViewSignalType& WidgetView::WidgetAddedSignal()
