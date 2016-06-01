@@ -43,6 +43,7 @@ static int __default_width;
 static int __default_height;
 
 static Evas_Object *__win;
+static char *viewer_appid;
 
 static void __win_resized(void *data, Evas *e, Evas_Object *obj, void *event_info)
 {
@@ -149,10 +150,24 @@ API int watch_manager_send_terminate(Evas_Object *watch)
 	return 0;
 }
 
+static void __set_viewer_appid(void)
+{
+	char appid[255] = {0,};
+	int ret;
+
+	ret = aul_app_get_appid_bypid(getpid(), appid, sizeof(appid));
+	if (ret == AUL_R_OK) {
+		viewer_appid = strdup(appid);
+		if (!viewer_appid)
+			_E("out of memory");
+	}
+}
+
 API int watch_manager_get_app_control(const char *app_id, app_control_h *app_control)
 {
 	char buf[10];
 	bundle *b = NULL;
+
 	app_control_create(app_control);
 	app_control_set_app_id(*app_control, app_id);
 
@@ -172,6 +187,10 @@ API int watch_manager_get_app_control(const char *app_id, app_control_h *app_con
 		bundle_add_str(b, AUL_K_WAYLAND_WORKING_DIR, getenv("XDG_RUNTIME_DIR"));
 		bundle_add_str(b, "XDG_RUNTIME_DIR", getenv("XDG_RUNTIME_DIR"));
 		aul_svc_set_loader_id(b, 1);
+
+		if (!viewer_appid)
+			__set_viewer_appid();
+		bundle_add_str(b, AUL_K_WIDGET_VIEWER, viewer_appid);
 	}
 
 	return 0;
@@ -180,6 +199,11 @@ API int watch_manager_get_app_control(const char *app_id, app_control_h *app_con
 API int watch_manager_fini()
 {
 	__watch_viewer_fini();
+
+	if (viewer_appid) {
+		free(viewer_appid);
+		viewer_appid = NULL;
+	}
 
 	return 0;
 }
