@@ -203,6 +203,10 @@ void WidgetViewManager::OnObjectViewAdded( Pepper::Compositor compositor, Pepper
 
       Dali::WidgetView::GetImplementation( widgetView ).AddObjectView( objectView );
     }
+    else
+    {
+      DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::OnObjectViewAdded: Can not find the widget from map! [%s]\n", appId.c_str() );
+    }
   }
 
   DALI_LOG_INFO( gWidgetViewManagerLogging, Debug::Verbose, "WidgetViewManager::OnObjectViewAdded: ObjectView is added!\n" );
