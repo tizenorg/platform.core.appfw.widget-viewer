@@ -148,9 +148,8 @@ static struct info {
 struct widget_info {
 	char *widget_id;
 	char *instance_id;
-	char *content_info;
 	const char *title;
-	bundle *b;
+	bundle *content_info_bundle;
 	int pid;
 	double period;
 
@@ -237,7 +236,7 @@ ERROR:
 static void smart_callback_call(Evas_Object *obj, const char *signal, void *cbdata)
 {
 	if (!obj) {
-		DbgPrint("widget is deleted, ignore smart callback call\n");
+		DbgPrint("widget is deleted, ignore smart callback call");
 		return;
 	}
 	evas_object_smart_callback_call(obj, signal, cbdata);
@@ -250,19 +249,19 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 	Evas_Object *surface;
 
 	if (!event) {
-		ErrPrint("invalid parameters\n");
+		ErrPrint("invalid parameters");
 		return;
 	}
 
 	surface = obj;
 	if (!surface) {
-		ErrPrint("Invalid parameters\n");
+		ErrPrint("Invalid parameters");
 		return;
 	}
 
 	info = g_hash_table_lookup(s_info.widget_table, instance_id);
 	if (!info) {
-		ErrPrint("Unable to find a proper object\n");
+		ErrPrint("Unable to find a proper object");
 		evas_object_del(surface);
 		return;
 	}
@@ -337,7 +336,7 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 
 	info = g_hash_table_lookup(s_info.widget_table, instance_id);
 	if (!info) {
-		ErrPrint("Unable to find a proper object\n");
+		ErrPrint("Unable to find a proper object");
 		return -1;
 	}
 
@@ -418,14 +417,14 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 		return WIDGET_ERROR_PERMISSION_DENIED;
 
 	if (!win) {
-		ErrPrint("win object is invalid\n");
+		ErrPrint("win object is invalid");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!bindtextdomain(PKGNAME, WIDGET_VIEWER_EVAS_RESOURCE_PO)) {
-		ErrPrint("bindtextdomain: %d\n", errno);
+		ErrPrint("bindtextdomain: %d", errno);
 	} else {
-		DbgPrint("%s - %s\n", PKGNAME, WIDGET_VIEWER_EVAS_RESOURCE_PO);
+		DbgPrint("%s - %s", PKGNAME, WIDGET_VIEWER_EVAS_RESOURCE_PO);
 	}
 
 	s_info.win = win;
@@ -453,7 +452,7 @@ EAPI int widget_viewer_evas_fini(void)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
@@ -472,7 +471,7 @@ EAPI int widget_viewer_evas_notify_resumed_status_of_viewer(void)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
@@ -485,7 +484,7 @@ EAPI int widget_viewer_evas_notify_paused_status_of_viewer(void)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
@@ -498,12 +497,12 @@ EAPI int widget_viewer_evas_notify_orientation_of_viewer(int orientation)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
 	if (orientation < 0 || orientation > 360) {
-		ErrPrint("orientation is invalid parameter\n");
+		ErrPrint("orientation is invalid parameter");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -534,8 +533,7 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 	info->layout = NULL;
 	free(info->widget_id);
 	free(info->instance_id);
-	free(info->content_info);
-	bundle_free(info->b);
+	bundle_free(info->content_info_bundle);
 	free(info);
 }
 
@@ -548,7 +546,7 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 	widget_size_type_e size_type;
 
 	if (!info || !layout) {
-		ErrPrint("Failed to load the info(%p) or layout(%p)\n", info, layout);
+		ErrPrint("Failed to load the info(%p) or layout(%p)", info, layout);
 		return;
 	}
 
@@ -581,10 +579,10 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 		}
 
 		_compositor_set_handler(info->instance_id, widget_object_cb, NULL);
-		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
+		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->content_info_bundle, w, h);
 		if (info->pid < 0) {
 			struct widget_evas_event_info event_info;
-			ErrPrint("Failed to launch an widget\n");
+			ErrPrint("Failed to launch an widget");
 			event_info.error = info->pid;
 			event_info.widget_app_id = info->widget_id;
 			event_info.event = WIDGET_EVENT_CREATED;
@@ -606,54 +604,28 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 
 	info = (struct widget_info *)calloc(1, sizeof(*info));
 	if (!info) {
-		ErrPrint("malloc: %s\n", strerror(errno));
-		return NULL;
+		ErrPrint("malloc: %s", strerror(errno));
+		goto out;
 	}
 
 	info->widget_id = strdup(widget_id);
 	if (!info->widget_id) {
-		free(info);
-		return NULL;
+		goto out;
 	}
 
 	info->instance_id = strdup(instance_id);
 	if (!info->instance_id) {
-		free(info->widget_id);
-		free(info);
-		return NULL;
-	}
-
-	if (content_info) {
-		info->content_info = strdup(content_info);
-		if (!info->content_info) {
-			free(info->instance_id);
-			free(info->widget_id);
-			free(info);
-			return NULL;
-		}
+		goto out;
 	}
 
 	info->layout = elm_layout_add(parent);
 	if (!info->layout) {
-		if (info->content_info)
-			free(info->content_info);
-
-		free(info->instance_id);
-		free(info->widget_id);
-		free(info);
-		return NULL;
+		goto out;
 	}
 
 	if (elm_layout_file_set(info->layout, WIDGET_VIEWER_EVAS_RESOURCE_EDJ, "layout") == EINA_FALSE) {
 		evas_object_del(info->layout);
-
-		if (info->content_info)
-			free(info->content_info);
-
-		free(info->instance_id);
-		free(info->widget_id);
-		free(info);
-		return NULL;
+		goto out;
 	}
 
 	evas_object_data_set(info->layout, WIDGET_INFO_TAG, info);
@@ -669,92 +641,111 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 	info->event_queue = NULL;
 
 	return info;
+
+out:
+	if (info) {
+		if (info->instance_id)
+			free(info->instance_id);
+
+		if (info->widget_id)
+			free(info->widget_id);
+
+		free(info);
+	}
+
+	return NULL;
 }
 
 EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
 	char *instance_id = NULL;
-	bundle *b = NULL;
-	struct widget_info *info = NULL;
+	bundle *content_info_bundle = NULL;
+	struct widget_info *widget_instance_info = NULL;
 	const bundle_raw *bundle_info = NULL;
 
 	if (!is_widget_feature_enabled()) {
-		ErrPrint("Widget Feature is disabled\n");
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		ErrPrint("Widget Feature is disabled");
 		return NULL;
 	}
 
 	if (!s_info.initialized) {
-		ErrPrint("Widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("Widget viewer evas is not initialized");
 		return NULL;
 	}
 
 	if (!parent) {
-		ErrPrint("parent(window) object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("parent(window) object is invalid");
 		return NULL;
 	}
 
 	if (!widget_id) {
-		ErrPrint("widget package id is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget package id is invalid");
 		return NULL;
 	}
 
 	if (content_info) {
 		bundle_info = (bundle_raw *) content_info;
-		b = bundle_decode(bundle_info, strlen(content_info));
-		if (b == NULL) {
-			ErrPrint("Invalid content format: [%s]\n", content_info);
+		content_info_bundle = bundle_decode(bundle_info, strlen(content_info));
+		if (content_info_bundle == NULL) {
+			set_last_result(WIDGET_ERROR_FAULT);
+			ErrPrint("Invalid content format: [%s]", content_info);
 		}
 	}
 
-	if (b)
-		bundle_get_str(b, WIDGET_K_INSTANCE, &instance_id);
+	if (content_info_bundle)
+		bundle_get_str(content_info_bundle, WIDGET_K_INSTANCE, &instance_id);
 
 	if (!instance_id) {
 		if (widget_instance_create(widget_id, &instance_id) < 0) {
-			if (b)
-				bundle_free(b);
-
+			set_last_result(WIDGET_ERROR_FAULT);
+			if (content_info_bundle)
+				bundle_free(content_info_bundle);
 			return NULL;
 		}
 
 		if (!instance_id) {
-			ErrPrint("Failed to get instance_id: %s\n", widget_id);
-			if (b)
-				bundle_free(b);
-
+			set_last_result(WIDGET_ERROR_FAULT);
+			ErrPrint("Failed to get instance_id: %s", widget_id);
+			if (content_info_bundle)
+				bundle_free(content_info_bundle);
 			return NULL;
 		}
 
-		info = create_info(parent, widget_id, instance_id, content_info);
-		if (!info) {
-			ErrPrint("Unable to create an information object\n");
+		widget_instance_info = create_info(parent, widget_id, instance_id, content_info);
+		if (!widget_instance_info) {
+			set_last_result(WIDGET_ERROR_FAULT);
+			ErrPrint("Unable to create an information object");
 			widget_instance_destroy(widget_id, instance_id);
-			if (b)
-				bundle_free(b);
-
+			if (content_info_bundle)
+				bundle_free(content_info_bundle);
 			return NULL;
 		}
 
-		info->b = b;
-		info->pid = 0;
-		info->period = period;
+		widget_instance_info->content_info_bundle = content_info_bundle;
+		widget_instance_info->pid = 0;
+		widget_instance_info->period = period;
 
-		g_hash_table_insert(s_info.widget_table, instance_id, info);
+		g_hash_table_insert(s_info.widget_table, instance_id, widget_instance_info);
 	} else {
-		info = g_hash_table_lookup(s_info.widget_table, instance_id);
-		if (!info) {
-			info = create_info(parent, widget_id, instance_id, content_info);
-			if (!info) {
-				if (b)
-					bundle_free(b);
+		widget_instance_info = g_hash_table_lookup(s_info.widget_table, instance_id);
+		if (!widget_instance_info) {
+			widget_instance_info = create_info(parent, widget_id, instance_id, content_info);
+			if (!widget_instance_info) {
+				set_last_result(WIDGET_ERROR_FAULT);
+				if (content_info_bundle)
+					bundle_free(content_info_bundle);
 				return NULL;
 			}
 
-			info->b = b;
-			info->pid = 0;
-			info->period = period;
+			widget_instance_info->content_info_bundle = content_info_bundle;
+			widget_instance_info->pid = 0;
+			widget_instance_info->period = period;
 
-			g_hash_table_insert(s_info.widget_table, instance_id, info);
+			g_hash_table_insert(s_info.widget_table, instance_id, widget_instance_info);
 		}
 	}
 
@@ -764,7 +755,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	 * If he knows the widget_id and instance_id, he can get the object of it.
 	 * Same Evas_Object.
 	 */
-	return info->layout;
+	return widget_instance_info->layout;
 }
 
 EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
@@ -773,7 +764,7 @@ EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (type < WIDGET_VIEWER_EVAS_MANUAL_PAUSE_RESUME || type > WIDGET_VIEWER_EVAS_UNKNOWN) {
-		ErrPrint("type is invalid\n");
+		ErrPrint("type is invalid");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -789,29 +780,29 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		ErrPrint("widget object is invalid");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (info->visibility_freeze) {
-		ErrPrint("widget(%p) is freezing visibility(%d)\n", widget, info->visibility_freeze);
+		ErrPrint("widget(%p) is freezing visibility(%d)", widget, info->visibility_freeze);
 		return WIDGET_ERROR_DISABLED;
 	}
 
 	ret = widget_instance_pause(info->widget_id, info->instance_id);
 	if (ret < 0) {
-		ErrPrint("Fail to pause the widget(%p):(%d)\n", widget, ret);
+		ErrPrint("Fail to pause the widget(%p):(%d)", widget, ret);
 		return ret;
 	}
 
@@ -827,29 +818,29 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		ErrPrint("widget object is invalid");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (info->visibility_freeze) {
-		ErrPrint("widget(%p) is freezing visibility(%d)\n", widget, info->visibility_freeze);
+		ErrPrint("widget(%p) is freezing visibility(%d)", widget, info->visibility_freeze);
 		return WIDGET_ERROR_DISABLED;
 	}
 
 	ret = widget_instance_resume(info->widget_id, info->instance_id);
 	if (ret < 0) {
-		ErrPrint("Fail to resume the widget(%p):(%d)\n", widget, ret);
+		ErrPrint("Fail to resume the widget(%p):(%d)", widget, ret);
 		return ret;
 	}
 
@@ -862,61 +853,67 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 	widget_instance_h handle = NULL;
 	bundle_raw *content_info = NULL;
 	int content_len = 0;
-	bundle *b = NULL;
+	bundle *content_info_bundle = NULL;
 
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return NULL;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
+
 		return NULL;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		ErrPrint("widget object is invalid");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return NULL;
 	}
 
 	if (!info->widget_id && !info->instance_id) {
-		ErrPrint("widget id(%s) or instance id(%s) is invalid data\n", info->widget_id, info->instance_id);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget id(%s) or instance id(%s) is invalid data", info->widget_id, info->instance_id);
 		return NULL;
 	}
 
 	handle = widget_instance_get_instance(info->widget_id, info->instance_id);
 
 	if (!handle) {
-		ErrPrint("instance handle of widget(%s) is invalid data\n", info->instance_id);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("instance handle of widget(%s) is invalid data", info->instance_id);
 		return NULL;
 	}
 
-	if (widget_instance_get_content(handle, &b) < 0) {
-		ErrPrint("Failed to get content of widget(%s)\n", info->instance_id);
+	if (widget_instance_get_content(handle, &content_info_bundle) < 0) {
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("Failed to get content of widget(%s)", info->instance_id);
 		return NULL;
 	}
 
-	if (b == NULL) {
-		ErrPrint("content of widget(%s) is invalid data\n", info->instance_id);
+	if (content_info_bundle == NULL) {
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("content of widget(%s) is invalid data", info->instance_id);
 		return NULL;
 	}
 
-	if (bundle_encode(b, &content_info, &content_len) < 0) {
-		ErrPrint("Failed to encode (%s)\n", info->instance_id);
+	if (bundle_encode(content_info_bundle, &content_info, &content_len) < 0) {
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("Failed to encode (%s)", info->instance_id);
 		return NULL;
 	}
 
-	if (info->content_info)
-		free(info->content_info);
-	info->content_info = (char *)content_info;
-
-
-	return info->content_info;
+	return (const char*)content_info;
 }
 
 EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
@@ -925,34 +922,39 @@ EAPI const char *widget_viewer_evas_get_title_string(Evas_Object *widget)
 	const char *title = NULL;
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return NULL;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return NULL;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return NULL;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return NULL;
 	}
 
 	pepper_obj = elm_object_part_content_get(widget, "pepper,widget");
 	if (!pepper_obj) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return NULL;
 	}
 
 	title = pepper_efl_object_title_get(pepper_obj);
 	if (!title) {
-		//title = widget_service_get_app_id_of_setup_app(info->widget_id);
 		title = widget_service_get_name(info->widget_id, NULL);
 	}
 
@@ -965,22 +967,23 @@ EAPI const char *widget_viewer_evas_get_widget_id(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
 		return NULL;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return NULL;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		ErrPrint("widget object is invalid");
 		return NULL;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return NULL;
 	}
 
@@ -995,18 +998,18 @@ EAPI double widget_viewer_evas_get_period(Evas_Object *widget)
 		return -1.0f;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return -1.0f;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		ErrPrint("widget object is invalid");
 		return -1.0f;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return -1.0f;
 	}
 
@@ -1018,33 +1021,40 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 	Evas_Object *pepper_obj = NULL;
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return;
 	}
 
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return;
 	}
 
 	pepper_obj = elm_object_part_content_get(widget, "pepper,widget");
 	if (!pepper_obj) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return;
 	}
 
 	if (!pepper_efl_object_touch_cancel(pepper_obj)) {
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Fail to cancel the click event");
 		return;
 	}
@@ -1060,18 +1070,18 @@ EAPI int widget_viewer_evas_feed_mouse_up_event(Evas_Object *widget)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		ErrPrint("widget object is invalid");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1088,22 +1098,27 @@ EAPI void widget_viewer_evas_disable_preview(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return;
 	}
 
@@ -1123,22 +1138,27 @@ EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return;
 	}
 
@@ -1156,22 +1176,27 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return;
 	}
 
@@ -1184,22 +1209,27 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return;
 	}
 
@@ -1217,9 +1247,9 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 		if (info->disable_loading)
 			elm_object_signal_emit(info->layout, "enable", "text");
 
-		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->b, w, h);
+		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->content_info_bundle, w, h);
 		if (info->pid < 0) {
-			ErrPrint("Failed to launch an widget\n");
+			ErrPrint("Failed to launch an widget");
 			event_info.error = info->pid;
 			event_info.widget_app_id = info->widget_id;
 			event_info.event = WIDGET_EVENT_CREATED;
@@ -1241,22 +1271,27 @@ EAPI bool widget_viewer_evas_is_faulted(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return false;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return false;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return false;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return false;
 	}
 
@@ -1268,41 +1303,43 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 	struct widget_info *info;
 	int ret = 0;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
 		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		ErrPrint("widget object is invalid");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (status == WIDGET_VISIBILITY_STATUS_SHOW_FIXED) {
 		ret = widget_instance_resume(info->widget_id, info->instance_id);
 		if (ret < 0) {
-			ErrPrint("Fail to resume the widget(%p):(%d)\n", widget, ret);
+			ErrPrint("Fail to resume the widget(%p):(%d)", widget, ret);
 			return ret;
 		}
 		info->visibility_freeze = status;
 	} else if (status == WIDGET_VISIBILITY_STATUS_HIDE_FIXED) {
 		ret = widget_instance_pause(info->widget_id, info->instance_id);
 		if (ret < 0) {
-			ErrPrint("Fail to pause the widget(%p):(%d)\n", widget, ret);
+			ErrPrint("Fail to pause the widget(%p):(%d)", widget, ret);
 			return ret;
 		}
 		info->visibility_freeze = status;
 	} else {
-		ErrPrint("status value is invalid\n");
+
+		ErrPrint("status value is invalid");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1317,18 +1354,18 @@ EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 		return WIDGET_ERROR_NOT_SUPPORTED;
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		ErrPrint("widget viewer evas is not initialized");
 		return WIDGET_ERROR_FAULT;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		ErrPrint("widget object is invalid");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -1341,22 +1378,27 @@ EAPI bool widget_viewer_evas_is_visibility_frozen(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return false;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return false;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return false;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return false;
 	}
 
@@ -1370,22 +1412,27 @@ EAPI bool widget_viewer_evas_is_widget(Evas_Object *widget)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return false;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return false;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return false;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return false;
 	}
 
@@ -1396,22 +1443,27 @@ EAPI void widget_viewer_evas_set_permanent_delete(Evas_Object *widget, int flag)
 {
 	struct widget_info *info;
 
-	if (!is_widget_feature_enabled())
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return;
+	}
 
 	if (!s_info.initialized) {
-		ErrPrint("widget viewer evas is not initialized\n");
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("widget viewer evas is not initialized");
 		return;
 	}
 
 	if (!widget) {
-		ErrPrint("widget object is invalid\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget object is invalid");
 		return;
 	}
 
 	info = evas_object_data_get(widget, WIDGET_INFO_TAG);
 	if (!info) {
-		ErrPrint("widget(%p) don't have the info\n", widget);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("widget(%p) don't have the info", widget);
 		return;
 	}
 
