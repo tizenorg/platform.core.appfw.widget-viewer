@@ -515,6 +515,8 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 	struct widget_info *info = data;
 	struct widget_evas_event_info evas_info;
 
+	DbgPrint("delete: layout(%p)", layout);
+
 	evas_info.error = WIDGET_ERROR_NONE;
 	evas_info.widget_app_id = info->widget_id;
 	evas_info.event = WIDGET_EVENT_CREATED;
@@ -530,8 +532,14 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 		widget_instance_destroy(info->widget_id, info->instance_id);
 
 	evas_object_data_del(layout, WIDGET_INFO_TAG);
+	g_hash_table_remove(s_info.widget_table, info->instance_id);
 
 	info->layout = NULL;
+	if (info->event_queue) {
+		g_queue_free(info->event_queue);
+		info->event_queue = NULL;
+	}
+
 	free(info->widget_id);
 	free(info->instance_id);
 	free(info->content_info);
