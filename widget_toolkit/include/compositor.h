@@ -24,6 +24,12 @@
 extern "C" {
 #endif
 
+typedef enum {
+	VISIBILITY_TYPE_UNOBSCURED = 0,
+	VISIBILITY_TYPE_PARTIALLY_OBSCURED,
+	VISIBILITY_TYPE_FULLY_OBSCURED,
+} visibility_type;
+
 typedef void (*_compositor_handler_cb)(const char *app_id, const char *event, Evas_Object *obj, void *data);
 
 const char *_compositor_init(Evas_Object *win);
@@ -33,6 +39,11 @@ int _compositor_unser_handler(const char *app_id);
 const char *_compositor_get_title(Evas_Object *obj);
 const char *_compositor_get_app_id(Evas_Object *obj);
 int _compositor_get_pid(Evas_Object *obj);
+int _compositor_set_visibility(Evas_Object *obj, visibility_type type);
+int _compositor_freeze_visibility(Evas_Object *obj, visibility_type type);
+int _compositor_thaw_visibility(Evas_Object *obj);
+int _compositor_stop_visibility_notify();
+int _compositor_start_visibility_notify();
 
 #ifdef __cplusplus
 }

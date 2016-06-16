@@ -70,6 +70,7 @@ static int __watch_viewer_init(Evas_Object *win)
 
 	__win = win;
 	_compositor_init(win);
+	_compositor_start_visibility_notify();
 
 	__win_resized(NULL, NULL, win, NULL); /* init */
 	evas_object_event_callback_add(win, EVAS_CALLBACK_RESIZE, __win_resized, NULL);
@@ -84,6 +85,7 @@ static void __watch_viewer_fini()
 	if (__win)
 		evas_object_event_callback_del(__win, EVAS_CALLBACK_RESIZE, __win_resized);
 
+	_compositor_stop_visibility_notify();
 	_compositor_fini();
 }
 

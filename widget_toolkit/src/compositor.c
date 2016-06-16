@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <aul.h>
 #include "compositor.h"
+#include <Ecore_Wayland.h>
+#include <Elementary.h>
 
 #ifndef _E
 #define _E LOGE
@@ -41,11 +43,15 @@ struct compositor_handler {
 	_compositor_handler_cb cb;
 	void *data;
 	Evas_Object *evas_obj;
+	int freeze;
 };
 
 const char *__compositor_name = NULL;
 GHashTable *__appid_tbl = NULL;
 GHashTable *__evas_tbl = NULL;
+Ecore_Wl_Window *__window = NULL;
+unsigned int __window_id = 0;
+Ecore_Event_Handler *__visibility_listener = NULL;
 
 static void __obj_added_cb(void *data, Evas_Object *obj, void *event_info)
 {
@@ -166,6 +172,9 @@ API const char *_compositor_init(Evas_Object *win)
 		return NULL;
 	}
 
+	__window = elm_win_wl_window_get(win);
+	__window_id = ecore_wl_window_id_get(__window);
+
 	__set_runtime_dir();
 
 	compositor_name = pepper_efl_compositor_create(win, app_id);
@@ -222,6 +231,7 @@ API int _compositor_set_handler(const char *app_id, _compositor_handler_cb cb, v
 	handler->app_id = g_strdup(app_id);
 	handler->cb = cb;
 	handler->data = data;
+	handler->freeze = 0;
 
 	g_hash_table_remove(__appid_tbl, app_id);
 	g_hash_table_insert(__appid_tbl, handler->app_id, handler);
@@ -251,3 +261,122 @@ API int _compositor_get_pid(Evas_Object *obj)
 	return pepper_efl_object_pid_get(obj);
 }
 
+API int _compositor_set_visibility(Evas_Object *obj, visibility_type type)
+{
+	int obscured;
+	int ret;
+
+	switch (type) {
+	case VISIBILITY_TYPE_UNOBSCURED:
+		obscured = PEPPER_EFL_VISIBILITY_TYPE_UNOBSCURED;
+		break;
+	case VISIBILITY_TYPE_PARTIALLY_OBSCURED:
+		obscured = PEPPER_EFL_VISIBILITY_TYPE_PARTIALLY_OBSCURED;
+		break;
+	case VISIBILITY_TYPE_FULLY_OBSCURED:
+		obscured = PEPPER_EFL_VISIBILITY_TYPE_FULLY_OBSCURED;
+		break;
+	default:
+		return -1;
+	}
+
+	ret = pepper_efl_object_visibility_set(obj, obscured);
+
+	if (ret) /* EINA_TRUE on success */
+		return 0;
+
+	return -1;
+}
+
+API int _compositor_freeze_visibility(Evas_Object *obj, visibility_type type)
+{
+	struct compositor_handler *handler;
+
+	handler = (struct compositor_handler *)g_hash_table_lookup(__evas_tbl, obj);
+
+	if (!handler) {
+		_E("obj not found");
+		return -1;
+	}
+
+	handler->freeze = 1;
+
+	return _compositor_set_visibility(obj, type);
+}
+
+API int _compositor_thaw_visibility(Evas_Object *obj)
+{
+	struct compositor_handler *handler;
+
+	handler = (struct compositor_handler *)g_hash_table_lookup(__evas_tbl, obj);
+
+	if (!handler) {
+		_E("obj not found");
+		return -1;
+	}
+
+	handler->freeze = 0;
+
+	return 0;
+}
+
+static void __send_visibility(gpointer key, gpointer value, gpointer user_data)
+{
+	struct compositor_handler *handler = (struct compositor_handler *)value;
+	Evas_Object *evas_obj = (Evas_Object *)key;
+	unsigned int event = GPOINTER_TO_INT(user_data);
+	int ret;
+	Pepper_Efl_Visibility_Type type;
+
+	if (handler->freeze)
+		return;
+
+	if (event)
+		type = PEPPER_EFL_VISIBILITY_TYPE_FULLY_OBSCURED;
+	else
+		type = PEPPER_EFL_VISIBILITY_TYPE_UNOBSCURED;
+
+	ret = pepper_efl_object_visibility_set(evas_obj, type);
+	if (!ret) {
+		_E("failed to set pepper efl object visibility set %p to %d",
+			evas_obj, type);
+	}
+}
+
+static Eina_Bool __visibility_cb(void *data, int type, void *event)
+{
+	Ecore_Wl_Event_Window_Visibility_Change *ev = event;
+
+	_D("visibility change: %d %d", (unsigned int)ev->win,
+					(unsigned int)ev->fully_obscured);
+
+	if (ev->win != __window_id || !__evas_tbl)
+		return ECORE_CALLBACK_RENEW;
+
+	g_hash_table_foreach(__evas_tbl, __send_visibility,
+					GINT_TO_POINTER(ev->fully_obscured));
+
+	return ECORE_CALLBACK_RENEW;
+}
+
+API int _compositor_start_visibility_notify()
+{
+	if (__visibility_listener)
+		return 0;
+
+	__visibility_listener = ecore_event_handler_add(
+		ECORE_WL_EVENT_WINDOW_VISIBILITY_CHANGE, __visibility_cb, NULL);
+
+	return 0;
+}
+
+API int _compositor_stop_visibility_notify()
+{
+	if (!__visibility_listener)
+		return 0;
+
+	ecore_event_handler_del(__visibility_listener);
+	__visibility_listener = NULL;
+
+	return 0;
+}

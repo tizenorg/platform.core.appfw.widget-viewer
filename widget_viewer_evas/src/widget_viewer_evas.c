@@ -431,6 +431,7 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 	s_info.win = win;
 
 	_compositor_init(win); /* YOU MUST CALL _compositor_init() PRIOR TO widget_instance_init() */
+	_compositor_start_visibility_notify();
 
 	if (aul_app_get_appid_bypid(getpid(), app_id, sizeof(app_id)) != AUL_R_OK) {
 		ErrPrint("failed to get appid of pid:%d", getpid());
@@ -783,6 +784,13 @@ EAPI int widget_viewer_evas_set_option(widget_evas_conf_e type, int value)
 	if (type < WIDGET_VIEWER_EVAS_MANUAL_PAUSE_RESUME || type > WIDGET_VIEWER_EVAS_UNKNOWN) {
 		ErrPrint("type is invalid\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (type == WIDGET_VIEWER_EVAS_MANUAL_PAUSE_RESUME) {
+		if (value)
+			_compositor_stop_visibility_notify();
+		else
+			_compositor_start_visibility_notify();
 	}
 
 	return WIDGET_ERROR_NONE;
@@ -1275,6 +1283,7 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 {
 	struct widget_info *info;
 	int ret = 0;
+	Evas_Object *pepper_obj;
 
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
@@ -1295,15 +1304,21 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	pepper_obj = elm_object_part_content_get(widget, "pepper,widget");
+	if (!pepper_obj) {
+		ErrPrint("widget object is invalid\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
 	if (status == WIDGET_VISIBILITY_STATUS_SHOW_FIXED) {
-		ret = widget_instance_resume(info->widget_id, info->instance_id);
+		ret = _compositor_freeze_visibility(pepper_obj, VISIBILITY_TYPE_UNOBSCURED);
 		if (ret < 0) {
 			ErrPrint("Fail to resume the widget(%p):(%d)\n", widget, ret);
 			return ret;
 		}
 		info->visibility_freeze = status;
 	} else if (status == WIDGET_VISIBILITY_STATUS_HIDE_FIXED) {
-		ret = widget_instance_pause(info->widget_id, info->instance_id);
+		ret = _compositor_freeze_visibility(pepper_obj, VISIBILITY_TYPE_FULLY_OBSCURED);
 		if (ret < 0) {
 			ErrPrint("Fail to pause the widget(%p):(%d)\n", widget, ret);
 			return ret;
@@ -1320,6 +1335,7 @@ EAPI int widget_viewer_evas_freeze_visibility(Evas_Object *widget, widget_visibi
 EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 {
 	struct widget_info *info;
+	Evas_Object *pepper_obj;
 
 	if (!is_widget_feature_enabled())
 		return WIDGET_ERROR_NOT_SUPPORTED;
@@ -1340,6 +1356,13 @@ EAPI int widget_viewer_evas_thaw_visibility(Evas_Object *widget)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	pepper_obj = elm_object_part_content_get(widget, "pepper,widget");
+	if (!pepper_obj) {
+		ErrPrint("widget object is invalid\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	_compositor_thaw_visibility(pepper_obj);
 	info->visibility_freeze = 0;
 
 	return WIDGET_ERROR_NONE;
