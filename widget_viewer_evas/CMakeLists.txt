@@ -32,11 +32,12 @@ SET(BUILD_SOURCE
 FOREACH(flag ${viewer_evas_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
 ENDFOREACH(flag)
-SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fvisibility=hidden -Wall -Werror -Winline")
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fvisibility=hidden -Wall -Werror -Winline -fprofile-arcs -ftest-coverage")
 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
 SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
 SET(CMAKE_C_FLAGS_RELEASE "-O2")
+SET(CMAKE_LDFLAGS "-lgcov" )
 
 ADD_DEFINITIONS("-DWIDGET_VIEWER_EVAS_RESOURCE_EDJ=\"${EDJDIR}/widget_viewer_evas.edj\"")
 ADD_DEFINITIONS("-DWIDGET_VIEWER_EVAS_RESOURCE_IMG=\"widget,image\"")
