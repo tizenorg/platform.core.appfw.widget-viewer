@@ -279,13 +279,8 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 		if (!info->disable_loading)
 			elm_object_signal_emit(info->layout, "disable", "text");
 
-		event_info.error = WIDGET_ERROR_NONE;
-		event_info.widget_app_id = info->widget_id;
-		event_info.event = WIDGET_EVENT_CREATED;
-
 		info->state = WIDGET_STATE_ATTACHED;
 
-		smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATED, &event_info);
 		__flush_event_queue(info);
 		/**
 		 * @note
@@ -351,6 +346,10 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 	event_info.widget_app_id = info->widget_id;
 
 	switch (event) {
+	case WIDGET_INSTANCE_EVENT_CREATE:
+		event_info.event = WIDGET_EVENT_CREATED;
+		smart_signal = WIDGET_SMART_SIGNAL_WIDGET_CREATED;
+		break;
 	case WIDGET_INSTANCE_EVENT_UPDATE:
 		event_info.event = WIDGET_EVENT_WIDGET_UPDATED;
 		smart_signal = WIDGET_SMART_SIGNAL_UPDATED;
