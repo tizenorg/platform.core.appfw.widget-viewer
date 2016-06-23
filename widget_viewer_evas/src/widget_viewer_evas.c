@@ -155,9 +155,11 @@ struct widget_info {
 
 	int disable_preview;
 	int disable_loading;
+	int disable_overlay;
 	int permanent_delete;
 	int visibility_freeze;
 	int state;
+	int cancel_click;
 
 	GQueue *event_queue;
 
@@ -277,7 +279,7 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 			elm_object_signal_emit(info->layout, "disable", "preview");
 
 		if (!info->disable_loading)
-			elm_object_signal_emit(info->layout, "disable", "text");
+			elm_object_signal_emit(info->layout, "disable", "loading,text");
 
 		info->state = WIDGET_STATE_ATTACHED;
 
@@ -295,7 +297,7 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 			elm_object_signal_emit(info->layout, "enable", "previewe");
 
 		if (info->disable_loading)
-			elm_object_signal_emit(info->layout, "enable", "text");
+			elm_object_signal_emit(info->layout, "enable", "loading,text");
 
 		event_info.error =  WIDGET_ERROR_NONE;
 		event_info.widget_app_id = info->widget_id;
@@ -306,7 +308,19 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 		ErrPrint("undefiend event occured");
 		return;
 	}
+}
 
+static void __display_overlay_text(struct widget_info *info)
+{
+	if (!info) {
+		ErrPrint("Unable to get the info");
+		return;
+	}
+	if (!info->disable_overlay) {
+		elm_object_part_text_set(info->layout, "text", T_("IDS_HS_BODY_UNABLE_TO_LOAD_DATA_TAP_TO_RETRY"));
+		elm_object_signal_emit(info->layout, "enable", "overlay,text");
+		elm_object_signal_emit(info->layout, "disable", "preview");
+	}
 }
 
 static void __push_event_queue(struct widget_info *info, int event)
@@ -371,6 +385,7 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 		smart_signal = WIDGET_SMART_SIGNAL_WIDGET_FAULTED;
 		info->pid = -1;
 		info->state = WIDGET_STATE_DETACHED;
+		__display_overlay_text(info);
 		break;
 
 	default:
@@ -577,9 +592,7 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 				}
 
 				free(preview_path);
-
 			}
-
 		}
 
 		if (!info->disable_loading) {
@@ -596,6 +609,7 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 			event_info.event = WIDGET_EVENT_CREATED;
 
 			smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &event_info);
+			__display_overlay_text(info);
 			return;
 		}
 	} else {
@@ -604,6 +618,20 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 		 * Layout will be resized, consequently, the pepper object also will be resized.
 		 */
 	}
+}
+
+static void _clicked_cb(void *data, Evas_Object *obj, const char *emission, const char *source)
+{
+	struct widget_info *info = data;
+	if (!info) {
+		ErrPrint("Failed to get info data");
+		return;
+	}
+	if (info->cancel_click) {
+		info->cancel_click = 0;
+		return;
+	}
+	widget_viewer_evas_activate_faulted_widget(info->layout);
 }
 
 static inline struct widget_info *create_info(Evas_Object *parent, const char *widget_id, const char *instance_id, const char *content_info)
@@ -640,11 +668,13 @@ static inline struct widget_info *create_info(Evas_Object *parent, const char *w
 
 	evas_object_event_callback_add(info->layout, EVAS_CALLBACK_RESIZE, resize_cb, info);
 	evas_object_event_callback_add(info->layout, EVAS_CALLBACK_DEL, del_cb, info);
+	elm_object_signal_callback_add(info->layout, "clicked", "reload", _clicked_cb, info);
 
 	info->permanent_delete = 0;
 	info->disable_preview = 0;
 	info->disable_loading = 0;
 	info->visibility_freeze = 0;
+	info->cancel_click = 0;
 	info->state = WIDGET_STATE_DETACHED;
 	info->event_queue = NULL;
 
@@ -1061,6 +1091,8 @@ EAPI void widget_viewer_evas_cancel_click_event(Evas_Object *widget)
 		return;
 	}
 
+	info->cancel_click = 1;
+
 	pepper_obj = elm_object_part_content_get(widget, "pepper,widget");
 	if (!pepper_obj) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -1177,7 +1209,8 @@ EAPI void widget_viewer_evas_disable_overlay_text(Evas_Object *widget)
 		return;
 	}
 
-	elm_object_signal_emit(info->layout, "disable", "text");
+	info->disable_overlay = 1;
+	elm_object_signal_emit(info->layout, "disable", "overlay,text");
 	return;
 }
 
@@ -1216,7 +1249,7 @@ EAPI void widget_viewer_evas_disable_loading(Evas_Object *widget)
 	}
 
 	info->disable_loading = 1;
-	elm_object_signal_emit(info->layout, "disable", "text");
+	elm_object_signal_emit(info->layout, "disable", "loading,text");
 	return;
 }
 
@@ -1256,11 +1289,13 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 
 		evas_object_geometry_get(info->layout, NULL, NULL, &w, &h);
 
-		if (info->disable_preview)
+		if (!info->disable_preview)
 			elm_object_signal_emit(info->layout, "enable", "preview");
 
-		if (info->disable_loading)
+		if (!info->disable_loading) {
+			elm_object_part_text_set(info->layout, "text", T_("IDS_ST_POP_LOADING_ING"));
 			elm_object_signal_emit(info->layout, "enable", "text");
+		}
 
 		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->content_info_bundle, w, h);
 		if (info->pid < 0) {
