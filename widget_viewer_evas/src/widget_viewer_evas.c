@@ -149,7 +149,7 @@ struct widget_info {
 	char *widget_id;
 	char *instance_id;
 	const char *title;
-	bundle *content_info_bundle;
+	char *content_info;
 	int pid;
 	double period;
 
@@ -537,13 +537,12 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 
 	smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_DELETED, &evas_info);
 
-	if (info->widget_id && info->instance_id) {
-		widget_instance_terminate(info->widget_id, info->instance_id);
-		info->pid = 0;
+	if (info->instance_id) {
+		if (info->permanent_delete)
+			widget_instance_destroy(info->instance_id);
+		else
+			widget_instance_terminate(info->instance_id);
 	}
-
-	if (info->permanent_delete)
-		widget_instance_destroy(info->widget_id, info->instance_id);
 
 	evas_object_data_del(layout, WIDGET_INFO_TAG);
 	g_hash_table_remove(s_info.widget_table, info->instance_id);
@@ -556,7 +555,7 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 
 	free(info->widget_id);
 	free(info->instance_id);
-	bundle_free(info->content_info_bundle);
+	free(info->content_info);
 	free(info);
 }
 
@@ -600,7 +599,7 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 		}
 
 		_compositor_set_handler(info->instance_id, widget_object_cb, NULL);
-		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->content_info_bundle, w, h);
+		info->pid = widget_instance_launch(info->instance_id, info->content_info, w, h);
 		if (info->pid < 0) {
 			struct widget_evas_event_info event_info;
 			ErrPrint("Failed to launch an widget");
@@ -697,9 +696,7 @@ out:
 EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
 	char *instance_id = NULL;
-	bundle *content_info_bundle = NULL;
 	struct widget_info *widget_instance_info = NULL;
-	const bundle_raw *bundle_info = NULL;
 
 	if (!is_widget_feature_enabled()) {
 		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
@@ -725,67 +722,32 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 		return NULL;
 	}
 
-	if (content_info) {
-		bundle_info = (bundle_raw *) content_info;
-		content_info_bundle = bundle_decode(bundle_info, strlen(content_info));
-		if (content_info_bundle == NULL) {
-			set_last_result(WIDGET_ERROR_FAULT);
-			ErrPrint("Invalid content format: [%s]", content_info);
-		}
+	if (widget_instance_create(widget_id, &instance_id) < 0) {
+		set_last_result(WIDGET_ERROR_FAULT);
+		return NULL;
 	}
-
-	if (content_info_bundle)
-		bundle_get_str(content_info_bundle, WIDGET_K_INSTANCE, &instance_id);
 
 	if (!instance_id) {
-		if (widget_instance_create(widget_id, &instance_id) < 0) {
-			set_last_result(WIDGET_ERROR_FAULT);
-			if (content_info_bundle)
-				bundle_free(content_info_bundle);
-			return NULL;
-		}
-
-		if (!instance_id) {
-			set_last_result(WIDGET_ERROR_FAULT);
-			ErrPrint("Failed to get instance_id: %s", widget_id);
-			if (content_info_bundle)
-				bundle_free(content_info_bundle);
-			return NULL;
-		}
-
-		widget_instance_info = create_info(parent, widget_id, instance_id, content_info);
-		if (!widget_instance_info) {
-			set_last_result(WIDGET_ERROR_FAULT);
-			ErrPrint("Unable to create an information object");
-			widget_instance_destroy(widget_id, instance_id);
-			if (content_info_bundle)
-				bundle_free(content_info_bundle);
-			return NULL;
-		}
-
-		widget_instance_info->content_info_bundle = content_info_bundle;
-		widget_instance_info->pid = 0;
-		widget_instance_info->period = period;
-
-		g_hash_table_insert(s_info.widget_table, instance_id, widget_instance_info);
-	} else {
-		widget_instance_info = g_hash_table_lookup(s_info.widget_table, instance_id);
-		if (!widget_instance_info) {
-			widget_instance_info = create_info(parent, widget_id, instance_id, content_info);
-			if (!widget_instance_info) {
-				set_last_result(WIDGET_ERROR_FAULT);
-				if (content_info_bundle)
-					bundle_free(content_info_bundle);
-				return NULL;
-			}
-
-			widget_instance_info->content_info_bundle = content_info_bundle;
-			widget_instance_info->pid = 0;
-			widget_instance_info->period = period;
-
-			g_hash_table_insert(s_info.widget_table, instance_id, widget_instance_info);
-		}
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("Failed to get instance_id: %s", widget_id);
+		return NULL;
 	}
+
+	widget_instance_info = create_info(parent, widget_id, instance_id, content_info);
+	if (!widget_instance_info) {
+		set_last_result(WIDGET_ERROR_FAULT);
+		ErrPrint("Unable to create an information object");
+		widget_instance_destroy(instance_id);
+		return NULL;
+	}
+
+	if (content_info)
+		widget_instance_info->content_info = strdup(content_info);
+
+	widget_instance_info->pid = 0;
+	widget_instance_info->period = period;
+
+	g_hash_table_insert(s_info.widget_table, widget_instance_info->instance_id, widget_instance_info);
 
 	/**
 	 * @note
@@ -845,7 +807,7 @@ EAPI int widget_viewer_evas_pause_widget(Evas_Object *widget)
 		return WIDGET_ERROR_DISABLED;
 	}
 
-	ret = widget_instance_pause(info->widget_id, info->instance_id);
+	ret = widget_instance_pause(info->instance_id);
 	if (ret < 0) {
 		ErrPrint("Fail to pause the widget(%p):(%d)", widget, ret);
 		return ret;
@@ -883,7 +845,7 @@ EAPI int widget_viewer_evas_resume_widget(Evas_Object *widget)
 		return WIDGET_ERROR_DISABLED;
 	}
 
-	ret = widget_instance_resume(info->widget_id, info->instance_id);
+	ret = widget_instance_resume(info->instance_id);
 	if (ret < 0) {
 		ErrPrint("Fail to resume the widget(%p):(%d)", widget, ret);
 		return ret;
@@ -896,10 +858,7 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 {
 	struct widget_info *info;
 	widget_instance_h handle = NULL;
-	bundle_raw *content_info = NULL;
-	int content_len = 0;
-	bundle *content_info_bundle = NULL;
-
+	char *content_info = NULL;
 
 	if (!is_widget_feature_enabled()) {
 		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
@@ -940,21 +899,9 @@ EAPI const char *widget_viewer_evas_get_content_info(Evas_Object *widget)
 		return NULL;
 	}
 
-	if (widget_instance_get_content(handle, &content_info_bundle) < 0) {
+	if (widget_instance_get_content(handle, &content_info) < 0) {
 		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Failed to get content of widget(%s)", info->instance_id);
-		return NULL;
-	}
-
-	if (content_info_bundle == NULL) {
-		set_last_result(WIDGET_ERROR_FAULT);
-		ErrPrint("content of widget(%s) is invalid data", info->instance_id);
-		return NULL;
-	}
-
-	if (bundle_encode(content_info_bundle, &content_info, &content_len) < 0) {
-		set_last_result(WIDGET_ERROR_FAULT);
-		ErrPrint("Failed to encode (%s)", info->instance_id);
 		return NULL;
 	}
 
@@ -1297,7 +1244,7 @@ EAPI void widget_viewer_evas_activate_faulted_widget(Evas_Object *widget)
 			elm_object_signal_emit(info->layout, "enable", "text");
 		}
 
-		info->pid = widget_instance_launch(info->widget_id, info->instance_id, info->content_info_bundle, w, h);
+		info->pid = widget_instance_launch(info->instance_id, info->content_info, w, h);
 		if (info->pid < 0) {
 			ErrPrint("Failed to launch an widget");
 			event_info.error = info->pid;
