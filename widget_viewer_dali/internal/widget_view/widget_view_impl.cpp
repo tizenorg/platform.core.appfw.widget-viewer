@@ -100,11 +100,11 @@ WidgetView::~WidgetView()
 {
   if( !mWidgetId.empty() && !mInstanceId.empty() )
   {
-    widget_instance_terminate( mWidgetId.c_str(), mInstanceId.c_str() );
+    widget_instance_terminate( mInstanceId.c_str() );
 
     if( mPermanentDelete )
     {
-      widget_instance_destroy( mWidgetId.c_str(), mInstanceId.c_str() );
+      widget_instance_destroy( mInstanceId.c_str() );
     }
   }
 
@@ -116,7 +116,7 @@ WidgetView::~WidgetView()
 
 bool WidgetView::PauseWidget()
 {
-  int ret = widget_instance_pause( mWidgetId.c_str(), mInstanceId.c_str() );
+  int ret = widget_instance_pause( mInstanceId.c_str() );
   if( ret < 0 )
   {
     DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::PauseWidget: Fail to pause widget(%s, %s) [%d]\n", mWidgetId.c_str(), mInstanceId.c_str(), ret );
@@ -130,7 +130,7 @@ bool WidgetView::PauseWidget()
 
 bool WidgetView::ResumeWidget()
 {
-  int ret = widget_instance_resume( mWidgetId.c_str(), mInstanceId.c_str() );
+  int ret = widget_instance_resume( mInstanceId.c_str() );
   if( ret < 0 )
   {
     DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::ResumeWidget: Fail to resume widget(%s, %s) [%d]\n", mWidgetId.c_str(), mInstanceId.c_str(), ret );
@@ -155,9 +155,7 @@ const std::string& WidgetView::GetInstanceId() const
 const std::string& WidgetView::GetContentInfo()
 {
   widget_instance_h instance;
-  bundle* bundle = NULL;
-  bundle_raw* contentInfo = NULL;
-  int contentLength = 0;
+  char* contentInfo = NULL;
 
   mContentInfo.clear();
 
@@ -174,21 +172,9 @@ const std::string& WidgetView::GetContentInfo()
     return mContentInfo;
   }
 
-  if( widget_instance_get_content( instance, &bundle ) < 0 )
+  if( widget_instance_get_content( instance, &contentInfo ) < 0 )
   {
     DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::GetContentInfo: Failed to get content of widget. [%s]\n", mInstanceId.c_str() );
-    return mContentInfo;
-  }
-
-  if( !bundle )
-  {
-    DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::GetContentInfo: Cotent of widget [%s] is invalid.\n", mInstanceId.c_str() );
-    return mContentInfo;
-  }
-
-  if( bundle_encode( bundle, &contentInfo, &contentLength ) < 0 )
-  {
-    DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::GetContentInfo: bundle_encode is failed. [%s]\n", mInstanceId.c_str() );
     return mContentInfo;
   }
 
@@ -290,7 +276,7 @@ void WidgetView::ActivateFaultedWidget()
     }
 
     // launch widget again
-    mPid = widget_instance_launch( mWidgetId.c_str(), mInstanceId.c_str(), mBundle, mWidth, mHeight );
+    mPid = widget_instance_launch( mInstanceId.c_str(), (char *)mContentInfo.c_str(), mWidth, mHeight );
     if( mPid < 0)
     {
       DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::ActivateFaultedWidget: widget_instance_launch is failed. [%s]\n", mWidgetId.c_str() );
@@ -453,32 +439,15 @@ void WidgetView::OnInitialize()
   std::string previewImage;
   widget_size_type_e sizeType;
 
-  if( !mContentInfo.empty() )
+  int ret = widget_instance_create( mWidgetId.c_str(), &instanceId );
+  if( ret < 0 || !instanceId )
   {
-    DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: decode bundle\n" );
-
-    mBundle = bundle_decode( reinterpret_cast< const bundle_raw* >( mContentInfo.c_str() ), mContentInfo.length() );
-    if( !mBundle )
-    {
-      DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: Invalid bundle data.\n" );
-      return;
-    }
-
-    bundle_get_str( mBundle, WIDGET_K_INSTANCE, &instanceId );
+    DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: widget_instance_create is failed [%s].\n", mWidgetId.c_str() );
+    return;
   }
 
-  if( !instanceId )
-  {
-    int ret = widget_instance_create( mWidgetId.c_str(), &instanceId );
-    if( ret < 0 || !instanceId )
-    {
-      DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: widget_instance_create is failed [%s].\n", mWidgetId.c_str() );
-      return;
-    }
-
-    DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: widget_instance_create is called. [widget id = %s, instance id = %s]\n",
-                   mWidgetId.c_str(), instanceId );
-  }
+  DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: widget_instance_create is called. [widget id = %s, instance id = %s]\n",
+                 mWidgetId.c_str(), instanceId );
 
   mInstanceId = instanceId;
 
@@ -524,7 +493,7 @@ void WidgetView::OnInitialize()
   mPreviewImage.Add( mStateText );
 
   // launch widget
-  mPid = widget_instance_launch( mWidgetId.c_str(), instanceId, mBundle, mWidth, mHeight );
+  mPid = widget_instance_launch( instanceId, (char *)mContentInfo.c_str(), mWidth, mHeight );
   if( mPid < 0)
   {
     DALI_LOG_INFO( gWidgetViewLogging, Debug::Verbose, "WidgetView::OnInitialize: widget_instance_launch is failed. [%s]\n", mWidgetId.c_str() );
