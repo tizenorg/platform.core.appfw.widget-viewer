@@ -59,6 +59,7 @@ static struct info {
 		char *title;
 		double period;
 		Evas_Object *widget;
+		Evas_Object *widget_layout;
 		int *size_types;
 		int count_of_size_type;
 	} ctx;
@@ -79,6 +80,7 @@ static struct info {
 		.title = NULL,
 		.period = WIDGET_VIEWER_EVAS_DEFAULT_PERIOD,
 		.widget = NULL,
+		.widget_layout = NULL,
 		.size_types = NULL,
 		.count_of_size_type = 20,
 	},
@@ -223,7 +225,6 @@ static bool app_create(void *data)
 
 	elm_win_alpha_set(s_info.win, EINA_FALSE);
 	elm_win_indicator_mode_set(s_info.win, ELM_WIN_INDICATOR_SHOW);
-	evas_object_show(s_info.win);
 
 	s_info.box = elm_box_add(s_info.win);
 	if (!s_info.box) {
@@ -233,7 +234,7 @@ static bool app_create(void *data)
 		s_info.win = NULL;
 		return false;
 	}
-	evas_object_size_hint_fill_set(s_info.box, 0.0, EVAS_HINT_FILL);
+	evas_object_size_hint_fill_set(s_info.box, EVAS_HINT_FILL, EVAS_HINT_FILL);
 	evas_object_size_hint_weight_set(s_info.box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	elm_box_align_set(s_info.box, 0.0, 0.0);
 
@@ -258,8 +259,7 @@ static bool app_create(void *data)
 		s_info.win = NULL;
 		return false;
 	}
-	evas_object_size_hint_expand_set(s_info.layout, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	evas_object_size_hint_fill_set(s_info.layout, EVAS_HINT_FILL, EVAS_HINT_FILL);
+	evas_object_size_hint_weight_set(s_info.layout, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
 	elm_win_resize_object_add(s_info.win, s_info.layout);
 	evas_object_show(s_info.layout);
 
@@ -277,6 +277,7 @@ static bool app_create(void *data)
 
 	eext_object_event_callback_add(s_info.win, EEXT_CALLBACK_BACK, back_key_cb, NULL);
 
+	evas_object_show(s_info.win);
 	return true;
 }
 
@@ -291,13 +292,15 @@ static int unload_widget(void)
 	DbgPrint("Unload previous widget: %s\n", tmp);
 
 	widget_viewer_evas_set_permanent_delete(s_info.ctx.widget, EINA_TRUE);
-	elm_box_unpack(s_info.box, s_info.ctx.widget);
+	elm_box_unpack(s_info.box, s_info.ctx.widget_layout);
 	evas_object_del(s_info.ctx.widget);
+	evas_object_del(s_info.ctx.widget_layout);
 	free(s_info.ctx.title);
 	free(s_info.ctx.content_info);
 	free(s_info.ctx.size_types);
 
 	s_info.ctx.widget = NULL;
+	s_info.ctx.widget_layout = NULL;
 	s_info.ctx.title = NULL;
 	s_info.ctx.content_info = NULL;
 	s_info.ctx.size_types = NULL;
@@ -430,6 +433,7 @@ static void widget_created_cb(void *data, Evas_Object *obj, void *event_info)
 
 static int load_widget(const char *widget_id)
 {
+	Evas_Object *bg = NULL;
 	int w = 0;
 	int h = 0;
 	int i;
@@ -458,6 +462,19 @@ static int load_widget(const char *widget_id)
 
 	DbgPrint("Found valid size[%X]: %dx%d\n", s_info.ctx.size_types[i], w, h);
 
+	s_info.ctx.widget_layout = elm_layout_add(s_info.win);
+	elm_layout_file_set(s_info.ctx.widget_layout, LAYOUT_EDJ, "widget");
+	evas_object_size_hint_weight_set(s_info.ctx.widget_layout, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+	evas_object_size_hint_align_set(s_info.ctx.widget, 0.0, 0.5);
+	evas_object_show(s_info.ctx.widget_layout);
+
+	bg = evas_object_rectangle_add(evas_object_evas_get(s_info.layout));
+	evas_object_resize(bg, w, h);
+	evas_object_size_hint_min_set(bg, w, h);
+	evas_object_color_set(bg, 255, 255, 255, 0);
+	evas_object_show(bg);
+	elm_object_part_content_set(s_info.ctx.widget_layout, "bg", bg);
+
 	s_info.ctx.widget = widget_viewer_evas_add_widget(s_info.win, widget_id, s_info.ctx.content_info, s_info.ctx.period);
 	if (!s_info.ctx.widget) {
 		update_message("Failed to create a new widget");
@@ -472,14 +489,13 @@ static int load_widget(const char *widget_id)
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_WIDGET_CREATED, widget_created_cb, NULL);
 	evas_object_smart_callback_add(s_info.ctx.widget, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, widget_create_aborted_cb, NULL);
 
-	elm_object_part_text_set(s_info.layout, "widget,id", widget_id);
-	elm_box_pack_end(s_info.box, s_info.ctx.widget);
-
 	evas_object_resize(s_info.ctx.widget, w, h);
-	evas_object_size_hint_min_set(s_info.ctx.widget, w, h);
-	evas_object_size_hint_max_set(s_info.ctx.widget, w, h);
 	evas_object_size_hint_align_set(s_info.ctx.widget, 0.0, 0.5);
 	evas_object_show(s_info.ctx.widget);
+	elm_object_part_content_set(s_info.ctx.widget_layout, "widget", s_info.ctx.widget);
+
+	elm_box_pack_end(s_info.box, s_info.ctx.widget_layout);
+	elm_object_part_text_set(s_info.layout, "widget,id", widget_id);
 
 	return WIDGET_ERROR_NONE;
 }

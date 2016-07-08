@@ -315,4 +315,27 @@ collections {
 			}
 		}
 	}
+	group {
+		name: "widget";
+		parts {
+			part {
+				name: "bg";
+				type: SWALLOW;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 1.0; }
+				}
+			}
+			part {
+				name: "widget";
+				type: SWALLOW;
+				description {
+					state: "default" 0.0;
+					rel1 { relative: 0.0 0.0; }
+					rel2 { relative: 1.0 1.0; }
+				}
+			}
+		}
+	}
 }
