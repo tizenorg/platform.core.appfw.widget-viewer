@@ -34,11 +34,13 @@
 #include <fcntl.h>
 
 #include <widget_errno.h>
-
+#include <widget_service_internal.h>
 #include <widget_instance.h>
 #include <widget_viewer.h>
 #include <compositor.h>
 #include <Pepper_Efl.h>
+#include <aul_app_com.h>
+#include <aul_cmd.h>
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -160,6 +162,7 @@ struct widget_info {
 	int visibility_freeze;
 	int state;
 	int cancel_click;
+	int restart;
 
 	GQueue *event_queue;
 
@@ -337,13 +340,64 @@ static void __push_event_queue(struct widget_info *info, int event)
 	g_queue_push_tail(info->event_queue, GINT_TO_POINTER(event));
 }
 
+static int __restart_terminated_widget(const char *widget_id)
+{
+
+	GHashTableIter iter;
+	gpointer key, value;
+	struct widget_info *widget_instance_info;
+	int w, h;
+
+	g_hash_table_iter_init(&iter, s_info.widget_table);
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
+		widget_instance_info = (struct widget_info *)value;
+		if ((widget_instance_info->restart == 1) &&
+				(strcmp(widget_instance_info->widget_id, widget_id) == 0)) {
+			evas_object_geometry_get(widget_instance_info->layout, NULL, NULL, &w, &h);
+			DbgPrint("Widget launch  %s, %d, %d", widget_instance_info->instance_id, w, h);
+			widget_instance_info->pid = widget_instance_launch(widget_instance_info->instance_id, widget_instance_info->content_info, w, h);
+			widget_instance_info->restart = 0;
+		}
+	}
+
+	return 0;
+}
+
+static int __handle_restart_widget_request(const char *widget_id)
+{
+	int pid = 0;
+	GHashTableIter iter;
+	gpointer key, value;
+	struct widget_info *widget_instance_info;
+
+	g_hash_table_iter_init(&iter, s_info.widget_table);
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
+		widget_instance_info = (struct widget_info *)value;
+		if (strcmp(widget_instance_info->widget_id, widget_id) == 0) {
+			widget_instance_info->restart = 1;
+			if (pid == 0)
+				pid = widget_instance_info->pid;
+		}
+	}
+	aul_terminate_pid_async(pid);
+	DbgPrint("Widget __handle_restart_widget_request id : %s, pid : %d", widget_id, pid);
+
+	return 0;
+}
+
 static int instance_event_cb(const char *widget_id, const char *instance_id, int event, void *data)
 {
 	struct widget_info *info;
 	struct widget_evas_event_info event_info;
-	const char *smart_signal;
+	const char *smart_signal = NULL;
 	char *content_info;
 	widget_instance_h handle;
+
+	DbgPrint("widget_id : %s (%d)", widget_id, event);
+	if (event == WIDGET_INSTANCE_EVENT_APP_RESTART_REQUEST) {
+		__handle_restart_widget_request(widget_id);
+		return 0;
+	}
 
 	info = g_hash_table_lookup(s_info.widget_table, instance_id);
 	if (!info) {
@@ -406,7 +460,6 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 		info->state = WIDGET_STATE_DETACHED;
 		__display_overlay_text(info);
 		break;
-
 	default:
 		/* unhandled event */
 		return 0;
@@ -419,6 +472,17 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 
 	smart_callback_call(info->layout, smart_signal, &event_info);
 
+	return 0;
+}
+
+int lifecycle_event_cb(const char *widget_id, widget_lifecycle_event_e lifecycle_event, const char *widget_instance_id, void *data)
+{
+	int ret;
+	DbgPrint("lifecycle_event_cb %s (%d)", widget_id, lifecycle_event);
+	if (lifecycle_event == WIDGET_LIFE_CYCLE_EVENT_APP_DEAD) {
+		ret = __restart_terminated_widget(widget_id);
+		return ret;
+	}
 	return 0;
 }
 
@@ -547,6 +611,9 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 {
 	struct widget_info *info = data;
 	struct widget_evas_event_info evas_info;
+
+	if (info->restart == 1)
+		return;
 
 	DbgPrint("delete: layout(%p)", layout);
 
@@ -712,6 +779,7 @@ out:
 	return NULL;
 }
 
+
 EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
 	char *instance_id = NULL;
@@ -767,6 +835,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	widget_instance_info->period = period;
 
 	g_hash_table_insert(s_info.widget_table, widget_instance_info->instance_id, widget_instance_info);
+	widget_service_set_lifecycle_event_cb(widget_id, lifecycle_event_cb, NULL);
 
 	/**
 	 * @note
