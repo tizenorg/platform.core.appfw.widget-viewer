@@ -34,11 +34,13 @@
 #include <fcntl.h>
 
 #include <widget_errno.h>
-
+#include <widget_service_internal.h>
 #include <widget_instance.h>
 #include <widget_viewer.h>
 #include <compositor.h>
 #include <Pepper_Efl.h>
+#include <aul_app_com.h>
+#include <aul_cmd.h>
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -165,6 +167,9 @@ struct widget_info {
 
 	Evas_Object *layout;
 };
+
+static int __is_aul_cmd_handler_connected;
+static aul_app_com_connection_h __aul_cmd_conn;
 
 static void __flush_event_queue(struct widget_info *info);
 
@@ -712,6 +717,37 @@ out:
 	return NULL;
 }
 
+static int __aul_cmd_handler(const char *endpoint, aul_app_com_result_e e, bundle *envelope, void *user_data)
+{
+	char *cmd_str;
+	char *pid_str;
+	int cmd;
+	int pid;
+	GHashTableIter iter;
+	gpointer key, value;
+	struct widget_info *widget_instance_info;
+	int w, h;
+
+	bundle_get_str(envelope, WIDGET_APP_K_CMD, &cmd_str);
+	bundle_get_str(envelope, WIDGET_APP_K_PID, &pid_str);
+	DbgPrint("Widget __aul_cmd_handler %s, %s", cmd_str, pid_str);
+
+	cmd = atoi(cmd_str);
+	pid = atoi(pid_str);
+
+	if (cmd == WIDGET_RESTART) {
+		aul_terminate_pid_sync(pid);
+		g_hash_table_iter_init(&iter, s_info.widget_table);
+		while (g_hash_table_iter_next(&iter, &key, &value)) {
+			widget_instance_info = (struct widget_info *)value;
+			evas_object_geometry_get(widget_instance_info->layout, NULL, NULL, &w, &h);
+			DbgPrint("Widget launch  %s, %d, %d", widget_instance_info->instance_id, w, h);
+			widget_instance_info->pid = widget_instance_launch(widget_instance_info->instance_id, widget_instance_info->content_info, w, h);
+		}
+	}
+	return 0;
+}
+
 EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
 	char *instance_id = NULL;
@@ -767,6 +803,15 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	widget_instance_info->period = period;
 
 	g_hash_table_insert(s_info.widget_table, widget_instance_info->instance_id, widget_instance_info);
+
+	if (__is_aul_cmd_handler_connected == 0) {
+		if (aul_app_com_create(widget_instance_info->widget_id, NULL, __aul_cmd_handler, NULL, &__aul_cmd_conn) < 0) {
+			ErrPrint("failed to create restart");
+			return NULL;
+		}
+		DbgPrint("connect aul cmd handler for %s", widget_instance_info->widget_id);
+		__is_aul_cmd_handler_connected = 1;
+	}
 
 	/**
 	 * @note

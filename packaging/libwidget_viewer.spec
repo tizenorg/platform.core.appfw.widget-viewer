@@ -34,6 +34,7 @@ BuildRequires: pkgconfig(dali-adaptor)
 BuildRequires: pkgconfig(dali-toolkit)
 BuildRequires: pkgconfig(pepper-dali)
 BuildRequires: pkgconfig(cynara-client)
+BuildRequires: pkgconfig(capi-appfw-widget-application)
 
 %description
 API for creating a new instance of the widget and managing its life-cycle.
