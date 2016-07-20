@@ -34,11 +34,12 @@
 #include <fcntl.h>
 
 #include <widget_errno.h>
-
+#include <widget_service_internal.h>
 #include <widget_instance.h>
 #include <widget_viewer.h>
 #include <compositor.h>
 #include <Pepper_Efl.h>
+#include <aul_app_com.h>
 
 #if defined(LOG_TAG)
 #undef LOG_TAG
@@ -160,6 +161,7 @@ struct widget_info {
 	int visibility_freeze;
 	int state;
 	int cancel_click;
+	bool restart;
 
 	GQueue *event_queue;
 
@@ -268,6 +270,9 @@ static void widget_object_cb(const char *instance_id, const char *event, Evas_Ob
 		return;
 	}
 
+	if (info->restart)
+		return;
+
 	if (strcmp(event, "added") == 0) {
 		int x, y, w, h;
 		DbgPrint("widget added: %s", instance_id);
@@ -337,13 +342,64 @@ static void __push_event_queue(struct widget_info *info, int event)
 	g_queue_push_tail(info->event_queue, GINT_TO_POINTER(event));
 }
 
-static int instance_event_cb(const char *widget_id, const char *instance_id, int event, void *data)
+static int __restart_terminated_widget(const char *widget_id)
+{
+
+	GHashTableIter iter;
+	gpointer key, value;
+	struct widget_info *widget_instance_info;
+	int w, h;
+
+	g_hash_table_iter_init(&iter, s_info.widget_table);
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
+		widget_instance_info = (struct widget_info *)value;
+		if (widget_instance_info->restart &&
+				(strcmp(widget_instance_info->widget_id, widget_id) == 0)) {
+			evas_object_geometry_get(widget_instance_info->layout, NULL, NULL, &w, &h);
+			DbgPrint("Widget launch  %s, %d, %d", widget_instance_info->instance_id, w, h);
+			widget_instance_info->pid = widget_instance_launch(widget_instance_info->instance_id, widget_instance_info->content_info, w, h);
+			widget_instance_info->restart = false;
+		}
+	}
+
+	return 0;
+}
+
+static int __handle_restart_widget_request(const char *widget_id)
+{
+	int pid = 0;
+	GHashTableIter iter;
+	gpointer key, value;
+	struct widget_info *widget_instance_info;
+
+	g_hash_table_iter_init(&iter, s_info.widget_table);
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
+		widget_instance_info = (struct widget_info *)value;
+		if (strcmp(widget_instance_info->widget_id, widget_id) == 0) {
+			widget_instance_info->restart = true;
+			if (pid == 0)
+				pid = widget_instance_info->pid;
+		}
+	}
+	aul_terminate_pid_async(pid);
+	DbgPrint("Widget __handle_restart_widget_request id : %s, pid : %d", widget_id, pid);
+
+	return 0;
+}
+
+static int __instance_event_cb(const char *widget_id, const char *instance_id, int event, void *data)
 {
 	struct widget_info *info;
 	struct widget_evas_event_info event_info;
-	const char *smart_signal;
+	const char *smart_signal = NULL;
 	char *content_info;
 	widget_instance_h handle;
+
+	DbgPrint("widget_id : %s (%d)", widget_id, event);
+	if (event == WIDGET_INSTANCE_EVENT_APP_RESTART_REQUEST) {
+		__handle_restart_widget_request(widget_id);
+		return 0;
+	}
 
 	info = g_hash_table_lookup(s_info.widget_table, instance_id);
 	if (!info) {
@@ -406,7 +462,6 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 		info->state = WIDGET_STATE_DETACHED;
 		__display_overlay_text(info);
 		break;
-
 	default:
 		/* unhandled event */
 		return 0;
@@ -422,6 +477,17 @@ static int instance_event_cb(const char *widget_id, const char *instance_id, int
 	return 0;
 }
 
+int __lifecycle_event_cb(const char *widget_id, widget_lifecycle_event_e lifecycle_event, const char *widget_instance_id, void *data)
+{
+	int ret;
+	DbgPrint("__lifecycle_event_cb %s (%d)", widget_id, lifecycle_event);
+	if (lifecycle_event == WIDGET_LIFE_CYCLE_EVENT_APP_DEAD) {
+		ret = __restart_terminated_widget(widget_id);
+		return ret;
+	}
+	return 0;
+}
+
 static void __flush_event_queue(struct widget_info *info)
 {
 	if (!info->event_queue) {
@@ -432,7 +498,7 @@ static void __flush_event_queue(struct widget_info *info)
 	while (!g_queue_is_empty(info->event_queue)) {
 		int event = GPOINTER_TO_INT(g_queue_pop_head(info->event_queue));
 		DbgPrint("call pending event %d", event);
-		instance_event_cb(info->widget_id, info->instance_id, event, NULL);
+		__instance_event_cb(info->widget_id, info->instance_id, event, NULL);
 	}
 
 	g_queue_free(info->event_queue);
@@ -471,7 +537,7 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 	}
 
 	widget_instance_init(app_id);
-	widget_instance_listen_event(instance_event_cb, NULL);
+	widget_instance_listen_event(__instance_event_cb, NULL);
 
 	s_info.initialized = true;
 
@@ -491,7 +557,7 @@ EAPI int widget_viewer_evas_fini(void)
 	}
 
 	_compositor_fini();
-	widget_instance_unlisten_event(instance_event_cb);
+	widget_instance_unlisten_event(__instance_event_cb);
 	widget_instance_fini();
 
 	s_info.initialized = false;
@@ -547,6 +613,9 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 {
 	struct widget_info *info = data;
 	struct widget_evas_event_info evas_info;
+
+	if (info->restart)
+		return;
 
 	DbgPrint("delete: layout(%p)", layout);
 
@@ -712,6 +781,7 @@ out:
 	return NULL;
 }
 
+
 EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char *widget_id, const char *content_info, double period)
 {
 	char *instance_id = NULL;
@@ -767,6 +837,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	widget_instance_info->period = period;
 
 	g_hash_table_insert(s_info.widget_table, widget_instance_info->instance_id, widget_instance_info);
+	widget_service_set_lifecycle_event_cb(widget_id, __lifecycle_event_cb, NULL);
 
 	/**
 	 * @note
