@@ -201,7 +201,6 @@ Header & package configuration of watch-control
 
 %files -n org.tizen.widget_viewer_sdk
 %manifest org.tizen.widget_viewer_sdk.manifest
-%attr(-,app,app) %dir /opt/usr/apps/org.tizen.widget_viewer_sdk/data
 %{_datarootdir}/packages/org.tizen.widget_viewer_sdk.xml
 %{_datarootdir}/license/org.tizen.widget_viewer_sdk
 %{_prefix}/apps/org.tizen.widget_viewer_sdk/*
