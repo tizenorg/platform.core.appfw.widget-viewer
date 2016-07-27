@@ -35,6 +35,7 @@
 
 #include <widget_errno.h>
 
+#include <widget_service_internal.h>
 #include <widget_instance.h>
 #include <widget_viewer.h>
 #include <compositor.h>
@@ -165,6 +166,8 @@ struct widget_info {
 
 	Evas_Object *layout;
 };
+
+static GHashTable *instance_cnt_table;
 
 static void __flush_event_queue(struct widget_info *info);
 
@@ -476,6 +479,7 @@ EAPI int widget_viewer_evas_init(Evas_Object *win)
 	s_info.initialized = true;
 
 	s_info.widget_table = g_hash_table_new(g_str_hash, g_str_equal);
+	instance_cnt_table = g_hash_table_new(g_str_hash, g_str_equal);
 
 	return WIDGET_ERROR_NONE;
 }
@@ -547,6 +551,7 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 {
 	struct widget_info *info = data;
 	struct widget_evas_event_info evas_info;
+	int *cur_instance_cnt;
 
 	DbgPrint("delete: layout(%p)", layout);
 
@@ -572,6 +577,10 @@ static void del_cb(void *data, Evas *e, Evas_Object *layout, void *event_info)
 		info->event_queue = NULL;
 	}
 
+	cur_instance_cnt = g_hash_table_lookup(instance_cnt_table, info->widget_id);
+	if (cur_instance_cnt != NULL)
+		(*cur_instance_cnt)--;
+
 	free(info->widget_id);
 	free(info->instance_id);
 	free(info->content_info);
@@ -585,6 +594,7 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 	char *preview_path = NULL;
 	int x, y, w, h;
 	widget_size_type_e size_type;
+	int *cur_instance_cnt;
 
 	if (!info || !layout) {
 		ErrPrint("Failed to load the info(%p) or layout(%p)", info, layout);
@@ -628,6 +638,11 @@ static void resize_cb(void *data, Evas *e, Evas_Object *layout, void *event_info
 
 			smart_callback_call(info->layout, WIDGET_SMART_SIGNAL_WIDGET_CREATE_ABORTED, &event_info);
 			__display_overlay_text(info);
+
+			cur_instance_cnt = g_hash_table_lookup(instance_cnt_table, info->widget_id);
+			if (cur_instance_cnt != NULL)
+				(*cur_instance_cnt)--;
+
 			return;
 		}
 	} else {
@@ -716,6 +731,28 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 {
 	char *instance_id = NULL;
 	struct widget_info *widget_instance_info = NULL;
+	int max_instance_cnt;
+	int *cur_instance_cnt;
+	int ret;
+
+	max_instance_cnt = widget_service_get_widget_max_count(widget_id);
+	if (max_instance_cnt < 0) {
+		ErrPrint("get widget max instance count fail");
+		return NULL;
+	}
+
+	cur_instance_cnt = g_hash_table_lookup(instance_cnt_table, widget_id);
+	if (cur_instance_cnt == NULL) {
+		cur_instance_cnt = (int *)calloc(1, sizeof(int));
+		*cur_instance_cnt = 0;
+		g_hash_table_insert(instance_cnt_table, strdup(widget_id), cur_instance_cnt);
+	}
+
+	if (max_instance_cnt <= *cur_instance_cnt) {
+		set_last_result(WIDGET_ERROR_MAX_EXCEED);
+		ErrPrint("already have max count instances");
+		return NULL;
+	}
 
 	if (!is_widget_feature_enabled()) {
 		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
@@ -767,6 +804,7 @@ EAPI Evas_Object *widget_viewer_evas_add_widget(Evas_Object *parent, const char 
 	widget_instance_info->period = period;
 
 	g_hash_table_insert(s_info.widget_table, widget_instance_info->instance_id, widget_instance_info);
+	(*cur_instance_cnt)++;
 
 	/**
 	 * @note
